@@ -1,0 +1,36 @@
+{
+    email admin@viiv.me
+    auto_https on
+}
+
+# Redirect www → root
+www.viiv.me {
+    redir https://viiv.me{uri} permanent
+}
+
+(secure_headers) {
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Server ""
+    }
+}
+
+# Owner Panel UI
+viiv.me {
+    import secure_headers
+    encode gzip
+
+    root * /var/www/viiv-owner
+    file_server
+}
+
+# API
+api.viiv.me {
+    import secure_headers
+    encode gzip
+
+    reverse_proxy api:8080
+}

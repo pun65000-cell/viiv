@@ -1,0 +1,66 @@
+version: "3.8"
+
+name: viiv
+
+networks:
+  viiv-network:
+    driver: bridge
+
+services:
+
+  api:
+    build:
+      context: ..
+      dockerfile: ./app/Dockerfile
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-viiv}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-viiv}
+      - POSTGRES_DB=${POSTGRES_DB:-viivdb}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-viiv}:${POSTGRES_PASSWORD:-viiv}@postgres:5432/${POSTGRES_DB:-viivdb}
+      - JWT_SECRET=${API_SECRET:-dev-secret}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - APP_ENV=${APP_ENV:-prod}
+    restart: unless-stopped
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_started
+    volumes:
+      - api-data:/app/data
+    networks:
+      - viiv-network
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-viiv}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-viiv}
+      - POSTGRES_DB=${POSTGRES_DB:-viivdb}
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - viiv-network
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/viivadmin/viiv/infra/reverse_proxy/Caddyfile:/etc/caddy/Caddyfile
+      - /var/www/viiv-owner:/var/www/viiv-owner:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    networks:
+      - viiv-network
+
+volumes:
+  pgdata:
+  api-data:
+  caddy_data:
+  caddy_config:
