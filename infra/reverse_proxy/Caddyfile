@@ -1,6 +1,6 @@
 {
     email admin@viiv.me
-    auto_https on
+    auto_https off
 }
 
 # Redirect www → root
@@ -32,5 +32,9 @@ api.viiv.me {
     import secure_headers
     encode gzip
 
+    reverse_proxy api:8080
+}
+
+http:// {
     reverse_proxy api:8080
 }
