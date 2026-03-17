@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status
 from pydantic import BaseModel
+from modules.module1.mini_pos.services import medusa_pos_service
 
 router = APIRouter()
 
@@ -12,4 +13,4 @@ def list_orders():
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def create_order(payload: OrderIn):
-    return {"id": "tmp", "total": 0}
+    return medusa_pos_service.create_order(payload.items)
