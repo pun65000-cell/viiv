@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+const API_KEY = "pk_65bb5c8b8868e921e76ed85bdec83cc3e5962eee83ca5d4ef5f699739943f893";
+
 type PageProps = {
   params: {
     store: string;
@@ -26,7 +28,7 @@ const mockProducts: Product[] = [
   { id: "p3", name: "Low Carb Meal", price: 139 },
 ];
 
-const MEDUSA_BASE_URL = "http://localhost:9000";
+const MEDUSA_BASE_URL = "https://viiv.me";
 
 function parseVariantId(product: any): string | undefined {
   const variants: any[] | undefined = product?.variants;
@@ -59,6 +61,10 @@ export default function PosPage({ params }: PageProps) {
       try {
         const res = await fetch(`${MEDUSA_BASE_URL}/store/products`, {
           method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": API_KEY,
+          },
         });
         if (!res.ok) return;
 
@@ -117,7 +123,10 @@ export default function PosPage({ params }: PageProps) {
     try {
       const createCartRes = await fetch(`${MEDUSA_BASE_URL}/store/carts`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-publishable-api-key": API_KEY,
+        },
         body: JSON.stringify({}),
       });
 
@@ -138,7 +147,10 @@ export default function PosPage({ params }: PageProps) {
           `${MEDUSA_BASE_URL}/store/carts/${cartId}/line-items`,
           {
             method: "POST",
-            headers: { "content-type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-publishable-api-key": API_KEY,
+            },
             body: JSON.stringify({
               variant_id: variantId,
               quantity: item.quantity,
@@ -156,7 +168,10 @@ export default function PosPage({ params }: PageProps) {
         `${MEDUSA_BASE_URL}/store/carts/${cartId}/complete`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": API_KEY,
+          },
           body: JSON.stringify({}),
         },
       );
