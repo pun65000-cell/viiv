@@ -23,9 +23,9 @@ type CartItem = Product & {
 };
 
 const mockProducts: Product[] = [
-  { id: "p1", name: "Chicken Salad", price: 129 },
-  { id: "p2", name: "Avocado Bowl", price: 149 },
-  { id: "p3", name: "Low Carb Meal", price: 139 },
+  { id: "mock_chicken_salad", name: "Chicken Salad", price: 12900 },
+  { id: "mock_avocado_bowl", name: "Avocado Bowl", price: 14900 },
+  { id: "mock_low_carb_meal", name: "Low Carb Meal", price: 13900 },
 ];
 
 const MEDUSA_BASE_URL = "https://viiv.me";
@@ -39,11 +39,8 @@ function parseVariantId(product: any): string | undefined {
 function parseVariantPrice(product: any): number | undefined {
   const variants: any[] | undefined = product?.variants;
   const first = Array.isArray(variants) ? variants[0] : null;
-  const prices: any[] | undefined = first?.prices ?? first?.price_set?.prices ?? undefined;
-  const p = Array.isArray(prices) ? prices[0] : null;
-  const amount = typeof p?.amount === "number" ? p.amount : null;
-  if (amount === null) return undefined;
-  return amount % 100 === 0 ? amount / 100 : Number((amount / 100).toFixed(2));
+  const amount = first?.calculated_price?.calculated_amount;
+  return typeof amount === "number" ? amount : undefined;
 }
 
 export default function PosPage({ params }: PageProps) {
@@ -83,6 +80,7 @@ export default function PosPage({ params }: PageProps) {
             if (!title || typeof p?.id !== "string") return null;
 
             const variantId = parseVariantId(p);
+            if (!variantId) return null;
             const price = parseVariantPrice(p) ?? 0;
             return { id: p.id, name: title, price, variantId };
           })
@@ -142,7 +140,8 @@ export default function PosPage({ params }: PageProps) {
       if (!cartId) throw new Error("Medusa cart_id missing from response");
 
       for (const item of cart) {
-        const variantId = item.variantId ?? item.id;
+        const variantId = item.variantId;
+        if (!variantId) throw new Error(`Missing variant_id for item: ${item.name}`);
         const addRes = await fetch(
           `${MEDUSA_BASE_URL}/store/carts/${cartId}/line-items`,
           {
@@ -264,7 +263,7 @@ export default function PosPage({ params }: PageProps) {
                 }}
                 onClick={() => addToCart(p)}
               >
-                {p.name} (฿{p.price})
+                {p.name} (฿{p.price / 100})
               </button>
             ))}
           </div>
@@ -301,7 +300,7 @@ export default function PosPage({ params }: PageProps) {
                     </div>
                   </div>
                   <div style={{ fontFamily: "monospace" }}>
-                    ฿{item.price * item.quantity}
+                    ฿{(item.price * item.quantity) / 100}
                   </div>
                 </div>
               ))}
@@ -316,7 +315,7 @@ export default function PosPage({ params }: PageProps) {
                 }}
               >
                 <div>Total</div>
-                <div style={{ fontFamily: "monospace" }}>฿{totalPrice}</div>
+                <div style={{ fontFamily: "monospace" }}>฿{totalPrice / 100}</div>
               </div>
             </div>
           )}
