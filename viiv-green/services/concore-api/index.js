@@ -105,9 +105,11 @@ fastify.get("/viiv/products", async (request, reply) => {
     console.log("[REQUEST]", request.method, request.url);
 
     const tenantIdHeader = request.headers["x-tenant-id"];
-    const tenantId = Array.isArray(tenantIdHeader)
-      ? tenantIdHeader[0]
-      : tenantIdHeader;
+    const tenantIdQuery = request.query?.tenant_id;
+
+    const tenantId =
+      (Array.isArray(tenantIdHeader) ? tenantIdHeader[0] : tenantIdHeader) ||
+      tenantIdQuery;
 
     if (!tenantId || typeof tenantId !== "string") {
       reply.code(400).send({ success: false, message: "Missing tenant_id" });
