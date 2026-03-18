@@ -12,6 +12,43 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
 }
 
 const fastify = require("fastify")({ logger: true });
+
+try {
+  fastify.register(require("@fastify/cors"), {
+    origin: ["http://65.21.144.150:5174", "http://65.21.144.150:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-tenant-id"],
+  });
+} catch (err) {}
+
+const allowedOrigins = new Set([
+  "http://65.21.144.150:5174",
+  "http://65.21.144.150:5173",
+]);
+
+fastify.addHook("onRequest", (request, reply, done) => {
+  const origin = request.headers.origin;
+  if (typeof origin === "string" && allowedOrigins.has(origin)) {
+    reply.header("Access-Control-Allow-Origin", origin);
+    reply.header("Vary", "Origin");
+    reply.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS",
+    );
+    reply.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, x-tenant-id",
+    );
+  }
+
+  if (request.method === "OPTIONS") {
+    reply.code(204).send();
+    return;
+  }
+
+  done();
+});
+
 const { createClient } = require("@supabase/supabase-js");
 
 const supabase = createClient(
