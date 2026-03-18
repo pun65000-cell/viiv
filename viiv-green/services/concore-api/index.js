@@ -1,3 +1,7 @@
+console.log("=== CONCORE GREEN START ===");
+console.log("RUNNING FROM:", __dirname);
+console.log("SUPABASE_URL =", process.env.SUPABASE_URL);
+
 require("dotenv").config();
 
 console.log("SUPABASE_URL =", process.env.SUPABASE_URL);
@@ -26,6 +30,75 @@ const supabase = createClient(
     },
   },
 );
+
+const generateSlug = (name) => {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
+
+fastify.post("/shops", async (request, reply) => {
+  try {
+    const body = request.body || {};
+    const name = body.name;
+
+    if (typeof name !== "string") {
+      return reply.code(400).send({ message: "Invalid input" });
+    }
+
+    const baseSlug = generateSlug(name);
+
+    for (let i = 0; i < 100; i++) {
+      const slug = i === 0 ? baseSlug : `${baseSlug}-${i}`;
+
+      const { data: existing, error: existsError } = await supabase
+        .from("shops")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existsError) {
+        console.error("SHOP ERROR FULL:", existsError);
+        return reply.code(500).send({
+          message: "Database error",
+          error: existsError,
+        });
+      }
+
+      if (existing) continue;
+
+      const { data, error: insertError } = await supabase
+        .from("shops")
+        .insert([{ name, slug }])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("SHOP ERROR FULL:", insertError || existsError);
+        return reply.code(500).send({
+          message: "Database error",
+          error: insertError || existsError || null,
+        });
+      }
+
+      return reply.send({
+        name: data.name,
+        slug: data.slug,
+        tenant_id: data.slug,
+        url: `https://${data.slug}.viiv.me`,
+      });
+    }
+
+    return reply.code(409).send({ message: "shop exists" });
+  } catch (err) {
+    console.error(err);
+    return reply.code(500).send({ message: "Internal error" });
+  }
+});
 
 fastify.get("/viiv/products", async (request, reply) => {
   try {

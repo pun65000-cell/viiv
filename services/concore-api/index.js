@@ -27,6 +27,84 @@ const supabase = createClient(
   },
 );
 
+const generateSlug = (name) => {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
+
+fastify.post("/shops", async (request, reply) => {
+  try {
+    console.log("[REQUEST]", request.method, request.url);
+
+    const body = request.body || {};
+    const name = body.name;
+
+    if (typeof name !== "string") {
+      reply.code(400).send({ message: "Invalid input" });
+      return;
+    }
+
+    const baseSlug = generateSlug(name);
+
+    if (baseSlug.length < 3 || !/^[a-z0-9-]+$/.test(baseSlug)) {
+      reply.code(400).send({ message: "Invalid input" });
+      return;
+    }
+
+    for (let i = 0; i < 100; i += 1) {
+      const slug = i === 0 ? baseSlug : `${baseSlug}-${i}`;
+
+      const { data: existing, error: existsError } = await supabase
+        .from("shops")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existsError) {
+        console.error("[SUPABASE ERROR]", existsError);
+        reply.code(500).send({ message: "Database error" });
+        return;
+      }
+
+      if (existing) {
+        continue;
+      }
+
+      const { data: inserted, error: insertError } = await supabase
+        .from("shops")
+        .insert([{ name, slug }])
+        .select("name,slug")
+        .single();
+
+      if (insertError) {
+        if (insertError.code === "23505") {
+          continue;
+        }
+        console.error("[SUPABASE ERROR]", insertError);
+        reply.code(500).send({ message: "Database error" });
+        return;
+      }
+
+      reply.send({
+        name: inserted.name,
+        slug: inserted.slug,
+        url: `https://${inserted.slug}.viiv.me`,
+      });
+      return;
+    }
+
+    reply.code(409).send({ message: "shop already exists" });
+  } catch (err) {
+    console.error(err);
+    reply.code(500).send({ message: "Internal error" });
+  }
+});
+
 fastify.get("/viiv/products", async (request, reply) => {
   try {
     console.log("[REQUEST]", request.method, request.url);
@@ -42,17 +120,17 @@ fastify.get("/viiv/products", async (request, reply) => {
     }
 
     const { data, error } = await supabase
-      .from("public.viiv_products")
-      .select("*")
-      .eq("tenant_id", tenantId);
+  .from("viiv_products")
+  .select("*")
+  .eq("tenant_id", tenantId);
 
-    if (error) {
-      console.error("SUPABASE ERROR FULL:");
-console.error(error);
-console.error(JSON.stringify(error, null, 2));
-      reply.code(500).send({ success: false, message: "Database error" });
-      return;
-    }
+console.log("SUPABASE_URL =", process.env.SUPABASE_URL);
+
+if (error) {
+  console.error("🔥 SUPABASE ERROR FULL:", JSON.stringify(error, null, 2));
+  reply.code(500).send({ success: false, message: "Database error" });
+  return;
+}
 
     reply.send({ success: true, data });
   } catch (err) {

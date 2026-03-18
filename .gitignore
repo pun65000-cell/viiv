@@ -8,3 +8,5 @@ dist/
 build/
 .DS_Store
 services/medusa-server/.env
+part_*
+structure.txt
