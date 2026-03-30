@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.routers_auth import router as auth_router
 from app.api.routers_users import router as users_router
 from app.api.routers_orgs import router as orgs_router
@@ -13,6 +14,14 @@ from app.api.cart.cart_router import order_router
 from app.api.product.product_router import router as product_router
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health():
