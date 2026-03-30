@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routers_auth import router as auth_router
 from app.api.routers_users import router as users_router
@@ -22,6 +23,48 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def inject_tenant(request: Request, call_next):
+    tenant_id = None
+
+    host = request.headers.get("host")
+    if host:
+        host = host.split(":")[0]
+    print("DEBUG_HOST:", host)
+    if host and "viiv.me" in host:
+        subdomain = host.split(".")[0]
+        if subdomain:
+            tenant_id = subdomain
+    print("DEBUG_AFTER_DOMAIN:", tenant_id)
+
+    if not tenant_id:
+        tenant_id = request.headers.get("X-Tenant")
+    print("DEBUG_AFTER_HEADER:", tenant_id)
+
+    if not tenant_id:
+        tenant_id = request.query_params.get("tenant_id")
+    print("DEBUG_AFTER_QUERY:", tenant_id)
+
+    if not tenant_id:
+        tenant_id = "default"
+    print("FINAL_TENANT:", tenant_id)
+
+    request.state.tenant_id = tenant_id
+
+    response = await call_next(request)
+    return response
+
+shops = {}
+
+@app.on_event("startup")
+def ensure_default_shop():
+    if "main_shop" not in shops:
+        shops["main_shop"] = {
+            "id": "main_shop",
+            "slug": "shop",
+            "domain": "shop.viiv.me",
+        }
 
 @app.get("/health")
 def health():
