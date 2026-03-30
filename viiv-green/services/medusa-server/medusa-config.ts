@@ -18,4 +18,7 @@ export default defineConfig({
   featureFlags: {
     publishable_api_keys: false,
   },
+  admin: {
+  disable: true,
+},
 })

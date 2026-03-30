@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>จัดการสินค้า (POS)</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        margin: 0;
+        color: #111;
+      }
+
+      :root {
+        --bg: #f5f5f5;
+        --panel: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --muted: rgba(0, 0, 0, 0.6);
+        --sidebar: #1a1a1a;
+        --accent: #d4a017;
+        --success: #1f9d55;
+        --affiliate: #e07a20;
+      }
+
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 240px;
+        background: var(--sidebar);
+        color: #fff;
+        padding: 18px 14px;
+        box-sizing: border-box;
+      }
+
+      .brand {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand-badge {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+        display: inline-block;
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .nav-item {
+        background: transparent;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 10px 12px;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .nav-item:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .nav-item.active {
+        background: rgba(212, 160, 23, 0.16);
+        border-color: rgba(212, 160, 23, 0.55);
+        color: #fff;
+      }
+
+      .main {
+        margin-left: 240px;
+        width: calc(100% - 240px);
+        padding: 22px;
+        box-sizing: border-box;
+      }
+
+      .main-inner {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .page-title {
+        margin: 0 0 16px 0;
+        font-size: 22px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 18px;
+        background: var(--panel);
+      }
+
+      h2 {
+        margin: 0 0 10px 0;
+      }
+
+      h3 {
+        margin: 14px 0 10px 0;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 6px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #fff;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #111;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        filter: brightness(0.96);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: #fff;
+      }
+
+      .btn-affiliate {
+        background: var(--affiliate);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        background: rgba(0, 0, 0, 0.06);
+        color: #111;
+      }
+
+      .btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .topbar {
+        background: white;
+        border-bottom: 1px solid #eee;
+        padding: 10px 20px;
+        display: flex;
+        gap: 10px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+      }
+
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background: white;
+        width: 400px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .media-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+        margin-bottom: 10px;
+      }
+
+      .media-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        padding: 8px;
+      }
+
+      .media-item-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .media-thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: rgba(0, 0, 0, 0.04);
+        flex: 0 0 auto;
+      }
+
+      .media-url {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.65);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      #products {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .product {
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 12px;
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .product img {
+        border-radius: 10px;
+        display: block;
+        margin-bottom: 10px;
+        object-fit: cover;
+      }
+      .low-stock {
+        color: #c1121f;
+        font-weight: 700;
+      }
+
+      @media (max-width: 880px) {
+        .sidebar {
+          position: static;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .nav {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .main {
+          margin-left: 0;
+          width: 100%;
+          padding: 16px;
+        }
+
+        #products {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-badge"></span>
+          <span>VIIV Admin</span>
+        </div>
+        <nav class="nav" id="nav">
+          <button class="nav-item active" data-view="dashboard">Dashboard</button>
+          <button class="nav-item" data-view="products">สินค้า</button>
+          <button class="nav-item" data-view="orders">ออเดอร์</button>
+          <button class="nav-item" data-view="inventory">คลังสินค้า</button>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="main-inner">
+          <div class="page-title">ระบบจัดการร้านค้า</div>
+          <div class="topbar" id="topbar"></div>
+
+          <div id="view-dashboard" class="view active">
+            <section class="card">
+              <h2>📊 แดชบอร์ดร้านค้า</h2>
+              <div class="btn-row">
+                <button id="refreshDashboard" class="btn btn-secondary">รีเฟรชแดชบอร์ด</button>
+              </div>
+              <div style="margin-top: 10px">
+                <div>จำนวนออเดอร์ทั้งหมด: <span id="orderCount">0</span></div>
+                <div>ยอดขายรวม: <span id="totalRevenue">0</span></div>
+              </div>
+              <div id="orders" style="margin-top: 10px"></div>
+            </section>
+          </div>
+
+          <div id="view-products" class="view">
+            <section class="card" id="card-create-product">
+              <h2>สร้างสินค้า</h2>
+              <div>กดปุ่ม “สร้างสินค้า” บนแถบด้านบนเพื่อเพิ่มสินค้าใหม่</div>
+              <div class="btn-row" style="margin-top: 10px">
+                <button type="button" class="btn" onclick="openProductModal()">สร้างสินค้า</button>
+              </div>
+    </section>
+
+            <section class="card" id="card-product-list">
+              <h2>รายการสินค้า</h2>
+              <div class="btn-row">
+                <button id="refreshProducts" class="btn btn-secondary">รีเฟรชรายการสินค้า</button>
+              </div>
+              <div id="products"></div>
+            </section>
+          </div>
+
+          <div id="view-orders" class="view">
+            <section class="card">
+              <h2>ตะกร้าสินค้า</h2>
+              <div>รหัสตะกร้า: <span id="cartId">-</span></div>
+              <div class="btn-row" style="margin-top: 10px">
+                <button id="refreshCart" class="btn btn-secondary">รีเฟรชตะกร้า</button>
+                <button id="checkoutBtn" class="btn">ชำระเงิน (Checkout)</button>
+              </div>
+              <div id="cart" style="margin-top: 10px"></div>
+            </section>
+
+            <section id="paymentSection" class="card" style="display: none">
+      <h2>🧾 หน้าชำระเงิน</h2>
+      <div>เลขคำสั่งซื้อ: <span id="orderId">-</span></div>
+      <div>ยอดชำระ: <span id="orderTotal">0</span> บาท</div>
+
+      <h3>💳 วิธีชำระเงิน</h3>
+      <div>
+        1. QR PromptPay (ใช้ภาพ static ก่อน)
+        <div>
+          <img id="qrImg" alt="QR PromptPay" />
+        </div>
+      </div>
+
+      <div>
+        2. หรือโอนผ่านบัญชี:
+        <div>ธนาคาร: กสิกรไทย</div>
+        <div>เลขบัญชี: 123-4-56789-0</div>
+        <div>ชื่อบัญชี: ร้าน VIIV</div>
+      </div>
+
+      <div>📌 หลังโอนเงิน กรุณาส่งสลิปในแชท</div>
+
+      <button id="paidBtn" class="btn btn-success">ฉันโอนเงินแล้ว</button>
+      <div>สถานะ: <span id="paymentStatus">-</span></div>
+    </section>
+          </div>
+
+          <div id="view-inventory" class="view">
+            <section class="card">
+              <h2>คลังสินค้า</h2>
+              <div class="btn-row" style="margin-top: 10px">
+                <button id="refreshInventory" class="btn btn-secondary">รีเฟรชคลัง</button>
+              </div>
+              <div id="inventory-section" style="margin-top: 10px"></div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div id="product-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>สร้างสินค้า</h3>
+
+        <form id="createForm">
+          <div>
+            <label>
+              ชื่อสินค้า
+              <input id="name" type="text" required />
+            </label>
+          </div>
+
+          <div>
+            <label>
+              ราคา
+              <input id="price" type="number" min="0" step="1" required />
+            </label>
+          </div>
+
+          <div>
+            <label>
+              ประเภทสินค้า
+              <select id="type">
+                <option value="normal">normal (สินค้าปกติ)</option>
+                <option value="affiliate">affiliate (Affiliate)</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="stockRow">
+            <label>
+              สต็อก
+              <input id="stock" type="number" min="0" step="1" />
+            </label>
+          </div>
+
+          <div id="affiliateUrlRow" style="display: none">
+            <label>
+              ลิงก์ Affiliate
+              <input id="affiliate_url" type="text" />
+            </label>
+          </div>
+
+          <div>
+            <label>
+              รูปสินค้า (URL)
+              <input id="image_url" type="text" />
+            </label>
+          </div>
+
+          <div>
+            <label>
+              เพิ่มรูป (URL)
+              <input id="media_image_url" type="text" />
+            </label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-secondary" onclick="addImageMedia()">เพิ่มรูป</button>
+            </div>
+          </div>
+
+          <div>
+            <label>
+              เพิ่มวิดีโอ (URL)
+              <input id="media_video_url" type="text" />
+            </label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-secondary" onclick="addVideoMedia()">เพิ่มวิดีโอ</button>
+            </div>
+          </div>
+
+          <div>
+            <div>ตัวอย่างมีเดีย</div>
+            <div id="mediaPreview" class="media-preview"></div>
+          </div>
+
+          <div>
+            <label>
+              รายละเอียดสินค้า
+              <textarea id="description" rows="3"></textarea>
+            </label>
+          </div>
+        </form>
+
+        <div id="createResult" style="margin-bottom: 10px"></div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" onclick="createProduct()">บันทึก</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const API = "http://localhost:9000";
+
+      let cartId = null;
+      let productMap = new Map();
+      let lastCart = null;
+      let lastOrder = null;
+      let mediaItems = [];
+
+      const $ = (id) => document.getElementById(id);
+
+      function setCreateMessage(text) {
+        $("createResult").textContent = text || "";
+      }
+
+      function updateTypeVisibility() {
+        const t = $("type").value;
+        if (t === "affiliate") {
+          $("stockRow").style.display = "none";
+          $("affiliateUrlRow").style.display = "";
+        } else {
+          $("stockRow").style.display = "";
+          $("affiliateUrlRow").style.display = "none";
+        }
+      }
+
+      function setActiveView(viewName) {
+        const views = document.querySelectorAll(".view");
+        for (const v of views) {
+          v.classList.toggle("active", v.id === `view-${viewName}`);
+        }
+
+        const items = document.querySelectorAll(".nav-item");
+        for (const item of items) {
+          item.classList.toggle("active", item.getAttribute("data-view") === viewName);
+        }
+
+        updateTopbar(viewName);
+      }
+
+      function updateTopbar(viewName) {
+        const topbar = document.getElementById("topbar");
+        if (!topbar) return;
+        topbar.textContent = "";
+
+        const addBtn = (label, onClick, className) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = label;
+          b.className = className || "btn btn-secondary";
+          b.addEventListener("click", onClick);
+          topbar.appendChild(b);
+        };
+
+        if (viewName === "products") {
+          addBtn(
+            "สร้างสินค้า",
+            () => {
+              openProductModal();
+            },
+            "btn btn-secondary",
+          );
+          addBtn(
+            "รายการสินค้า",
+            async () => {
+              await loadProducts();
+              const el = document.getElementById("card-product-list");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            },
+            "btn btn-secondary",
+          );
+        } else if (viewName === "orders") {
+          addBtn(
+            "รายการออเดอร์",
+            async () => {
+              setActiveView("dashboard");
+              await loadDashboard();
+            },
+            "btn btn-secondary",
+          );
+        }
+      }
+
+      function openProductModal() {
+        document.body.style.overflow = "hidden";
+        document.getElementById("product-modal").classList.remove("hidden");
+        mediaItems = [];
+        renderMediaPreview();
+        const name = document.getElementById("name");
+        if (name) name.focus();
+      }
+
+      function closeModal() {
+        document.body.style.overflow = "auto";
+        document.getElementById("product-modal").classList.add("hidden");
+      }
+
+      function renderMediaPreview() {
+        const container = document.getElementById("mediaPreview");
+        if (!container) return;
+        container.textContent = "";
+
+        for (let i = 0; i < mediaItems.length; i += 1) {
+          const item = mediaItems[i];
+
+          const row = document.createElement("div");
+          row.className = "media-item";
+
+          const left = document.createElement("div");
+          left.className = "media-item-left";
+
+          const thumb = document.createElement("img");
+          thumb.className = "media-thumb";
+          if (item.type === "image") {
+            thumb.src = item.url;
+          } else {
+            thumb.alt = "video";
+          }
+
+          const meta = document.createElement("div");
+          meta.style.minWidth = "0";
+
+          const typeDiv = document.createElement("div");
+          typeDiv.textContent = item.type === "image" ? "รูปภาพ" : "วิดีโอ";
+
+          const urlDiv = document.createElement("div");
+          urlDiv.className = "media-url";
+          urlDiv.textContent = item.url;
+
+          meta.appendChild(typeDiv);
+          meta.appendChild(urlDiv);
+
+          left.appendChild(thumb);
+          left.appendChild(meta);
+
+          const removeBtn = document.createElement("button");
+          removeBtn.type = "button";
+          removeBtn.className = "btn btn-secondary";
+          removeBtn.textContent = "ลบ";
+          removeBtn.addEventListener("click", () => {
+            mediaItems.splice(i, 1);
+            renderMediaPreview();
+          });
+
+          row.appendChild(left);
+          row.appendChild(removeBtn);
+          container.appendChild(row);
+        }
+      }
+
+      function addImageMedia() {
+        const input = document.getElementById("media_image_url");
+        const url = (input && input.value ? input.value : "").trim();
+        if (!url) return;
+        mediaItems.push({ type: "image", url });
+        if (input) input.value = "";
+        renderMediaPreview();
+      }
+
+      function addVideoMedia() {
+        const input = document.getElementById("media_video_url");
+        const url = (input && input.value ? input.value : "").trim();
+        if (!url) return;
+        mediaItems.push({ type: "video", url });
+        if (input) input.value = "";
+        renderMediaPreview();
+      }
+
+      async function createProduct() {
+        setCreateMessage("");
+
+        const payload = {
+          name: $("name").value,
+          price: Number($("price").value),
+          type: $("type").value,
+          image_url: $("image_url").value,
+          description: $("description").value,
+          media: mediaItems.slice(),
+        };
+
+        if (payload.type === "affiliate") {
+          payload.affiliate_url = $("affiliate_url").value;
+        } else {
+          payload.stock = Number($("stock").value || 0);
+        }
+
+        const { ok, json } = await httpJson(`${API}/product/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!ok || !json) {
+          setCreateMessage("สร้างสินค้าไม่สำเร็จ");
+          return;
+        }
+
+        if (json.error) {
+          setCreateMessage(`เกิดข้อผิดพลาด: ${json.error}`);
+          return;
+        }
+
+        setCreateMessage("สร้างสินค้าเรียบร้อย");
+        await loadProducts();
+        closeModal();
+      }
+
+      async function httpJson(url, options) {
+        const res = await fetch(url, options);
+        const json = await res.json().catch(() => null);
+        return { ok: res.ok, status: res.status, json };
+      }
+
+      async function ensureCart() {
+        if (cartId) return cartId;
+        const { ok, json } = await httpJson(`${API}/pos/cart/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        if (!ok || !json || !json.cart_id) {
+          throw new Error("สร้างตะกร้าไม่สำเร็จ");
+        }
+        cartId = json.cart_id;
+        $("cartId").textContent = cartId;
+        return cartId;
+      }
+
+      async function loadProducts() {
+        const container = $("products");
+        container.textContent = "กำลังโหลด...";
+        productMap = new Map();
+
+        const { ok, json } = await httpJson(`${API}/product/list`, { method: "GET" });
+        if (!ok || !Array.isArray(json)) {
+          container.textContent = "โหลดสินค้าไม่สำเร็จ";
+          return;
+        }
+
+        container.textContent = "";
+        if (json.length === 0) {
+          container.textContent = "ยังไม่มีสินค้า";
+          return;
+        }
+
+        for (const p of json) {
+          const id = p["รหัสสินค้า"];
+          productMap.set(id, p);
+
+          const row = document.createElement("div");
+          row.className = "product";
+
+          const imgUrl = p["รูปภาพ"];
+          if (imgUrl) {
+            const img = document.createElement("img");
+            img.src = imgUrl;
+            img.alt = p["ชื่อสินค้า"] || "";
+            img.width = 80;
+            img.height = 80;
+            row.appendChild(img);
+          }
+
+          const title = document.createElement("div");
+          title.textContent = `ชื่อสินค้า: ${p["ชื่อสินค้า"]} | ราคา: ${p["ราคา"]} | ประเภท: ${p["ประเภท"]}`;
+          row.appendChild(title);
+
+          const btn = document.createElement("button");
+          if (p["ประเภท"] === "affiliate") {
+            btn.textContent = "ไปยังสินค้า";
+            btn.className = "btn btn-affiliate";
+            btn.addEventListener("click", () => {
+              const url = p["ลิงก์พันธมิตร"] || "";
+              if (url) window.open(url, "_blank");
+            });
+          } else {
+            btn.textContent = "เพิ่มลงตะกร้า";
+            btn.className = "btn btn-success";
+            btn.addEventListener("click", async () => {
+              try {
+                const cid = await ensureCart();
+                const { ok: addOk, json: addJson } = await httpJson(`${API}/pos/cart/add-item`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ cart_id: cid, product_id: id, quantity: 1 }),
+                });
+
+                if (!addOk || !addJson) {
+                  alert("เพิ่มลงตะกร้าไม่สำเร็จ");
+                  return;
+                }
+
+                if (addJson.type === "affiliate" && addJson.redirect_url) {
+                  window.open(addJson.redirect_url, "_blank");
+                  return;
+                }
+
+                if (addJson.error) {
+                  alert(addJson.error);
+                  return;
+                }
+
+                await loadCart();
+              } catch (e) {
+                alert(String(e && e.message ? e.message : e));
+              }
+            });
+          }
+          row.appendChild(btn);
+
+          container.appendChild(row);
+        }
+      }
+
+      async function loadCart() {
+        const container = $("cart");
+        if (!cartId) {
+          container.textContent = "ยังไม่มีตะกร้า";
+          return;
+        }
+
+        container.textContent = "กำลังโหลด...";
+        const { ok, json } = await httpJson(`${API}/pos/cart/get`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cart_id: cartId }),
+        });
+
+        if (!ok || !json) {
+          container.textContent = "โหลดตะกร้าไม่สำเร็จ";
+          return;
+        }
+
+        if (json.error) {
+          container.textContent = json.error;
+          lastCart = null;
+          return;
+        }
+
+        lastCart = json;
+
+        const items = Array.isArray(json.items) ? json.items : [];
+        const total = json.total || 0;
+
+        container.textContent = "";
+        const ul = document.createElement("ul");
+        for (const item of items) {
+          const li = document.createElement("li");
+          const p = productMap.get(item.product_id);
+          const name = (p && p["ชื่อสินค้า"]) || item.product_id;
+          li.textContent = `สินค้า: ${name} | จำนวน: ${item.quantity} | ราคา: ${item.price}`;
+          ul.appendChild(li);
+        }
+        container.appendChild(ul);
+
+        const totalDiv = document.createElement("div");
+        totalDiv.textContent = `รวมทั้งหมด: ${total}`;
+        container.appendChild(totalDiv);
+      }
+
+      async function checkout() {
+        if (!cartId) {
+          alert("ยังไม่มีตะกร้า");
+          return;
+        }
+        const { ok, json } = await httpJson(`${API}/pos/checkout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cart_id: cartId }),
+        });
+
+        if (!ok || !json) {
+          alert("ชำระเงินไม่สำเร็จ");
+          return;
+        }
+
+        if (json.error) {
+          alert(json.error);
+          return;
+        }
+
+        lastOrder = json;
+        const orderId = json.order_id || "-";
+        const amount = Number(json.total || 0);
+
+        $("orderId").textContent = orderId;
+        $("orderTotal").textContent = String(amount);
+        $("qrImg").src = `https://promptpay.io/0812345678.png/${encodeURIComponent(
+          String(amount),
+        )}`;
+        $("paymentStatus").textContent = "รอชำระเงิน";
+        $("paymentSection").style.display = "";
+        await loadDashboard();
+      }
+
+      async function loadDashboard() {
+        const ordersDiv = $("orders");
+        ordersDiv.textContent = "กำลังโหลด...";
+        const { ok, json } = await httpJson(`${API}/order/list`, { method: "GET" });
+        if (!ok || !Array.isArray(json)) {
+          ordersDiv.textContent = "โหลดออเดอร์ไม่สำเร็จ";
+          $("orderCount").textContent = "0";
+          $("totalRevenue").textContent = "0";
+          return;
+        }
+
+        const totalRevenue = json.reduce((sum, o) => sum + Number(o.total || 0), 0);
+        $("orderCount").textContent = String(json.length);
+        $("totalRevenue").textContent = String(totalRevenue);
+
+        ordersDiv.textContent = "";
+        if (json.length === 0) {
+          ordersDiv.textContent = "ยังไม่มีออเดอร์";
+          return;
+        }
+
+        const ul = document.createElement("ul");
+        for (const o of json) {
+          const li = document.createElement("li");
+          const status = String(o.status || "");
+          const statusThai =
+            status === "created"
+              ? "สร้างแล้ว"
+              : status === "waiting_payment"
+                ? "รอชำระเงิน"
+                : status === "paid"
+                  ? "ชำระเงินแล้ว"
+                  : status;
+          li.textContent = `เลขคำสั่งซื้อ: ${o.order_id} | ยอดรวม: ${o.total} | สถานะ: ${statusThai}`;
+          ul.appendChild(li);
+        }
+        ordersDiv.appendChild(ul);
+      }
+
+      async function loadInventory() {
+        const container = document.getElementById("inventory-section");
+        if (!container) return;
+        container.textContent = "กำลังโหลด...";
+        const { ok, json } = await httpJson(`${API}/product/list`, { method: "GET" });
+        if (!ok || !Array.isArray(json)) {
+          container.textContent = "โหลดคลังไม่สำเร็จ";
+          return;
+        }
+        if (json.length === 0) {
+          container.textContent = "ยังไม่มีสินค้า";
+          return;
+        }
+        container.textContent = "";
+        for (const p of json) {
+          const name = p["ชื่อสินค้า"] || "-";
+          const stock = Number(p["สต็อก"] || 0);
+          const sold = Number(p["ขายแล้ว"] || 0);
+          const t = p["ประเภท"];
+          const row = document.createElement("div");
+          row.className = "card";
+          const warn = stock < 5 && t !== "affiliate";
+          row.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div>
+                <div style="font-weight:700">${name}</div>
+                <div class="${warn ? "low-stock" : "muted"}">สต็อก: ${stock}${warn ? " (ใกล้หมด)" : ""}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="muted">ขายแล้ว: ${sold}</div>
+                <div class="badge">${t === "affiliate" ? "Affiliate" : "สินค้าปกติ"}</div>
+              </div>
+            </div>
+          `;
+          container.appendChild(row);
+        }
+      }
+
+      $("type").addEventListener("change", updateTypeVisibility);
+      updateTypeVisibility();
+      document.getElementById("nav").addEventListener("click", (e) => {
+        const btn = e.target.closest(".nav-item");
+        if (!btn) return;
+        const viewName = btn.getAttribute("data-view");
+        if (!viewName) return;
+        setActiveView(viewName);
+        if (viewName === "inventory") {
+          loadInventory();
+        }
+      });
+      updateTopbar("dashboard");
+
+      $("createForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await createProduct();
+      });
+
+      $("refreshProducts").addEventListener("click", loadProducts);
+      $("refreshCart").addEventListener("click", loadCart);
+      $("checkoutBtn").addEventListener("click", checkout);
+      $("paidBtn").addEventListener("click", async () => {
+        if (!lastOrder || !lastOrder.order_id) {
+          alert("ไม่พบเลขคำสั่งซื้อ");
+          return;
+        }
+        const { ok, json } = await httpJson(`${API}/order/confirm-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: lastOrder.order_id }),
+        });
+        if (!ok || !json) {
+          alert("ยืนยันการชำระเงินไม่สำเร็จ");
+          return;
+        }
+        if (json.error) {
+          alert(json.error);
+          return;
+        }
+        $("paymentStatus").textContent = "ชำระเงินแล้ว";
+        await loadDashboard();
+      });
+      $("refreshDashboard").addEventListener("click", loadDashboard);
+      const refreshInvBtn = document.getElementById("refreshInventory");
+      if (refreshInvBtn) refreshInvBtn.addEventListener("click", loadInventory);
+
+      (async () => {
+        await loadProducts();
+        try {
+          await ensureCart();
+          await loadCart();
+          await loadDashboard();
+        } catch (e) {}
+      })();
+    </script>
+  </body>
+</html>

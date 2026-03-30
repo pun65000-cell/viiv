@@ -15,16 +15,18 @@ const fastify = require("fastify")({ logger: true });
 
 try {
   fastify.register(require("@fastify/cors"), {
-    origin: ["http://65.21.144.150:5174", "http://65.21.144.150:5173"],
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-tenant-id"],
   });
 } catch (err) {}
 
-const allowedOrigins = new Set([
-  "http://65.21.144.150:5174",
-  "http://65.21.144.150:5173",
-]);
+const allowedOrigins = new Set(
+  (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0),
+);
 
 fastify.addHook("onRequest", (request, reply, done) => {
   const origin = request.headers.origin;
@@ -130,7 +132,7 @@ fastify.post("/shops", async (request, reply) => {
       reply.send({
         name: inserted.name,
         slug: inserted.slug,
-        url: `https://${inserted.slug}.viiv.me`,
+        url: `${process.env.PUBLIC_BASE_URL}/${inserted.slug}`,
       });
       return;
     }
@@ -239,7 +241,7 @@ fastify.get('/products', async (request, reply) => {
   } 
 }) 
 
-fastify.listen({ port: 7000, host: "0.0.0.0" }, (err, address) => {
+fastify.listen({ port: process.env.PORT || 7000, host: "0.0.0.0" }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);

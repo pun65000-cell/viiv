@@ -16,6 +16,10 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
 }
 
 const fastify = require("fastify")({ logger: true });
+
+fastify.register(require("@fastify/cors"), {
+  origin: true,
+});
 const { createClient } = require("@supabase/supabase-js");
 
 const supabase = createClient(
