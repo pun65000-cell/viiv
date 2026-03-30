@@ -1,6 +1,13 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from app.api.auth_social import router as auth_social_router
+import os
 from app.api.routers_auth import router as auth_router
 from app.api.routers_users import router as users_router
 from app.api.routers_orgs import router as orgs_router
@@ -14,6 +21,10 @@ from app.api.cart.cart_router import router as cart_router
 from app.api.cart.cart_router import order_router
 from app.api.product.product_router import router as product_router
 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+SESSION_SECRET = os.getenv("SESSION_SECRET", "dev-secret")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -22,6 +33,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET,
 )
 
 @app.middleware("http")
@@ -82,4 +98,5 @@ app.include_router(pos_router)
 app.include_router(cart_router)
 app.include_router(order_router)
 app.include_router(product_router)
+app.include_router(auth_social_router)
 app.include_router(customers_router, prefix="/api/customers")

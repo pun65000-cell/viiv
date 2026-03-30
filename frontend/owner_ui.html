@@ -27,8 +27,17 @@
       @media (max-width:880px){ .sidebar{ position:static; width:100%; display:flex; align-items:center; gap:10px; } .nav{ flex-direction:row; flex-wrap:wrap; } .main{ margin-left:0; width:100%; padding:16px; } }
     </style>
     <script>
-      const token = localStorage.getItem("access_token");
-      if (!token) { window.location.href = "/login.html"; }
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get("token");
+      if (urlToken) {
+        localStorage.setItem("token", urlToken);
+        window.history.replaceState({}, document.title, "/dashboard");
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        window.location.href = "https://viiv.me/login.html";
+      }
     </script>
   </head>
   <body>
@@ -47,6 +56,7 @@
 
           <div id="view-dashboard" class="card view active">
             <div class="muted">ยินดีต้อนรับสู่ระบบจัดการร้าน VIIV</div>
+            <div id="meInfo" class="muted" style="margin-top:10px"></div>
           </div>
 
           <div id="view-shops" class="view" style="display:none">
@@ -72,8 +82,19 @@
       </main>
     </div>
     <script>
-      const API = "http://localhost:9000";
+      const API = "https://viiv.me";
       const $ = (id) => document.getElementById(id);
+
+      function getToken() {
+        return localStorage.getItem("token") || "";
+      }
+
+      async function authFetch(path, options) {
+        const token = getToken();
+        const headers = { ...(options && options.headers ? options.headers : {}) };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        return fetch(`${API}${path}`, { ...(options || {}), headers });
+      }
 
       function setActive(view) {
         for (const el of document.querySelectorAll(".view")) el.style.display = "none";
@@ -96,9 +117,7 @@
         const el = $("shopsList");
         el.textContent = "กำลังโหลด...";
         try {
-          const res = await fetch(`${API}/api/my/shops`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-          });
+          const res = await authFetch("/api/my/shops");
           const data = await res.json().catch(() => null);
           if (!res.ok || !Array.isArray(data)) { el.textContent = "โหลดไม่สำเร็จ"; return; }
           el.textContent = "";
@@ -125,7 +144,7 @@
         const el = $("pendingList");
         el.textContent = "กำลังโหลด...";
         try {
-          const res = await fetch(`${API}/api/admin/pending-users`);
+          const res = await authFetch("/api/admin/pending-users");
           const data = await res.json().catch(() => null);
           if (!res.ok || !Array.isArray(data)) { el.textContent = "โหลดไม่สำเร็จ"; return; }
           el.textContent = "";
@@ -140,7 +159,7 @@
             const right = document.createElement("div");
             const btn = document.createElement("button"); btn.className = "btn"; btn.textContent = "Activate";
             btn.addEventListener("click", async () => {
-              const r = await fetch(`${API}/api/admin/activate-user`, {
+              const r = await authFetch("/api/admin/activate-user", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user_id: u.id }),
@@ -156,8 +175,27 @@
         } catch { el.textContent = "โหลดไม่สำเร็จ"; }
       }
 
+      async function loadMe() {
+        const el = $("meInfo");
+        if (!el) return;
+        el.textContent = "กำลังโหลดข้อมูลผู้ใช้...";
+        try {
+          const res = await authFetch("/api/users/me");
+          const data = await res.json().catch(() => null);
+          if (!res.ok || !data) {
+            el.textContent = "โหลดข้อมูลผู้ใช้ไม่สำเร็จ";
+            return;
+          }
+          const email = data.email || "-";
+          el.textContent = `เข้าสู่ระบบแล้ว: ${email}`;
+        } catch (e) {
+          el.textContent = "โหลดข้อมูลผู้ใช้ไม่สำเร็จ";
+        }
+      }
+
       document.getElementById("refreshShops").addEventListener("click", loadShops);
       document.getElementById("refreshPending").addEventListener("click", loadPending);
+      loadMe();
     </script>
   </body>
 </html>
