@@ -7,60 +7,307 @@
     <style>
       :root { --bg:#f7f7f7; --panel:#fff; --border:rgba(0,0,0,.08); --accent:#d4a017; --muted:rgba(0,0,0,.6); }
       *{ box-sizing:border-box; }
-      body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:#111; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
-      .card{ width:100%; max-width:420px; background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:22px; }
+      body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:#111; min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:24px; padding-top: 60px; }
+      .card{ background:#fff; padding:20px; border-radius:10px; border:1px solid var(--border); }
+      .register-container { display:grid; grid-template-columns: 1fr; gap:20px; max-width:1100px; margin:auto; width:100%; }
+      @media (min-width: 1024px) { .register-container { grid-template-columns: 1fr 1fr; } }
       .logo{ display:inline-flex; align-items:center; gap:10px; font-weight:900; font-size:20px; letter-spacing:.5px; margin-bottom:6px; }
       .logo-dot{ width:10px; height:10px; border-radius:999px; background:var(--accent); display:inline-block; }
       h1{ margin:0 0 18px 0; font-size:22px; }
       label{ display:block; font-weight:700; margin:10px 0 6px 0; }
-      input{ width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
+      input:not([type="checkbox"]):not([type="radio"]), select, textarea{ width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; background:#fff; }
       .btn{ width:100%; padding:12px 16px; border:none; border-radius:12px; cursor:pointer; font-weight:800; background:var(--accent); color:#111; }
       .muted{ color:var(--muted); margin-top:10px; text-align:center; }
       .links{ display:flex; justify-content:space-between; margin-top:12px; }
       .a{ color:#111; text-decoration:none; }
+      .btn-submit {
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 800;
+        background: #ccc;
+        cursor: not-allowed;
+        color: #111;
+      }
+      .btn-submit.active {
+        background: #16a34a;
+        cursor: pointer;
+        color: #fff;
+      }
+      .package-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .package-grid label {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .package-grid input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+      }
+      .helper {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin: 6px 0 10px 0;
+      }
+      #registerBtn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        background: #ccc;
+        color: #fff;
+        transition: all 0.3s;
+      }
+      #registerBtn.active {
+        background: linear-gradient(135deg,#ffb347,#ff8c00);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
-    <div class="card">
+    <div style="width:100%; max-width:520px;">
       <div class="logo"><span class="logo-dot"></span> VIIV</div>
       <h1>สมัครใช้งาน</h1>
-      <form id="registerForm">
-        <label for="email">อีเมล</label>
-        <input id="email" name="email" type="email" placeholder="you@example.com" required />
-        <label for="password">รหัสผ่าน</label>
-        <input id="password" name="password" type="password" placeholder="••••••••" required />
-        <button class="btn" type="submit">สมัครใช้งาน</button>
-      </form>
-      <div class="links">
-        <a class="a" href="/frontend/index.html">หน้าแรก</a>
-        <a class="a" href="/login.html">เข้าสู่ระบบ</a>
+
+      <div class="card">
+        <form id="register-form">
+          <label>ชื่อ-นามสกุล <span style="color:red">*</span></label>
+          <input type="text" id="full_name" placeholder="เช่น สมชาย ใจดี" required />
+
+          <label>อีเมล <span style="color:red">*</span></label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+
+          <label>รหัสผ่าน <span style="color:red">*</span></label>
+          <input type="password" id="password" required />
+
+          <label>ชื่อร้าน <span style="color:red">*</span></label>
+          <input type="text" id="store_name" placeholder="DJ Mart" required />
+
+          <label>ชื่อโดเมนร้าน <span style="color:red">*</span></label>
+          <div style="display:flex; gap:5px;">
+            <input type="text" id="subdomain" placeholder="myshop" required />
+            <span style="display:flex; align-items:center;">.viiv.me</span>
+          </div>
+          <p style="font-size:12px;color:#666; margin: 6px 0 10px 0;">
+            ใช้ได้เฉพาะ a-z และ 0-9 อย่างน้อย 4 ตัว
+          </p>
+          <button type="button" onclick="checkSubdomain()">เช็คชื่อโดเมน</button>
+
+          <label>เบอร์โทรศัพท์ <span style="color:red">*</span></label>
+          <input type="text" id="phone" required />
+
+          <label>ที่อยู่</label>
+          <textarea id="address"></textarea>
+
+          <label>จังหวัด</label>
+          <input type="text" id="province" />
+
+          <label>อำเภอ</label>
+          <input type="text" id="district" />
+
+          <label>ตำบล</label>
+          <input type="text" id="subdistrict" />
+
+          <label>รหัสไปรษณีย์</label>
+          <input type="text" id="postal_code" />
+
+          <label>แพ็กเกจ <span style="color:red">*</span></label>
+          <div class="package-grid">
+            <label><input type="radio" name="package" value="trial"> ทดลองฟรี 14 วัน</label>
+            <label><input type="radio" name="package" value="basic"> Basic</label>
+            <label><input type="radio" name="package" value="pro"> Pro</label>
+            <label><input type="radio" name="package" value="chat"> Chat Commerce</label>
+            <label><input type="radio" name="package" value="affiliate"> Affiliate</label>
+            <label><input type="radio" name="package" value="enterprise"> Enterprise</label>
+          </div>
+
+          <div id="termsBox" style="height:150px; overflow:auto; border:1px solid #ccc; padding:10px; font-size:12px; margin-top:10px;">
+            ข้อกำหนดและเงื่อนไขการใช้งานระบบ VIIV
+            <br><br>
+            1. ระบบ VIIV เป็นผู้ให้บริการแพลตฟอร์มสำหรับสร้างร้านค้าออนไลน์ ผู้ใช้งานเป็นผู้ดำเนินธุรกิจเองทั้งหมด
+            <br><br>
+            2. ระบบไม่มีส่วนเกี่ยวข้องกับการซื้อขายสินค้า การชำระเงิน หรือการให้บริการของผู้ใช้งาน
+            <br><br>
+            3. ระบบเป็นเพียงเครื่องมือ ไม่ใช่ระบบจัดเก็บข้อมูลถาวร ผู้ใช้งานต้องสำรองข้อมูลเอง
+            <br><br>
+            4. ข้อมูลบางส่วนอาจถูกเก็บตามความจำเป็น โดยข้อมูลด้านบัญชีอาจถูกเก็บไม่เกิน 3 ปี
+            <br><br>
+            5. ระบบไม่รับผิดชอบต่อความเสียหาย เช่น:
+            <br><br>
+            - ข้อมูลสูญหาย
+            <br>
+            - รายได้สูญเสีย
+            <br>
+            - ธุรกิจผิดพลาด
+            <br><br>
+            6. ผู้ใช้งานต้องไม่ใช้ระบบในทางผิดกฎหมาย
+            <br><br>
+            7. ระบบสามารถระงับการใช้งานได้โดยไม่ต้องแจ้งล่วงหน้า
+            <br><br>
+            8. ระบบอาจมีการปรับปรุงหรือหยุดบริการบางส่วน
+            <br><br>
+            ระบบเป็นเพียงผู้ให้บริการแพลตฟอร์ม ผู้ใช้งานต้องรับผิดชอบข้อมูลและการใช้งานทั้งหมดด้วยตนเอง
+            <br>
+            ระบบไม่รับผิดชอบต่อความเสียหายใด ๆ ที่เกิดขึ้นจากการใช้งาน
+            <br>
+            ผู้ใช้งานยอมรับว่าการใช้งานระบบถือเป็นความเสี่ยงของตนเองทั้งหมด
+            <br><br>
+            ---
+            <br><br>
+            ข้อมูลที่จัดเก็บ:
+            <br><br>
+            - ชื่อ
+            <br>
+            - อีเมล
+            <br>
+            - เบอร์โทร
+            <br>
+            - ข้อมูลร้านค้า
+            <br>
+            - เวลาในการกดยอมรับข้อตกลง
+            <br>
+            - ข้อมูลอุปกรณ์ (browser)
+          </div>
+
+          <label style="margin-top:10px; display:block;">
+            <input type="checkbox" id="agree" disabled />
+            ฉันยอมรับข้อตกลงและเงื่อนไข *
+          </label>
+
+          <button id="registerBtn" disabled type="button" onclick="handleRegister()">
+            สมัครใช้งาน
+          </button>
+        </form>
+
+        <a href="/" style="display:block; margin-top:10px;">
+          ← กลับหน้าแรก
+        </a>
       </div>
-      <div id="msg" class="muted"></div>
     </div>
+
     <script>
-      const API = "http://localhost:9000";
-      const form = document.getElementById("registerForm");
-      const msg = document.getElementById("msg");
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        msg.textContent = "";
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        try {
-          const res = await fetch(`${API}/api/auth/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-          if (!res.ok) {
-            msg.textContent = "สมัครไม่สำเร็จ";
-            return;
+      const blockedSubdomains = ["api", "admin", "env", "www", "vip", "123"];
+      let termsRead = false;
+
+      function checkSubdomain() {
+        const sub = document.getElementById("subdomain").value;
+
+        if (sub.length < 4) {
+          alert("ชื่อโดเมนต้องมีอย่างน้อย 4 ตัวอักษร");
+          return;
+        }
+
+        if (!/^[a-z0-9]+$/.test(sub)) {
+          alert("ใช้ได้เฉพาะ a-z และ 0-9 เท่านั้น");
+          return;
+        }
+
+        if (blockedSubdomains.includes(sub)) {
+          alert("ไม่อนุญาตให้ใช้ชื่อนี้");
+          return;
+        }
+
+        alert("ชื่อนี้ดูใช้ได้ (ตัวอย่างการตรวจสอบ)");
+      }
+
+      function validateForm() {
+        const required = [
+          "full_name",
+          "email",
+          "password",
+          "store_name",
+          "subdomain",
+          "phone",
+        ];
+
+        let valid = true;
+
+        required.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el || !el.value) valid = false;
+        });
+
+        const btn = document.getElementById("registerBtn");
+        const agree = document.getElementById("agree").checked;
+        const pkg = document.querySelector('input[name="package"]:checked');
+        if (!agree || !pkg) valid = false;
+
+        if (btn) {
+          if (valid) {
+            btn.disabled = false;
+            btn.classList.add("active");
+          } else {
+            btn.disabled = true;
+            btn.classList.remove("active");
           }
-          msg.textContent = "สมัครสำเร็จ กรุณารอการอนุมัติจากระบบ";
-        } catch (err) {
-          msg.textContent = "สมัครไม่สำเร็จ";
+        }
+
+        return valid;
+      }
+
+      document.querySelectorAll("input,textarea").forEach((el) => {
+        el.addEventListener("input", validateForm);
+      });
+      document.querySelectorAll('input[name="package"]').forEach((el) => {
+        el.addEventListener("change", validateForm);
+      });
+      document.getElementById("agree").addEventListener("change", validateForm);
+      document.getElementById("termsBox").addEventListener("scroll", function () {
+        const el = this;
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) {
+          termsRead = true;
+          document.getElementById("agree").disabled = false;
         }
       });
+      document.getElementById("agree").addEventListener("click", function (e) {
+        if (!termsRead) {
+          e.preventDefault();
+          alert("กรุณาอ่านข้อตกลงให้ครบก่อน");
+        }
+      });
+      validateForm();
+
+      function handleRegister() {
+        if (!validateForm()) {
+          alert("กรุณากรอกข้อมูลให้ครบ เลือกแพ็กเกจ และยอมรับข้อตกลงก่อน");
+          return;
+        }
+
+        const payload = {
+          full_name: document.getElementById("full_name").value,
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+          store_name: document.getElementById("store_name").value,
+          subdomain: document.getElementById("subdomain").value,
+          phone: document.getElementById("phone").value,
+          consent: {
+            accepted: true,
+            accepted_at: new Date().toISOString(),
+            user_agent: navigator.userAgent,
+          },
+        };
+
+        console.log("REGISTER PAYLOAD:", payload);
+        alert("ส่งข้อมูลสมัครใช้งานแล้ว (รอเชื่อมต่อระบบสมัครใช้งานจริง)");
+      }
     </script>
   </body>
 </html>

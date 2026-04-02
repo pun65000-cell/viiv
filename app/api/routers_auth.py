@@ -4,6 +4,7 @@ from app.core.database import SessionLocal
 from app.services import auth as auth_service
 from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.schemas.users import UserRead
+from app.services import package_service as pkg_service
 
 router = APIRouter(tags=['auth'])
 
@@ -29,3 +30,16 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     token, exp, u = res
     return TokenResponse(access_token=token, expires_at=exp)
+
+
+@router.post('/set-plan')
+def set_plan(payload: dict):
+    user_id = payload.get("user_id")
+    plan = payload.get("plan") or payload.get("pkg")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    if plan and plan in pkg_service.PACKAGES:
+        info = pkg_service.set_plan(user_id, plan)
+    else:
+        info = pkg_service.assign_trial(user_id)
+    return {"success": True, "data": info}

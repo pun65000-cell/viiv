@@ -43,7 +43,7 @@ async def auth_google_callback(request: Request):
     user = token.get("userinfo") or {}
     email = user.get("email")
     if request.query_params.get("debug") == "1":
-        return {"provider": "google", "email": email, "token": token}
+        return {"provider": "google", "email": email, "token": token, "userinfo": user}
 
     if not email:
         return {"provider": "google", "error": "missing email"}
@@ -59,11 +59,13 @@ async def auth_google_callback(request: Request):
             "sub": str(u.id),
             "user_id": str(u.id),
             "email": email,
+        "name": user.get("name"),
+        "picture": user.get("picture"),
             "exp": datetime.utcnow() + timedelta(minutes=60),
         }
         jwt_token = jwt.encode(payload, auth_service.SECRET_KEY, algorithm=auth_service.ALGORITHM)
 
-    return RedirectResponse(url=f"https://owner.viiv.me/dashboard?token={jwt_token}")
+    return RedirectResponse(url=f"https://viiv.me/register.html?token={jwt_token}")
 
 
 @router.get("/auth/line")

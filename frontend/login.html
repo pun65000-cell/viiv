@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>เข้าสู่ระบบ | VIIV</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
       :root { --bg:#f7f7f7; --panel:#fff; --border:rgba(0,0,0,.08); --accent:#d4a017; --muted:rgba(0,0,0,.6); }
       *{ box-sizing:border-box; }
@@ -15,9 +16,46 @@
       label{ display:block; font-weight:700; margin:10px 0 6px 0; }
       input{ width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
       .btn{ width:100%; padding:12px 16px; border:none; border-radius:12px; cursor:pointer; font-weight:800; background:var(--accent); color:#111; }
+      .btn-primary{ background:var(--accent); color:#111; }
+      .btn-secondary{ background:rgba(0,0,0,.06); color:#111; }
       .muted{ color:var(--muted); margin-top:10px; text-align:center; }
       .links{ display:flex; justify-content:space-between; margin-top:12px; }
       .a{ color:#111; text-decoration:none; }
+      .social-btn {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .social-btn img {
+        width: 18px;
+        height: 18px;
+      }
+      .google {
+        background: #fff;
+        border: 1px solid #ddd;
+        color: #111;
+      }
+      .line {
+        background: #06C755;
+        color: #fff;
+      }
+      .facebook {
+        background: #1877F2;
+        color: #fff;
+      }
+      .social-btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.9;
+      }
     </style>
   </head>
   <body>
@@ -29,39 +67,107 @@
         <input id="email" name="email" type="email" placeholder="you@example.com" required />
         <label for="password">รหัสผ่าน</label>
         <input id="password" name="password" type="password" placeholder="••••••••" required />
-        <button class="btn" type="submit">เข้าสู่ระบบ</button>
+        <button class="btn btn-primary" id="loginBtn" type="button" onclick="handleLogin()">เข้าสู่ระบบ</button>
       </form>
-      <div class="links">
-        <a class="a" href="/frontend/index.html">หน้าแรก</a>
-        <a class="a" href="/register.html">สมัครใช้งาน</a>
-      </div>
       <div id="msg" class="muted"></div>
+      <button id="googleLoginBtn" class="social-btn google" type="button">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
+        เข้าสู่ระบบด้วย Google
+      </button>
+      <button id="lineLoginBtn" class="social-btn line" type="button">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" />
+        เข้าสู่ระบบด้วย LINE
+      </button>
+      <button id="fbLoginBtn" class="social-btn facebook" type="button">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook" />
+        เข้าสู่ระบบด้วย Facebook
+      </button>
     </div>
     <script>
-      const API = "http://localhost:9000";
-      const form = document.getElementById("loginForm");
-      const msg = document.getElementById("msg");
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        msg.textContent = "";
+      const SUPABASE_URL = "";
+      const SUPABASE_ANON_KEY = "";
+
+      const supabaseClient =
+        window.supabase &&
+        typeof window.supabase.createClient === "function" &&
+        SUPABASE_URL &&
+        SUPABASE_ANON_KEY
+          ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+          : null;
+      const supabase = supabaseClient;
+
+      async function handleLogin() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        try {
-          const res = await fetch(`${API}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-          const data = await res.json().catch(() => null);
-          if (!res.ok || !data || !data.access_token) {
-            alert(data && data.error ? data.error : "เข้าสู่ระบบไม่สำเร็จ");
+        if (!email || !password) {
+          alert("กรุณากรอกข้อมูลให้ครบ");
+          return;
+        }
+
+        if (supabase) {
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+              alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+              return;
+            }
+            const token = data && data.session ? data.session.access_token : "";
+            if (token) localStorage.setItem("access_token", token);
+            window.location.href = "/owner/dashboard.html";
+            return;
+          } catch (e) {
+            alert("ระบบมีปัญหา");
             return;
           }
-          localStorage.setItem("access_token", data.access_token);
-          window.location.href = "/owner_ui.html";
-        } catch (err) {
-          alert("เข้าสู่ระบบไม่สำเร็จ");
         }
+
+        try {
+          const res = await fetch("https://auth.viiv.me/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data && data.access_token) {
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("token", data.access_token);
+            window.location.href = "/owner/dashboard.html";
+            return;
+          }
+          alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+        } catch (e) {
+          alert("ระบบมีปัญหา");
+        }
+      }
+
+      document.getElementById("googleLoginBtn").onclick = async () => {
+        try {
+          alert("Google login ยังไม่พร้อมใช้งาน");
+        } catch (err) {
+          alert("Google login failed");
+        }
+      };
+
+      document.getElementById("lineLoginBtn").onclick = () => {
+        alert("LINE login coming soon");
+      };
+
+      document.getElementById("fbLoginBtn").onclick = () => {
+        alert("Facebook login coming soon");
+      };
+
+      // window.addEventListener("load", () => {
+      //   const token = localStorage.getItem("access_token");
+      //   if (token) {
+      //     window.location.href = "/owner/dashboard.html";
+      //   }
+      // });
+
+      document.getElementById("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        handleLogin();
       });
     </script>
   </body>

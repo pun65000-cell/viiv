@@ -20,6 +20,7 @@ from modules.pos.pos_router import router as pos_router
 from app.api.cart.cart_router import router as cart_router
 from app.api.cart.cart_router import order_router
 from app.api.product.product_router import router as product_router
+from app.api.admin_auth import router as admin_auth_router
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -29,7 +30,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://viiv.me",
+        "https://www.viiv.me",
+        "https://owner.viiv.me",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,4 +104,5 @@ app.include_router(cart_router)
 app.include_router(order_router)
 app.include_router(product_router)
 app.include_router(auth_social_router)
+app.include_router(admin_auth_router)
 app.include_router(customers_router, prefix="/api/customers")

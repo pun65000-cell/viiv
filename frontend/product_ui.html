@@ -4,6 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>จัดการสินค้า (POS)</title>
+    <script>
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        window.location.href = "/login.html";
+      }
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      console.log("PRODUCT UI PAYLOAD:", payload);
+
+      // allow both owner and shop user temporarily
+      if (!payload.email) {
+        window.location.href = "/login.html";
+      }
+    </script>
     <style>
       body {
         font-family: sans-serif;
@@ -495,7 +511,7 @@
       </div>
     </div>
     <script>
-      const API = "http://localhost:9000";
+      const API = "https://auth.viiv.me";
 
       let cartId = null;
       let productMap = new Map();

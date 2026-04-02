@@ -24,6 +24,14 @@
       .card h3{ margin:0 0 8px 0; }
       .list{ margin:0; padding-left:18px; color:var(--muted); }
     </style>
+    <script>
+      if (window.location.pathname === "/login") {
+        window.location.href = "/login.html";
+      }
+      if (window.location.pathname === "/signup") {
+        window.location.href = "/register.html";
+      }
+    </script>
   </head>
   <body>
     <div class="wrap">
