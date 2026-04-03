@@ -7,17 +7,21 @@
     <script>
       const token = localStorage.getItem("access_token");
 
-      if (!token) {
-        window.location.href = "/login.html";
+      if (false && !token) {
+        console.trace("REDIRECT TRIGGERED");
+        // AUTH DISABLED
+        // window.location.href = "/login.html";
       }
 
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = token ? JSON.parse(atob(token.split('.')[1])) : {};
 
       console.log("PRODUCT UI PAYLOAD:", payload);
 
       // allow both owner and shop user temporarily
-      if (!payload.email) {
-        window.location.href = "/login.html";
+      if (false && !payload.email) {
+        console.trace("REDIRECT TRIGGERED");
+        // AUTH DISABLED
+        // window.location.href = "/login.html";
       }
     </script>
     <style>

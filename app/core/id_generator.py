@@ -1,8 +1,8 @@
-import secrets
+from app.core.id import gen_id
 
-_ALLOWED = {'usr', 'cus', 'prd', 'ord', 'evt'}
+_ALLOWED = {"usr", "cus", "prd", "ord", "evt", "shp", "stf", "crt", "req"}
 
 def generate_id(prefix: str) -> str:
     if prefix not in _ALLOWED:
         raise ValueError('invalid prefix')
-    return f"{prefix}_{secrets.token_hex(3)}"
+    return gen_id(prefix)

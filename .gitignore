@@ -10,3 +10,6 @@ build/
 services/medusa-server/.env
 part_*
 structure.txt
+modules/module1/_mini_pos_backup/
+deploy/
+concore/

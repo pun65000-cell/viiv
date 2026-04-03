@@ -8,3 +8,6 @@ pydantic
 passlib[bcrypt]
 python-jose[cryptography]
 email-validator
+itsdangerous
+python-multipart
+Pillow

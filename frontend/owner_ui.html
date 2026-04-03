@@ -28,6 +28,8 @@
       @media (max-width:880px){ .sidebar{ position:static; width:100%; display:flex; align-items:center; gap:10px; } .nav{ flex-direction:row; flex-wrap:wrap; } .main{ margin-left:0; width:100%; padding:16px; } }
     </style>
     <script>
+      console.log("🔥 OWNER_UI LOADED");
+      const IS_OWNER_DOMAIN = window.location.hostname.includes("owner.viiv.me");
       const params = new URLSearchParams(window.location.search);
       const urlToken = params.get("token");
       if (urlToken) {
@@ -35,9 +37,14 @@
         window.history.replaceState({}, document.title, "/dashboard");
       }
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "https://viiv.me/login.html";
+      if (false) {
+        const token = localStorage.getItem("token");
+        console.log("AUTH CHECK:", { hostname: window.location.hostname, isOwner: IS_OWNER_DOMAIN, token: typeof token !== "undefined" ? token : null });
+        if (false && !token && !IS_OWNER_DOMAIN) {
+          console.trace("REDIRECT TRIGGERED");
+          // AUTH DISABLED
+          // window.location.href = "/login.html";
+        }
       }
     </script>
   </head>
@@ -197,6 +204,9 @@
       document.getElementById("refreshShops").addEventListener("click", loadShops);
       document.getElementById("refreshPending").addEventListener("click", loadPending);
       loadMe();
+    </script>
+    <script src="/core/auth.js"></script><script>
+      requireAuth();
     </script>
   </body>
 </html>

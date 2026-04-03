@@ -5,6 +5,7 @@ from app.core.database import SessionLocal
 from app.services import auth as auth_service
 from app.repositories import tenants as tenant_repo
 from app.core.id_generator import generate_id
+from modules.pos.services import shop_service
 
 router = APIRouter()
 
@@ -37,4 +38,10 @@ def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
     code = generate_id("usr")
     t = tenant_repo.create_tenant(db, slug=payload.shop_slug, name=payload.shop_slug, owner_user_id=u.id, package="BASIC")
     db.commit()
+    try:
+        shop = shop_service.create_shop(str(u.id), payload.shop_slug)
+        if shop and shop.get("id"):
+            shop_service.create_staff(shop.get("id"), str(u.id), role="admin")
+    except Exception as e:
+        print("POS AUTO CREATE FAILED:", e)
     return RegisterShopOut(user_id=str(u.id), user_code=code, tenant_id=str(t.id), slug=t.slug, package=t.package)

@@ -99,12 +99,120 @@
         margin-bottom: 12px;
       }
     </style>
+    <style>
+      body {
+        background: #0f1115 !important;
+        color: #e5e7eb !important;
+      }
+
+      .card, .box, .container {
+        background: #1a1d24 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+      }
+
+      input, select, textarea {
+        background: #111318 !important;
+        color: #e5e7eb !important;
+        border: 1px solid #2a2f3a !important;
+      }
+
+      button {
+        border-radius: 8px !important;
+      }
+
+      .btn-primary, button.primary {
+        background: linear-gradient(90deg, #d4af37, #f1c40f) !important;
+        color: #000 !important;
+        font-weight: 600;
+      }
+
+      .sidebar {
+        background: #0d0f14 !important;
+      }
+
+      .sidebar a {
+        color: #aaa !important;
+      }
+
+      .sidebar a.active {
+        background: rgba(212,175,55,0.15) !important;
+        color: #f1c40f !important;
+      }
+    </style>
+    <style>
+      body {
+        background: #0c0d11 !important;
+        color: #e5e7eb !important;
+        font-family: system-ui;
+      }
+
+      .card, .box, .container, .section {
+        background: #16181d !important;
+        border-radius: 14px !important;
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      input, select, textarea {
+        background: #0f1115 !important;
+        color: #fff !important;
+        border: 1px solid #2a2f3a !important;
+      }
+
+      button, .btn-primary {
+        background: linear-gradient(90deg, #d4af37, #f1c40f) !important;
+        color: #000 !important;
+        font-weight: 600;
+      }
+
+      h1, h2, h3 {
+        color: #fff !important;
+      }
+
+      p, span {
+        color: #aaa !important;
+      }
+    </style>
   </head>
   <body>
     <div class="wrap">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:15px;
+      ">
+        <div style="color:#999;font-size:12px;">
+          🛠 ADMIN PANEL (STORE LEVEL)
+        </div>
+
+        <div style="
+          background:#1a1d24;
+          padding:6px 12px;
+          border-radius:8px;
+          font-size:12px;
+        ">
+          Logged in
+        </div>
+      </div>
       <div class="row" style="margin-bottom: 10px">
-        <div class="title">VIIV Mobile Admin</div>
+        <div class="title">
+          <h2 style="margin-bottom:5px;">
+            My Store <span style="color:#f1c40f;">(ADMIN)</span>
+          </h2>
+
+          <div style="font-size:12px;color:#888;">
+            Store Management Dashboard
+          </div>
+        </div>
         <button id="refreshAll" class="btn btn-small">รีเฟรช</button>
+      </div>
+      <div style="
+        font-size:13px;
+        color:#888;
+        margin-bottom:10px;
+      ">
+        Current Store: <b id="storeName">My Store</b>
       </div>
 
       <div class="card">
@@ -151,10 +259,14 @@
       async function loadOrders() {
         const { ok, json } = await httpJson(`${API}/order/list`, { method: "GET" });
         if (!ok || !Array.isArray(json)) {
+          console.log("API OFFLINE → SAFE MODE");
           document.getElementById("todayRevenue").textContent = "0";
           document.getElementById("todayOrders").textContent = "0";
-          document.getElementById("latestOrders").textContent = "โหลดออเดอร์ไม่สำเร็จ";
+          document.getElementById("latestOrders").textContent = "โหมดทดสอบ (API offline)";
           return [];
+        }
+        if (!json || json.length === 0) {
+          console.log("ADMIN: NO DATA → SAFE MODE");
         }
         const totalRevenue = json.reduce((sum, o) => sum + Number(o.total || 0), 0);
         document.getElementById("todayRevenue").textContent = String(totalRevenue);
@@ -195,7 +307,7 @@
                 body: JSON.stringify({ order_id: o.order_id }),
               });
               if (!ok2 || (j2 && j2.error)) {
-                alert("อัปเดตสถานะไม่สำเร็จ");
+                console.log("API OFFLINE → SAFE MODE");
                 return;
               }
               await refreshAll();
@@ -216,9 +328,13 @@
         topEl.textContent = "";
         lowEl.textContent = "";
         if (!ok || !Array.isArray(json)) {
-          topEl.textContent = "โหลดสินค้าไม่สำเร็จ";
-          lowEl.textContent = "โหลดสินค้าไม่สำเร็จ";
+          console.log("API OFFLINE → SAFE MODE");
+          topEl.textContent = "โหมดทดสอบ (API offline)";
+          lowEl.textContent = "โหมดทดสอบ (API offline)";
           return;
+        }
+        if (!json || json.length === 0) {
+          console.log("ADMIN: NO DATA → SAFE MODE");
         }
         const products = json.map((p) => ({
           id: p["รหัสสินค้า"],

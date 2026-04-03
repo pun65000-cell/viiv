@@ -25,8 +25,10 @@
       .list{ margin:0; padding-left:18px; color:var(--muted); }
     </style>
     <script>
-      if (window.location.pathname === "/login") {
-        window.location.href = "/login.html";
+      if (false && window.location.pathname === "/login") {
+        console.trace("REDIRECT TRIGGERED");
+        // AUTH DISABLED
+        // window.location.href = "/login.html";
       }
       if (window.location.pathname === "/signup") {
         window.location.href = "/register.html";

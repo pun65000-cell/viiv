@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.api.auth_social import router as auth_social_router
 import os
 from app.api.routers_auth import router as auth_router
@@ -21,12 +22,32 @@ from app.api.cart.cart_router import router as cart_router
 from app.api.cart.cart_router import order_router
 from app.api.product.product_router import router as product_router
 from app.api.admin_auth import router as admin_auth_router
+from app.api.pos_admin import router as pos_admin_router
+from app.core.id import gen_id
+from modules.event_bus.event_bus import set_req_id, clear_req_id
+from app.api.upload import router as upload_router
+from app.api.track import router as track_router
+from app.api.chat import router as chat_router
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "dev-secret")
 
 app = FastAPI()
+
+os.makedirs("/home/viivadmin/viiv/uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="/home/viivadmin/viiv/uploads"), name="uploads")
+
+@app.middleware("http")
+async def attach_req_id(request: Request, call_next):
+    req_id = gen_id("req")
+    request.state.req_id = req_id
+    set_req_id(req_id)
+    print({"req": req_id, "method": request.method, "path": request.url.path})
+    response = await call_next(request)
+    print({"req": req_id, "status": getattr(response, "status_code", None)})
+    clear_req_id()
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -103,6 +124,10 @@ app.include_router(pos_router)
 app.include_router(cart_router)
 app.include_router(order_router)
 app.include_router(product_router)
+app.include_router(pos_admin_router)
+app.include_router(upload_router)
+app.include_router(track_router, prefix="/api")
+app.include_router(chat_router, prefix="/api")
 app.include_router(auth_social_router)
 app.include_router(admin_auth_router)
 app.include_router(customers_router, prefix="/api/customers")

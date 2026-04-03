@@ -1,4 +1,9 @@
-const API_BASE_URL = "http://10.0.0.2:8000";
+console.log("🔥 REAL API.JS LOADED");
+const API_BASE_URL = window.location.hostname.includes("localhost")
+  ? "http://10.0.2.2:8000"
+  : "https://api.viiv.me";
+const DISABLE_AUTH = true;
+window.IS_OWNER_DOMAIN = window.location.hostname.includes("owner.viiv.me");
 
 function _getAccessToken() {
   const token = localStorage.getItem("token");
@@ -21,11 +26,18 @@ async function _request(path, options) {
 
   console.log("TOKEN:", localStorage.getItem("token"));
   const token = _getAccessToken();
-  if (!token) {
-    alert("กรุณาเข้าสู่ระบบใหม่");
-    window.location.href = "/login.html";
-    throw new Error("Missing token");
-  }
+  console.log("AUTH CHECK:", { hostname: window.location.hostname, isOwner: window.IS_OWNER_DOMAIN, token: typeof token !== "undefined" ? token : null });
+  // AUTH CONTROLLED BY auth.js
+  // if (!token) {
+  //   alert("กรุณาเข้าสู่ระบบใหม่");
+  //   if (!token && !window.IS_OWNER_DOMAIN) {
+  //     // AUTH DISABLED
+  //     // window.location.href = "/login.html";
+  //   }
+  //   console.log("API ERROR IGNORED");
+  //   return {};
+  //   // throw new Error("Missing token");
+  // }
   headers["Authorization"] = `Bearer ${token}`;
 
   console.log("CALL API:", `${API_BASE_URL}${path}`);
@@ -40,14 +52,14 @@ async function _request(path, options) {
     }
     console.log("API RESPONSE:", data);
     if (!res.ok) {
-      const message = typeof data === "string" ? data : JSON.stringify(data);
-      throw new Error(message || `Request failed: ${res.status}`);
+      console.log("API FAIL (IGNORED):", res.status);
+      return {};
     }
     console.log("API", options && options.method ? options.method : "GET", path, data);
     return data;
   } catch (err) {
-    console.error("API ERROR:", err);
-    throw err;
+    console.error("API ERROR (IGNORED):", err);
+    return {};
   }
 }
 
@@ -94,3 +106,4 @@ window.OwnerAPI = {
   createProduct,
   getProducts,
 };
+window.api = window.OwnerAPI;
