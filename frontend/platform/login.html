@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<title>VIIV Platform Login</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    background: #e6e9ef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 320px;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #d6a94b;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+</style>
+
+</head>
+<body>
+
+<div class="card">
+    <h2>VIIV Platform</h2>
+
+    <input id="email" placeholder="email" />
+    <input id="password" type="password" placeholder="password" />
+
+    <button onclick="login()">เข้าสู่ระบบ</button>
+
+    <p id="msg"></p>
+</div>
+
+<script src="/platform/js/auth.js"></script>
+
+</body>
+</html>

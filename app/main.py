@@ -23,11 +23,13 @@ from app.api.cart.cart_router import order_router
 from app.api.product.product_router import router as product_router
 from app.api.admin_auth import router as admin_auth_router
 from app.api.pos_admin import router as pos_admin_router
+from app.api.stores import router as stores_router
 from app.core.id import gen_id
 from modules.event_bus.event_bus import set_req_id, clear_req_id
-from app.api.upload import router as upload_router
+# from app.api.upload import router as upload_router
 from app.api.track import router as track_router
 from app.api.chat import router as chat_router
+from app.api.stores import router as stores_router
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -38,14 +40,18 @@ app = FastAPI()
 os.makedirs("/home/viivadmin/viiv/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="/home/viivadmin/viiv/uploads"), name="uploads")
 
+_debug_req_logs = os.getenv("DEBUG_REQ_LOGS") == "1"
+
 @app.middleware("http")
 async def attach_req_id(request: Request, call_next):
     req_id = gen_id("req")
     request.state.req_id = req_id
     set_req_id(req_id)
-    print({"req": req_id, "method": request.method, "path": request.url.path})
+    if _debug_req_logs:
+        print({"req": req_id, "method": request.method, "path": request.url.path})
     response = await call_next(request)
-    print({"req": req_id, "status": getattr(response, "status_code", None)})
+    if _debug_req_logs:
+        print({"req": req_id, "status": getattr(response, "status_code", None)})
     clear_req_id()
     return response
 
@@ -73,24 +79,19 @@ async def inject_tenant(request: Request, call_next):
     host = request.headers.get("host")
     if host:
         host = host.split(":")[0]
-    print("DEBUG_HOST:", host)
     if host and "viiv.me" in host:
         subdomain = host.split(".")[0]
         if subdomain:
             tenant_id = subdomain
-    print("DEBUG_AFTER_DOMAIN:", tenant_id)
 
     if not tenant_id:
         tenant_id = request.headers.get("X-Tenant")
-    print("DEBUG_AFTER_HEADER:", tenant_id)
 
     if not tenant_id:
         tenant_id = request.query_params.get("tenant_id")
-    print("DEBUG_AFTER_QUERY:", tenant_id)
 
     if not tenant_id:
         tenant_id = "default"
-    print("FINAL_TENANT:", tenant_id)
 
     request.state.tenant_id = tenant_id
 
@@ -116,6 +117,7 @@ app.include_router(auth_router, prefix="/api/auth")
 app.include_router(users_router, prefix="/api/users")
 app.include_router(orgs_router, prefix="/api/orgs")
 app.include_router(register_shop_router, prefix="/api")
+app.include_router(stores_router)
 
 # app.include_router(products_router, prefix="/api/products")
 # app.include_router(orders_router, prefix="/api/orders")
@@ -125,7 +127,11 @@ app.include_router(cart_router)
 app.include_router(order_router)
 app.include_router(product_router)
 app.include_router(pos_admin_router)
-app.include_router(upload_router)
+try:
+    from app.api.upload import router as upload_router  # noqa: F401
+    app.include_router(upload_router)
+except Exception:
+    pass
 app.include_router(track_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(auth_social_router)
