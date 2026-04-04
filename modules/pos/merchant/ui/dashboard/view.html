@@ -3,56 +3,380 @@
   <head>
     <title>VIIV Merchant</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="./style.css">
+    <style>
+      :root {
+        --accent: #d6a94b;
+        --accent-hover: #c89b3c;
+        --bg-main: #e6e9ef;
+        --content-bg: #f6f6f6;
+        --text: #1f2937;
+        --border: rgba(0,0,0,0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg-main);
+        color: var(--text);
+      }
+
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 200px;
+        color: #fff;
+        background: linear-gradient(180deg, #1a1d24 0%, #13161c 100%) !important;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .nav-item {
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #cbd5e1;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .nav-item:hover {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #ffffff;
+        transform: translateX(2px);
+      }
+
+      .nav-item.active {
+        background: rgba(214,169,75,0.15);
+        color: #ffffff;
+        border: 1px solid rgba(214,169,75,0.6);
+        box-shadow:
+          0 0 0 1px rgba(214,169,75,0.25),
+          0 4px 12px rgba(0,0,0,0.25);
+      }
+
+      .sidebar #shopName {
+        color: var(--accent);
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--accent);
+        font-size: 11px;
+        line-height: 1.1;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+        min-width: 0;
+        background: var(--bg-main);
+      }
+
+      .pagebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 2px 2px;
+      }
+
+      .pagebar-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .btn {
+        padding: 6px 8px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--text);
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        border-color: rgba(0, 0, 0, 0.15);
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .btn-secondary {
+        background: #e5e7eb;
+        border-color: rgba(0, 0, 0, 0.15);
+        color: #1a1a1a;
+        font-weight: 600;
+      }
+
+      .topbar button {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--text);
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .topbar button.active {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: none;
+        background: var(--accent);
+        color: #ffffff;
+        font-size: 13px;
+      }
+
+      .topbar button.active:hover {
+        background: var(--accent-hover);
+      }
+
+      .topbar button:hover {
+        background: var(--accent-hover);
+        color: #ffffff;
+        border: none;
+      }
+
+      .profile {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .profile-name {
+        color: var(--text);
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .dropdown {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px;
+        min-width: 180px;
+        display: none;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+      }
+
+      .dropdown button {
+        width: 100%;
+        text-align: left;
+        padding: 10px 10px;
+        border-radius: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .dropdown button:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+      }
+
+      .card-subtitle {
+        margin: 0 0 14px 0;
+        color: rgba(31,41,55,0.7);
+      }
+    </style>
   </head>
   <body>
     <div class="layout">
-      <div class="sidebar">
-        <div class="brand">
-          <div class="brand-title"><span class="viiv">VIIV</span> <span class="role">Merchant</span></div>
-          <div class="brand-accent"></div>
+      <div class="sidebar" style="
+        background: #020617;
+        padding: 8px;
+      ">
+        <div class="brand" style="padding: 10px 10px 6px 10px;">
+
+          <!-- 🔲 LOGO AREA -->
+          <div style="
+            width: 100%;
+            height: 48px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            font-size: 12px;
+            opacity: 0.6;
+          ">
+            LOGO
+          </div>
+
+          <!-- 🏷 SHOP NAME (MAIN HERO) -->
+          <div style="
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+            color:#facc15;
+            margin-bottom: 6px;
+          " id="shopName">
+            My Shop Name
+          </div>
+
         </div>
-        <div class="menu">
-          <a href="#" class="active" onclick="loadPage('dashboard'); return false;">แดชบอร์ด</a>
-          <a href="#" onclick="loadPage('products'); return false;">สินค้า</a>
-          <a href="#" onclick="loadPage('orders'); return false;">คำสั่งซื้อ</a>
-          <a href="#" onclick="loadPage('revenue'); return false;">รายได้</a>
-          <a href="#" onclick="loadPage('settings'); return false;">ตั้งค่า</a>
-        </div>
-        <div class="sidebar-footer">VIIV Merchant v 0.1.0</div>
+
+        <div class="nav-item active" onclick="setActiveNav(this); if (window.loadPage) loadPage('dashboard');">Dashboard</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('affiliate');">Affiliate</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('products');">สินค้า</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('orders');">คำสั่งซื้อ</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('sales');">ยอดขาย</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('finance');">บัญชีการเงิน</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('settings');">จัดการร้านค้า</div>
+        <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('boost');">เพิ่มยอดขาย</div>
+
+        <div class="sidebar-footer">VIIV Shop v 0.1.0</div>
       </div>
 
-      <div class="main">
-        <div class="pagebar">
-          <div class="pagebar-title">Merchant Dashboard</div>
-          <div class="profile">
-            <div class="profile-name">Owner</div>
-            <button id="profileBtn" class="btn" type="button">▼</button>
-            <div id="profileDropdown" class="dropdown">
-              <button type="button">Profile</button>
-              <button type="button">Logout</button>
-            </div>
-          </div>
+      <div class="main" style="padding-top: 10px;">
+        <div class="topbar" style="
+          display:flex;
+          gap:8px;
+          background:var(--content-bg);
+          padding:6px;
+          border-radius:10px;
+          margin-bottom:12px;
+        ">
+          <button type="button" class="tab-btn active">Overview</button>
+          <button type="button" class="tab-btn">Analytics</button>
+          <button type="button" class="tab-btn">Settings</button>
         </div>
 
-        <div id="app-content"></div>
+        <div class="content" id="content-area">
+          <div id="page-overview">
+            <div id="app-content">
+              <div class="pagebar">
+                <div class="pagebar-title" id="pageTitle">Dashboard</div>
+                <div class="profile">
+                  <div class="profile-name">Owner</div>
+                  <button id="profileBtn" class="btn" type="button">▼</button>
+                  <div id="profileDropdown" class="dropdown">
+                    <button type="button">Profile</button>
+                    <button type="button">Logout</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="page-body"></div>
+            </div>
+          </div>
+
+          <div id="page-analytics" style="display:none;">Analytics Page</div>
+          <div id="page-settings" style="display:none;">Settings Page</div>
+        </div>
       </div>
     </div>
 
     <template id="dashboard-page">
       <div class="card">
-        <h1 class="card-title">Products</h1>
+        <h1 style="font-size:18px; font-weight:600; margin-bottom:4px;">Products</h1>
         <div class="card-subtitle">รายการสินค้าในร้าน</div>
 
         <div id="product-list">กำลังโหลด...</div>
-
-        <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-primary" type="button" onclick="createProduct()">Create Product</button>
-          <button class="btn btn-secondary" type="button" onclick="loadProducts()">Refresh</button>
-        </div>
       </div>
     </template>
 
+    <script>
+      function setActiveNav(el){
+        document.querySelectorAll('.nav-item').forEach(item=>{
+          item.classList.remove('active');
+        });
+        if (el) el.classList.add('active');
+      }
+
+      function setTab(el, tab){
+        el.parentElement.querySelectorAll('button').forEach(btn=>{
+          btn.style.background = '#f3f4f6';
+          btn.style.border = '1px solid rgba(0,0,0,0.1)';
+          btn.style.color = '#374151';
+        });
+
+        el.style.background = '#facc15';
+        el.style.color = '#000';
+        el.style.border = 'none';
+
+        const container = document.getElementById('tab-content');
+        if (!container) return;
+
+        if(tab === 'orders'){
+          container.innerHTML = '<div>รายการคำสั่งซื้อ (กำลังพัฒนา)</div>';
+          return;
+        }
+
+        if(tab === 'status'){
+          container.innerHTML = '<div>สถานะสินค้า (กำลังพัฒนา)</div>';
+          return;
+        }
+
+        container.innerHTML = `<div>${tab} (กำลังพัฒนา)</div>`;
+      }
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const buttons = document.querySelectorAll(".tab-btn");
+        if (!buttons || buttons.length === 0) return;
+
+        buttons.forEach((btn) => {
+          btn.onclick = () => {
+            const pages = document.querySelectorAll("#page-overview, #page-analytics, #page-settings");
+            pages.forEach((p) => {
+              if (p) p.style.display = "none";
+            });
+
+            buttons.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const target = (btn.innerText || "").toLowerCase();
+            const el = document.getElementById("page-" + target);
+            if (el) el.style.display = "block";
+          };
+        });
+      });
+    </script>
     <script src="./auth.js"></script>
     <script src="./logic.js"></script>
   </body>

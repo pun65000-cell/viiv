@@ -43,24 +43,55 @@ body {
 
 .brand {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
   padding: 6px 4px 14px 4px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.05);
+  padding: 12px;
+  border-radius: 10px;
 }
 
 .brand-title {
-  font-weight: 800;
-  letter-spacing: 0.2px;
+  font-size: 12px;
+  opacity: 0.6;
+  margin-bottom: 6px;
 }
 
 .brand-title .viiv {
-  color: var(--accent);
+  font-weight: 500;
 }
 
 .brand-title .role {
-  color: #ffffff;
+  font-weight: 500;
+}
+
+.shop-card {
+  padding: 10px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(255,215,0,0.15),
+    rgba(255,255,255,0.05)
+  );
+  border: 1px solid rgba(255,215,0,0.3);
+  text-align: center;
+}
+
+.shop-label {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+
+.shop-name {
+  font-size: clamp(12px, 1.2vw, 16px);
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand-accent {
@@ -132,10 +163,8 @@ body {
 }
 
 .pagebar-title {
-  font-weight: 900;
-  color: var(--text);
   font-size: 18px;
-  line-height: 1.1;
+  font-weight: 600;
 }
 
 .btn {
@@ -231,4 +260,24 @@ body {
 .card-subtitle {
   margin: 0 0 14px 0;
   color: var(--muted);
+}
+
+.page-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.page-tabs button {
+  background: none;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.page-tabs button.active {
+  font-weight: 600;
+  opacity: 1;
 }
