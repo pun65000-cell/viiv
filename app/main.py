@@ -1,10 +1,12 @@
 from dotenv import load_dotenv
 import os
+import uuid
 
 load_dotenv()
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api.auth_social import router as auth_social_router
@@ -24,6 +26,7 @@ from app.api.product.product_router import router as product_router
 from app.api.admin_auth import router as admin_auth_router
 from app.api.pos_admin import router as pos_admin_router
 from app.api.stores import router as stores_router
+from app.api.routers_pos_merchant import router as pos_merchant_router
 from app.core.id import gen_id
 from modules.event_bus.event_bus import set_req_id, clear_req_id
 # from app.api.upload import router as upload_router
@@ -72,6 +75,17 @@ app.add_middleware(
     secret_key=SESSION_SECRET,
 )
 
+class DevAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        request.state.user_id = "usr_" + str(uuid.uuid4())
+        request.state.tenant_id = "ten_" + str(uuid.uuid4())
+        request.state.event_id = "evn_" + str(uuid.uuid4())
+        request.state.role = "owner"
+        return await call_next(request)
+
+
+app.add_middleware(DevAuthMiddleware)
+
 @app.middleware("http")
 async def inject_tenant(request: Request, call_next):
     tenant_id = None
@@ -118,6 +132,7 @@ app.include_router(users_router, prefix="/api/users")
 app.include_router(orgs_router, prefix="/api/orgs")
 app.include_router(register_shop_router, prefix="/api")
 app.include_router(stores_router)
+app.include_router(pos_merchant_router)
 
 # app.include_router(products_router, prefix="/api/products")
 # app.include_router(orders_router, prefix="/api/orders")

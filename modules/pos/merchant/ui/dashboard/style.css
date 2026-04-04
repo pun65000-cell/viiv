@@ -32,10 +32,10 @@ body {
 }
 
 .sidebar {
-  width: 240px;
+  width: 200px;
   background: var(--sidebar);
   color: #fff;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -80,7 +80,7 @@ body {
 .menu a {
   display: block;
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
@@ -88,6 +88,7 @@ body {
   cursor: pointer;
   text-align: left;
   text-decoration: none;
+  font-size: 13px;
 }
 
 .menu a.active {

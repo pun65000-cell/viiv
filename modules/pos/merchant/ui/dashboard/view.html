@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>VIIV Merchant</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="brand">
+          <div class="brand-title"><span class="viiv">VIIV</span> <span class="role">Merchant</span></div>
+          <div class="brand-accent"></div>
+        </div>
+        <div class="menu">
+          <a href="#" class="active" onclick="loadPage('dashboard'); return false;">แดชบอร์ด</a>
+          <a href="#" onclick="loadPage('products'); return false;">สินค้า</a>
+          <a href="#" onclick="loadPage('orders'); return false;">คำสั่งซื้อ</a>
+          <a href="#" onclick="loadPage('revenue'); return false;">รายได้</a>
+          <a href="#" onclick="loadPage('settings'); return false;">ตั้งค่า</a>
+        </div>
+        <div class="sidebar-footer">VIIV Merchant v 0.1.0</div>
+      </div>
+
+      <div class="main">
+        <div class="pagebar">
+          <div class="pagebar-title">Merchant Dashboard</div>
+          <div class="profile">
+            <div class="profile-name">Owner</div>
+            <button id="profileBtn" class="btn" type="button">▼</button>
+            <div id="profileDropdown" class="dropdown">
+              <button type="button">Profile</button>
+              <button type="button">Logout</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="app-content"></div>
+      </div>
+    </div>
+
+    <template id="dashboard-page">
+      <div class="card">
+        <h1 class="card-title">Products</h1>
+        <div class="card-subtitle">รายการสินค้าในร้าน</div>
+
+        <div id="product-list">กำลังโหลด...</div>
+
+        <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-primary" type="button" onclick="createProduct()">Create Product</button>
+          <button class="btn btn-secondary" type="button" onclick="loadProducts()">Refresh</button>
+        </div>
+      </div>
+    </template>
+
+    <script src="./auth.js"></script>
+    <script src="./logic.js"></script>
+  </body>
+</html>
