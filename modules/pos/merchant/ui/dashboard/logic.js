@@ -8,6 +8,27 @@ if (window.__VIIV_LOGIC_LOADED__) {
 
 (function () {
   console.log("🔥 LOGIC VERSION ACTIVE");
+
+const FORCE_PRODUCT_API = "/api/merchant/products"; 
+
+const __fetch = window.fetch; 
+window.fetch = function(url, options) { 
+if (typeof url === "string" && url.includes("/api/products")) { 
+console.warn("🔥 FORCE FIX:", url, "→", FORCE_PRODUCT_API); 
+url = FORCE_PRODUCT_API; 
+} 
+return __fetch(url, options); 
+}; 
+
+const open = XMLHttpRequest.prototype.open; 
+
+XMLHttpRequest.prototype.open = function(method, url) { 
+if (typeof url === "string" && url.includes("/api/products")) { 
+console.warn("🔥 XHR FIX:", url, "→ /api/merchant/products"); 
+url = "/api/merchant/products"; 
+} 
+return open.apply(this, [method, url]); 
+}; 
   function safeJson(res) {
     if (!res.ok) {
       return res.text().then((t) => {
@@ -795,21 +816,6 @@ if (window.__VIIV_LOGIC_LOADED__) {
   }
 })();
 
-document.addEventListener("DOMContentLoaded", () => { 
-  console.log("INIT APP START"); 
- 
-  try { 
-    if (typeof loadListProduct === "function") { 
-      console.log("loading product list..."); 
-      loadListProduct(); 
-    } else { 
-      console.error("loadListProduct not found"); 
-    } 
-  } catch (err) { 
-    console.error("INIT ERROR:", err); 
-  } 
-}); 
-
 window.loadListProduct = async function () { 
 console.log("loading product list..."); 
 
@@ -859,3 +865,18 @@ console.error(err);
 document.getElementById("app").innerHTML = `<div class="card"><h3>สินค้า</h3><p>โหลดไม่สำเร็จ</p></div>`; 
 } 
 }; 
+
+document.addEventListener("DOMContentLoaded", () => { 
+  console.log("INIT APP START"); 
+ 
+  try { 
+    if (typeof loadListProduct === "function") { 
+      console.log("loading product list..."); 
+      loadListProduct(); 
+    } else { 
+      console.error("loadListProduct not found"); 
+    } 
+  } catch (err) { 
+    console.error("INIT ERROR:", err); 
+  } 
+}); 
