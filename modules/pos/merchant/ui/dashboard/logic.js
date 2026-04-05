@@ -1,8 +1,10 @@
+alert("NEW LOGIC LOADED");
+
 if (window.__VIIV_LOGIC_LOADED__) {
-  console.warn("🚫 logic.js already loaded, skip duplicate");
-  throw new Error("Duplicate logic.js blocked");
+  console.warn("🚫 duplicate logic ignored");
+} else {
+  window.__VIIV_LOGIC_LOADED__ = true;
 }
-window.__VIIV_LOGIC_LOADED__ = true;
 
 (function () {
   console.log("🔥 LOGIC VERSION ACTIVE");
@@ -51,14 +53,24 @@ window.__VIIV_LOGIC_LOADED__ = true;
   app.innerHTML = html; 
   } 
 
-  function loadCreateProduct() { 
-  renderPage('<div id="product-create-root"></div>'); 
-  import("/dashboard/products_new/create.js"); 
-  } 
-
   function loadListProduct() { 
   renderPage('<div id="product-list-root"></div>'); 
-  import("/dashboard/products_new/list.js"); 
+ 
+  const script = document.createElement("script"); 
+  script.src = "/dashboard/products_new/list.js"; 
+  script.defer = true; 
+ 
+  document.body.appendChild(script); 
+  } 
+ 
+  function loadCreateProduct() { 
+  renderPage('<div id="product-create-root"></div>'); 
+ 
+  const script = document.createElement("script"); 
+  script.src = "/dashboard/products_new/create.js"; 
+  script.defer = true; 
+ 
+  document.body.appendChild(script); 
   } 
 
   function renderTopMenu(menuItems) {
@@ -658,89 +670,6 @@ window.__VIIV_LOGIC_LOADED__ = true;
     settings: "../settings/view.html",
   };
 
-  window.loadPage = async function (page) {
-    if (CURRENT_PAGE === page) {
-      console.log("SKIP same page:", page);
-      return;
-    }
-    CURRENT_PAGE = page;
-    const container = document.getElementById("app");
-
-    if (!container) {
-      console.error("app not found");
-      return;
-    }
-
-    renderTopMenuForPage(page);
-
-    if (page === "dashboard") {
-  const tpl = document.getElementById("dashboard-page");
-  const tabs = document.getElementById("page-tabs");
-  const body = document.getElementById("page-body");
-
-  if (tabs) {
-    tabs.innerHTML = `
-     <button class="active">${page}</button>
-   `;
-  }
-
-  if (body) {
-    body.innerHTML = tpl ? tpl.innerHTML : "";
-  } else {
-    container.innerHTML = tpl ? tpl.innerHTML : "";
-  }
-
-  return;
-}
-
-    const path = PAGE_MAP[page];
-
-    if (path && path.includes("products.html")) {
-      console.warn("🚫 BLOCK products.html (prevents sidebar duplication)");
-      return;
-    }
-
-    if (!path) {
-      console.warn("No page mapping for:", page);
-      return;
-    }
-
-    const res = await fetch(path);
-    if (!res.ok) {
-      console.error("PAGE LOAD FAILED:", page);
-      return;
-    }
-    const html = await res.text();
-
-    // parse HTML safely
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-
-    // ONLY extract inner content (NOT full page)
-    const newContent = doc.getElementById("app");
-
-    if (!newContent) {
-      console.error("❌ INVALID PAGE STRUCTURE: missing #app");
-      return;
-    }
-
-    const tabs = document.getElementById("page-tabs");
-    const body = document.getElementById("page-body");
-
-    if (tabs) {
-      tabs.innerHTML = `
-     <button class="active">${page}</button>
-   `;
-    }
-
-    if (body) {
-      body.innerHTML = newContent.innerHTML;
-    } else {
-      console.error("page-body not found → prevent layout overwrite");
-      return;
-    }
-  };
-
   document.addEventListener("DOMContentLoaded", () => {
     const dropdown = document.getElementById("profileDropdown");
     const profileBtn = document.getElementById("profileBtn");
@@ -868,12 +797,25 @@ window.__VIIV_LOGIC_LOADED__ = true;
     if (path.includes("products.html")) {
       console.log("Standalone products page — skip SPA load");
     } else if (path.includes("view.html")) {
-      loadPage("dashboard");
     } else {
-      loadPage("dashboard");
     }
   });
   } catch (err) {
     console.error("🔥 GLOBAL JS CRASH:", err);
   }
 })();
+
+document.addEventListener("DOMContentLoaded", () => { 
+  console.log("INIT APP START"); 
+ 
+  try { 
+    if (typeof loadListProduct === "function") { 
+      console.log("loading product list..."); 
+      loadListProduct(); 
+    } else { 
+      console.error("loadListProduct not found"); 
+    } 
+  } catch (err) { 
+    console.error("INIT ERROR:", err); 
+  } 
+}); 
