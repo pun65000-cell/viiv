@@ -53,16 +53,6 @@ if (window.__VIIV_LOGIC_LOADED__) {
   app.innerHTML = html; 
   } 
 
-  function loadListProduct() { 
-  renderPage('<div id="product-list-root"></div>'); 
- 
-  const script = document.createElement("script"); 
-  script.src = "/dashboard/products_new/list.js"; 
-  script.defer = true; 
- 
-  document.body.appendChild(script); 
-  } 
- 
   function loadCreateProduct() { 
   renderPage('<div id="product-create-root"></div>'); 
  
@@ -819,3 +809,53 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("INIT ERROR:", err); 
   } 
 }); 
+
+window.loadListProduct = async function () { 
+console.log("loading product list..."); 
+
+try { 
+const res = await fetch("/api/merchant/products"); 
+
+if (!res.ok) { 
+  throw new Error("API ERROR"); 
+} 
+
+const data = await res.json(); 
+
+if (!Array.isArray(data)) { 
+  console.error("Invalid data:", data); 
+  document.getElementById("app").innerHTML = ` 
+    <div class="card"> 
+      <h3>สินค้า</h3> 
+      <p>ข้อมูลไม่ถูกต้อง</p> 
+    </div> 
+  `; 
+  return; 
+} 
+
+if (data.length === 0) { 
+  document.getElementById("app").innerHTML = ` 
+    <div class="card"> 
+      <h3>สินค้า</h3> 
+      <p>ยังไม่มีสินค้า</p> 
+    </div> 
+  `; 
+  return; 
+} 
+
+document.getElementById("app").innerHTML = ` 
+  <div class="card"> 
+    <h3>สินค้า</h3> 
+    ${data.map(p => ` 
+      <div style="padding:8px;border-bottom:1px solid #eee"> 
+        ${p.name} - ${p.price} 
+      </div> 
+    `).join("")} 
+  </div> 
+`; 
+
+} catch (err) { 
+console.error(err); 
+document.getElementById("app").innerHTML = `<div class="card"><h3>สินค้า</h3><p>โหลดไม่สำเร็จ</p></div>`; 
+} 
+}; 
