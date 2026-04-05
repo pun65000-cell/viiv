@@ -12,16 +12,30 @@ async function loadProducts() {
        return; 
      } 
  
-     root.innerHTML = ` 
-       <div style="display:grid; gap:12px;"> 
-         ${data.map(p => ` 
-           <div style="padding:12px; border:1px solid #ddd; border-radius:8px;"> 
-             <div><strong>${p.name || "-"}</strong></div> 
-             <div>ราคา: ${p.price || 0} บาท</div> 
-           </div> 
-         `).join("")} 
-       </div> 
-     `; 
+     const container = root;
+ 
+     container.innerHTML = data.map(p => { 
+       const name = 
+         p.name || 
+         p.product_name || 
+         p.title || 
+        p["ชื่อสินค้า"] || 
+         "-"; 
+ 
+       const price = 
+         p.price || 
+         p.selling_price || 
+         p.amount || 
+        p["ราคา"] || 
+         0; 
+ 
+       return ` 
+         <div style="padding:12px;border:1px solid #ddd;margin-bottom:10px;border-radius:8px;"> 
+           <div style="font-weight:600">${name}</div> 
+           <div>ราคา: ${price} บาท</div> 
+         </div> 
+       `; 
+     }).join("");
    } catch (err) { 
      console.error(err); 
      root.innerHTML = "<p>เกิดข้อผิดพลาด</p>"; 

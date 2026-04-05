@@ -202,6 +202,9 @@ form.onsubmit = async (e) => {
 
     form.reset(); 
 
+    alert("บันทึกสำเร็จ");
+    window.location.href = "/dashboard/products_new/list.html";
+
   } catch (err) { 
     console.error(err); 
     msg.textContent = "เกิดข้อผิดพลาด"; 
