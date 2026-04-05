@@ -43,7 +43,6 @@ return open.apply(this, [method, url]);
   let prodAttrCounter = 0;
   let prodImageDataUrl = "";
   let selectedImageFile = null;
-  const PRODUCT_API_URL = "/api/merchant/products";
   const UPLOAD_API_URL = null;
   let prodApiLogged = false;
   let CURRENT_PAGE = null;
@@ -55,7 +54,7 @@ return open.apply(this, [method, url]);
   function prodLogDetectedApis() {
     if (prodApiLogged) return;
     prodApiLogged = true;
-    console.log("DETECTED PRODUCT API:", PRODUCT_API_URL);
+    console.log("DETECTED PRODUCT API:", "/api/merchant/products");
     console.log("DETECTED UPLOAD API:", UPLOAD_API_URL || "NONE");
   }
 
@@ -145,7 +144,7 @@ return open.apply(this, [method, url]);
 
   async function prodCheckDuplicateName(name) {
     try {
-      const res = await fetch(PRODUCT_API_URL);
+      const res = await fetch("/api/merchant/products");
       if (!res.ok) return false;
 
       const json = await res.json().catch(() => null);
@@ -639,7 +638,7 @@ return open.apply(this, [method, url]);
       }
 
       prodMessage("กำลังบันทึก...", false);
-      const res = await fetch(PRODUCT_API_URL, {
+      const res = await fetch("/api/merchant/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -872,7 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
   try { 
     if (typeof loadListProduct === "function") { 
       console.log("loading product list..."); 
-      loadListProduct(); 
+      window.loadListProduct(); 
     } else { 
       console.error("loadListProduct not found"); 
     } 
