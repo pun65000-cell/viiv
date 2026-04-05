@@ -16,18 +16,18 @@ async function loadProducts() {
  
      container.innerHTML = data.map(p => { 
        const name = 
-         p.name || 
-         p.product_name || 
-         p.title || 
-        p["ชื่อสินค้า"] || 
-         "-"; 
+      p.name ?? 
+      p.product_name ?? 
+      p.title ?? 
+      p["ชื่อสินค้า"] ?? 
+      "-"; 
  
        const price = 
-         p.price || 
-         p.selling_price || 
-         p.amount || 
-        p["ราคา"] || 
-         0; 
+      p.price ?? 
+      p.selling_price ?? 
+      p.amount ?? 
+      p["ราคา"] ?? 
+      0; 
  
        return ` 
          <div style="padding:12px;border:1px solid #ddd;margin-bottom:10px;border-radius:8px;"> 

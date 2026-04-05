@@ -44,27 +44,21 @@ window.__VIIV_LOGIC_LOADED__ = true;
     return [];
   }
 
-  async function loadCreateProduct() { 
-  const root = document.getElementById("app"); 
-  root.innerHTML = ""; 
+  function renderPage(html) { 
+  const app = document.getElementById("app"); 
+  if (!app) return; 
  
-  const module = await import("./products_new/create.js"); 
- 
-  // support both export default or direct execution 
-  if (module && module.default) { 
-  module.default(root); 
-  } 
+  app.innerHTML = html; 
   } 
 
-  async function loadListProduct() { 
-  const root = document.getElementById("app"); 
-  root.innerHTML = ""; 
- 
-  const module = await import("./products_new/list.js"); 
- 
-  if (module && module.default) { 
-  module.default(root); 
+  function loadCreateProduct() { 
+  renderPage('<div id="product-create-root"></div>'); 
+  import("/dashboard/products_new/create.js"); 
   } 
+
+  function loadListProduct() { 
+  renderPage('<div id="product-list-root"></div>'); 
+  import("/dashboard/products_new/list.js"); 
   } 
 
   function renderTopMenu(menuItems) {
@@ -670,10 +664,10 @@ window.__VIIV_LOGIC_LOADED__ = true;
       return;
     }
     CURRENT_PAGE = page;
-    const container = document.getElementById("app-content");
+    const container = document.getElementById("app");
 
     if (!container) {
-      console.error("app-content not found");
+      console.error("app not found");
       return;
     }
 
@@ -723,10 +717,10 @@ window.__VIIV_LOGIC_LOADED__ = true;
     const doc = parser.parseFromString(html, "text/html");
 
     // ONLY extract inner content (NOT full page)
-    const newContent = doc.getElementById("app-content");
+    const newContent = doc.getElementById("app");
 
     if (!newContent) {
-      console.error("❌ INVALID PAGE STRUCTURE: missing #app-content");
+      console.error("❌ INVALID PAGE STRUCTURE: missing #app");
       return;
     }
 
