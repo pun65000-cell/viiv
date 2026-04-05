@@ -16,134 +16,6 @@ window.__VIIV_LOGIC_LOADED__ = true;
   }
   try {
     console.log("logic.js loaded");
-  function loadProducts() {
-    fetch("/api/merchant/products")
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || "โหลดสินค้าไม่สำเร็จ");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const el = document.getElementById("product-list");
-        if (!el) {
-          console.warn("product-list not found");
-          return;
-        }
-        if (!Array.isArray(data) || data.length === 0) {
-          el.innerText = "No products yet";
-          return;
-        }
-        el.innerHTML = "";
-        data.forEach((item) => {
-          const row = document.createElement("div");
-          row.style.padding = "10px 0";
-          row.style.borderTop = "1px solid rgba(0,0,0,0.08)";
-          row.innerText = JSON.stringify(item);
-          el.appendChild(row);
-        });
-      })
-      .catch((err) => {
-        console.error("LOAD PRODUCTS ERROR:", err);
-        const el = document.getElementById("product-list");
-        if (!el) {
-          console.warn("product-list not found");
-          return;
-        }
-        el.innerText = "โหลดไม่สำเร็จ";
-      });
-  }
-
-  async function renderProductList() {
-    if (CURRENT_PAGE !== "products") {
-      console.warn("SKIP renderProductList (wrong page)");
-      return;
-    }
-    try {
-      document.querySelectorAll("#product-list").forEach((el, i) => {
-        if (i > 0) el.remove();
-      });
-
-      console.log("[PRODUCT] Loading product list...");
-
-      let container = document.querySelector("#app-content #product-list");
-
-      if (!container) {
-        console.warn("product-list container not found");
-        const host =
-          document.getElementById("page-body") || document.getElementById("app-content");
-        if (!host) return;
-        container = document.createElement("div");
-        container.id = "product-list";
-        host.innerHTML = "";
-        host.appendChild(container);
-      }
-
-      container.innerHTML = "Loading...";
-
-      const res = await fetch("/api/merchant/products");
-
-      if (!res.ok) {
-        container.innerHTML = "Load failed";
-        console.error("API error:", res.status);
-        return;
-      }
-
-      const data = await res.json();
-
-      if (!data || data.length === 0) {
-        container.innerHTML = "No products yet";
-        return;
-      }
-
-      container.innerHTML = data
-        .map(
-          (p) => `
-   <div class="product-card"> 
-     <div><b>${p?.name || p?.["ชื่อสินค้า"] || "-"}</b></div> 
-     <div>Price: ${p?.price ?? p?.["ราคา"] ?? 0}</div> 
-   </div> 
- `
-        )
-        .join("");
-    } catch (err) {
-      console.error("[PRODUCT ERROR]", err);
-    }
-  }
-
-  function createProduct() {
-    console.log("CREATE PRODUCT TRIGGERED");
-    const payload = {
-      name: "Test Product",
-      type: "normal",
-      price: 100,
-      stock: 1,
-    };
-    console.log("SENDING DATA:", payload);
-    fetch("/api/merchant/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || "สร้างสินค้าไม่สำเร็จ");
-        }
-        return res.json().catch(() => null);
-      })
-      .then((data) => {
-        console.log("CREATE SUCCESS:", data);
-        loadProducts();
-      })
-      .catch((err) => {
-        console.error("CREATE ERROR:", err);
-        alert("เกิดข้อผิดพลาด: " + err.message);
-      });
-  }
 
   let prodAttrCounter = 0;
   let prodImageDataUrl = "";
@@ -209,8 +81,6 @@ window.__VIIV_LOGIC_LOADED__ = true;
           active: true,
         },
       ];
-    } else if (page === "product-list") {
-      menu = [];
     } else {
       menu = [];
     }
@@ -772,10 +642,6 @@ window.__VIIV_LOGIC_LOADED__ = true;
   };
 
   window.loadPage = async function (page) {
-    if (page === "product-list") {
-      console.warn("BLOCKED product-list route");
-      return;
-    }
     if (CURRENT_PAGE === page) {
       console.log("SKIP same page:", page);
       return;
@@ -807,28 +673,8 @@ window.__VIIV_LOGIC_LOADED__ = true;
     container.innerHTML = tpl ? tpl.innerHTML : "";
   }
 
-  // ✅ FIX: wait DOM render
-  setTimeout(() => {
-    loadProducts();
-  }, 0);
-
   return;
 }
-
-    if (page === "products") {
-      console.log("📦 render products via SPA only");
-
-      const body = document.getElementById("page-body");
-      if (!body) return;
-
-      body.innerHTML = `
-     <h1 class="page-title">สินค้าทั้งหมด</h1> 
-     <div id="product-list"></div> 
-   `;
-
-      loadProducts();
-      return;
-    }
 
     const path = PAGE_MAP[page];
 
@@ -877,9 +723,6 @@ window.__VIIV_LOGIC_LOADED__ = true;
       return;
     }
   };
-
-  window.loadProducts = loadProducts;
-  window.createProduct = createProduct;
 
   document.addEventListener("DOMContentLoaded", () => {
     const dropdown = document.getElementById("profileDropdown");
@@ -1008,7 +851,7 @@ window.__VIIV_LOGIC_LOADED__ = true;
     if (path.includes("products.html")) {
       console.log("Standalone products page — skip SPA load");
     } else if (path.includes("view.html")) {
-      loadPage("products");
+      loadPage("dashboard");
     } else {
       loadPage("dashboard");
     }

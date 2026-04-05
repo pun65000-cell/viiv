@@ -1,0 +1,68 @@
+<!DOCTYPE html> 
+<html lang="th"> 
+<head> 
+  <meta charset="UTF-8" /> 
+  <title>Product List</title> 
+ 
+  <style> 
+    body { 
+      font-family: system-ui; 
+      background: #f5f6f8; 
+      margin: 0; 
+      padding: 20px; 
+    } 
+ 
+    .container { 
+      max-width: 1000px; 
+      margin: auto; 
+    } 
+ 
+    .card { 
+      background: white; 
+      padding: 20px; 
+      border-radius: 16px; 
+    } 
+ 
+    .item { 
+      padding: 12px; 
+      border-bottom: 1px solid #eee; 
+    } 
+ 
+    .name { 
+      font-weight: bold; 
+    } 
+ 
+    .price { 
+      color: #555; 
+      font-size: 14px; 
+    } 
+ 
+    .empty, .error { 
+      text-align: center; 
+      padding: 40px; 
+      color: #888; 
+    } 
+ 
+    .error { 
+      color: red; 
+    } 
+  </style> 
+</head> 
+ 
+<body> 
+ 
+<div class="container"> 
+  <div class="card"> 
+    <h2>สินค้าทั้งหมด</h2> 
+ 
+    <div id="list-root"> 
+      กำลังโหลด... 
+    </div> 
+ 
+  </div> 
+</div> 
+ 
+<script type="module" src="./list.js"></script> 
+ 
+</body> 
+</html> 
