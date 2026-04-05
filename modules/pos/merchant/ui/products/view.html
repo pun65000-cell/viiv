@@ -1,5 +1,5 @@
 <div class="card">
-  <div style="max-width:800px;">
+  <div id="create-product-form" style="max-width:800px;">
     <h1 style="font-size:18px; font-weight:600; margin-bottom:4px;">สร้างสินค้า</h1>
     <div class="card-subtitle">ฟอร์มสร้างสินค้าสำหรับขายจริง (รองรับรูปภาพ, ราคา, สต๊อก, และตัวเลือกสินค้า)</div>
 
@@ -7,11 +7,12 @@
       <div style="display:flex; gap:12px; flex-wrap:wrap;">
         <div style="width:200px;">
           <input id="prodImageFile" type="file" accept="image/*" style="display:none;" />
-          <div id="prodImageBox" style="width:200px;height:200px;border-radius:12px;border:2px dashed rgba(0,0,0,0.18);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;">
+          <div id="uploadBox" style="position:relative;width:200px;height:200px;border-radius:12px;border:2px dashed rgba(0,0,0,0.18);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;">
             <div id="prodImagePlaceholder" style="text-align:center;color:rgba(31,41,55,0.65);font-size:13px;line-height:1.3;">
-              อัปโหลดรูปสินค้า
+              อัปโหลดรูปสินค้า<br/>ขนาดไม่เกิน 2MB
             </div>
-            <img id="prodImagePreview" alt="" style="display:none;width:200px;height:200px;object-fit:cover;border-radius:12px;" />
+            <img id="previewImage" alt="" style="display:none;width:200px;height:200px;object-fit:cover;border-radius:12px;" />
+            <button id="uploadBtn" type="button" style="position:absolute;left:10px;bottom:10px;padding:6px 10px;border-radius:10px;border:1px solid rgba(0,0,0,0.12);background:#fff;font-size:13px;cursor:pointer;">อัปโหลดรูป</button>
           </div>
         </div>
 
@@ -153,6 +154,8 @@
         <button id="prodSubmit" type="button" style="padding:8px 14px; border-radius:10px; border:none; background:var(--accent); color:#fff; font-size:13px; cursor:pointer;">บันทึกสินค้า</button>
         <div id="prodMessage" style="font-size:13px; color:rgba(31,41,55,0.8);"></div>
       </div>
+
+      <div id="product-list"></div>
     </div>
   </div>
 </div>

@@ -273,40 +273,25 @@
       </div>
 
       <div class="main" style="padding-top: 10px;">
-        <div class="topbar" style="
+        <div class="topbar top-menu" id="top-menu" style="
           display:flex;
           gap:8px;
           background:var(--content-bg);
           padding:6px;
           border-radius:10px;
           margin-bottom:12px;
-        ">
-          <button type="button" class="tab-btn active">Overview</button>
-          <button type="button" class="tab-btn">Analytics</button>
-          <button type="button" class="tab-btn">Settings</button>
-        </div>
+        "></div>
 
         <div class="content" id="content-area">
           <div id="page-overview">
             <div id="app-content">
               <div class="pagebar">
-                <div class="pagebar-title" id="pageTitle">Dashboard</div>
-                <div class="profile">
-                  <div class="profile-name">Owner</div>
-                  <button id="profileBtn" class="btn" type="button">▼</button>
-                  <div id="profileDropdown" class="dropdown">
-                    <button type="button">Profile</button>
-                    <button type="button">Logout</button>
-                  </div>
-                </div>
+                <div class="pagebar-title" id="pageTitle">สร้างสินค้า</div>
               </div>
 
               <div id="page-body"></div>
             </div>
           </div>
-
-          <div id="page-analytics" style="display:none;">Analytics Page</div>
-          <div id="page-settings" style="display:none;">Settings Page</div>
         </div>
       </div>
     </div>
@@ -316,7 +301,6 @@
         <h1 style="font-size:18px; font-weight:600; margin-bottom:4px;">Products</h1>
         <div class="card-subtitle">รายการสินค้าในร้าน</div>
 
-        <div id="product-list">กำลังโหลด...</div>
       </div>
     </template>
 
@@ -355,28 +339,7 @@
         container.innerHTML = `<div>${tab} (กำลังพัฒนา)</div>`;
       }
     </script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const buttons = document.querySelectorAll(".tab-btn");
-        if (!buttons || buttons.length === 0) return;
-
-        buttons.forEach((btn) => {
-          btn.onclick = () => {
-            const pages = document.querySelectorAll("#page-overview, #page-analytics, #page-settings");
-            pages.forEach((p) => {
-              if (p) p.style.display = "none";
-            });
-
-            buttons.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-
-            const target = (btn.innerText || "").toLowerCase();
-            const el = document.getElementById("page-" + target);
-            if (el) el.style.display = "block";
-          };
-        });
-      });
-    </script>
+    <input type="file" id="productImageInput" accept="image/*" hidden />
     <script src="./auth.js"></script>
     <script src="./logic.js"></script>
   </body>

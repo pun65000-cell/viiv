@@ -1,10 +1,30 @@
+if (window.__VIIV_LOGIC_LOADED__) {
+  console.warn("🚫 logic.js already loaded, skip duplicate");
+  throw new Error("Duplicate logic.js blocked");
+}
+window.__VIIV_LOGIC_LOADED__ = true;
+
 (function () {
   console.log("🔥 LOGIC VERSION ACTIVE");
+  function safeJson(res) {
+    if (!res.ok) {
+      return res.text().then((t) => {
+        throw new Error(t || "API ERROR");
+      });
+    }
+    return res.json().catch(() => null);
+  }
   try {
     console.log("logic.js loaded");
   function loadProducts() {
     fetch("/api/merchant/products")
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "โหลดสินค้าไม่สำเร็จ");
+        }
+        return res.json();
+      })
       .then((data) => {
         const el = document.getElementById("product-list");
         if (!el) {
@@ -24,7 +44,8 @@
           el.appendChild(row);
         });
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("LOAD PRODUCTS ERROR:", err);
         const el = document.getElementById("product-list");
         if (!el) {
           console.warn("product-list not found");
@@ -32,6 +53,63 @@
         }
         el.innerText = "โหลดไม่สำเร็จ";
       });
+  }
+
+  async function renderProductList() {
+    if (CURRENT_PAGE !== "products") {
+      console.warn("SKIP renderProductList (wrong page)");
+      return;
+    }
+    try {
+      document.querySelectorAll("#product-list").forEach((el, i) => {
+        if (i > 0) el.remove();
+      });
+
+      console.log("[PRODUCT] Loading product list...");
+
+      let container = document.querySelector("#app-content #product-list");
+
+      if (!container) {
+        console.warn("product-list container not found");
+        const host =
+          document.getElementById("page-body") || document.getElementById("app-content");
+        if (!host) return;
+        container = document.createElement("div");
+        container.id = "product-list";
+        host.innerHTML = "";
+        host.appendChild(container);
+      }
+
+      container.innerHTML = "Loading...";
+
+      const res = await fetch("/api/merchant/products");
+
+      if (!res.ok) {
+        container.innerHTML = "Load failed";
+        console.error("API error:", res.status);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        container.innerHTML = "No products yet";
+        return;
+      }
+
+      container.innerHTML = data
+        .map(
+          (p) => `
+   <div class="product-card"> 
+     <div><b>${p?.name || p?.["ชื่อสินค้า"] || "-"}</b></div> 
+     <div>Price: ${p?.price ?? p?.["ราคา"] ?? 0}</div> 
+   </div> 
+ `
+        )
+        .join("");
+    } catch (err) {
+      console.error("[PRODUCT ERROR]", err);
+    }
   }
 
   function createProduct() {
@@ -49,17 +127,104 @@
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-    }).then((response) => {
-      console.log("RESPONSE:", response);
-      return loadProducts();
-    });
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "สร้างสินค้าไม่สำเร็จ");
+        }
+        return res.json().catch(() => null);
+      })
+      .then((data) => {
+        console.log("CREATE SUCCESS:", data);
+        loadProducts();
+      })
+      .catch((err) => {
+        console.error("CREATE ERROR:", err);
+        alert("เกิดข้อผิดพลาด: " + err.message);
+      });
   }
 
   let prodAttrCounter = 0;
   let prodImageDataUrl = "";
+  let selectedImageFile = null;
+  const PRODUCT_API_URL = "/api/merchant/products";
+  const UPLOAD_API_URL = null;
+  let prodApiLogged = false;
+  let CURRENT_PAGE = null;
 
   function prodGet(id) {
     return document.getElementById(id);
+  }
+
+  function prodLogDetectedApis() {
+    if (prodApiLogged) return;
+    prodApiLogged = true;
+    console.log("DETECTED PRODUCT API:", PRODUCT_API_URL);
+    console.log("DETECTED UPLOAD API:", UPLOAD_API_URL || "NONE");
+  }
+
+  function getCreateProductMenu() {
+    return [];
+  }
+
+  function getProductListMenu() {
+    return [];
+  }
+
+  function renderTopMenu(menuItems) {
+    if (!menuItems || menuItems.length === 0) {
+      const container = document.getElementById("top-menu");
+      if (container) container.innerHTML = "";
+      return;
+    }
+    const container = document.getElementById("top-menu");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const items = (menuItems || []).map((i) => ({ ...i }));
+    items.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = item.label || "";
+      if (item.active) btn.classList.add("active");
+      if (item.action) btn.onclick = item.action;
+      container.appendChild(btn);
+    });
+  }
+
+  function renderTopMenuForPage() {
+    const page = CURRENT_PAGE;
+    const container = document.getElementById("top-menu");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    let menu = [];
+
+    if (page === "products") {
+      menu = [
+        {
+          label: "สร้างสินค้า",
+          active: true,
+        },
+      ];
+    } else if (page === "product-list") {
+      menu = [];
+    } else {
+      menu = [];
+    }
+
+    menu.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = item.label;
+
+      if (item.active) btn.classList.add("active");
+      if (item.action) btn.onclick = item.action;
+
+      container.appendChild(btn);
+    });
   }
 
   function generateProductId() {
@@ -69,11 +234,22 @@
   }
 
   async function prodCheckDuplicateName(name) {
-    const res = await fetch("/api/merchant/products");
-    const json = await res.json().catch(() => null);
-    if (!res.ok || !Array.isArray(json)) return false;
-    const target = String(name || "").trim().toLowerCase();
-    return json.some((p) => String(p?.["ชื่อสินค้า"] || "").trim().toLowerCase() === target);
+    try {
+      const res = await fetch(PRODUCT_API_URL);
+      if (!res.ok) return false;
+
+      const json = await res.json().catch(() => null);
+      if (!Array.isArray(json)) return false;
+
+      const target = String(name || "").trim().toLowerCase();
+
+      return json.some((p) =>
+        String(p?.["ชื่อสินค้า"] || "").trim().toLowerCase() === target
+      );
+    } catch (e) {
+      console.warn("duplicate check failed:", e);
+      return false;
+    }
   }
 
   function prodSetError(id, message) {
@@ -92,6 +268,26 @@
 
   function prodIsEnabled() {
     return !!prodGet("prodName");
+  }
+
+  function prodGetUploadBox() {
+    return document.getElementById("uploadBox") || document.getElementById("prodImageBox");
+  }
+
+  function prodGetFileInput() {
+    return document.getElementById("productImageInput") || document.getElementById("prodImageFile");
+  }
+
+  function prodSetPreview(dataUrl) {
+    const preview = document.getElementById("previewImage") || document.getElementById("prodImagePreview");
+    const placeholder = prodGet("prodImagePlaceholder");
+    if (preview) {
+      preview.src = dataUrl || "";
+      preview.style.display = dataUrl ? "block" : "none";
+    }
+    if (placeholder) {
+      placeholder.style.display = dataUrl ? "none" : "block";
+    }
   }
 
   function prodClearVariantErrors() {
@@ -513,6 +709,8 @@
 
   async function prodSubmit() {
     if (!prodIsEnabled()) return;
+    prodLogDetectedApis();
+    console.log("SUBMIT CLICKED");
     const payload = prodValidate();
     if (!payload) return;
 
@@ -521,6 +719,7 @@
       return;
     }
     console.log("PRODUCT ID:", payload.id);
+    console.log("PRODUCT PAYLOAD:", payload);
 
     try {
       const exists = await prodCheckDuplicateName(payload.name);
@@ -528,37 +727,68 @@
         alert("ชื่อสินค้านี้มีอยู่แล้ว ไม่สามารถบันทึกได้");
         return;
       }
-    } catch (e) {
-      console.error("duplicate name check error:", e);
-    }
 
-    prodMessage("กำลังบันทึก...", false);
-    const res = await fetch("/api/merchant/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json().catch(() => null);
-    if (!res.ok || !json) {
-      prodMessage("บันทึกไม่สำเร็จ", true);
-      return;
+      prodMessage("กำลังบันทึก...", false);
+      const res = await fetch(PRODUCT_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+      console.log("API RESPONSE:", data);
+
+      const raw = data ? JSON.stringify(data) : "";
+      if (raw.includes("duplicate") || raw.includes("ซ้ำ")) {
+        alert("ชื่อสินค้าซ้ำ ไม่สามารถบันทึกได้");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error((data && (data.message || data.error)) || "Save failed");
+      }
+
+      console.log("SAVE SUCCESS", data);
+      alert("บันทึกสินค้าสำเร็จ");
+
+      console.log("UPLOAD STATUS:", UPLOAD_API_URL ? "success" : "skipped");
+    } catch (err) {
+      console.error("SAVE ERROR:", err);
+      alert("เกิดข้อผิดพลาด: " + (err && err.message ? err.message : String(err)));
     }
-    if (json.error) {
-      prodMessage(json.error, true);
-      return;
-    }
-    prodMessage("บันทึกสินค้าเรียบร้อย", false);
   }
 
+  const PAGE_MAP = {
+    dashboard: null,
+    products: null,
+    "create-product": "/dashboard/view.html",
+    orders: "../orders/view.html",
+    affiliate: "../affiliate/view.html",
+    sales: "../sales/view.html",
+    finance: "../finance/view.html",
+    settings: "../settings/view.html",
+  };
+
   window.loadPage = async function (page) {
+    if (page === "product-list") {
+      console.warn("BLOCKED product-list route");
+      return;
+    }
+    if (CURRENT_PAGE === page) {
+      console.log("SKIP same page:", page);
+      return;
+    }
+    CURRENT_PAGE = page;
     const container = document.getElementById("app-content");
 
     if (!container) {
       console.error("app-content not found");
       return;
     }
+
+    renderTopMenuForPage(page);
 
     if (page === "dashboard") {
   const tpl = document.getElementById("dashboard-page");
@@ -585,8 +815,51 @@
   return;
 }
 
-    const res = await fetch(`../${page}/view.html`);
+    if (page === "products") {
+      console.log("📦 render products via SPA only");
+
+      const body = document.getElementById("page-body");
+      if (!body) return;
+
+      body.innerHTML = `
+     <h1 class="page-title">สินค้าทั้งหมด</h1> 
+     <div id="product-list"></div> 
+   `;
+
+      loadProducts();
+      return;
+    }
+
+    const path = PAGE_MAP[page];
+
+    if (path && path.includes("products.html")) {
+      console.warn("🚫 BLOCK products.html (prevents sidebar duplication)");
+      return;
+    }
+
+    if (!path) {
+      console.warn("No page mapping for:", page);
+      return;
+    }
+
+    const res = await fetch(path);
+    if (!res.ok) {
+      console.error("PAGE LOAD FAILED:", page);
+      return;
+    }
     const html = await res.text();
+
+    // parse HTML safely
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    // ONLY extract inner content (NOT full page)
+    const newContent = doc.getElementById("app-content");
+
+    if (!newContent) {
+      console.error("❌ INVALID PAGE STRUCTURE: missing #app-content");
+      return;
+    }
 
     const tabs = document.getElementById("page-tabs");
     const body = document.getElementById("page-body");
@@ -598,9 +871,10 @@
     }
 
     if (body) {
-      body.innerHTML = html;
+      body.innerHTML = newContent.innerHTML;
     } else {
-      container.innerHTML = html;
+      console.error("page-body not found → prevent layout overwrite");
+      return;
     }
   };
 
@@ -623,96 +897,120 @@
       });
     }
 
-    loadPage("dashboard");
-  });
+    document.addEventListener("change", async (e) => {
+      if (!prodIsEnabled()) return;
+      const t = e.target;
+      if (!t) return;
+      if (t.id === "productImageInput" || t.id === "prodImageFile") {
+        prodLogDetectedApis();
+        const file = t.files && t.files[0];
+        if (!file) return;
 
-  document.addEventListener("change", (e) => {
-    if (!prodIsEnabled()) return;
-    const t = e.target;
-    if (!t) return;
-    if (t.id === "prodImageFile") {
-      const file = t.files && t.files[0];
-      if (!file) return;
+        selectedImageFile = file;
+        console.log("IMAGE SELECTED:", selectedImageFile);
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        prodImageDataUrl = String(reader.result || "");
-        const img = prodGet("prodImagePreview");
-        const placeholder = prodGet("prodImagePlaceholder");
-        if (img) {
-          img.src = prodImageDataUrl;
-          img.style.display = prodImageDataUrl ? "block" : "none";
+        const MAX_SIZE = 2 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+          alert("รูปใหญ่เกิน 2MB");
+          t.value = "";
+          return;
         }
-        if (placeholder) {
-          placeholder.style.display = prodImageDataUrl ? "none" : "block";
-        }
-      };
-      reader.readAsDataURL(file);
-      return;
-    }
-    if (t.id === "prodUseAttrs") {
-      prodToggleAttributes(!!t.checked);
-      return;
-    }
-    if (t.id === "prodTrackStock") {
-      prodToggleStock(!!t.checked);
-      prodUpdateVariants();
-      return;
-    }
-  });
 
-  document.addEventListener("input", (e) => {
-    if (!prodIsEnabled()) return;
-    const t = e.target;
-    if (!t) return;
-    if (t.classList && (t.classList.contains("prod-attr-values") || t.classList.contains("prod-attr-name"))) {
-      prodUpdateVariants();
-    }
-  });
+        window.productImageId = null;
 
-  document.addEventListener("click", (e) => {
-    if (!prodIsEnabled()) return;
-    const t = e.target;
-    if (!t) return;
-    const imageBox = t.closest && t.closest("#prodImageBox");
-    if (t.id === "prodImageBox" || imageBox) {
-      const fileInput = prodGet("prodImageFile");
-      if (fileInput) fileInput.click();
-      return;
-    }
-    if (t.id === "prodAddAttr") {
-      prodAddAttribute();
-      prodUpdateVariants();
-      return;
-    }
-    if (t.id === "prodSkuEditBtn") {
-      const modal = prodGet("prodSkuModal");
-      const input = prodGet("prodSkuModalInput");
-      const skuInput = prodGet("prodSku");
-      if (input && skuInput) input.value = skuInput.value || "";
-      if (modal) modal.style.display = "flex";
-      return;
-    }
-    if (t.id === "prodSkuModalCancel") {
-      const modal = prodGet("prodSkuModal");
-      if (modal) modal.style.display = "none";
-      return;
-    }
-    if (t.id === "prodSkuModalSave") {
-      const modal = prodGet("prodSkuModal");
-      const input = prodGet("prodSkuModalInput");
-      const skuInput = prodGet("prodSku");
-      const newSku = (input?.value || "").trim();
-      if (!newSku) {
-        alert("กรุณากรอกรหัสสินค้า");
+        const reader = new FileReader();
+        reader.onload = () => {
+          const previewUrl = String(reader.result || "");
+          prodSetPreview(previewUrl);
+        };
+        reader.readAsDataURL(file);
         return;
       }
-      if (skuInput) skuInput.value = newSku;
-      if (modal) modal.style.display = "none";
-      return;
-    }
-    if (t.id === "prodSubmit") {
-      prodSubmit();
+      if (t.id === "prodUseAttrs") {
+        prodToggleAttributes(!!t.checked);
+        return;
+      }
+      if (t.id === "prodTrackStock") {
+        prodToggleStock(!!t.checked);
+        prodUpdateVariants();
+        return;
+      }
+    });
+
+    document.addEventListener("input", (e) => {
+      if (!prodIsEnabled()) return;
+      const t = e.target;
+      if (!t) return;
+      if (t.classList && (t.classList.contains("prod-attr-values") || t.classList.contains("prod-attr-name"))) {
+        prodUpdateVariants();
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!prodIsEnabled()) return;
+      const t = e.target;
+      if (!t) return;
+
+      if (t.id === "uploadBtn") {
+        console.log("UPLOAD CLICKED");
+        const fileInput = prodGetFileInput();
+        if (fileInput) fileInput.click();
+        return;
+      }
+
+      const uploadBox = t.closest && (t.closest("#uploadBox") || t.closest("#prodImageBox"));
+      if (t.id === "uploadBox" || t.id === "prodImageBox" || uploadBox) {
+        const fileInput = prodGetFileInput();
+        if (fileInput) fileInput.click();
+        return;
+      }
+      if (t.id === "prodAddAttr") {
+        prodAddAttribute();
+        prodUpdateVariants();
+        return;
+      }
+      if (t.id === "prodSkuEditBtn") {
+        const modal = prodGet("prodSkuModal");
+        const input = prodGet("prodSkuModalInput");
+        const skuInput = prodGet("prodSku");
+        if (input && skuInput) input.value = skuInput.value || "";
+        if (modal) modal.style.display = "flex";
+        return;
+      }
+      if (t.id === "prodSkuModalCancel") {
+        const modal = prodGet("prodSkuModal");
+        if (modal) modal.style.display = "none";
+        return;
+      }
+      if (t.id === "prodSkuModalSave") {
+        const modal = prodGet("prodSkuModal");
+        const input = prodGet("prodSkuModalInput");
+        const skuInput = prodGet("prodSku");
+        const newSku = (input?.value || "").trim();
+        if (!newSku) {
+          alert("กรุณากรอกรหัสสินค้า");
+          return;
+        }
+        if (skuInput) skuInput.value = newSku;
+        if (modal) modal.style.display = "none";
+        return;
+      }
+      if (t.id === "prodSubmit") {
+        prodSubmit();
+      }
+    });
+
+    // DO NOT FORCE PAGE
+    // load based on URL instead
+
+    const path = window.location.pathname;
+
+    if (path.includes("products.html")) {
+      console.log("Standalone products page — skip SPA load");
+    } else if (path.includes("view.html")) {
+      loadPage("products");
+    } else {
+      loadPage("dashboard");
     }
   });
   } catch (err) {
