@@ -1,38 +1,31 @@
-const root = document.getElementById("list-root"); 
+const root = document.getElementById("product-list-root") || document.getElementById("list-root"); 
  
 async function loadProducts() { 
-  try { 
-    root.innerHTML = "กำลังโหลด..."; 
+   root.innerHTML = "กำลังโหลด..."; 
  
-    const res = await fetch("/api/merchant/products"); 
+   try { 
+     const res = await fetch("/api/merchant/products"); 
+     const data = await res.json(); 
  
-    if (!res.ok) { 
-      throw new Error("โหลดไม่สำเร็จ"); 
-    } 
+     if (!Array.isArray(data) || data.length === 0) { 
+       root.innerHTML = "<p>ยังไม่มีสินค้า</p>"; 
+       return; 
+     } 
  
-    const data = await res.json(); 
+     root.innerHTML = ` 
+       <div style="display:grid; gap:12px;"> 
+         ${data.map(p => ` 
+           <div style="padding:12px; border:1px solid #ddd; border-radius:8px;"> 
+             <div><strong>${p.name || "-"}</strong></div> 
+             <div>ราคา: ${p.price || 0} บาท</div> 
+           </div> 
+         `).join("")} 
+       </div> 
+     `; 
+   } catch (err) { 
+     console.error(err); 
+     root.innerHTML = "<p>เกิดข้อผิดพลาด</p>"; 
+   } 
+ } 
  
-    if (!Array.isArray(data) || data.length === 0) { 
-      root.innerHTML = `<div class="empty">ยังไม่มีสินค้า</div>`; 
-      return; 
-    } 
- 
-    root.innerHTML = data.map(p => { 
-      const name = p?.name || p?.["ชื่อสินค้า"] || "-"; 
-      const price = p?.price ?? p?.["ราคา"] ?? 0; 
- 
-      return ` 
-        <div class="item"> 
-          <div class="name">${name}</div> 
-          <div class="price">ราคา: ${price}</div> 
-        </div> 
-      `; 
-    }).join(""); 
- 
-  } catch (err) { 
-    console.error(err); 
-    root.innerHTML = `<div class="error">เกิดข้อผิดพลาด</div>`; 
-  } 
-} 
- 
-loadProducts(); 
+ loadProducts(); 
