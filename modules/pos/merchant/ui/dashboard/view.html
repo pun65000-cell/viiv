@@ -262,6 +262,9 @@
 
         <div class="nav-item active" onclick="setActiveNav(this); if (window.loadPage) loadPage('dashboard');">Dashboard</div>
         <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('affiliate');">Affiliate</div>
+        <div id="menu-products" class="nav-item menu-item"> 
+          สินค้า 
+        </div>
         <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('orders');">คำสั่งซื้อ</div>
         <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('sales');">ยอดขาย</div>
         <div class="nav-item" onclick="setActiveNav(this); if (window.loadPage) loadPage('finance');">บัญชีการเงิน</div>
@@ -286,6 +289,7 @@
             <div id="app-content">
               <div class="pagebar">
                 <div class="pagebar-title" id="pageTitle">สร้างสินค้า</div>
+                <button id="menu-create-product" style="display:none"></button>
               </div>
 
               <div id="page-body"></div>
@@ -297,9 +301,6 @@
 
     <template id="dashboard-page">
       <div class="card">
-        <h1 style="font-size:18px; font-weight:600; margin-bottom:4px;">Products</h1>
-        <div class="card-subtitle">รายการสินค้าในร้าน</div>
-
       </div>
     </template>
 
@@ -337,8 +338,62 @@
 
         container.innerHTML = `<div>${tab} (กำลังพัฒนา)</div>`;
       }
+
+      function loadListProductInto(id) {
+        const host = document.getElementById(id);
+        if (!host) return;
+        host.innerHTML = `<iframe style="width:100%;height:70vh;border:0;background:#fff;" src="/dashboard/products_new/list.html"></iframe>`;
+      }
+
+      function loadCreateProductInto(id) {
+        const host = document.getElementById(id);
+        if (!host) return;
+        host.innerHTML = `<iframe style="width:100%;height:70vh;border:0;background:#fff;" src="/dashboard/products_new/create.html"></iframe>`;
+      }
+
+      document.getElementById("menu-products").onclick = () => { 
+      const appContent = document.getElementById("app-content"); 
+      if (!appContent) return;
+      let root = document.getElementById("app");
+      if (!root) {
+        root = document.createElement("div");
+        root.id = "app";
+        appContent.appendChild(root);
+      }
+ 
+      root.innerHTML = ` 
+      <div> 
+      <div style="display:flex; gap:10px; margin-bottom:20px;"> 
+      <button id="tab-list">สินค้าทั้งหมด</button> 
+      <button id="tab-create">สร้างสินค้า</button> 
+      </div> 
+ 
+        <div id="product-content"></div> 
+      </div> 
+ 
+      `; 
+ 
+      document.getElementById("tab-list").onclick = () => { 
+      loadListProductInto("product-content"); 
+      }; 
+ 
+      document.getElementById("tab-create").onclick = () => { 
+      loadCreateProductInto("product-content"); 
+      }; 
+ 
+      loadListProductInto("product-content"); 
+      }; 
     </script>
     <input type="file" id="productImageInput" accept="image/*" hidden />
+    <script>
+    document.getElementById("menu-create-product").onclick = () => { 
+      if (typeof loadCreateProduct === "function") { 
+        loadCreateProduct(); 
+      } else { 
+        console.warn("loadCreateProduct not found"); 
+      } 
+    }; 
+    </script>
     <script src="./auth.js"></script>
     <script src="./logic.js"></script>
   </body>

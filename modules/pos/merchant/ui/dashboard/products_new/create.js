@@ -57,34 +57,32 @@ root.innerHTML = `
     </div> 
 
   </form> 
-`; 
-
-root.innerHTML += ` 
-<div style="margin-top:30px"> 
  
-  <label> 
-    <input type="checkbox" id="toggleVariant" /> 
-    เปิดใช้คุณสมบัติสินค้า 
-  </label> 
+  <div style="margin-top:30px"> 
  
-  <div id="variantSection" style="display:none; margin-top:20px"> 
+    <label> 
+      <input type="checkbox" id="toggleVariant" /> 
+      เปิดใช้คุณสมบัติสินค้า 
+    </label> 
  
-    <div class="field"> 
-      <label>ชื่อคุณสมบัติ</label> 
-      <input id="attrName" placeholder="เช่น สี" /> 
+    <div id="variantSection" style="display:none; margin-top:20px"> 
+ 
+      <div class="field"> 
+        <label>ชื่อคุณสมบัติ</label> 
+        <input id="attrName" placeholder="เช่น สี" /> 
+      </div> 
+ 
+      <div class="field"> 
+        <label>ค่า</label> 
+        <input id="attrValueInput" placeholder="พิมพ์แล้วกด Enter" /> 
+        <div id="valueChips" style="display:flex; gap:6px; flex-wrap:wrap;"></div> 
+      </div> 
+ 
+      <div id="variantTable" style="margin-top:20px"></div> 
+ 
     </div> 
- 
-    <div class="field"> 
-      <label>ค่า</label> 
-      <input id="attrValueInput" placeholder="พิมพ์แล้วกด Enter" /> 
-      <div id="valueChips" style="display:flex; gap:6px; flex-wrap:wrap;"></div> 
-    </div> 
- 
-    <div id="variantTable" style="margin-top:20px"></div> 
  
   </div> 
- 
-</div> 
 `; 
 
 const form = document.getElementById("form"); 
@@ -197,13 +195,15 @@ form.onsubmit = async (e) => {
     const data = await res.json().catch(() => null); 
     console.log("CREATED:", data); 
 
-    msg.textContent = "สร้างสำเร็จ"; 
+    const status = msg;
+    status.innerText = "Created successfully"; 
+ 
+    setTimeout(() => { 
+    window.location.href = "/dashboard/products_new/list.html"; 
+    }, 800); 
     msg.className = "msg success"; 
 
     form.reset(); 
-
-    alert("บันทึกสำเร็จ");
-    window.location.href = "/dashboard/products_new/list.html";
 
   } catch (err) { 
     console.error(err); 

@@ -44,6 +44,29 @@ window.__VIIV_LOGIC_LOADED__ = true;
     return [];
   }
 
+  async function loadCreateProduct() { 
+  const root = document.getElementById("app"); 
+  root.innerHTML = ""; 
+ 
+  const module = await import("./products_new/create.js"); 
+ 
+  // support both export default or direct execution 
+  if (module && module.default) { 
+  module.default(root); 
+  } 
+  } 
+
+  async function loadListProduct() { 
+  const root = document.getElementById("app"); 
+  root.innerHTML = ""; 
+ 
+  const module = await import("./products_new/list.js"); 
+ 
+  if (module && module.default) { 
+  module.default(root); 
+  } 
+  } 
+
   function renderTopMenu(menuItems) {
     if (!menuItems || menuItems.length === 0) {
       const container = document.getElementById("top-menu");
