@@ -37,7 +37,7 @@
       .sidebar {
         width: 200px;
         color: #fff;
-        background: linear-gradient(180deg, #1a1d24 0%, #13161c 100%) !important;
+        background: linear-gradient(180deg, #0f172a, #020617) !important;
         padding: 16px 12px;
         display: flex;
         flex-direction: column;
@@ -119,6 +119,38 @@
         color: var(--text);
         cursor: pointer;
         font-size: 13px;
+      }
+
+      .menu-item {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        color: rgba(255,255,255,0.7);
+        transition: all 0.25s ease;
+        background: rgba(255,255,255,0.03);
+      }
+
+      .menu-item:hover {
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+      }
+
+      .menu-item.active {
+        background: linear-gradient(90deg, #facc15, #eab308);
+        color: #000;
+        font-weight: bold;
+        box-shadow: 0 0 12px rgba(250,204,21,0.5);
+      }
+
+      #shop-name {
+        color: #facc15;
+        font-weight: bold;
+      }
+
+      #shopName {
+        color: #facc15;
+        font-weight: bold;
       }
 
       .btn-primary {
@@ -225,8 +257,13 @@
   <body>
     <div class="layout">
       <div class="sidebar" style="
-        background: #020617;
-        padding: 8px;
+width:240px; 
+background:linear-gradient(180deg,#0f172a,#020617); 
+color:#fff; 
+padding:16px; 
+display:flex; 
+flex-direction:column; 
+gap:12px; 
       ">
         <div class="brand" style="padding: 10px 10px 6px 10px;">
 
@@ -249,27 +286,97 @@
 
           <!-- 🏷 SHOP NAME (MAIN HERO) -->
           <div style="
-            text-align: center;
-            font-weight: 700;
-            font-size: 15px;
-            color:#facc15;
-            margin-bottom: 6px;
+color:#facc15; 
+font-weight:700; 
+font-size:18px; 
+margin-bottom:12px; 
           " id="shopName">
             My Shop Name
           </div>
 
         </div>
 
-        <div class="nav-item active">Dashboard</div>
-        <div class="nav-item">Affiliate</div>
-        <div onclick="window.loadListProduct()">
-          สินค้า
-        </div>
-        <div class="nav-item">คำสั่งซื้อ</div>
-        <div class="nav-item">ยอดขาย</div>
-        <div class="nav-item">บัญชีการเงิน</div>
-        <div class="nav-item">จัดการร้านค้า</div>
-        <div class="nav-item">เพิ่มยอดขาย</div>
+        <div class="nav-item menu-item active" data-page="dashboard" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">Dashboard</div>
+        <div class="nav-item menu-item" data-page="affiliate" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">Affiliate</div>
+        <div class="nav-item menu-item" data-page="products" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">สินค้า</div>
+        <div class="nav-item menu-item" data-page="orders" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">คำสั่งซื้อ</div>
+        <div class="nav-item menu-item" data-page="sales" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">ยอดขาย</div>
+        <div class="nav-item menu-item" data-page="finance" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">บัญชีการเงิน</div>
+        <div class="nav-item menu-item" data-page="members" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">สมาชิกร้านค้า</div>
+        <div class="nav-item menu-item" data-page="store" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">จัดการร้านค้า</div>
+        <div class="nav-item menu-item" data-page="addons" style="
+padding:10px 14px; 
+border-radius:12px; 
+cursor:pointer; 
+background:rgba(255,255,255,0.05); 
+color:#cbd5f5; 
+font-size:14px; 
+transition:all 0.2s; 
+">เพิ่มยอดขาย</div>
 
         <div class="sidebar-footer">VIIV Shop v 0.1.0</div>
       </div>
