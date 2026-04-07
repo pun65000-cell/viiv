@@ -1,0 +1,97 @@
+<!doctype html>
+
+<html lang="th">
+  <head>
+<link rel="stylesheet" href="./style.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Shop Name</title>
+    
+<style>
+/* CTO_HIDE_HEADER_SAFE */
+.pagebar { display: none !important; }
+.topmenu { display: none !important; }
+.profile { display: none !important; }
+</style>
+
+</head>
+  <body>
+    <div class="sidebar">
+      <div class="brand">
+        <div class="brand-title"><span class="viiv">My</span> <span class="platform">Shop Name</span></div>
+        <div class="brand-accent"></div>
+      </div>
+       
+<div class="menu">
+  <a class="active" href="#">dashboard</a>
+  <a href="#">affiliate</a>
+  <a href="#">EasySale</a>
+  <a href="#">สินค้า/สโตร์</a>
+  <a href="#">คำสั่งซื้อ</a>
+  <a href="#">สมาชิกร้านค้า</a>
+  <a href="#">เพิ่มยอดขาย</a>
+  <a href="#">บัญชีการเงิน</a>
+  <a href="#">ตั้งค่าร้านค้า</a>
+</div>
+<!-- CTO_MENU_9_DONE -->
+ 
+      <div class="sidebar-footer">
+        My Shop Name v0.1.0
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- ❌ pagebar ยังอยู่แต่ถูก disable ด้วย CSS (ไม่ลบโครง) -->
+      <div class="pagebar"></div>
+
+      <!-- ❌ topmenu ยังอยู่แต่ไม่แสดง -->
+      <div class="topmenu" id="topMenu"></div>
+
+      <div class="content">
+        <!-- ❌ ลบ title/subtitle -->
+        <div id="spa"></div>
+      </div>
+    </div>
+
+    <!-- ❌ ปิด script profile (ไม่ลบ แต่ disable) -->
+    <script>
+    // CTO_PROFILE_DISABLED
+    </script>
+
+    <!-- ❌ ปิด SPA ตัวเก่า -->
+    <script>
+    // CTO_OLD_SPA_DISABLED
+    </script>
+
+    <!-- ✅ SPA ตัวเดียว -->
+    <script>
+    // ===== CTO_SINGLE_SPA =====
+
+    document.addEventListener('DOMContentLoaded', function(){
+
+      const spa = document.getElementById('spa')
+
+      function render(name){
+        if(!spa) return
+        spa.innerHTML = '<div style="padding:20px;">PAGE: ' + name + '</div>'
+      }
+
+      document.querySelectorAll('.menu a').forEach(el=>{
+        el.addEventListener('click', function(e){
+          e.preventDefault()
+
+          document.querySelectorAll('.menu a').forEach(a=>a.classList.remove('active'))
+          this.classList.add('active')
+
+          render(this.innerText)
+        })
+      })
+
+      render('dashboard')
+
+    })
+    </script>
+
+</body>
+</html>
