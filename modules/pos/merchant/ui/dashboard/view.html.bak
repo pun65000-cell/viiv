@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta charset="UTF-8">
+    <link rel="stylesheet" href="./style.css">
+    <title>VIIV Merchant</title>
+    <link rel="icon" href="data:,">
+    
+  </head>
+  <body>
+
+    <div class="sidebar">
+      <div class="brand">
+        <div class="brand-title"><span class="viiv">VIIV</span> <span class="platform">Platform</span></div>
+        <div class="brand-accent"></div>
+      </div>
+      <div class="menu">
+        <a class="menu-item">Dashboard</a>
+        <a class="menu-item">จัดการร้านค้า</a>
+        <a class="menu-item">ร้านของฉัน</a>
+        <a class="menu-item">แพ็คเกจ</a>
+        <a class="menu-item">บุคลากร</a>
+      </div>
+      <div class="sidebar-footer">
+        VIIV Platform v0.1.0
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="pagebar">
+        <div id="pageTitle" class="pagebar-title">Dashboard</div>
+        <div class="profile">
+          <div class="profile-name">Admin</div>
+          <button id="profileBtn" class="btn" type="button">▼</button>
+          <div id="profileDropdown" class="dropdown">
+            <button id="profileMenuBtn" type="button">โปรไฟล์</button>
+            <button id="logoutBtn" type="button">ออกจากระบบ</button>
+          </div>
+        </div>
+      </div>
+      <div class="topmenu" id="topMenu"></div>
+
+      <div class="content">
+        <h1 id="title">Dashboard</h1>
+        <div id="subtitle">ภาพรวมระบบ</div>
+        <div id="content">Loading...</div>
+      </div>
+    </div>
+
+    
+
+    
+  
+</body>
+</html>
+
+<!-- SPA_MENU_PATCH_V1 -->

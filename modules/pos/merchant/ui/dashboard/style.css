@@ -1,3 +1,4 @@
+
       :root {
         --bg-main: #e6e9ef;
         --sidebar: linear-gradient(180deg, #1a1d24 0%, #13161c 100%);
@@ -115,17 +116,28 @@
         line-height: 1.1;
       }
 
-      .topbar {
+      .topmenu {
         background: #ffffff;
         border: 1px solid var(--border);
         border-radius: 14px;
         padding: 6px 8px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 12px;
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
         max-height: 60px;
+      }
+
+      .topmenu:empty {
+        display: none;
+      }
+
+      .topbar-left {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: nowrap;
       }
 
       .topbar-title {
@@ -133,6 +145,17 @@
         color: var(--text);
         white-space: nowrap;
         font-size: 14px;
+      }
+
+      .topbar-left input {
+        width: 220px;
+        max-width: 42vw;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--text);
+        outline: none;
       }
 
       .btn {
@@ -198,7 +221,7 @@
       }
 
       .dropdown button:hover {
-        background: rgba(0, 0, 0, 0.06);
+        background: rgba(255, 255, 255, 0.08);
       }
 
       .content {
@@ -220,6 +243,19 @@
         color: var(--muted);
       }
 
+      #content {
+        white-space: pre-wrap;
+        color: var(--text);
+      }
+
+      .iframe-wrap {
+        width: 100%;
+        height: 75vh;
+        border: 0;
+        border-radius: 12px;
+        background: #fff;
+      }
+
       .sidebar-footer {
         margin-top: auto;
         padding-top: 12px;
@@ -228,30 +264,6 @@
         font-size: 11px;
         line-height: 1.1;
         text-align: center;
-      }
-
-      .tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 0;
-        flex-wrap: wrap;
-      }
-
-      .tab-btn {
-        padding: 8px 10px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #ffffff;
-        color: var(--text);
-        cursor: pointer;
-        font-size: 13px;
-      }
-
-      .tab-btn.active {
-        background: var(--accent);
-        border-color: rgba(0, 0, 0, 0.15);
-        color: #ffffff;
-        font-weight: 700;
       }
 
       @media (max-width: 920px) {
@@ -275,6 +287,11 @@
 
         .menu a {
           width: auto;
+        }
+
+        .topbar-left input {
+          width: 160px;
+          max-width: 45vw;
         }
       }
 
@@ -318,3 +335,4 @@
         padding: 6px 12px;
         font-size: 13px;
       }
+    
