@@ -1,391 +1,55 @@
 <!DOCTYPE html>
 <html>
   <head>
+<meta charset="UTF-8">
+    <link rel="stylesheet" href="./style.css">
     <title>VIIV Merchant</title>
     <link rel="icon" href="data:,">
-    <style>
-      :root {
-        --accent: #d6a94b;
-        --accent-hover: #c89b3c;
-        --bg-main: #e6e9ef;
-        --content-bg: #f6f6f6;
-        --text: #1f2937;
-        --border: rgba(0,0,0,0.12);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        height: 100%;
-      }
-
-      body {
-        margin: 0;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: var(--bg-main);
-        color: var(--text);
-      }
-
-      .layout {
-        display: flex;
-        min-height: 100vh;
-      }
-
-      .sidebar {
-        width: 200px;
-        color: #fff;
-        background: linear-gradient(180deg, #0f172a, #020617) !important;
-        padding: 16px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .nav-item {
-        padding: 10px 14px;
-        border-radius: 12px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.06);
-        color: #cbd5e1;
-        cursor: pointer;
-        user-select: none;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      .nav-item:hover {
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.12);
-        color: #ffffff;
-        transform: translateX(2px);
-      }
-
-      .nav-item.active {
-        background: rgba(214,169,75,0.15);
-        color: #ffffff;
-        border: 1px solid rgba(214,169,75,0.6);
-        box-shadow:
-          0 0 0 1px rgba(214,169,75,0.25),
-          0 4px 12px rgba(0,0,0,0.25);
-      }
-
-      .sidebar #shopName {
-        color: var(--accent);
-      }
-
-      .sidebar-footer {
-        margin-top: auto;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--accent);
-        font-size: 11px;
-        line-height: 1.1;
-        text-align: center;
-        white-space: nowrap;
-      }
-
-      .main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        padding: 16px;
-        min-width: 0;
-        background: var(--bg-main);
-      }
-
-      .pagebar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 2px 2px;
-      }
-
-      .pagebar-title {
-        font-size: 18px;
-        font-weight: 600;
-      }
-
-      .btn {
-        padding: 6px 8px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #ffffff;
-        color: var(--text);
-        cursor: pointer;
-        font-size: 13px;
-      }
-
-      .menu-item {
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        color: rgba(255,255,255,0.7);
-        transition: all 0.25s ease;
-        background: rgba(255,255,255,0.03);
-      }
-
-      .menu-item:hover {
-        background: rgba(255,255,255,0.08);
-        color: #fff;
-      }
-
-      .menu-item.active {
-        background: linear-gradient(90deg, #facc15, #eab308);
-        color: #000;
-        font-weight: bold;
-        box-shadow: 0 0 12px rgba(250,204,21,0.5);
-      }
-
-      #shop-name {
-        color: #facc15;
-        font-weight: bold;
-      }
-
-      #shopName {
-        color: #facc15;
-        font-weight: bold;
-      }
-
-      .btn-primary {
-        background: var(--accent);
-        border-color: rgba(0, 0, 0, 0.15);
-        color: #ffffff;
-        font-weight: 700;
-      }
-
-      .btn-primary:hover {
-        background: var(--accent-hover);
-      }
-
-      .btn-secondary {
-        background: #e5e7eb;
-        border-color: rgba(0, 0, 0, 0.15);
-        color: #1a1a1a;
-        font-weight: 600;
-      }
-
-      .topbar button {
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: #ffffff;
-        color: var(--text);
-        font-size: 13px;
-        cursor: pointer;
-      }
-
-      .topbar button.active {
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: none;
-        background: var(--accent);
-        color: #ffffff;
-        font-size: 13px;
-      }
-
-      .topbar button.active:hover {
-        background: var(--accent-hover);
-      }
-
-      .topbar button:hover {
-        background: var(--accent-hover);
-        color: #ffffff;
-        border: none;
-      }
-
-      .profile {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .profile-name {
-        color: var(--text);
-        font-weight: 600;
-        font-size: 13px;
-      }
-
-      .dropdown {
-        position: absolute;
-        top: calc(100% + 10px);
-        right: 0;
-        background: #ffffff;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 8px;
-        min-width: 180px;
-        display: none;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-      }
-
-      .dropdown button {
-        width: 100%;
-        text-align: left;
-        padding: 10px 10px;
-        border-radius: 10px;
-        border: 0;
-        background: transparent;
-        color: var(--text);
-        cursor: pointer;
-      }
-
-      .dropdown button:hover {
-        background: rgba(0, 0, 0, 0.06);
-      }
-
-      .card {
-        background: #ffffff;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 18px;
-      }
-
-      .card-subtitle {
-        margin: 0 0 14px 0;
-        color: rgba(31,41,55,0.7);
-      }
-    </style>
+    
   </head>
   <body>
-    <div class="layout">
-      <div class="sidebar" style="
-width:240px; 
-background:linear-gradient(180deg,#0f172a,#020617); 
-color:#fff; 
-padding:16px; 
-display:flex; 
-flex-direction:column; 
-gap:12px; 
-      ">
-        <div class="brand" style="padding: 10px 10px 6px 10px;">
 
-          <!-- 🔲 LOGO AREA -->
-          <div style="
-            width: 100%;
-            height: 48px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 6px;
-            font-size: 12px;
-            opacity: 0.6;
-          ">
-            LOGO
-          </div>
-
-          <!-- 🏷 SHOP NAME (MAIN HERO) -->
-          <div style="
-color:#facc15; 
-font-weight:700; 
-font-size:18px; 
-margin-bottom:12px; 
-          " id="shopName">
-            My Shop Name
-          </div>
-
-        </div>
-
-        <div class="nav-item menu-item active" data-page="dashboard" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">Dashboard</div>
-        <div class="nav-item menu-item" data-page="affiliate" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">Affiliate</div>
-        <div class="nav-item menu-item" data-page="products" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">สินค้า</div>
-        <div class="nav-item menu-item" data-page="orders" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">คำสั่งซื้อ</div>
-        <div class="nav-item menu-item" data-page="sales" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">ยอดขาย</div>
-        <div class="nav-item menu-item" data-page="finance" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">บัญชีการเงิน</div>
-        <div class="nav-item menu-item" data-page="members" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">สมาชิกร้านค้า</div>
-        <div class="nav-item menu-item" data-page="store" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">จัดการร้านค้า</div>
-        <div class="nav-item menu-item" data-page="addons" style="
-padding:10px 14px; 
-border-radius:12px; 
-cursor:pointer; 
-background:rgba(255,255,255,0.05); 
-color:#cbd5f5; 
-font-size:14px; 
-transition:all 0.2s; 
-">เพิ่มยอดขาย</div>
-
-        <div class="sidebar-footer">VIIV Shop v 0.1.0</div>
+    <div class="sidebar">
+      <div class="brand">
+        <div class="brand-title"><span class="viiv">VIIV</span> <span class="platform">Platform</span></div>
+        <div class="brand-accent"></div>
       </div>
-
-      <div class="main" style="padding-top: 10px;">
-        <div id="app"></div>
+      <div class="menu">
+        <a href="/platform/dashboard.html" class="active">Dashboard</a>
+        <a href="/platform/stores.html">จัดการร้านค้า</a>
+        <a href="/platform/myshop.html">ร้านของฉัน</a>
+        <a href="/platform/packages.html">แพ็คเกจ</a>
+        <a href="/platform/staff.html">บุคลากร</a>
+      </div>
+      <div class="sidebar-footer">
+        VIIV Platform v0.1.0
       </div>
     </div>
-    <script src="./auth.js"></script>
-    <script src="./logic.js"></script>
-  </body>
+
+    <div class="main">
+      <div class="pagebar">
+        <div id="pageTitle" class="pagebar-title">Dashboard</div>
+        <div class="profile">
+          <div class="profile-name">Admin</div>
+          <button id="profileBtn" class="btn" type="button">▼</button>
+          <div id="profileDropdown" class="dropdown">
+            <button id="profileMenuBtn" type="button">โปรไฟล์</button>
+            <button id="logoutBtn" type="button">ออกจากระบบ</button>
+          </div>
+        </div>
+      </div>
+      <div class="topmenu" id="topMenu"></div>
+
+      <div class="content">
+        <h1 id="title">Dashboard</h1>
+        <div id="subtitle">ภาพรวมระบบ</div>
+        <div id="content">Loading...</div>
+      </div>
+    </div>
+
+    
+
+    
+  
+</body>
 </html>

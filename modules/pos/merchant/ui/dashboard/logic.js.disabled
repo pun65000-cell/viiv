@@ -1,0 +1,131 @@
+// ===============================
+// VIIV CLEAN LOGIC (RESET)
+// ===============================
+
+console.log("🔥 CLEAN LOGIC ACTIVE");
+
+// ===============================
+// CORE RENDER
+// ===============================
+function render(html) {
+  const app = document.getElementById("app");
+  if (!app) {
+    console.error("app not found");
+    return;
+  }
+  app.innerHTML = html;
+}
+
+function renderSPA(title) { 
+const app = document.getElementById("app"); 
+if (!app) return; 
+ 
+app.innerHTML = `<div style="padding:20px"> <h2 style="font-size:20px">${title}</h2> <p>SPA LOADED</p> </div>`; 
+} 
+
+// ===============================
+// DASHBOARD
+// ===============================
+window.loadDashboard = async function () {
+  console.log("📊 loadDashboard");
+
+  try {
+    const res = await fetch("/api/merchant/products");
+    const data = await res.json();
+
+    render(`
+      <div class="card">
+        <h3>Dashboard</h3>
+        <p>จำนวนสินค้า: ${Array.isArray(data) ? data.length : 0}</p>
+      </div>
+    `);
+
+  } catch (err) {
+    console.error(err);
+    render(`<div class="card"><p>โหลด dashboard ไม่สำเร็จ</p></div>`);
+  }
+};
+
+// ===============================
+// PRODUCT LIST
+// ===============================
+window.loadListProduct = async function () {
+  console.log("📦 loadListProduct");
+
+  try {
+    const res = await fetch("/api/merchant/products");
+
+    if (!res.ok) throw new Error("API ERROR");
+
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      render(`
+        <div class="card">
+          <h3>สินค้า</h3>
+          <p>ยังไม่มีสินค้า</p>
+        </div>
+      `);
+      return;
+    }
+
+    render(`
+      <div class="card">
+        <h3>สินค้า</h3>
+        ${data.map(p => `
+          <div style="padding:8px;border-bottom:1px solid #eee">
+            ${(p["ชื่อสินค้า"] ?? "-")} - ${(p["ราคา"] ?? 0)}
+          </div>
+        `).join("")}
+      </div>
+    `);
+
+  } catch (err) {
+    console.error(err);
+    render(`<div class="card"><p>โหลดสินค้าไม่สำเร็จ</p></div>`);
+  }
+};
+
+function setActiveMenu(page) { 
+document.querySelectorAll(".menu-item").forEach(el => { 
+if (el.dataset.page === page) { 
+el 
+el 
+el 
+} else { 
+el 
+el 
+el 
+} 
+}); 
+} 
+
+function navigate(page) { 
+console.log("NAVIGATE:", page); 
+
+setActiveMenu(page); 
+
+if (page === "dashboard") return window.loadDashboard(); 
+if (page === "products") return window.loadListProduct(); 
+if (page === "members") return renderSPA("members"); 
+renderSPA(page); 
+} 
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 INIT APP");
+
+  navigate("dashboard"); 
+});
+
+document.addEventListener("click", function(e) { 
+const el = e.target.closest(".menu-item"); 
+if (!el) return; 
+ 
+const page = el.dataset.page; 
+ 
+console.log("CLICK:", page); 
+ 
+if (!page) return; 
+ 
+navigate(page); 
+}); 
