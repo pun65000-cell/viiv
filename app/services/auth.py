@@ -4,6 +4,7 @@ from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from types import SimpleNamespace
 from app.repositories import users as user_repo
 from app.models.membership import Membership
 
@@ -58,9 +59,13 @@ def register(db: Session, email: str, password: str):
     return u
 
 def login(db: Session, email: str, password: str):
-    u = user_repo.get_by_email(db, email)
-    if not u or not verify_password(password, u.password_hash):
+    row = user_repo.get_auth_by_email(db, email)
+    if not row:
         return None
+    hashed = row.get("hashed_password")
+    if not hashed or not verify_password(password, str(hashed)):
+        return None
+    u = SimpleNamespace(id=row.get("id"), email=row.get("email"))
     role = _get_user_role(db, u)
     token, exp = create_access_token(str(u.id), claims={'role': role})
     return token, exp, u

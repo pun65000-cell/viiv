@@ -33,7 +33,7 @@ class RegisterShopOut(BaseModel):
 def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
     try:
         print(
-            "Payload received:",
+            "Attempting to register:",
             {
                 "full_name": payload.full_name,
                 "email": payload.email,
@@ -76,6 +76,9 @@ def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
         )
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
         print(traceback.format_exc())
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="internal server error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "internal server error", "type": type(e).__name__},
+        )

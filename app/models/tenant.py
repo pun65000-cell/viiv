@@ -6,7 +6,7 @@ class Tenant(Base):
     __tablename__ = 'tenants'
 
     id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(String(255))
+    name = Column(String(255))
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255))
     phone = Column(String(20))

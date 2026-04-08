@@ -25,6 +25,7 @@ from app.api.product.product_router import router as product_router
 from app.api.admin_auth import router as admin_auth_router
 from app.api.pos_admin import router as pos_admin_router
 from app.api.stores import router as stores_router
+from app.api.login import router as login_router
 from app.api.routers_pos_merchant import router as pos_merchant_router
 from app.core.id import gen_id
 from modules.event_bus.event_bus import set_req_id, clear_req_id
@@ -125,6 +126,7 @@ def health():
     return {"status": "ok"}
 
 app.include_router(auth_router, prefix="/api/auth")
+app.include_router(login_router)
 app.include_router(users_router, prefix="/api/users")
 app.include_router(orgs_router, prefix="/api/orgs")
 app.include_router(register_shop_router, prefix="/api")

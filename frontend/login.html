@@ -145,5 +145,56 @@
       });
     </script>
     -->
+    <script>
+      (function () {
+        const form = document.getElementById("loginForm");
+        const btn = document.getElementById("loginBtn");
+        const msg = document.getElementById("msg");
+
+        async function handleLogin(e) {
+          if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          if (msg) msg.textContent = "";
+
+          try {
+            const res = await fetch("/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const json = await res.json().catch(() => null);
+
+            if (!res.ok) {
+              console.error("LOGIN ERROR:", json);
+              const detail =
+                json && typeof json === "object"
+                  ? String(json.detail || json.message || `HTTP ${res.status}`)
+                  : `HTTP ${res.status}`;
+              if (msg) msg.textContent = "Login failed: " + detail;
+              return;
+            }
+
+            const token = json && typeof json === "object" ? json.access_token : null;
+            if (!token) {
+              if (msg) msg.textContent = "Login failed: missing token";
+              return;
+            }
+
+            localStorage.setItem("access_token", String(token));
+            window.location.href = "/platform/dashboard.html";
+          } catch (err) {
+            console.error("LOGIN ERROR:", err);
+            if (msg) msg.textContent = "Login failed";
+          }
+        }
+
+        if (btn) btn.addEventListener("click", handleLogin);
+        if (form) form.addEventListener("submit", handleLogin);
+      })();
+    </script>
   </body>
 </html>
