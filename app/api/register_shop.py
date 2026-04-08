@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, constr
 from sqlalchemy.orm import Session
+import traceback
 from app.core.database import SessionLocal
 from app.services import auth as auth_service
 from app.repositories import tenants as tenant_repo
-from app.core.id_generator import generate_id
-from modules.pos.services import shop_service
 
 router = APIRouter()
 
@@ -17,31 +16,66 @@ def get_db():
         db.close()
 
 class RegisterShopIn(BaseModel):
+    full_name: str
     email: EmailStr
-    password: constr(min_length=8, max_length=128)
-    shop_slug: constr(strip_whitespace=True, to_lower=True, min_length=3, max_length=100)
+    password: constr(min_length=4, max_length=128)
+    store_name: str
+    subdomain: constr(strip_whitespace=True, to_lower=True, min_length=3, max_length=100)
+    phone: str = None
 
 class RegisterShopOut(BaseModel):
     user_id: str
-    user_code: str
-    tenant_id: str
-    slug: str
-    package: str
+    tenant_id: int
+    subdomain: str
+    status: str
 
 @router.post("/register_shop", response_model=RegisterShopOut, status_code=status.HTTP_201_CREATED)
 def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
-    if tenant_repo.get_tenant_by_slug(db, payload.shop_slug):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="shop slug taken")
-    u = auth_service.register(db, payload.email, payload.password)
-    if not u:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email taken")
-    code = generate_id("usr")
-    t = tenant_repo.create_tenant(db, slug=payload.shop_slug, name=payload.shop_slug, owner_user_id=u.id, package="BASIC")
-    db.commit()
     try:
-        shop = shop_service.create_shop(str(u.id), payload.shop_slug)
-        if shop and shop.get("id"):
-            shop_service.create_staff(shop.get("id"), str(u.id), role="admin")
-    except Exception as e:
-        print("POS AUTO CREATE FAILED:", e)
-    return RegisterShopOut(user_id=str(u.id), user_code=code, tenant_id=str(t.id), slug=t.slug, package=t.package)
+        print(
+            "Payload received:",
+            {
+                "full_name": payload.full_name,
+                "email": payload.email,
+                "password_len": len(payload.password) if payload.password else 0,
+                "store_name": payload.store_name,
+                "subdomain": payload.subdomain,
+                "phone": payload.phone,
+            },
+        )
+        if tenant_repo.get_tenant_by_subdomain(db, payload.subdomain):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="subdomain taken")
+        if tenant_repo.get_tenant_by_email(db, payload.email):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email taken")
+
+        u = auth_service.register(db, payload.email, payload.password)
+        if not u:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email taken")
+
+        try:
+            t = tenant_repo.create_tenant(
+                db,
+                full_name=payload.full_name,
+                email=payload.email,
+                store_name=payload.store_name,
+                subdomain=payload.subdomain,
+                phone=payload.phone,
+                status="pending",
+            )
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"SQL Error: {e}")
+            raise
+
+        return RegisterShopOut(
+            user_id=str(u.id),
+            tenant_id=t.id,
+            subdomain=t.subdomain,
+            status=t.status,
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        print(traceback.format_exc())
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="internal server error")

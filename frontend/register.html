@@ -285,7 +285,13 @@
       });
       validateForm();
 
-      function handleRegister() {
+      async function handleRegister(event) {
+        if (event && typeof event.preventDefault === "function") {
+          event.preventDefault();
+        } else if (window.event && typeof window.event.preventDefault === "function") {
+          window.event.preventDefault();
+        }
+
         if (!validateForm()) {
           alert("กรุณากรอกข้อมูลให้ครบ เลือกแพ็กเกจ และยอมรับข้อตกลงก่อน");
           return;
@@ -298,15 +304,33 @@
           store_name: document.getElementById("store_name").value,
           subdomain: document.getElementById("subdomain").value,
           phone: document.getElementById("phone").value,
-          consent: {
-            accepted: true,
-            accepted_at: new Date().toISOString(),
-            user_agent: navigator.userAgent,
-          },
         };
 
-        console.log("REGISTER PAYLOAD:", payload);
-        alert("ส่งข้อมูลสมัครใช้งานแล้ว (รอเชื่อมต่อระบบสมัครใช้งานจริง)");
+        try {
+          const url = "https://api.viiv.me/api/register_shop";
+          console.log("Final Test URL:", url);
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json().catch(() => null);
+          console.log("REGISTER RESPONSE:", json);
+
+          if (!res.ok) {
+            console.error("REGISTER ERROR RESPONSE:", json);
+            const msg =
+              json && typeof json === "object"
+                ? String(json.detail || json.message || `HTTP ${res.status}`)
+                : `HTTP ${res.status}`;
+            alert("สมัครไม่สำเร็จ: " + msg);
+            throw new Error(msg);
+          }
+
+          alert("สมัครใช้งานสำเร็จ");
+        } catch (err) {
+          console.error("REGISTER ERROR:", err);
+        }
       }
     </script>
   </body>

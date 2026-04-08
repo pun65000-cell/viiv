@@ -1,16 +1,21 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import select
-from uuid import UUID
 from app.models.tenant import Tenant
 
-def create_tenant(db: Session, slug: str, name: str, owner_user_id: UUID, package: str) -> Tenant:
-    t = Tenant(slug=slug, name=name, owner_user_id=owner_user_id, package=package)
-    db.add(t)
-    db.flush()
-    return t
+def get_tenant_by_subdomain(db: Session, subdomain: str):
+    return db.query(Tenant).filter(Tenant.subdomain == subdomain).first()
 
-def get_tenant_by_slug(db: Session, slug: str) -> Tenant | None:
-    return db.execute(select(Tenant).where(Tenant.slug == slug)).scalar_one_or_none()
+def get_tenant_by_email(db: Session, email: str):
+    return db.query(Tenant).filter(Tenant.email == email).first()
 
-def get_tenant_by_id(db: Session, tenant_id: UUID) -> Tenant | None:
-    return db.execute(select(Tenant).where(Tenant.id == tenant_id)).scalar_one_or_none()
+def create_tenant(db: Session, full_name: str, email: str, store_name: str, subdomain: str, phone: str, status: str):
+    db_tenant = Tenant(
+        full_name=full_name,
+        email=email,
+        store_name=store_name,
+        subdomain=subdomain,
+        phone=phone,
+        status=status
+    )
+    db.add(db_tenant)
+    db.flush() # เพื่อให้ได้ ID กลับมา
+    return db_tenant

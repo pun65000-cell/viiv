@@ -10,7 +10,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api.auth_social import router as auth_social_router
-import os
 from app.api.routers_auth import router as auth_router
 from app.api.routers_users import router as users_router
 from app.api.routers_orgs import router as orgs_router
@@ -32,13 +31,23 @@ from modules.event_bus.event_bus import set_req_id, clear_req_id
 # from app.api.upload import router as upload_router
 from app.api.track import router as track_router
 from app.api.chat import router as chat_router
-from app.api.stores import router as stores_router
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "dev-secret")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://viiv.me",
+        "https://www.viiv.me",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 os.makedirs("/home/viivadmin/viiv/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="/home/viivadmin/viiv/uploads"), name="uploads")
@@ -57,18 +66,6 @@ async def attach_req_id(request: Request, call_next):
         print({"req": req_id, "status": getattr(response, "status_code", None)})
     clear_req_id()
     return response
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://viiv.me",
-        "https://www.viiv.me",
-        "https://owner.viiv.me",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 app.add_middleware(
     SessionMiddleware,
