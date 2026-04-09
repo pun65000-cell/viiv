@@ -13,3 +13,8 @@ structure.txt
 modules/module1/_mini_pos_backup/
 deploy/
 concore/
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env

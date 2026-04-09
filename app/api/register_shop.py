@@ -25,7 +25,7 @@ class RegisterShopIn(BaseModel):
 
 class RegisterShopOut(BaseModel):
     user_id: str
-    tenant_id: int
+    tenant_id: str
     subdomain: str
     status: str
 

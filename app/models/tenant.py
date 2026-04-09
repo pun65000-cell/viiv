@@ -1,12 +1,11 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, String, Boolean, DateTime, text
 from sqlalchemy.sql import func
 from app.core.database import Base
 
 class Tenant(Base):
     __tablename__ = 'tenants'
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255))
+    id = Column(String, primary_key=True, server_default=text("generate_prefixed_uuid('ten_')"))
+    full_name = Column(String(255))
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255))
     phone = Column(String(20))

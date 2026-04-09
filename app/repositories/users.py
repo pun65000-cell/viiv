@@ -9,7 +9,7 @@ def get_auth_by_email(db: Session, email: str):
     row = None
     try:
         row = db.execute(
-            text("select id, email, hashed_password from users where email = :email limit 1"),
+            text("select id, email, hashed_password from public.users where email = :email limit 1"),
             {"email": email},
         ).mappings().first()
     except Exception:
@@ -18,7 +18,7 @@ def get_auth_by_email(db: Session, email: str):
     if row is None:
         try:
             row = db.execute(
-                text("select id, email, password_hash from users where email = :email limit 1"),
+                text("select id, email, password_hash from public.users where email = :email limit 1"),
                 {"email": email},
             ).mappings().first()
         except Exception:
@@ -33,7 +33,7 @@ def get_auth_by_email(db: Session, email: str):
     return {"id": user_id, "email": user_email, "hashed_password": hashed_password}
 
 def create(db: Session, email: str, password_hash: str) -> User:
-    u = User(email=email, password_hash=password_hash)
+    u = User(email=email, hashed_password=password_hash)
     db.add(u)
     db.flush()
     return u

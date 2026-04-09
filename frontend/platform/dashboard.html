@@ -342,6 +342,64 @@
         padding: 6px 12px;
         font-size: 13px;
       }
+
+      .sidebar {
+        width: 5vw;
+        min-width: 72px;
+        padding: 12px 8px;
+        gap: 12px;
+      }
+
+      .brand {
+        justify-content: center;
+        padding: 6px 0 10px 0;
+      }
+
+      .brand-title {
+        display: none;
+      }
+
+      .menu a {
+        padding: 12px 0;
+        text-align: center;
+        position: relative;
+        color: transparent;
+      }
+
+      .menu a::before {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .menu a:nth-child(1)::before {
+        content: "⌂";
+      }
+
+      .menu a:nth-child(2)::before {
+        content: "🏬";
+      }
+
+      .menu a:nth-child(3)::before {
+        content: "🛍";
+      }
+
+      .menu a:nth-child(4)::before {
+        content: "📦";
+      }
+
+      .menu a:nth-child(5)::before {
+        content: "👥";
+      }
+
+      .sidebar-footer {
+        display: none;
+      }
     </style>
   </head>
   <body>
