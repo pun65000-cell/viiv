@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>สร้างร้านค้า</title>
+  <link rel="stylesheet" href="/platform/css/theme.css" />
+  <style>
+    body { background: transparent; }
+    .form-wrap { max-width: 580px; }
+
+    .section-title {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin: 22px 0 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* subdomain */
+    .subdomain-wrap { position: relative; }
+    .subdomain-suffix {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 12px; color: var(--muted); pointer-events: none;
+    }
+    .subdomain-wrap input { padding-right: 90px; }
+
+    /* check badges */
+    .check-badge { display: block; font-size: 12px; margin-top: 4px; min-height: 16px; }
+    .check-ok    { color: var(--success-text); }
+    .check-err   { color: var(--danger); }
+    .check-ing   { color: var(--muted); }
+
+    /* package picker */
+    .pkg-group { margin-bottom: 14px; }
+    .pkg-group-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .pkg-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pkg-card {
+      flex: 1; min-width: 110px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--r-md);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: #faf9f7;
+      position: relative;
+    }
+    .pkg-card:hover { border-color: var(--accent); background: #fff; }
+    .pkg-card.selected { border-color: var(--accent); background: rgba(232,185,62,0.08); }
+    .pkg-card input[type=checkbox] { position: absolute; top: 8px; right: 8px; accent-color: var(--accent); width: 15px; height: 15px; }
+    .pkg-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .pkg-desc { font-size: 11px; color: var(--muted); }
+
+    .tier-card {
+      flex: 1; min-width: 120px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--r-md);
+      padding: 10px 12px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: #faf9f7;
+      position: relative;
+    }
+    .tier-card:hover { border-color: var(--accent); background: #fff; }
+    .tier-card.selected { border-color: var(--accent); background: rgba(232,185,62,0.08); }
+    .tier-card input[type=radio] { position: absolute; top: 8px; right: 8px; accent-color: var(--accent); }
+    .tier-name  { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .tier-price { font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+    .tier-feat  { font-size: 11px; color: var(--muted); line-height: 1.6; }
+    .tier-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: var(--accent); color: #1a1200;
+      padding: 1px 7px; border-radius: 20px; margin-bottom: 4px;
+    }
+
+    /* terms */
+    .terms-box {
+      background: #f8f6f2; border: 1px solid var(--card-border);
+      border-radius: var(--r-md); padding: 14px 16px;
+      max-height: 150px; overflow-y: scroll;
+      font-size: 12px; line-height: 1.85; color: #444;
+    }
+    .terms-box::-webkit-scrollbar { width: 5px; }
+    .terms-box::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+    .terms-check-row {
+      display: flex; align-items: flex-start; gap: 8px; margin-top: 10px;
+      opacity: 0.4; pointer-events: none; transition: opacity 0.3s;
+    }
+    .terms-check-row.unlocked { opacity: 1; pointer-events: auto; }
+
+    .terms-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+    /* submit */
+    #submitBtn:disabled { background: #d0cdc8 !important; border-color: #bbb !important; color: #888 !important; cursor: not-allowed; }
+
+    /* result */
+    .result-box {
+      display: none; margin-top: 16px;
+      background: var(--success-bg); border: 1px solid #a8dfc0;
+      border-radius: var(--r-lg); padding: 16px 20px;
+    }
+    .result-box.err { background: #fdf0f0; border-color: #f0c0c0; }
+    .result-title { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+    .result-row   { font-size: 13px; color: #444; margin-bottom: 4px; }
+    .result-id    { font-family: monospace; font-size: 12px; color: #888; }
+
+    /* province dropdown */
+    #province_list {
+      display: none; position: absolute; z-index: 9999;
+      background: #fff; border: 1px solid var(--card-border);
+      border-radius: var(--r-md); max-height: 210px; overflow-y: auto;
+      width: 100%; box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+      top: calc(100% + 2px); left: 0;
+    }
+    #province_list div { padding: 9px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f5f3ef; }
+    #province_list div:last-child { border-bottom: none; }
+    #province_list div:hover { background: #f5f3ef; }
+  </style>
+</head>
+<body>
+<div class="form-wrap">
+
+  <!-- ── เจ้าของร้าน ── -->
+  <div class="section-title">ข้อมูลเจ้าของร้าน</div>
+  <div class="row-2">
+    <div class="field">
+      <label>ชื่อ-นามสกุล <span style="color:var(--danger)">*</span></label>
+      <input id="full_name" type="text" placeholder="สมชาย ใจดี" oninput="checkForm()" />
+    </div>
+    <div class="field">
+      <label>อีเมล <span style="color:var(--danger)">*</span></label>
+      <input id="email" type="email" placeholder="you@example.com" oninput="checkForm()" />
+    </div>
+  </div>
+  <div class="row-2">
+    <div class="field">
+      <label>รหัสผ่าน <span style="color:var(--danger)">*</span></label>
+      <input id="password" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" oninput="checkForm()" />
+    </div>
+    <div class="field">
+      <label>เบอร์โทรศัพท์ <span style="color:var(--danger)">*</span></label>
+      <input id="phone" type="tel" placeholder="0812345678" maxlength="13" oninput="validatePhone(this.value);checkForm()" />
+      <span class="check-badge" id="phoneCheck"></span>
+    </div>
+  </div>
+
+  <!-- ── ร้านค้า ── -->
+  <div class="section-title">ข้อมูลร้านค้า</div>
+  <div class="field">
+    <label>ชื่อร้านค้า <span style="color:var(--danger)">*</span></label>
+    <input id="store_name" type="text" placeholder="ชื่อร้านของคุณ" oninput="checkForm()" />
+  </div>
+  <div class="field">
+    <label>Subdomain <span style="color:var(--danger)">*</span> <span style="font-weight:400;color:var(--muted)">(a-z, 0-9, ขีด, อย่างน้อย 4 ตัว)</span></label>
+    <div class="subdomain-wrap">
+      <input id="subdomain" type="text" placeholder="myshop" maxlength="40"
+             oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'');onSubInput(this.value)" />
+      <span class="subdomain-suffix">.viiv.me</span>
+    </div>
+    <span class="check-badge" id="subCheck"></span>
+  </div>
+
+  <!-- ── ที่อยู่ ── -->
+  <div class="section-title">ที่อยู่ร้าน <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(ไม่บังคับ)</span></div>
+  <div class="field">
+    <label>ที่อยู่ (บ้านเลขที่ / หมู่ / ซอย / ถนน)</label>
+    <input id="address" type="text" placeholder="123 ถ.สุขุมวิท" />
+  </div>
+  <div class="row-2">
+    <div class="field" style="position:relative;">
+      <label>จังหวัด</label>
+      <input id="province_search" type="text" placeholder="พิมพ์ค้นหา เช่น เชียง"
+             oninput="searchProvince(this.value)" autocomplete="off" />
+      <div id="province_list"></div>
+    </div>
+    <div class="field">
+      <label>อำเภอ/เขต</label>
+      <select id="amphoe" onchange="loadTambon()" disabled>
+        <option value="">— เลือกจังหวัดก่อน —</option>
+      </select>
+    </div>
+  </div>
+  <div class="row-2">
+    <div class="field">
+      <label>ตำบล/แขวง</label>
+      <select id="tambon" onchange="loadPostcode()" disabled>
+        <option value="">— เลือกอำเภอก่อน —</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>รหัสไปรษณีย์</label>
+      <input id="postcode" type="text" readonly placeholder="กรอกอัตโนมัติ"
+             style="background:#f0ede8;cursor:default;" />
+    </div>
+  </div>
+
+  <!-- ── แพ็กเกจ ── -->
+  <div class="section-title">เลือกโมดูล <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(เลือกได้หลายอย่าง)</span></div>
+  <div class="pkg-group">
+    <div class="pkg-group-label">ระบบที่ต้องการใช้งาน</div>
+    <div class="pkg-row">
+      <label class="pkg-card" id="mod-pos" onclick="toggleMod('pos',this)">
+        <input type="checkbox" id="mod_pos" onchange="checkForm()" />
+        <div class="pkg-name">POS</div>
+        <div class="pkg-desc">ระบบขายหน้าร้าน<br>จัดการสินค้า สต็อก</div>
+      </label>
+      <label class="pkg-card" id="mod-chat" onclick="toggleMod('chat',this)">
+        <input type="checkbox" id="mod_chat" onchange="checkForm()" />
+        <div class="pkg-name">Chat</div>
+        <div class="pkg-desc">AI ปิดการขายใน DM<br>keyword trigger</div>
+      </label>
+      <label class="pkg-card" id="mod-autopost" onclick="toggleMod('autopost',this)">
+        <input type="checkbox" id="mod_autopost" onchange="checkForm()" />
+        <div class="pkg-name">Auto Post</div>
+        <div class="pkg-desc">โพสต์อัตโนมัติ<br>ทุก platform</div>
+      </label>
+    </div>
+  </div>
+
+  <div class="pkg-group">
+    <div class="pkg-group-label">แผนการสมัคร</div>
+    <div class="pkg-row" id="tierRow">
+      <label class="tier-card selected" onclick="selectTier('trial',this)">
+        <input type="radio" name="tier" value="trial" checked onchange="checkForm()" />
+        <div class="tier-badge">แนะนำ</div>
+        <div class="tier-name">ทดลองใช้ฟรี</div>
+        <div class="tier-price">ฟรี 10 วัน</div>
+        <div class="tier-feat">ทุกฟีเจอร์ครบ<br>ไม่ต้องใช้บัตรเครดิต</div>
+      </label>
+      <label class="tier-card" onclick="selectTier('starter',this)">
+        <input type="radio" name="tier" value="starter" onchange="checkForm()" />
+        <div class="tier-name">เริ่มต้น</div>
+        <div class="tier-price">฿290 / เดือน</div>
+        <div class="tier-feat">1 ร้าน · AI Basic<br>500 credits/เดือน</div>
+      </label>
+      <label class="tier-card" onclick="selectTier('business',this)">
+        <input type="radio" name="tier" value="business" onchange="checkForm()" />
+        <div class="tier-name">ธุรกิจออนไลน์</div>
+        <div class="tier-price">฿790 / เดือน</div>
+        <div class="tier-feat">3 ร้าน · AI Pro<br>2,000 credits/เดือน</div>
+      </label>
+      <label class="tier-card" onclick="selectTier('pro',this)">
+        <input type="radio" name="tier" value="pro" onchange="checkForm()" />
+        <div class="tier-name">มืออาชีพ</div>
+        <div class="tier-price">฿1,990 / เดือน</div>
+        <div class="tier-feat">ไม่จำกัดร้าน · AI Max<br>Unlimited credits</div>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── ข้อตกลง ── -->
+  <div class="section-title">ข้อตกลงการใช้บริการ</div>
+  <div class="terms-box" id="termsBox" onscroll="onTermsScroll()">ข้อตกลงการใช้บริการระบบ VIIV Platform
+
+ผู้ให้บริการระบบ (ต่อไปนี้เรียกว่า "ผู้ให้บริการ") ให้บริการพื้นที่และเครื่องมือสำหรับการขายสินค้าออนไลน์แก่ผู้ประกอบการ (ต่อไปนี้เรียกว่า "ผู้ใช้บริการ") ภายใต้เงื่อนไขดังต่อไปนี้
+
+1. ความรับผิดชอบของผู้ใช้บริการ
+ผู้ใช้บริการมีหน้าที่รับผิดชอบต่อความถูกต้องของข้อมูลร้านค้า สินค้า และเนื้อหาทั้งหมดที่นำเข้าสู่ระบบ รวมถึงการปฏิบัติตามกฎหมายพาณิชย์อิเล็กทรอนิกส์ กฎหมายคุ้มครองผู้บริโภค กฎหมายภาษีอากร และกฎหมายที่เกี่ยวข้องอื่นๆ ของประเทศไทย
+
+2. การคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+ผู้ให้บริการเก็บรวบรวมและประมวลผลข้อมูลส่วนบุคคลของผู้ใช้บริการและลูกค้าของผู้ใช้บริการตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 ผู้ใช้บริการยินยอมให้ผู้ให้บริการประมวลผลข้อมูลดังกล่าวเพื่อวัตถุประสงค์ในการให้บริการระบบเท่านั้น และมีสิทธิ์เข้าถึง แก้ไข และลบข้อมูลส่วนบุคคลของตนได้ตามที่กฎหมายกำหนด
+
+3. ข้อจำกัดความรับผิดของผู้ให้บริการ
+ผู้ให้บริการไม่ใช่คู่สัญญาในธุรกรรมระหว่างผู้ใช้บริการและลูกค้าปลายทาง และไม่รับผิดชอบต่อความเสียหายใดๆ อันเกิดจากธุรกรรมดังกล่าว ความพร้อมใช้งานของระบบอาจหยุดชะงักได้เป็นครั้งคราวเพื่อการบำรุงรักษาโดยผู้ให้บริการจะแจ้งล่วงหน้าเมื่อเป็นไปได้
+
+4. ทรัพย์สินทางปัญญา
+ระบบ VIIV Platform รวมถึงซอฟต์แวร์ การออกแบบ และเนื้อหาทั้งหมดเป็นทรัพย์สินทางปัญญาของผู้ให้บริการ ผู้ใช้บริการไม่มีสิทธิ์คัดลอก ดัดแปลง หรือนำไปใช้เพื่อวัตถุประสงค์อื่นโดยไม่ได้รับอนุญาต
+
+5. การยกเลิกบริการ
+ผู้ให้บริการสงวนสิทธิ์ระงับหรือยกเลิกบัญชีที่ฝ่าฝืนข้อตกลงนี้ ใช้ระบบในทางที่ผิดกฎหมาย หรือก่อให้เกิดความเสียหายแก่ผู้ให้บริการหรือผู้ใช้บริการรายอื่น โดยไม่จำเป็นต้องแจ้งล่วงหน้า
+
+6. การเปลี่ยนแปลงข้อตกลง
+ผู้ให้บริการอาจปรับปรุงข้อตกลงนี้เป็นครั้งคราว โดยแจ้งให้ผู้ใช้บริการทราบผ่านระบบ การใช้บริการต่อเนื่องถือว่าผู้ใช้บริการยอมรับข้อตกลงที่เปลี่ยนแปลงนั้นแล้ว
+
+7. กฎหมายที่ใช้บังคับ
+ข้อตกลงนี้อยู่ภายใต้บังคับของกฎหมายไทย ข้อพิพาทใดๆ ที่เกิดขึ้นให้อยู่ในเขตอำนาจของศาลไทย
+
+— โปรดเลื่อนอ่านข้อตกลงให้ครบก่อนยืนยัน —</div>
+
+  <div class="terms-hint" id="termsHint">⬇ เลื่อนอ่านข้อตกลงให้ครบก่อนจึงจะสามารถยืนยันได้</div>
+  <div class="terms-check-row" id="termsCheckRow">
+    <input type="checkbox" id="termsCheck" style="width:16px;height:16px;margin-top:2px;accent-color:var(--accent);cursor:pointer;" onchange="checkForm()" />
+    <label for="termsCheck" style="font-size:13px;color:var(--text);cursor:pointer;line-height:1.5;">
+      ข้าพเจ้าได้อ่านและยอมรับ <strong>ข้อตกลงการใช้บริการ</strong> ของผู้ให้บริการระบบ VIIV Platform ครบถ้วนแล้ว
+    </label>
+  </div>
+
+  <!-- ── Actions ── -->
+  <div class="form-actions" style="margin-top:16px;">
+    <button class="btn btn-accent" id="submitBtn" onclick="submitForm()" disabled>สร้างร้านค้า</button>
+    <button class="btn" onclick="resetForm()">ล้างข้อมูล</button>
+  </div>
+  <div class="msg error" id="formMsg"></div>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-title" id="resultTitle"></div>
+    <div id="resultBody"></div>
+  </div>
+</div>
+
+<script>
+// ── Geo ─────────────────────────────────────────────────────
+let GEO_FLAT = [];
+let geoLoaded = false;
+
+async function loadGeo() {
+  try {
+    const r = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_tambon.json');
+    const raw = await r.json();
+    GEO_FLAT = raw.map(t => ({
+      province: t.province_name_th,
+      amphoe:   t.amphure_name_th,
+      tambon:   t.name_th,
+      postcode: String(t.zip_code || '')
+    }));
+    geoLoaded = true;
+  } catch(e) {
+    // fallback ครบ 10 จังหวัดหลัก
+    GEO_FLAT = [
+      ['เชียงใหม่','เมืองเชียงใหม่','ช้างเผือก','50300'],
+      ['เชียงใหม่','เมืองเชียงใหม่','สุเทพ','50200'],
+      ['เชียงใหม่','สันทราย','สันทรายหลวง','50210'],
+      ['เชียงราย','เมืองเชียงราย','เวียง','57000'],
+      ['เชียงราย','แม่จัน','แม่จัน','57110'],
+      ['กรุงเทพมหานคร','พระนคร','พระบรมมหาราชวัง','10200'],
+      ['กรุงเทพมหานคร','วัฒนา','คลองเตยเหนือ','10110'],
+      ['กรุงเทพมหานคร','สาทร','ทุ่งมหาเมฆ','10120'],
+      ['นนทบุรี','เมืองนนทบุรี','สวนใหญ่','11000'],
+      ['นนทบุรี','ปากเกร็ด','บางตลาด','11120'],
+      ['ภูเก็ต','เมืองภูเก็ต','ตลาดใหญ่','83000'],
+      ['ขอนแก่น','เมืองขอนแก่น','ในเมือง','40000'],
+      ['นครราชสีมา','เมืองนครราชสีมา','ในเมือง','30000'],
+      ['สงขลา','เมืองสงขลา','บ่อยาง','90000'],
+      ['เชียงใหม่','หางดง','หางดง','50230'],
+    ].map(([p,a,t,z]) => ({province:p, amphoe:a, tambon:t, postcode:z}));
+    geoLoaded = true;
+  }
+}
+
+let selectedProvince = '';
+
+function searchProvince(q) {
+  const list = document.getElementById('province_list');
+  if (!q || !geoLoaded) { list.style.display = 'none'; return; }
+  const provinces = [...new Set(GEO_FLAT.map(r => r.province))];
+  const matches = provinces.filter(p => p.includes(q)).slice(0, 15);
+  if (!matches.length) { list.style.display = 'none'; return; }
+  list.innerHTML = matches.map(p =>
+    `<div onclick="selectProvince('${p}')">${p}</div>`
+  ).join('');
+  list.style.display = 'block';
+}
+
+function selectProvince(p) {
+  selectedProvince = p;
+  document.getElementById('province_search').value = p;
+  document.getElementById('province_list').style.display = 'none';
+  const amphoes = [...new Set(GEO_FLAT.filter(r=>r.province===p).map(r=>r.amphoe))].sort();
+  const sel = document.getElementById('amphoe');
+  sel.innerHTML = '<option value="">— เลือกอำเภอ —</option>' +
+    amphoes.map(a=>`<option value="${a}">${a}</option>`).join('');
+  sel.disabled = false;
+  document.getElementById('tambon').innerHTML = '<option value="">— เลือกอำเภอก่อน —</option>';
+  document.getElementById('tambon').disabled = true;
+  document.getElementById('postcode').value = '';
+}
+
+function loadTambon() {
+  const amp = document.getElementById('amphoe').value;
+  if (!amp) return;
+  const tambons = [...new Set(GEO_FLAT.filter(r=>r.province===selectedProvince&&r.amphoe===amp).map(r=>r.tambon))].sort();
+  const sel = document.getElementById('tambon');
+  sel.innerHTML = '<option value="">— เลือกตำบล —</option>' +
+    tambons.map(t=>`<option value="${t}">${t}</option>`).join('');
+  sel.disabled = false;
+  document.getElementById('postcode').value = '';
+}
+
+function loadPostcode() {
+  const amp = document.getElementById('amphoe').value;
+  const tam = document.getElementById('tambon').value;
+  const row = GEO_FLAT.find(r=>r.province===selectedProvince&&r.amphoe===amp&&r.tambon===tam);
+  document.getElementById('postcode').value = row ? row.postcode : '';
+}
+
+// ── Package picker ───────────────────────────────────────────
+function toggleMod(id, card) {
+  const cb = document.getElementById('mod_' + id);
+  cb.checked = !cb.checked;
+  card.classList.toggle('selected', cb.checked);
+  checkForm();
+}
+
+function selectTier(val, card) {
+  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  card.querySelector('input').checked = true;
+  checkForm();
+}
+
+// ── Terms scroll gate ────────────────────────────────────────
+let termsRead = false;
+
+function onTermsScroll() {
+  if (termsRead) return;
+  const el = document.getElementById('termsBox');
+  // ถือว่าอ่านแล้วเมื่อเลื่อนถึง 85% ของความสูง
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight * 0.85) {
+    termsRead = true;
+    document.getElementById('termsCheckRow').classList.add('unlocked');
+    document.getElementById('termsHint').style.display = 'none';
+    checkForm();
+  }
+}
+
+// ── Subdomain ────────────────────────────────────────────────
+const RESERVED = ['www','api','app','admin','mail','ftp','smtp','concore',
+  'merchant','platform','viiv','static','cdn','dev','staging','test',
+  'support','help','blog','shop','store','pos','chat','dashboard','login'];
+
+let subTimer = null;
+let subOk = false;
+
+function onSubInput(val) {
+  clearTimeout(subTimer);
+  subOk = false;
+  checkForm();
+  subTimer = setTimeout(() => checkSubdomain(val), 500);
+}
+
+async function checkSubdomain(val) {
+  const el = document.getElementById('subCheck');
+  if (!val) { el.textContent=''; return; }
+  if (val.length < 4) { el.className='check-badge check-err'; el.textContent='❌ ต้องมีอย่างน้อย 4 ตัวอักษร'; subOk=false; checkForm(); return; }
+  if (RESERVED.includes(val)) { el.className='check-badge check-err'; el.textContent='❌ subdomain นี้ถูกจองไว้'; subOk=false; checkForm(); return; }
+  el.className='check-badge check-ing'; el.textContent='⏳ กำลังตรวจสอบ...';
+  try {
+    const r = await fetch('/api/check-subdomain?subdomain=' + val);
+    const d = r.ok ? await r.json() : {available: true};
+    subOk = d.available;
+    el.className = 'check-badge ' + (subOk ? 'check-ok' : 'check-err');
+    el.textContent = subOk ? '✅ ' + val + '.viiv.me ว่างอยู่' : '❌ subdomain นี้ถูกใช้แล้ว';
+  } catch { subOk = true; el.textContent=''; }
+  checkForm();
+}
+
+// ── Phone ────────────────────────────────────────────────────
+let phoneOk = false;
+function validatePhone(val) {
+  const el = document.getElementById('phoneCheck');
+  const clean = val.replace(/[-\s]/g,'');
+  if (!clean) { el.textContent=''; phoneOk=false; return; }
+  phoneOk = /^(0[689]\d{7,8}|\+66[689]\d{7,8})$/.test(clean);
+  el.className = 'check-badge ' + (phoneOk ? 'check-ok' : 'check-err');
+  el.textContent = phoneOk ? '✅ เบอร์ถูกต้อง' : '❌ รูปแบบไม่ถูกต้อง เช่น 0812345678';
+}
+
+// ── checkForm — ควบคุมปุ่ม submit ───────────────────────────
+function checkForm() {
+  const get = id => (document.getElementById(id)||{}).value||'';
+  const ok =
+    get('full_name').trim() &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(get('email')) &&
+    get('password').length >= 6 &&
+    phoneOk &&
+    get('store_name').trim() &&
+    subOk &&
+    document.getElementById('termsCheck').checked;
+  document.getElementById('submitBtn').disabled = !ok;
+}
+
+// ── Submit ───────────────────────────────────────────────────
+async function submitForm() {
+  const get = id => document.getElementById(id).value.trim();
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('formMsg');
+  msg.textContent = '';
+  btn.disabled = true; btn.textContent = 'กำลังสร้างร้าน...';
+
+  const modules = ['pos','chat','autopost'].filter(m => document.getElementById('mod_'+m).checked);
+  const tier = document.querySelector('input[name="tier"]:checked')?.value || 'trial';
+
+  const payload = {
+    full_name:  get('full_name'),
+    email:      get('email'),
+    password:   get('password'),
+    store_name: get('store_name'),
+    subdomain:  get('subdomain'),
+    phone:      get('phone').replace(/[-\s]/g,''),
+    modules, tier,
+  };
+
+  try {
+    const token = localStorage.getItem('viiv_token');
+    const res = await fetch('/api/register_shop', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? {'Authorization':'Bearer '+token} : {})
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+    const box = document.getElementById('resultBox');
+    box.style.display = 'block';
+    if (res.ok) {
+      box.className = 'result-box';
+      document.getElementById('resultTitle').textContent = '✅ สร้างร้านค้าสำเร็จ!';
+      document.getElementById('resultBody').innerHTML = `
+        <div class="result-row">ชื่อร้าน: <strong>${payload.store_name}</strong></div>
+        <div class="result-row">URL: <strong>${result.subdomain}.viiv.me</strong></div>
+        <div class="result-row">แผน: <strong>${tier}</strong> · โมดูล: ${modules.join(', ') || '-'}</div>
+        <div class="result-row result-id">User ID: ${result.user_id}</div>
+        <div class="result-row result-id">Tenant ID: ${result.tenant_id}</div>
+      `;
+      resetForm();
+    } else {
+      box.className = 'result-box err';
+      const d = result.detail||'เกิดข้อผิดพลาด';
+      document.getElementById('resultTitle').textContent = '❌ ไม่สำเร็จ';
+      document.getElementById('resultBody').textContent =
+        d==='subdomain taken'?'Subdomain นี้ถูกใช้แล้ว':
+        d==='email taken'?'อีเมลนี้ถูกใช้แล้ว':JSON.stringify(d);
+    }
+  } catch(e) {
+    msg.textContent = 'ไม่สามารถเชื่อมต่อ server ได้';
+  } finally {
+    btn.disabled = false; btn.textContent = 'สร้างร้านค้า';
+    checkForm();
+  }
+}
+
+// ── Reset ────────────────────────────────────────────────────
+function resetForm() {
+  ['full_name','email','password','phone','store_name','subdomain','address','postcode','province_search']
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('amphoe').innerHTML='<option value="">— เลือกจังหวัดก่อน —</option>';
+  document.getElementById('amphoe').disabled=true;
+  document.getElementById('tambon').innerHTML='<option value="">— เลือกอำเภอก่อน —</option>';
+  document.getElementById('tambon').disabled=true;
+  document.getElementById('subCheck').textContent='';
+  document.getElementById('phoneCheck').textContent='';
+  document.getElementById('formMsg').textContent='';
+  document.getElementById('termsCheck').checked=false;
+  document.getElementById('termsBox').scrollTop=0;
+  document.getElementById('termsCheckRow').classList.remove('unlocked');
+  document.getElementById('termsHint').style.display='block';
+  document.querySelectorAll('.pkg-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.pkg-card input').forEach(c=>c.checked=false);
+  document.querySelectorAll('.tier-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelector('.tier-card').classList.add('selected');
+  document.querySelector('.tier-card input').checked=true;
+  selectedProvince=''; subOk=false; phoneOk=false; termsRead=false;
+  checkForm();
+}
+
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadGeo();
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#province_search') && !e.target.closest('#province_list'))
+      document.getElementById('province_list').style.display='none';
+  });
+  checkForm();
+});
+</script>
+</body>
+</html>

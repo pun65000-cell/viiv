@@ -1,103 +1,239 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<title>VIIV Platform Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VIIV Platform — เข้าสู่ระบบ</title>
+  <style>
+    :root {
+      --accent:       #e8b93e;
+      --accent-hover: #d4a52c;
+      --accent-active:#bf941e;
+      --bg:           #111111;
+      --card-bg:      #1a1a1a;
+      --card-border:  #2a2a2a;
+      --input-bg:     #141414;
+      --input-border: #333333;
+      --text:         #f0ede8;
+      --muted:        #666666;
+      --error:        #e05555;
+    }
 
-<style>
-body {
-    font-family: sans-serif;
-    background: #e6e9ef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
-}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.card {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 320px;
-}
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-h2 {
-    margin-bottom: 20px;
-}
+    .wrap {
+      width: 100%;
+      max-width: 380px;
+      padding: 24px 16px;
+    }
 
-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
-}
+    /* logo */
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-text {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+    .logo-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background: #d6a94b;
-    border: none;
-    color: white;
-    cursor: pointer;
-}
+    /* card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+    }
 
-/* === SAFE COMPACT UI PATCH (INLINE MODE) === */
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
 
-.sidebar {
-width: 200px;
-}
+    /* form */
+    .field { margin-bottom: 14px; }
 
-.sidebar .menu-item {
-padding: 8px 10px;
-font-size: 13px;
-}
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
 
-body {
-font-size: 14px;
-}
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 9px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: #444; }
 
-h1 {
-font-size: 20px;
-font-weight: 600;
-}
+    /* button */
+    .btn-login {
+      width: 100%;
+      margin-top: 8px;
+      padding: 11px;
+      background: var(--accent);
+      border: 1px solid var(--accent-active);
+      border-radius: 9px;
+      color: #1a1200;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: background 0.12s;
+    }
+    .btn-login:hover   { background: var(--accent-hover); }
+    .btn-login:active  { background: var(--accent-active); transform: scale(0.99); }
+    .btn-login:disabled {
+      background: #3a3020;
+      color: #666;
+      border-color: #3a3020;
+      cursor: not-allowed;
+    }
 
-h2 {
-font-size: 16px;
-}
+    /* error */
+    .msg {
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: center;
+      min-height: 18px;
+      color: var(--error);
+    }
+    .msg.ok { color: #5db87a; }
 
-.card, .panel, .content-box {
-border-radius: 12px;
-padding: 16px;
-border: 1px solid #eee;
-box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-}
-
-input, select {
-padding: 6px 10px;
-font-size: 13px;
-}
-
-button {
-padding: 6px 12px;
-font-size: 13px;
-}
-</style>
-
+    /* footer */
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 11px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>VIIV Platform</h2>
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-text">VIIV Platform</div>
+    <div class="logo-sub">AI-Powered Sales Automation</div>
+  </div>
 
-    <input id="email" placeholder="email" />
-    <input id="password" type="password" placeholder="password" />
+  <div class="card">
+    <div class="card-title">เข้าสู่ระบบ</div>
 
-    <button onclick="login()">เข้าสู่ระบบ</button>
+    <div class="field">
+      <label for="email">อีเมล</label>
+      <input id="email" type="email" placeholder="admin@viiv.me" autocomplete="email" />
+    </div>
 
-    <p id="msg"></p>
+    <div class="field">
+      <label for="password">รหัสผ่าน</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="footer">VIIV Platform v0.1.0</div>
 </div>
 
-<script src="/platform/js/auth.js"></script>
+<script>
+// ─── auth helpers (inline — ไม่ depend on module) ────────────────────────
+const TOKEN_KEY = 'viiv_token';
+
+function saveToken(token) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+async function doLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('loginBtn');
+  const msg      = document.getElementById('msg');
+
+  msg.textContent = '';
+  msg.className   = 'msg';
+
+  if (!email || !password) {
+    msg.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน';
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'กำลังเข้าสู่ระบบ...';
+
+  try {
+    const res = await fetch('/api/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      saveToken(data.access_token);
+      msg.textContent = 'เข้าสู่ระบบสำเร็จ กำลังโหลด...';
+      msg.className   = 'msg ok';
+      setTimeout(() => {
+        window.location.href = '/platform/dashboard.html';
+      }, 400);
+    } else if (res.status === 401) {
+      msg.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    } else {
+      msg.textContent = 'เกิดข้อผิดพลาด (' + res.status + ')';
+    }
+  } catch (err) {
+    msg.textContent = 'ไม่สามารถเชื่อมต่อ server ได้';
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'เข้าสู่ระบบ';
+  }
+}
+
+// Enter key
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('password').focus();
+  });
+
+  // ถ้า login อยู่แล้ว redirect ไปเลย
+  if (localStorage.getItem('viiv_token')) {
+    window.location.href = '/platform/dashboard.html';
+  }
+});
+</script>
 
 </body>
 </html>

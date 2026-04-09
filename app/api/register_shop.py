@@ -20,7 +20,7 @@ class RegisterShopIn(BaseModel):
     email: EmailStr
     password: constr(min_length=4, max_length=128)
     store_name: str
-    subdomain: constr(strip_whitespace=True, to_lower=True, min_length=3, max_length=100)
+    subdomain: constr(strip_whitespace=True, to_lower=True, min_length=4, max_length=40)
     phone: str = None
 
 class RegisterShopOut(BaseModel):
@@ -28,6 +28,19 @@ class RegisterShopOut(BaseModel):
     tenant_id: str
     subdomain: str
     status: str
+
+RESERVED_SUBDOMAINS = {
+    "www","api","app","admin","mail","ftp","smtp","concore","merchant",
+    "platform","viiv","static","cdn","dev","staging","test","support",
+    "help","blog","shop","store","pos","chat","dashboard","login",
+}
+
+@router.get("/check-subdomain")
+def check_subdomain(subdomain: str, db: Session = Depends(get_db)):
+    if subdomain in RESERVED_SUBDOMAINS:
+        return {"available": False, "reason": "reserved"}
+    taken = tenant_repo.get_tenant_by_subdomain(db, subdomain)
+    return {"available": not taken}
 
 @router.post("/register_shop", response_model=RegisterShopOut, status_code=status.HTTP_201_CREATED)
 def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
@@ -43,6 +56,8 @@ def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
                 "phone": payload.phone,
             },
         )
+        if payload.subdomain in RESERVED_SUBDOMAINS:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="subdomain reserved")
         if tenant_repo.get_tenant_by_subdomain(db, payload.subdomain):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="subdomain taken")
         if tenant_repo.get_tenant_by_email(db, payload.email):

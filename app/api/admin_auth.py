@@ -79,7 +79,7 @@ def admin_login(payload: dict, db: Session = Depends(get_db)):
     if not u:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="admin not found")
 
-    if not auth_service.verify_password(password, u.password_hash):
+    if not auth_service.verify_password(password, u.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
     token = _create_admin_token(str(u.id), u.email)

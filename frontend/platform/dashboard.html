@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VIIV Platform</title>
+  <link rel="stylesheet" href="/platform/css/theme.css" />
   <style>
     :root {
       --bg-main:       #1a1a1a;
@@ -36,7 +37,8 @@
       font-size: 14px;
       background: var(--bg-main);
       display: flex;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
       color: var(--text);
     }
 
@@ -44,11 +46,13 @@
     .sidebar {
       width: 210px;
       min-width: 210px;
+      height: 100vh;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--sidebar-border);
       display: flex;
       flex-direction: column;
       padding: 0;
+      overflow: hidden;
     }
 
     .brand {
@@ -110,6 +114,8 @@
       flex-direction: column;
       background: var(--content-bg);
       min-width: 0;
+      height: 100vh;
+      overflow: hidden;
     }
 
     /* topbar */
@@ -224,7 +230,7 @@
     .btn-accent:active { background: var(--accent-active); transform: scale(0.98); }
 
     /* ─── CONTENT CARD ─── */
-    .content-wrap { flex: 1; padding: 16px 20px 20px; overflow-y: auto; }
+    .content-wrap { flex: 1; padding: 16px 20px 20px; overflow-y: auto; min-height: 0; }
 
     .card {
       background: var(--card-bg);
@@ -341,7 +347,7 @@
     </div>
   </nav>
 
-  <div class="sidebar-footer">VIIV Platform v0.1.0</div>
+  <div class="sidebar-footer" style="color:#888888;">VIIV Platform v0.1.0</div>
 </div>
 
 <!-- ═══ MAIN ═══ -->
@@ -398,6 +404,12 @@ const PAGES = {
     searchPlaceholder: 'ค้นหา Shop ID',
     createLabel: '+ สร้างร้าน',
     render: renderShops,
+    onCreate: () => {
+      document.getElementById('cardHeading').textContent = 'สร้างร้านค้าใหม่';
+      document.getElementById('cardSub').textContent = 'กรอกข้อมูลเพื่อเปิดร้านบน VIIV Platform';
+      document.getElementById('actionbar').classList.add('hidden');
+      renderPage(document.getElementById('cardBody'), 'register-shop');
+    },
   },
   packet: {
     title:  'Packet',
@@ -467,7 +479,7 @@ const PAGES = {
     sub:    'ตั้งค่าระบบและ integration',
     badge:  'System',
     action: false,
-    render: renderPlaceholder,
+    render: (el) => renderPage(el, 'settings'),
   },
 };
 
@@ -509,6 +521,28 @@ function renderShops(el) {
   `;
 }
 
+function renderPage(el, name) {
+  el.innerHTML = '<div id="page-loading" style="color:#aaa;font-size:13px;padding:20px 0;">กำลังโหลด...</div>';
+  fetch('/platform/pages/' + name + '.html')
+    .then(r => r.text())
+    .then(html => {
+      // inject เฉพาะ <body> content
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const body = tmp.querySelector('body');
+      el.innerHTML = body ? body.innerHTML : html;
+      // รัน scripts ที่อยู่ใน page
+      el.querySelectorAll('script').forEach(old => {
+        const s = document.createElement('script');
+        s.textContent = old.textContent;
+        old.replaceWith(s);
+      });
+    })
+    .catch(() => {
+      el.innerHTML = '<div class="page-placeholder"><div class="ph-icon">⚠</div><div class="ph-text">โหลดหน้าไม่ได้</div></div>';
+    });
+}
+
 function renderPlaceholder(el, page) {
   el.innerHTML = `
     <div class="page-placeholder">
@@ -538,6 +572,8 @@ function navigate(key) {
     ab.classList.remove('hidden');
     document.getElementById('searchInput').placeholder = page.searchPlaceholder || 'ค้นหา...';
     document.getElementById('createBtn').textContent   = page.createLabel || '+ สร้างใหม่';
+    document.getElementById('createBtn').onclick = page.onCreate || null;
+    document.getElementById('createBtn').onclick = page.onCreate || null;
   } else {
     ab.classList.add('hidden');
   }
@@ -571,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('profileMenuBtn').addEventListener('click', () => alert('โปรไฟล์ — coming soon'));
   document.getElementById('logoutBtn').addEventListener('click', () => {
-    if (confirm('ออกจากระบบ?')) location.href = '/platform/login.html';
+    if (confirm('ออกจากระบบ?')) logout();
   });
 
   // init

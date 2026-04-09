@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>ตั้งค่าระบบ</title>
+  <link rel="stylesheet" href="/platform/css/theme.css" />
+  <style>
+    body { background: transparent; padding: 0; }
+    .pw-wrap { max-width: 420px; }
+  </style>
+</head>
+<body>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="switchTab('staff', this)">บุคลากร</button>
+  <button class="tab"        onclick="switchTab('password', this)">Password</button>
+</div>
+
+<!-- ── TAB: บุคลากร ── -->
+<div id="panel-staff">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="font-size:14px;font-weight:600;">รายชื่อพนักงาน</div>
+    <button class="btn btn-accent" onclick="toggleAddStaff()">+ เพิ่มพนักงาน</button>
+  </div>
+
+  <div id="staffList">
+    <div class="page-placeholder">
+      <div class="ph-icon">👥</div>
+      <div class="ph-text">ยังไม่มีข้อมูลพนักงาน</div>
+    </div>
+  </div>
+
+  <div id="addStaffBox" class="modal-box" style="display:none;">
+    <div class="modal-title">เพิ่มพนักงาน</div>
+    <div class="field">
+      <label>ชื่อ-นามสกุล</label>
+      <input id="staffName" type="text" placeholder="ชื่อ นามสกุล" />
+    </div>
+    <div class="field">
+      <label>อีเมล</label>
+      <input id="staffEmail" type="email" placeholder="email@example.com" />
+    </div>
+    <div class="field">
+      <label>สิทธิ์การเข้าถึง</label>
+      <select id="staffRole">
+        <option value="staff">Staff — ดูข้อมูลได้อย่างเดียว</option>
+        <option value="md">MD — จัดการสินค้าและออเดอร์</option>
+        <option value="owner">Owner — สิทธิ์เต็ม</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="saveStaff()">บันทึก</button>
+      <button class="btn" onclick="toggleAddStaff()">ยกเลิก</button>
+    </div>
+    <div class="msg" id="staffMsg"></div>
+  </div>
+</div>
+
+<!-- ── TAB: Password ── -->
+<div id="panel-password" style="display:none;">
+  <div class="pw-wrap">
+    <div style="font-size:14px;font-weight:600;margin-bottom:16px;">เปลี่ยนรหัสผ่าน</div>
+    <div class="field">
+      <label>รหัสผ่านเดิม</label>
+      <input id="pwOld" type="password" placeholder="••••••••" />
+    </div>
+    <div class="field">
+      <label>รหัสผ่านใหม่</label>
+      <input id="pwNew" type="password" placeholder="••••••••" />
+    </div>
+    <div class="field">
+      <label>ยืนยันรหัสผ่านใหม่</label>
+      <input id="pwConfirm" type="password" placeholder="••••••••" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="savePassword()">บันทึก</button>
+      <button class="btn" onclick="clearPassword()">ยกเลิก</button>
+    </div>
+    <div class="msg" id="pwMsg"></div>
+  </div>
+</div>
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['staff','password'].forEach(p => {
+    document.getElementById('panel-'+p).style.display = p === name ? 'block' : 'none';
+  });
+}
+
+function toggleAddStaff() {
+  const box = document.getElementById('addStaffBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('staffMsg').textContent = '';
+}
+
+function saveStaff() {
+  const name  = document.getElementById('staffName').value.trim();
+  const email = document.getElementById('staffEmail').value.trim();
+  const msg   = document.getElementById('staffMsg');
+  msg.className = 'msg error';
+  if (!name || !email) { msg.textContent = 'กรุณากรอกชื่อและอีเมล'; return; }
+  // TODO: POST /api/staff เมื่อ backend พร้อม
+  msg.className = 'msg ok';
+  msg.textContent = '✅ บันทึกแล้ว (backend coming soon)';
+}
+
+function clearPassword() {
+  ['pwOld','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
+  const msg = document.getElementById('pwMsg');
+  msg.textContent = '';
+  msg.className = 'msg';
+}
+
+async function savePassword() {
+  const old_password = document.getElementById('pwOld').value;
+  const new_password = document.getElementById('pwNew').value;
+  const confirm      = document.getElementById('pwConfirm').value;
+  const msg          = document.getElementById('pwMsg');
+  msg.textContent = ''; msg.className = 'msg error';
+
+  if (!old_password || !new_password || !confirm) { msg.textContent = 'กรุณากรอกให้ครบ'; return; }
+  if (new_password !== confirm) { msg.textContent = 'รหัสผ่านใหม่ไม่ตรงกัน'; return; }
+  if (new_password.length < 6)  { msg.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
+
+  try {
+    const token = localStorage.getItem('viiv_token');
+    const res = await fetch('/admin/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ old_password, new_password }),
+    });
+    if (res.ok) {
+      msg.className = 'msg ok';
+      msg.textContent = '✅ เปลี่ยนรหัสผ่านสำเร็จ';
+      clearPassword();
+    } else if (res.status === 401) {
+      msg.textContent = 'รหัสผ่านเดิมไม่ถูกต้อง';
+    } else {
+      msg.textContent = 'เกิดข้อผิดพลาด (' + res.status + ')';
+    }
+  } catch(e) {
+    msg.textContent = 'ไม่สามารถเชื่อมต่อ server ได้';
+  }
+}
+</script>
+</body>
+</html>
