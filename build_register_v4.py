@@ -1,4 +1,11 @@
-<!doctype html>
+#!/usr/bin/env python3
+# build_register_v4.py
+# python3 ~/viiv/build_register_v4.py
+
+import os
+PAGES = os.path.expanduser("~/viiv/frontend/platform/pages")
+
+HTML = r"""<!doctype html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
@@ -173,23 +180,30 @@
     <input id="v_address" type="text" placeholder="123 ถ.สุขุมวิท" />
   </div>
   <div class="row-2">
-    <div class="field">
+    <div class="field" style="position:relative;">
       <label>จังหวัด</label>
-      <input id="v_province" type="text" placeholder="เช่น เชียงใหม่" />
+      <input id="v_province" type="text" placeholder="พิมพ์ค้นหา เช่น เชียง"
+             oninput="vSearchProvince(this.value)" autocomplete="off" />
+      <div id="viiv_province_list"></div>
     </div>
     <div class="field">
       <label>อำเภอ/เขต</label>
-      <input id="v_amphoe" type="text" placeholder="เช่น เมืองเชียงใหม่" />
+      <select id="v_amphoe" onchange="vLoadTambon()" disabled>
+        <option value="">— เลือกจังหวัดก่อน —</option>
+      </select>
     </div>
   </div>
   <div class="row-2">
     <div class="field">
       <label>ตำบล/แขวง</label>
-      <input id="v_tambon" type="text" placeholder="เช่น สุเทพ" />
+      <select id="v_tambon" onchange="vLoadPostcode()" disabled>
+        <option value="">— เลือกอำเภอก่อน —</option>
+      </select>
     </div>
     <div class="field">
       <label>รหัสไปรษณีย์</label>
-      <input id="v_postcode" type="text" placeholder="เช่น 50200" maxlength="5" />
+      <input id="v_postcode" type="text" readonly placeholder="กรอกอัตโนมัติ"
+             style="background:#f0ede8;cursor:default;" />
     </div>
   </div>
 
@@ -315,10 +329,11 @@ var vSelProvince = '';
 
 async function vLoadGeo() {
   try {
-    var r = await fetch('/platform/data/thailand_geo.json');
+    var r = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_tambon.json');
     var raw = await r.json();
     vGeoFlat = raw.map(function(t) {
-      return { province: t.p, amphoe: t.a, tambon: t.t, postcode: String(t.z||'') };
+      return { province: t.province_name_th, amphoe: t.amphure_name_th,
+               tambon: t.name_th, postcode: String(t.zip_code||'') };
     });
     vGeoLoaded = true;
   } catch(e) {
@@ -590,3 +605,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+"""
+
+with open(os.path.join(PAGES, "register-shop.html"), "w", encoding="utf-8") as f:
+    f.write(HTML)
+print("✅ pages/register-shop.html v4 เขียนใหม่เสร็จ")
+print("   Ctrl+Shift+R แล้วทดสอบ")

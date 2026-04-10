@@ -1,4 +1,12 @@
-<!doctype html>
+#!/usr/bin/env python3
+# build_merchant_dashboard.py
+# python3 ~/viiv/build_merchant_dashboard.py
+
+import os
+
+MERCHANT_UI = os.path.expanduser("~/viiv/modules/pos/merchant/ui/dashboard")
+
+DASHBOARD_HTML = r"""<!doctype html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
@@ -345,3 +353,9 @@ window.doLogout = doLogout;
 
 </body>
 </html>
+"""
+
+with open(os.path.join(MERCHANT_UI, "dashboard.html"), "w", encoding="utf-8") as f:
+    f.write(DASHBOARD_HTML)
+print("✅ modules/pos/merchant/ui/dashboard/dashboard.html")
+print("\n🎉 เสร็จ — เปิดที่ https://merchant.viiv.me/dashboard.html")

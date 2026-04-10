@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VIIV Superboard</title>
+  <link rel="stylesheet" href="/superboard/css/theme.css" />
+</head>
+<body>
+
+<header class="sb-topbar">
+  <a href="/superboard/" class="sb-logo">VIIV</a>
+
+  <div class="sb-shop-wrap">
+    <div class="sb-shop-btn" id="shopBtn" onclick="toggleShopDD()">
+      <div class="sb-shop-avatar" id="shopAvatar">S</div>
+      <div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span class="sb-shop-name" id="shopName">My Shop</span>
+          <span class="sb-shop-star">★</span>
+        </div>
+        <div class="sb-shop-sub">เลือกร้าน</div>
+      </div>
+      <span class="sb-shop-arrow">▾</span>
+    </div>
+    <div class="sb-shop-dropdown" id="shopDropdown">
+      <div class="sb-dd-header">ร้านค้าของฉัน</div>
+      <div id="shopList"><div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div></div>
+    </div>
+  </div>
+
+  <nav class="sb-topnav">
+    <button class="sb-topnav-btn active" id="mod-pos" onclick="switchMod('pos',this)">
+      <span class="sb-topnav-icon">⊡</span> POS
+    </button>
+    <button class="sb-topnav-btn" id="mod-chat" onclick="switchMod('chat',this)">
+      <span class="sb-topnav-icon">◌</span> Chat
+    </button>
+    <button class="sb-topnav-btn" id="mod-autopost" onclick="switchMod('autopost',this)">
+      <span class="sb-topnav-icon">↗</span> Auto Post
+    </button>
+  </nav>
+
+  <div class="sb-spacer"></div>
+
+  <div class="sb-profile-wrap">
+    <div class="sb-profile-btn" onclick="toggleProfileDD()">
+      <div class="sb-profile-avatar" id="profileAvatar">A</div>
+      <span class="sb-profile-name" id="profileName">Admin</span>
+      <span class="sb-profile-arrow">▾</span>
+    </div>
+    <div class="sb-profile-dropdown" id="profileDropdown">
+      <div class="sb-profile-dd-item" onclick="sbNav('settings')">
+        <span>⚙</span> แก้ไขโปรไฟล์
+      </div>
+      <div class="sb-profile-dd-item danger" onclick="sbLogout()">
+        <span>⏻</span> ออกจากระบบ
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="sb-body">
+  <aside class="sb-sidebar">
+    <div class="sb-nav-group-label">Main</div>
+    <a class="sb-nav-item active" data-page="home" onclick="sbNav('home')">
+      <span class="sb-nav-icon">⌂</span><span class="sb-nav-label">หน้าหลัก</span>
+    </a>
+    <a class="sb-nav-item" data-page="trends" onclick="sbNav('trends')">
+      <span class="sb-nav-icon">↗</span><span class="sb-nav-label">เทรนขายดี</span>
+    </a>
+    <a class="sb-nav-item" data-page="hashtag" onclick="sbNav('hashtag')">
+      <span class="sb-nav-icon">#</span><span class="sb-nav-label">แฮชแท็กมาแรง</span>
+    </a>
+    <a class="sb-nav-item" data-page="ai" onclick="sbNav('ai')">
+      <span class="sb-nav-icon">✦</span><span class="sb-nav-label">AI ช่วยเหลือ</span>
+    </a>
+    <div class="sb-sidebar-divider"></div>
+    <div class="sb-nav-group-label">Settings</div>
+    <a class="sb-nav-item" data-page="staff" onclick="sbNav('staff')">
+      <span class="sb-nav-icon">◎</span><span class="sb-nav-label">บุคลากร</span>
+    </a>
+    <a class="sb-nav-item" data-page="settings" onclick="sbNav('settings')">
+      <span class="sb-nav-icon">⚙</span><span class="sb-nav-label">ตั้งค่าร้านค้า</span>
+    </a>
+    <div class="sb-sidebar-footer">VIIV v0.1.0</div>
+  </aside>
+
+  <main class="sb-content" id="sbContent">
+    <div id="sb-loading">กำลังโหลด...</div>
+  </main>
+</div>
+
+<script>
+(function(){
+'use strict';
+var TOKEN_KEY = 'viiv_token';
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+
+window.sbLogout = function(){
+  if(confirm('ออกจากระบบ?')){ localStorage.removeItem(TOKEN_KEY); window.location.href='/platform/login.html'; }
+};
+
+window.sbNav = function(page){
+  document.querySelectorAll('.sb-nav-item').forEach(function(el){ el.classList.toggle('active', el.dataset.page===page); });
+  closeDD();
+  var c = document.getElementById('sbContent');
+  c.innerHTML = '<div id="sb-loading">กำลังโหลด...</div>';
+  fetch('/superboard/pages/'+page+'.html')
+    .then(function(r){ return r.text(); })
+    .then(function(html){
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      var body = tmp.querySelector('body');
+      c.innerHTML = body ? body.innerHTML : html;
+      c.querySelectorAll('script').forEach(function(old){
+        var s = document.createElement('script'); s.textContent = old.textContent; old.replaceWith(s);
+      });
+    })
+    .catch(function(){ c.innerHTML='<div class="sb-placeholder"><div class="sb-ph-icon">⚠</div><div class="sb-ph-text">โหลดหน้าไม่ได้</div></div>'; });
+};
+
+window.switchMod = function(mod, btn){
+  document.querySelectorAll('.sb-topnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+};
+
+window.toggleShopDD = function(){
+  document.getElementById('shopDropdown').classList.toggle('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+};
+window.toggleProfileDD = function(){
+  document.getElementById('profileDropdown').classList.toggle('open');
+  document.getElementById('shopDropdown').classList.remove('open');
+};
+function closeDD(){
+  document.getElementById('shopDropdown').classList.remove('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.sb-shop-wrap') && !e.target.closest('.sb-profile-wrap')) closeDD();
+});
+
+window.selectShop = function(el, name){
+  document.querySelectorAll('.sb-shop-dd-item').forEach(function(i){ i.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('shopName').textContent = name;
+  document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
+  closeDD();
+};
+
+async function loadShops(){
+  try{
+    var token = getToken();
+    var res = await fetch('/api/stores/', { headers: token?{'Authorization':'Bearer '+token}:{} });
+    if(!res.ok) return;
+    var data = await res.json();
+    var shops = data.stores||data.data||data||[];
+    if(!shops.length) return;
+    var shop = shops[0];
+    var name = shop.store_name||shop.name||'My Shop';
+    document.getElementById('shopName').textContent = name;
+    document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('shopList').innerHTML = shops.map(function(s,i){
+      var n = s.store_name||s.name||'Shop';
+      return '<div class="sb-shop-dd-item'+(i===0?' active':'')+'" onclick="selectShop(this,\''+n+'\')">'+
+        '<div class="sb-shop-avatar" style="width:22px;height:22px;border-radius:5px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--accent);">'+n.charAt(0)+'</div>'+
+        '<span>'+n+'</span></div>';
+    }).join('');
+  }catch(e){}
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  if(!getToken()){ window.location.href='/platform/login.html'; return; }
+  loadShops();
+  sbNav('home');
+});
+})();
+</script>
+</body>
+</html>

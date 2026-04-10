@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="th">
+<head><meta charset="utf-8"><title>บุคลากร</title>
+<link rel="stylesheet" href="/superboard/css/theme.css" />
+<style>
+body { background: transparent; }
+.tabs { display:flex; gap:6px; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--sb-card-border); }
+.tab  { padding:7px 18px; border-radius:var(--r-md); border:1px solid var(--sb-card-border); background:#f8f6f2; color:var(--sb-muted); font-size:13px; font-weight:500; cursor:pointer; transition:all 0.1s; }
+.tab.active { background:var(--sb-accent); border-color:var(--sb-accent-hover); color:#1a1200; font-weight:700; }
+.tab:hover:not(.active) { background:#f0ede5; }
+.field { margin-bottom:12px; }
+.field label { display:block; font-size:12px; color:var(--sb-muted); margin-bottom:5px; }
+input,select { width:100%; padding:8px 12px; border:1px solid var(--sb-card-border); border-radius:var(--r-md); font-size:13px; outline:none; background:#faf9f7; color:var(--sb-text); }
+input:focus,select:focus { border-color:var(--sb-accent); }
+.btn { padding:7px 16px; border-radius:var(--r-md); border:1px solid rgba(0,0,0,0.1); background:#fff; color:var(--sb-text); font-size:13px; font-weight:500; cursor:pointer; }
+.btn-accent { background:var(--sb-accent); border-color:var(--sb-accent-hover); color:#1a1200; font-weight:700; }
+.btn-accent:hover { background:var(--sb-accent-hover); }
+.btn-accent:disabled { background:#d0cdc8; border-color:#bbb; color:#888; cursor:not-allowed; }
+.modal-box { margin-top:16px; background:#f8f6f2; border:1px solid var(--sb-card-border); border-radius:var(--r-lg); padding:18px 20px; }
+.modal-actions { display:flex; gap:8px; margin-top:14px; }
+.msg { font-size:13px; margin-top:8px; min-height:16px; }
+.msg.ok  { color:#1e6b42; }
+.msg.err { color:#d03030; }
+.pw-wrap { max-width:400px; }
+.check-hint { font-size:12px; margin-top:3px; display:block; min-height:14px; }
+.check-ok  { color:#1e6b42; }
+.check-err { color:#d03030; }
+.staff-list { display:flex; flex-direction:column; gap:8px; }
+.staff-row { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f8f6f2; border:1px solid var(--sb-card-border); border-radius:var(--r-md); font-size:13px; }
+.staff-name { font-weight:500; }
+.staff-email { font-size:11px; color:var(--sb-muted); margin-top:2px; }
+.pill { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+.pill-owner { background:#fff8e6; color:#a07820; }
+.pill-staff { background:#f0f0ff; color:#5050aa; }
+.pill-md    { background:#e8f5ee; color:#1e6b42; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('staff',this)">บุคลากร</button>
+  <button class="tab" onclick="switchTab('password',this)">Password</button>
+</div>
+
+<!-- ── TAB: บุคลากร ── -->
+<div id="panel-staff">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="font-size:14px;font-weight:600;">รายชื่อพนักงาน</div>
+    <button class="btn btn-accent" onclick="toggleAddStaff()">+ เพิ่มพนักงาน</button>
+  </div>
+  <div class="staff-list" id="staffList">
+    <div class="staff-row">
+      <div>
+        <div class="staff-name">Admin</div>
+        <div class="staff-email">admin@viiv.me</div>
+      </div>
+      <span class="pill pill-owner">Owner</span>
+    </div>
+  </div>
+  <div class="modal-box" id="addStaffBox" style="display:none;">
+    <div style="font-size:14px;font-weight:600;margin-bottom:14px;">เพิ่มพนักงาน</div>
+    <div class="field"><label>ชื่อ-นามสกุล</label><input id="sName" type="text" placeholder="ชื่อ นามสกุล" /></div>
+    <div class="field"><label>อีเมล</label><input id="sEmail" type="email" placeholder="email@example.com" /></div>
+    <div class="field">
+      <label>สิทธิ์การเข้าถึง</label>
+      <select id="sRole">
+        <option value="staff">Staff — ดูข้อมูลได้อย่างเดียว</option>
+        <option value="md">MD — จัดการสินค้าและออเดอร์</option>
+        <option value="owner">Owner — สิทธิ์เต็ม</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="saveStaff()">บันทึก</button>
+      <button class="btn" onclick="toggleAddStaff()">ยกเลิก</button>
+    </div>
+    <div class="msg" id="staffMsg"></div>
+  </div>
+</div>
+
+<!-- ── TAB: Password ── -->
+<div id="panel-password" style="display:none;">
+  <div class="pw-wrap">
+    <div style="font-size:14px;font-weight:600;margin-bottom:16px;">เปลี่ยนรหัสผ่าน</div>
+    <div class="field">
+      <label>รหัสผ่านเดิม</label>
+      <div style="position:relative;">
+        <input id="pwOld" type="password" placeholder="••••••••" style="padding-right:38px;" oninput="pwCheck()" />
+        <button type="button" onclick="togglePw('pwOld',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--sb-muted);">👁</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>รหัสผ่านใหม่ <span style="font-weight:400;color:var(--sb-muted);font-size:11px;">(อย่างน้อย 8 ตัวอักษร)</span></label>
+      <div style="position:relative;">
+        <input id="pwNew" type="password" placeholder="••••••••" style="padding-right:38px;" oninput="pwCheck()" />
+        <button type="button" onclick="togglePw('pwNew',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--sb-muted);">👁</button>
+      </div>
+      <span class="check-hint" id="pwNewHint"></span>
+    </div>
+    <div class="field">
+      <label>ยืนยันรหัสผ่านใหม่</label>
+      <div style="position:relative;">
+        <input id="pwConfirm" type="password" placeholder="••••••••" style="padding-right:38px;" oninput="pwCheck()" />
+        <button type="button" onclick="togglePw('pwConfirm',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--sb-muted);">👁</button>
+      </div>
+      <span class="check-hint" id="pwConfirmHint"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" id="pwSaveBtn" onclick="savePassword()" disabled>บันทึก</button>
+      <button class="btn" onclick="clearPassword()">ยกเลิก</button>
+    </div>
+    <div class="msg" id="pwMsg"></div>
+  </div>
+</div>
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['staff','password'].forEach(p => {
+    document.getElementById('panel-'+p).style.display = p===name ? 'block' : 'none';
+  });
+}
+function toggleAddStaff() {
+  var b = document.getElementById('addStaffBox');
+  b.style.display = b.style.display==='none' ? 'block' : 'none';
+}
+function saveStaff() {
+  var msg = document.getElementById('staffMsg');
+  var name = document.getElementById('sName').value.trim();
+  var email = document.getElementById('sEmail').value.trim();
+  if (!name||!email) { msg.className='msg err'; msg.textContent='กรุณากรอกให้ครบ'; return; }
+  msg.className='msg ok'; msg.textContent='✅ บันทึกแล้ว (backend coming soon)';
+}
+function togglePw(id, btn) {
+  var el = document.getElementById(id);
+  el.type = el.type==='password' ? 'text' : 'password';
+  btn.textContent = el.type==='password' ? '👁' : '🙈';
+}
+function pwCheck() {
+  var old = document.getElementById('pwOld').value;
+  var nw  = document.getElementById('pwNew').value;
+  var cf  = document.getElementById('pwConfirm').value;
+  var h1  = document.getElementById('pwNewHint');
+  var h2  = document.getElementById('pwConfirmHint');
+  var btn = document.getElementById('pwSaveBtn');
+  if (nw.length>0&&nw.length<8) { h1.className='check-hint check-err'; h1.textContent='❌ ต้องมีอย่างน้อย 8 ตัวอักษร'; }
+  else if (nw.length>=8) { h1.className='check-hint check-ok'; h1.textContent='✅ ความยาวผ่าน'; }
+  else h1.textContent='';
+  if (cf.length>0&&nw!==cf) { h2.className='check-hint check-err'; h2.textContent='❌ รหัสผ่านไม่ตรงกัน'; }
+  else if (cf.length>0&&nw===cf) { h2.className='check-hint check-ok'; h2.textContent='✅ รหัสผ่านตรงกัน'; }
+  else h2.textContent='';
+  btn.disabled = !(old.length>0 && nw.length>=8 && nw===cf && nw!==old);
+}
+function clearPassword() {
+  ['pwOld','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('pwNewHint').textContent='';
+  document.getElementById('pwConfirmHint').textContent='';
+  document.getElementById('pwMsg').textContent='';
+  document.getElementById('pwSaveBtn').disabled=true;
+}
+async function savePassword() {
+  var old_password = document.getElementById('pwOld').value;
+  var new_password = document.getElementById('pwNew').value;
+  var msg = document.getElementById('pwMsg');
+  var btn = document.getElementById('pwSaveBtn');
+  btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  try {
+    var token = localStorage.getItem('viiv_token');
+    var res = await fetch('/admin/change-password', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({old_password, new_password})
+    });
+    if (res.ok) {
+      msg.className='msg ok'; msg.textContent='✅ เปลี่ยนรหัสผ่านสำเร็จ';
+      clearPassword();
+      setTimeout(()=>{ localStorage.removeItem('viiv_token'); window.location.href='/platform/login.html'; }, 2000);
+    } else if (res.status===401) {
+      msg.className='msg err'; msg.textContent='รหัสผ่านเดิมไม่ถูกต้อง';
+    } else {
+      msg.className='msg err'; msg.textContent='เกิดข้อผิดพลาด ('+res.status+')';
+    }
+  } catch(e) {
+    msg.className='msg err'; msg.textContent='ไม่สามารถเชื่อมต่อ server ได้';
+  } finally { btn.disabled=false; btn.textContent='บันทึก'; pwCheck(); }
+}
+</script>
+</body>
+</html>

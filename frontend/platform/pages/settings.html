@@ -62,18 +62,32 @@
     <div style="font-size:14px;font-weight:600;margin-bottom:16px;">เปลี่ยนรหัสผ่าน</div>
     <div class="field">
       <label>รหัสผ่านเดิม</label>
-      <input id="pwOld" type="password" placeholder="••••••••" />
+      <div style="position:relative;">
+        <input id="pwOld" type="password" placeholder="••••••••" style="padding-right:40px;" oninput="pwCheck()" />
+        <button type="button" onclick="togglePw('pwOld',this)"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--muted);padding:0;">👁</button>
+      </div>
     </div>
     <div class="field">
-      <label>รหัสผ่านใหม่</label>
-      <input id="pwNew" type="password" placeholder="••••••••" />
+      <label>รหัสผ่านใหม่ <span style="font-weight:400;color:var(--muted);font-size:11px;">(อย่างน้อย 8 ตัวอักษร)</span></label>
+      <div style="position:relative;">
+        <input id="pwNew" type="password" placeholder="••••••••" style="padding-right:40px;" oninput="pwCheck()" />
+        <button type="button" onclick="togglePw('pwNew',this)"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--muted);padding:0;">👁</button>
+      </div>
+      <span style="font-size:12px;margin-top:3px;display:block;" id="pwNewHint"></span>
     </div>
     <div class="field">
       <label>ยืนยันรหัสผ่านใหม่</label>
-      <input id="pwConfirm" type="password" placeholder="••••••••" />
+      <div style="position:relative;">
+        <input id="pwConfirm" type="password" placeholder="••••••••" style="padding-right:40px;" oninput="pwCheck()" />
+        <button type="button" onclick="togglePw('pwConfirm',this)"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--muted);padding:0;">👁</button>
+      </div>
+      <span style="font-size:12px;margin-top:3px;display:block;" id="pwConfirmHint"></span>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-accent" onclick="savePassword()">บันทึก</button>
+      <button class="btn btn-accent" id="pwSaveBtn" onclick="savePassword()" disabled>บันทึก</button>
       <button class="btn" onclick="clearPassword()">ยกเลิก</button>
     </div>
     <div class="msg" id="pwMsg"></div>
@@ -109,8 +123,46 @@ function saveStaff() {
 function clearPassword() {
   ['pwOld','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value = '');
   const msg = document.getElementById('pwMsg');
-  msg.textContent = '';
-  msg.className = 'msg';
+  msg.textContent = ''; msg.className = 'msg';
+  document.getElementById('pwNewHint').textContent = '';
+  document.getElementById('pwConfirmHint').textContent = '';
+  const btn = document.getElementById('pwSaveBtn');
+  if (btn) btn.disabled = true;
+}
+
+function pwCheck() {
+  const old = document.getElementById('pwOld').value;
+  const nw  = document.getElementById('pwNew').value;
+  const cf  = document.getElementById('pwConfirm').value;
+  const hint1 = document.getElementById('pwNewHint');
+  const hint2 = document.getElementById('pwConfirmHint');
+  const btn   = document.getElementById('pwSaveBtn');
+
+  // hint รหัสใหม่
+  if (nw.length > 0 && nw.length < 8) {
+    hint1.textContent = '❌ ต้องมีอย่างน้อย 8 ตัวอักษร';
+    hint1.style.color = 'var(--danger)';
+  } else if (nw.length >= 8) {
+    hint1.textContent = '✅ ความยาวผ่าน';
+    hint1.style.color = 'var(--success-text)';
+  } else {
+    hint1.textContent = '';
+  }
+
+  // hint ยืนยัน
+  if (cf.length > 0 && nw !== cf) {
+    hint2.textContent = '❌ รหัสผ่านไม่ตรงกัน';
+    hint2.style.color = 'var(--danger)';
+  } else if (cf.length > 0 && nw === cf) {
+    hint2.textContent = '✅ รหัสผ่านตรงกัน';
+    hint2.style.color = 'var(--success-text)';
+  } else {
+    hint2.textContent = '';
+  }
+
+  // enable ปุ่มเมื่อครบ
+  const ok = old.length > 0 && nw.length >= 8 && nw === cf && nw !== old;
+  if (btn) btn.disabled = !ok;
 }
 
 async function savePassword() {
@@ -120,9 +172,10 @@ async function savePassword() {
   const msg          = document.getElementById('pwMsg');
   msg.textContent = ''; msg.className = 'msg error';
 
-  if (!old_password || !new_password || !confirm) { msg.textContent = 'กรุณากรอกให้ครบ'; return; }
-  if (new_password !== confirm) { msg.textContent = 'รหัสผ่านใหม่ไม่ตรงกัน'; return; }
-  if (new_password.length < 6)  { msg.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
+  if (!old_password || !new_password || !confirm) { msg.textContent = 'กรุณากรอกให้ครบทุกช่อง'; return; }
+  if (new_password.length < 8)  { msg.textContent = 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'; return; }
+  if (new_password === old_password) { msg.textContent = 'รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม'; return; }
+  if (new_password !== confirm) { msg.textContent = 'รหัสผ่านใหม่ไม่ตรงกัน กรุณากรอกใหม่'; return; }
 
   try {
     const token = localStorage.getItem('viiv_token');
@@ -132,9 +185,17 @@ async function savePassword() {
       body: JSON.stringify({ old_password, new_password }),
     });
     if (res.ok) {
-      msg.className = 'msg ok';
-      msg.textContent = '✅ เปลี่ยนรหัสผ่านสำเร็จ';
       clearPassword();
+      // แสดง toast notification
+      const toast = document.createElement('div');
+      toast.textContent = '✅ เปลี่ยนรหัสผ่านสำเร็จ — กรุณา login ใหม่อีกครั้ง';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1e6b42;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+        localStorage.removeItem('viiv_token');
+        window.location.href = '/platform/login.html';
+      }, 2500);
     } else if (res.status === 401) {
       msg.textContent = 'รหัสผ่านเดิมไม่ถูกต้อง';
     } else {
@@ -143,6 +204,12 @@ async function savePassword() {
   } catch(e) {
     msg.textContent = 'ไม่สามารถเชื่อมต่อ server ได้';
   }
+}
+
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  if (el.type === 'password') { el.type = 'text'; btn.textContent = '🙈'; }
+  else { el.type = 'password'; btn.textContent = '👁'; }
 }
 </script>
 </body>

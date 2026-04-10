@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VIIV — สมัครใช้งาน</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; background:#f0ede8; min-height:100vh; }
+    .topbar { background:#0e0e0e; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-size:18px; font-weight:900; letter-spacing:2px; color:#c9a84c; text-decoration:none; }
+    .login-link { font-size:13px; color:#888; text-decoration:none; }
+    .login-link:hover { color:#c9a84c; }
+    .content { max-width:620px; margin:0 auto; padding:24px 20px; }
+    .title { font-size:20px; font-weight:600; margin-bottom:4px; }
+    .sub { font-size:13px; color:#6b7280; margin-bottom:20px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="logo" href="/">VIIV</a>
+    <a class="login-link" href="/login">มีบัญชีแล้ว? เข้าสู่ระบบ</a>
+  </div>
+  <div class="content">
+    <div class="title">สมัครใช้งาน VIIV Platform</div>
+    <div class="sub">สร้างร้านค้าของคุณวันนี้ — ทดลองใช้ฟรี 10 วัน</div>
+    <iframe
+      src="/platform/pages/register-shop.html"
+      style="width:100%;border:none;min-height:85vh;"
+      id="regFrame"
+    ></iframe>
+  </div>
+  <script>
+    // auto-resize iframe
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.height) {
+        document.getElementById('regFrame').style.height = e.data.height + 'px';
+      }
+    });
+  </script>
+</body>
+</html>

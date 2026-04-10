@@ -370,7 +370,11 @@
 
   <!-- Action bar (search/create) -->
   <div class="actionbar" id="actionbar">
-    <input type="text" id="searchInput" placeholder="ค้นหา Shop ID" />
+    <div style="position:relative;flex:1;">
+      <input type="text" id="searchInput" placeholder="ค้นหา Shop ID" style="width:100%;" />
+      <button type="button" id="searchToggleBtn" onclick="toggleSearchType()"
+        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);padding:0;display:none;">👁</button>
+    </div>
     <button class="btn" id="searchBtn">ค้นหา</button>
     <button class="btn btn-accent" id="createBtn">+ สร้างร้าน</button>
   </div>
@@ -573,7 +577,6 @@ function navigate(key) {
     document.getElementById('searchInput').placeholder = page.searchPlaceholder || 'ค้นหา...';
     document.getElementById('createBtn').textContent   = page.createLabel || '+ สร้างใหม่';
     document.getElementById('createBtn').onclick = page.onCreate || null;
-    document.getElementById('createBtn').onclick = page.onCreate || null;
   } else {
     ab.classList.add('hidden');
   }
@@ -613,6 +616,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // init
   navigate('shops');
 });
+
+function toggleSearchType() {
+  const el = document.getElementById('searchInput');
+  const btn = document.getElementById('searchToggleBtn');
+  if (el.type === 'password') { el.type = 'text'; btn.textContent = '🙈'; }
+  else { el.type = 'password'; btn.textContent = '👁'; }
+}
 </script>
 
 </body>

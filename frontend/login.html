@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VIIV — เข้าสู่ระบบ</title>
+  <style>
+    :root {
+      --accent: #c9a84c; --accent-h: #b8942a;
+      --bg: #f0ede8; --card: #ffffff;
+      --border: rgba(0,0,0,0.10); --text: #1f2937; --muted: #6b7280;
+      --danger: #d03030; --success: #1e6b42;
+      --font: 'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family:var(--font); font-size:14px; background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .wrap { width:100%; max-width:400px; padding:24px 16px; }
+    .logo { text-align:center; margin-bottom:28px; }
+    .logo-text { font-size:26px; font-weight:900; letter-spacing:3px; color:var(--accent); }
+    .logo-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:26px 26px 22px; box-shadow:0 4px 16px rgba(0,0,0,0.06); }
+    .card-title { font-size:16px; font-weight:600; color:var(--text); margin-bottom:18px; }
+    .field { margin-bottom:12px; }
+    label { display:block; font-size:12px; color:var(--muted); margin-bottom:5px; }
+    input { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:9px; font-size:14px; color:var(--text); background:#faf9f7; outline:none; transition:border-color 0.15s; }
+    input:focus { border-color:var(--accent); }
+    .btn-login { width:100%; margin-top:6px; padding:11px; background:var(--accent); border:1px solid var(--accent-h); border-radius:9px; color:#1a1200; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.12s; }
+    .btn-login:hover { background:var(--accent-h); }
+    .btn-login:disabled { background:#d0cdc8; border-color:#bbb; color:#888; cursor:not-allowed; }
+    .divider { display:flex; align-items:center; gap:10px; margin:16px 0; }
+    .divider-line { flex:1; height:1px; background:var(--border); }
+    .divider-text { font-size:12px; color:var(--muted); }
+    .social-row { display:flex; gap:8px; }
+    .btn-social { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:9px 10px; border:1px solid var(--border); border-radius:9px; background:#fff; font-size:13px; color:var(--text); cursor:not-allowed; opacity:0.5; }
+    .btn-google { cursor:pointer; opacity:1; }
+    .btn-google:hover { background:#f5f3ef; }
+    .social-icon { font-size:16px; }
+    .msg { font-size:13px; text-align:center; margin-top:10px; min-height:16px; color:var(--danger); }
+    .msg.ok { color:var(--success); }
+    .footer { text-align:center; margin-top:20px; font-size:11px; color:#aaa; }
+    .reg-link { text-align:center; margin-top:12px; font-size:13px; color:var(--muted); }
+    .reg-link a { color:var(--accent); text-decoration:none; font-weight:600; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-text">VIIV</div>
+    <div class="logo-sub">AI-Powered Sales Automation</div>
+  </div>
+  <div class="card">
+    <div class="card-title">เข้าสู่ระบบ</div>
+    <div class="field">
+      <label>อีเมล</label>
+      <input id="email" type="email" placeholder="you@example.com" autocomplete="email" oninput="checkForm()" />
+    </div>
+    <div class="field">
+      <label>รหัสผ่าน</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" oninput="checkForm()" />
+    </div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()" disabled>เข้าสู่ระบบ</button>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">หรือเข้าสู่ระบบด้วย</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="social-row">
+      <button class="btn-social btn-google" onclick="loginGoogle()" title="Google">
+        <span class="social-icon">G</span> Google
+      </button>
+      <button class="btn-social" title="LINE (coming soon)">
+        <span class="social-icon">L</span> LINE
+      </button>
+      <button class="btn-social" title="Facebook (coming soon)">
+        <span class="social-icon">f</span> Facebook
+      </button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+  </div>
+  <div class="reg-link">ยังไม่มีบัญชี? <a href="/register">สมัครใช้งาน</a></div>
+  <div class="footer">VIIV Platform v0.1.0</div>
+</div>
+<script>
+function checkForm() {
+  var email = document.getElementById('email').value.trim();
+  var pw    = document.getElementById('password').value;
+  document.getElementById('loginBtn').disabled = !(email && pw.length >= 4);
+}
+async function doLogin() {
+  var email    = document.getElementById('email').value.trim();
+  var password = document.getElementById('password').value;
+  var btn = document.getElementById('loginBtn');
+  var msg = document.getElementById('msg');
+  msg.textContent=''; msg.className='msg';
+  btn.disabled=true; btn.textContent='กำลังเข้าสู่ระบบ...';
+  try {
+    var res = await fetch('/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    if (res.ok) {
+      var data = await res.json();
+      localStorage.setItem('viiv_token', data.access_token);
+      msg.className='msg ok'; msg.textContent='✅ สำเร็จ กำลังโหลด...';
+      setTimeout(()=>{ window.location.href='/platform/dashboard.html'; }, 400);
+    } else if (res.status===401) {
+      msg.textContent='อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    } else {
+      msg.textContent='เกิดข้อผิดพลาด ('+res.status+')';
+    }
+  } catch(e) { msg.textContent='ไม่สามารถเชื่อมต่อ server ได้'; }
+  finally { btn.disabled=false; btn.textContent='เข้าสู่ระบบ'; checkForm(); }
+}
+function loginGoogle() { window.location.href='/auth/google'; }
+document.addEventListener('DOMContentLoaded', ()=>{
+  if (localStorage.getItem('viiv_token')) window.location.href='/platform/dashboard.html';
+  document.getElementById('password').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('email').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('password').focus(); });
+});
+</script>
+</body>
+</html>

@@ -47,18 +47,14 @@ async def get_current_admin(
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    if payload.get("email") != ADMIN_EMAIL or payload.get("is_admin") is not True:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-
     sub = payload.get("sub")
     if not sub:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    try:
-        uid = uuid.UUID(sub)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    u = db.get(__import__("app.models.user", fromlist=["User"]).User, uid)
+    from app.repositories import users as user_repo
+    u = user_repo.get_by_email(db, ADMIN_EMAIL)
+    if not u or str(u.id) != sub:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     if not u:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     return u
@@ -94,10 +90,10 @@ def change_password(payload: dict, user=Depends(get_current_admin), db: Session 
     if not old_password or not new_password:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    if not auth_service.verify_password(old_password, user.password_hash):
+    if not auth_service.verify_password(old_password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    user.password_hash = auth_service.hash_password(new_password)
+    user.hashed_password = auth_service.hash_password(new_password)
     db.add(user)
     db.commit()
     return {"success": True}
