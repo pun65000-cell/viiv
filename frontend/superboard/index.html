@@ -170,16 +170,16 @@ var TOKEN_KEY = 'viiv_token';
 function getToken(){ return localStorage.getItem(TOKEN_KEY); }
 
 window.sbLogout = function(){
-  if(confirm('ออกจากระบบ?')){ localStorage.removeItem(TOKEN_KEY); window.location.href='/platform/login.html'; }
+  if(confirm('ออกจากระบบ?')){ localStorage.removeItem(TOKEN_KEY); window.location.href='/superboard/login.html'; }
 };
 
 window.sbNav = function(page){
   document.querySelectorAll('.sb-nav-item').forEach(function(el){ el.classList.toggle('active', el.dataset.page===page); });
   closeDD();
   var c = document.getElementById('sbContent');
-  c.innerHTML = '<div id="sb-loading">กำลังโหลด...</div>';
+  c.innerHTML = '<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-spinner"></div><div class="spa-loader-title">กำลังโหลด</div></div></div>';
   fetch('/superboard/pages/'+page+'.html')
-    .then(function(r){ return r.text(); })
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
     .then(function(html){
       var tmp = document.createElement('div');
       tmp.innerHTML = html;
@@ -189,7 +189,9 @@ window.sbNav = function(page){
         var s = document.createElement('script'); s.textContent = old.textContent; old.replaceWith(s);
       });
     })
-    .catch(function(){ c.innerHTML='<div class="sb-placeholder"><div class="sb-ph-icon">⚠</div><div class="sb-ph-text">โหลดหน้าไม่ได้</div></div>'; });
+    .catch(function(){
+      c.innerHTML='<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-loader-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ef4444" stroke-width="1.8"/><path d="M12 8v4M12 16h.01" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round"/></svg></div><div class="spa-loader-title" style="color:#ef4444">โหลดหน้าไม่ได้</div><div class="spa-loader-sub">ไม่พบหน้าที่ต้องการ</div></div></div>';
+    });
 };
 
 window.switchMod = function(mod, btn){
@@ -198,6 +200,12 @@ window.switchMod = function(mod, btn){
   var pageMap = { pos: 'pos', chat: 'chat', autopost: 'autopost' };
   if(pageMap[mod]) sbNav(pageMap[mod]);
 };
+
+function checkBellDot(){
+  var has = document.querySelector('.sb-bell-item.unread');
+  var dot = document.getElementById('bellDot');
+  if(dot) dot.style.display = has ? 'block' : 'none';
+}
 
 window.toggleShopDD = function(){
   document.getElementById('shopDropdown').classList.toggle('open');
@@ -246,7 +254,7 @@ async function loadShops(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  if(!getToken()){ window.location.href='/platform/login.html'; return; }
+  if(!getToken()){ window.location.href='/superboard/login.html'; return; }
   loadShops();
   sbNav('home'); checkBellDot();
 });

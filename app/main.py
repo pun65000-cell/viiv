@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from app.api.tenant_staff import router as tenant_staff_router
 import os
 import uuid
 
@@ -150,4 +151,5 @@ app.include_router(track_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(auth_social_router)
 app.include_router(admin_auth_router)
+app.include_router(tenant_staff_router)
 app.include_router(customers_router, prefix="/api/customers")

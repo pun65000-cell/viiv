@@ -1,189 +1,693 @@
-<!doctype html>
-<html lang="th">
-<head><meta charset="utf-8"><title>บุคลากร</title>
-<link rel="stylesheet" href="/superboard/css/theme.css" />
-<style>
-body { background: transparent; }
-.tabs { display:flex; gap:6px; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--sb-card-border); }
-.tab  { padding:7px 18px; border-radius:var(--r-md); border:1px solid var(--sb-card-border); background:#f8f6f2; color:var(--sb-muted); font-size:13px; font-weight:500; cursor:pointer; transition:all 0.1s; }
-.tab.active { background:var(--sb-accent); border-color:var(--sb-accent-hover); color:#1a1200; font-weight:700; }
-.tab:hover:not(.active) { background:#f0ede5; }
-.field { margin-bottom:12px; }
-.field label { display:block; font-size:12px; color:var(--sb-muted); margin-bottom:5px; }
-input,select { width:100%; padding:8px 12px; border:1px solid var(--sb-card-border); border-radius:var(--r-md); font-size:13px; outline:none; background:#faf9f7; color:var(--sb-text); }
-input:focus,select:focus { border-color:var(--sb-accent); }
-.btn { padding:7px 16px; border-radius:var(--r-md); border:1px solid rgba(0,0,0,0.1); background:#fff; color:var(--sb-text); font-size:13px; font-weight:500; cursor:pointer; }
-.btn-accent { background:var(--sb-accent); border-color:var(--sb-accent-hover); color:#1a1200; font-weight:700; }
-.btn-accent:hover { background:var(--sb-accent-hover); }
-.btn-accent:disabled { background:#d0cdc8; border-color:#bbb; color:#888; cursor:not-allowed; }
-.modal-box { margin-top:16px; background:#f8f6f2; border:1px solid var(--sb-card-border); border-radius:var(--r-lg); padding:18px 20px; }
-.modal-actions { display:flex; gap:8px; margin-top:14px; }
-.msg { font-size:13px; margin-top:8px; min-height:16px; }
-.msg.ok  { color:#1e6b42; }
-.msg.err { color:#d03030; }
-.pw-wrap { max-width:400px; }
-.check-hint { font-size:12px; margin-top:3px; display:block; min-height:14px; }
-.check-ok  { color:#1e6b42; }
-.check-err { color:#d03030; }
-.staff-list { display:flex; flex-direction:column; gap:8px; }
-.staff-row { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f8f6f2; border:1px solid var(--sb-card-border); border-radius:var(--r-md); font-size:13px; }
-.staff-name { font-weight:500; }
-.staff-email { font-size:11px; color:var(--sb-muted); margin-top:2px; }
-.pill { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
-.pill-owner { background:#fff8e6; color:#a07820; }
-.pill-staff { background:#f0f0ff; color:#5050aa; }
-.pill-md    { background:#e8f5ee; color:#1e6b42; }
-</style>
-</head>
 <body>
+<div style="padding:24px;max-width:760px;">
 
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('staff',this)">บุคลากร</button>
-  <button class="tab" onclick="switchTab('password',this)">Password</button>
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h2 style="font-size:1.15rem;font-weight:700;color:var(--text-main,#1a1a1a);margin:0 0 3px;">บุคลากร</h2>
+      <p style="font-size:0.82rem;color:var(--text-sub,#888);margin:0;">จัดการพนักงานและสิทธิ์การใช้งาน</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="sf-btn-primary" onclick="sfShowPerms()">🛡 จัดการสิทธิ์</button>
+      <button class="sf-btn-primary" onclick="sfShowChangePw()">🔑 เปลี่ยนรหัส</button>
+      <button class="sf-btn-primary" onclick="sfShowForm()">+ สร้างพนักงาน</button>
+    </div>
+  </div>
+
+  <!-- Staff list placeholder -->
+  <div id="sfList">
+    <div style="text-align:center;padding:48px 24px;border:1.5px dashed var(--border,#e0e0e0);border-radius:12px;color:var(--text-sub,#aaa);">
+      <div style="font-size:2rem;margin-bottom:8px;">👥</div>
+      <div style="font-size:0.88rem;">ยังไม่มีพนักงาน — กด "สร้างพนักงาน" เพื่อเพิ่ม</div>
+    </div>
+  </div>
+
+  <!-- Form Panel -->
+    <!-- Manage Permissions Panel -->
+  <div id="sfPermWrap" style="display:none;margin-top:24px;">
+    <div style="background:var(--card-bg,#fff);border:1.5px solid var(--border,#e0e0e0);border-radius:14px;padding:28px 24px;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--text-main,#1a1a1a);margin:0 0 6px;">จัดการสิทธิ์พนักงาน</h3>
+      <p style="font-size:0.82rem;color:var(--text-sub,#888);margin:0 0 20px;">เลือกพนักงานเพื่อแก้ไขสิทธิ์และรายละเอียด</p>
+
+      <!-- dropdown เลือกพนักงาน -->
+      <div style="margin-bottom:20px;">
+        <label class="sf-label">เลือกพนักงาน</label>
+        <select id="sfPermSelect" class="sf-input" onchange="sfLoadStaffPerms(this.value)" style="cursor:pointer;">
+          <option value="">— เลือกพนักงาน —</option>
+        </select>
+      </div>
+
+      <!-- พื้นที่แสดง/แก้ไขข้อมูล -->
+      <div id="sfPermDetail" style="display:none;">
+
+        <!-- ข้อมูลพื้นฐาน -->
+        <div style="background:var(--hover-bg,#f9f9f9);border:1px solid var(--border,#e5e5e5);border-radius:10px;padding:16px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div id="sfPermAvatar" style="width:48px;height:48px;border-radius:50%;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-weight:700;color:#C9A84C;font-size:1rem;flex-shrink:0;"></div>
+            <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="sf-field">
+                <label class="sf-label">ชื่อ</label>
+                <input class="sf-input" type="text" id="sfPermFirst"/>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">นามสกุล</label>
+                <input class="sf-input" type="text" id="sfPermLast"/>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">ตำแหน่ง</label>
+                <input class="sf-input" type="text" id="sfPermRole"/>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">อีเมล</label>
+                <input class="sf-input" type="email" id="sfPermEmail"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- สิทธิ์ -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:0.8rem;font-weight:600;color:var(--text-sub,#888);margin-bottom:10px;letter-spacing:.04em;">สิทธิ์การใช้งาน</div>
+          <label style="display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(201,168,76,.08);border:1.5px solid rgba(201,168,76,.25);border-radius:8px;cursor:pointer;margin-bottom:10px;">
+            <input type="checkbox" id="sfPermAllEdit" onchange="sfPermToggleAll(this)" style="width:15px;height:15px;accent-color:#C9A84C;"/>
+            <span style="font-size:0.85rem;font-weight:700;color:#C9A84C;">ให้สิทธิ์ทั้งหมด</span>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="sfPermGridEdit">
+            <div class="sf-perm-group"><div class="sf-perm-header">🛒 POS</div>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="pos_view" onchange="sfPermSyncAll()"/> ดูหน้า POS</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="pos_sale" onchange="sfPermSyncAll()"/> บันทึกการขาย</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="pos_order" onchange="sfPermSyncAll()"/> จัดการคำสั่งซื้อ</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="pos_product" onchange="sfPermSyncAll()"/> จัดการสินค้า/สต็อก</label>
+            </div>
+            <div class="sf-perm-group"><div class="sf-perm-header">📊 รายงาน</div>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="report_view" onchange="sfPermSyncAll()"/> ดูรายงาน</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="report_finance" onchange="sfPermSyncAll()"/> บัญชีการเงิน</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="report_export" onchange="sfPermSyncAll()"/> Export ข้อมูล</label>
+            </div>
+            <div class="sf-perm-group"><div class="sf-perm-header">💬 Chat & AI</div>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="chat_view" onchange="sfPermSyncAll()"/> ดู Chat</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="chat_reply" onchange="sfPermSyncAll()"/> ตอบ Chat</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="ai_config" onchange="sfPermSyncAll()"/> ตั้งค่า AI</label>
+            </div>
+            <div class="sf-perm-group"><div class="sf-perm-header">⚙ ตั้งค่า</div>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="settings_store" onchange="sfPermSyncAll()"/> ตั้งค่าร้านค้า</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="settings_staff" onchange="sfPermSyncAll()"/> จัดการพนักงาน</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="settings_billing" onchange="sfPermSyncAll()"/> แพ็กเกจ/ชำระเงิน</label>
+            </div>
+            <div class="sf-perm-group" style="grid-column:span 2;"><div class="sf-perm-header">📢 Auto Post</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="post_view" onchange="sfPermSyncAll()"/> ดู Auto Post</label>
+                <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="post_create" onchange="sfPermSyncAll()"/> สร้างโพสต์</label>
+                <label class="sf-perm-item"><input type="checkbox" class="sf-perm-edit" data-key="post_delete" onchange="sfPermSyncAll()"/> ลบโพสต์</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border,#e0e0e0);padding-top:16px;">
+          <button type="button" onclick="sfHidePerms()" style="padding:9px 20px;background:transparent;border:1.5px solid var(--border,#e0e0e0);border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--text-sub,#666);">ยกเลิก</button>
+          <button type="button" id="sfPermSaveBtn" onclick="sfPermSave()" class="sf-btn-primary">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+      </div>
+
+      <!-- ยังไม่เลือก -->
+      <div id="sfPermEmpty" style="text-align:center;padding:32px;color:var(--text-sub,#aaa);">
+        <div style="font-size:1.8rem;margin-bottom:8px;">👆</div>
+        <div style="font-size:0.85rem;">เลือกพนักงานด้านบนเพื่อแก้ไขสิทธิ์</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Change Password Panel -->
+  <div id="sfCpWrap" style="display:none;margin-top:24px;">
+    <div style="background:var(--card-bg,#fff);border:1.5px solid var(--border,#e0e0e0);border-radius:14px;padding:28px 24px;max-width:480px;margin:0 auto;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--text-main,#1a1a1a);margin:0 0 20px;">เปลี่ยนรหัสผ่าน</h3>
+
+      <div id="sfCpSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.83rem;font-weight:600;color:#16a34a;">✓ เปลี่ยนรหัสผ่านสำเร็จแล้ว</div>
+
+      <div class="sf-field" style="margin-bottom:14px;">
+        <label class="sf-label">รหัสผ่านปัจจุบัน <span class="sf-req">*</span></label>
+        <div style="position:relative;">
+          <input class="sf-input" type="password" id="sfCpOld" placeholder="••••••••" oninput="sfCpCheck()" style="padding-right:38px;"/>
+          <button type="button" onclick="sfCpToggle('sfCpOld','sfCpEye0')" class="sf-eye-btn"><svg id="sfCpEye0" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        </div>
+      </div>
+
+      <div class="sf-field" style="margin-bottom:14px;">
+        <label class="sf-label">รหัสผ่านใหม่ <span class="sf-req">*</span></label>
+        <div style="position:relative;">
+          <input class="sf-input" type="password" id="sfCpNew" placeholder="อย่างน้อย 8 ตัวอักษร" oninput="sfCpCheck()" style="padding-right:38px;"/>
+          <button type="button" onclick="sfCpToggle('sfCpNew','sfCpEye1')" class="sf-eye-btn"><svg id="sfCpEye1" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        </div>
+        <div style="margin-top:5px;height:4px;border-radius:4px;background:var(--border,#e5e5e5);overflow:hidden;"><div id="sfCpBar" style="height:100%;width:0%;border-radius:4px;transition:width .3s,background .3s;"></div></div>
+        <div id="sfCpStrTxt" style="font-size:0.72rem;color:#aaa;margin-top:2px;"></div>
+      </div>
+
+      <div class="sf-field" style="margin-bottom:6px;">
+        <label class="sf-label">ยืนยันรหัสผ่านใหม่ <span class="sf-req">*</span></label>
+        <div style="position:relative;">
+          <input class="sf-input" type="password" id="sfCpConf" placeholder="พิมพ์รหัสผ่านใหม่อีกครั้ง" oninput="sfCpCheck()" style="padding-right:38px;"/>
+          <button type="button" onclick="sfCpToggle('sfCpConf','sfCpEye2')" class="sf-eye-btn"><svg id="sfCpEye2" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        </div>
+      </div>
+      <div id="sfCpErr" style="display:none;font-size:0.75rem;color:#ef4444;margin-bottom:10px;">รหัสผ่านไม่ตรงกัน</div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border,#e0e0e0);padding-top:16px;margin-top:16px;">
+        <button type="button" onclick="sfHideCp()" style="padding:9px 20px;background:transparent;border:1.5px solid var(--border,#e0e0e0);border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--text-sub,#666);">ยกเลิก</button>
+        <button type="button" id="sfCpSaveBtn" onclick="sfCpSave()" disabled style="padding:9px 24px;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:not-allowed;background:#d0d0d0;color:#aaa;">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sfFormWrap"  style="display:none;margin-top:24px;">
+    <div style="background:var(--card-bg,#fff);border:1.5px solid var(--border,#e0e0e0);border-radius:14px;padding:28px 24px;">
+
+      <h3 style="font-size:1rem;font-weight:700;color:var(--text-main,#1a1a1a);margin:0 0 20px;">ข้อมูลพนักงาน</h3>
+
+      <!-- รูปพนักงาน -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;">
+        <div id="sfAvatarPreview" style="width:72px;height:72px;border-radius:50%;background:var(--accent-dim,rgba(201,168,76,.12));border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:1.8rem;cursor:pointer;overflow:hidden;flex-shrink:0;" onclick="document.getElementById('sfAvatarInput').click()">
+          👤
+        </div>
+        <div>
+          <button type="button" class="sf-btn-outline" onclick="document.getElementById('sfAvatarInput').click()">อัพโหลดรูปพนักงาน</button>
+          <div style="font-size:0.73rem;color:var(--text-sub,#aaa);margin-top:4px;">JPG, PNG ขนาดไม่เกิน 2MB</div>
+        </div>
+        <input type="file" id="sfAvatarInput" accept="image/*" style="display:none" onchange="sfPreviewAvatar(this)"/>
+      </div>
+
+      <!-- ข้อมูลพื้นฐาน -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="sf-field">
+          <label class="sf-label">ชื่อ <span class="sf-req">*</span></label>
+          <input class="sf-input" type="text" id="sfFirstName" placeholder="ชื่อ" oninput="sfCheckForm()"/>
+        </div>
+        <div class="sf-field">
+          <label class="sf-label">นามสกุล <span class="sf-req">*</span></label>
+          <input class="sf-input" type="text" id="sfLastName" placeholder="นามสกุล" oninput="sfCheckForm()"/>
+        </div>
+        <div class="sf-field">
+          <label class="sf-label">อีเมล <span class="sf-req">*</span></label>
+          <input class="sf-input" type="email" id="sfEmail" placeholder="email@example.com" oninput="sfCheckForm()"/>
+        </div>
+        <div class="sf-field">
+          <label class="sf-label">เบอร์โทรศัพท์</label>
+          <input class="sf-input" type="tel" id="sfPhone" placeholder="08x-xxx-xxxx"/>
+        </div>
+        <div class="sf-field">
+          <label class="sf-label">ตำแหน่ง <span class="sf-req">*</span></label>
+          <input class="sf-input" type="text" id="sfRole" placeholder="เช่น แคชเชียร์, ผู้จัดการ" oninput="sfCheckForm()"/>
+        </div>
+        <div class="sf-field">
+          <label class="sf-label">รหัสพนักงาน (ID)</label>
+          <input class="sf-input" type="text" id="sfStaffId" placeholder="เช่น EMP001"/>
+        </div>
+      </div>
+
+      <!-- Social Media -->
+      <div style="margin-bottom:18px;">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text-sub,#888);margin-bottom:10px;letter-spacing:.04em;">SOCIAL MEDIA</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="sf-field">
+            <label class="sf-label">LINE ID</label>
+            <input class="sf-input" type="text" id="sfLine" placeholder="LINE ID"/>
+          </div>
+          <div class="sf-field">
+            <label class="sf-label">Facebook</label>
+            <input class="sf-input" type="text" id="sfFacebook" placeholder="ชื่อ Facebook"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- บัตรประชาชน -->
+      <div style="margin-bottom:22px;">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text-sub,#888);margin-bottom:10px;letter-spacing:.04em;">เอกสาร (ไม่บังคับ)</div>
+        <div id="sfIdCardPreview" style="display:none;margin-bottom:8px;">
+          <img id="sfIdCardImg" style="max-width:220px;border-radius:8px;border:1px solid var(--border,#e0e0e0);" alt="สำเนาบัตร"/>
+        </div>
+        <button type="button" class="sf-btn-outline" onclick="document.getElementById('sfIdCardInput').click()">
+          📎 แนบสำเนาบัตรประชาชน
+        </button>
+        <span id="sfIdCardName" style="font-size:0.78rem;color:var(--text-sub,#888);margin-left:8px;"></span>
+        <input type="file" id="sfIdCardInput" accept="image/*,application/pdf" style="display:none" onchange="sfPreviewIdCard(this)"/>
+      </div>
+
+      <!-- รหัสผ่าน -->
+      <div style="margin-bottom:18px;">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text-sub,#888);margin-bottom:10px;letter-spacing:.04em;">รหัสผ่านเข้าระบบ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="sf-field">
+            <label class="sf-label">รหัสผ่าน <span class="sf-req">*</span></label>
+            <div style="position:relative;">
+              <input class="sf-input" type="password" id="sfPassword" placeholder="อย่างน้อย 8 ตัวอักษร" oninput="sfCheckForm()" style="padding-right:38px;"/>
+              <button type="button" onclick="sfTogglePass('sfPassword','sfEye1')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;padding:3px;display:flex;">
+                <svg id="sfEye1" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sf-field">
+            <label class="sf-label">ยืนยันรหัสผ่าน <span class="sf-req">*</span></label>
+            <div style="position:relative;">
+              <input class="sf-input" type="password" id="sfPasswordConf" placeholder="พิมพ์รหัสผ่านอีกครั้ง" oninput="sfCheckForm()" style="padding-right:38px;"/>
+              <button type="button" onclick="sfTogglePass('sfPasswordConf','sfEye2')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;padding:3px;display:flex;">
+                <svg id="sfEye2" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="sfPassErr" style="display:none;font-size:0.75rem;color:#ef4444;margin-top:6px;">รหัสผ่านไม่ตรงกัน</div>
+      </div>
+
+      <!-- หมายเหตุ -->
+      <div class="sf-field" style="margin-bottom:22px;">
+        <label class="sf-label">หมายเหตุ / ประวัติเพิ่มเติม</label>
+        <textarea class="sf-input" id="sfNote" rows="3" placeholder="ข้อมูลเพิ่มเติม เช่น วันเริ่มงาน ทักษะพิเศษ ฯลฯ" style="resize:vertical;"></textarea>
+      </div>
+
+      <!-- สิทธิ์การใช้งาน -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text-sub,#888);margin-bottom:12px;letter-spacing:.04em;">สิทธิ์การใช้งาน <span class="sf-req">*</span></div>
+
+        <!-- ให้สิทธิ์ทั้งหมด -->
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(201,168,76,.08);border:1.5px solid rgba(201,168,76,.3);border-radius:8px;cursor:pointer;margin-bottom:12px;">
+          <input type="checkbox" id="sfPermAll" onchange="sfToggleAll(this)" style="width:16px;height:16px;accent-color:#C9A84C;"/>
+          <span style="font-size:0.88rem;font-weight:700;color:var(--accent,#C9A84C);">ให้สิทธิ์ทั้งหมด (Owner)</span>
+        </label>
+
+        <!-- สิทธิ์แยก -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="sfPermGrid">
+          <!-- POS -->
+          <div class="sf-perm-group">
+            <div class="sf-perm-header">🛒 POS</div>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="pos_view" onchange="sfSyncAll()"/> ดูหน้า POS</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="pos_sale" onchange="sfSyncAll()"/> บันทึกการขาย</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="pos_order" onchange="sfSyncAll()"/> จัดการคำสั่งซื้อ</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="pos_product" onchange="sfSyncAll()"/> จัดการสินค้า/สต็อก</label>
+          </div>
+          <!-- รายงาน -->
+          <div class="sf-perm-group">
+            <div class="sf-perm-header">📊 รายงาน</div>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="report_view" onchange="sfSyncAll()"/> ดูรายงาน</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="report_finance" onchange="sfSyncAll()"/> บัญชีการเงิน</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="report_export" onchange="sfSyncAll()"/> Export ข้อมูล</label>
+          </div>
+          <!-- Chat -->
+          <div class="sf-perm-group">
+            <div class="sf-perm-header">💬 Chat & AI</div>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="chat_view" onchange="sfSyncAll()"/> ดู Chat</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="chat_reply" onchange="sfSyncAll()"/> ตอบ Chat</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="ai_config" onchange="sfSyncAll()"/> ตั้งค่า AI</label>
+          </div>
+          <!-- ตั้งค่า -->
+          <div class="sf-perm-group">
+            <div class="sf-perm-header">⚙ ตั้งค่า</div>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="settings_store" onchange="sfSyncAll()"/> ตั้งค่าร้านค้า</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="settings_staff" onchange="sfSyncAll()"/> จัดการพนักงาน</label>
+            <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="settings_billing" onchange="sfSyncAll()"/> แพ็กเกจ/ชำระเงิน</label>
+          </div>
+          <!-- Auto Post -->
+          <div class="sf-perm-group" style="grid-column:span 2;">
+            <div class="sf-perm-header">📢 Auto Post</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="post_view" onchange="sfSyncAll()"/> ดู Auto Post</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="post_create" onchange="sfSyncAll()"/> สร้างโพสต์</label>
+              <label class="sf-perm-item"><input type="checkbox" class="sf-perm" data-key="post_delete" onchange="sfSyncAll()"/> ลบโพสต์</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border,#e0e0e0);padding-top:18px;">
+        <button type="button" class="sf-btn-cancel" onclick="sfHideForm()">ยกเลิก</button>
+        <button type="button" class="sf-btn-save" id="sfSaveBtn" disabled onclick="sfSave()">บันทึก</button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
-<!-- ── TAB: บุคลากร ── -->
-<div id="panel-staff">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-    <div style="font-size:14px;font-weight:600;">รายชื่อพนักงาน</div>
-    <button class="btn btn-accent" onclick="toggleAddStaff()">+ เพิ่มพนักงาน</button>
-  </div>
-  <div class="staff-list" id="staffList">
-    <div class="staff-row">
-      <div>
-        <div class="staff-name">Admin</div>
-        <div class="staff-email">admin@viiv.me</div>
-      </div>
-      <span class="pill pill-owner">Owner</span>
-    </div>
-  </div>
-  <div class="modal-box" id="addStaffBox" style="display:none;">
-    <div style="font-size:14px;font-weight:600;margin-bottom:14px;">เพิ่มพนักงาน</div>
-    <div class="field"><label>ชื่อ-นามสกุล</label><input id="sName" type="text" placeholder="ชื่อ นามสกุล" /></div>
-    <div class="field"><label>อีเมล</label><input id="sEmail" type="email" placeholder="email@example.com" /></div>
-    <div class="field">
-      <label>สิทธิ์การเข้าถึง</label>
-      <select id="sRole">
-        <option value="staff">Staff — ดูข้อมูลได้อย่างเดียว</option>
-        <option value="md">MD — จัดการสินค้าและออเดอร์</option>
-        <option value="owner">Owner — สิทธิ์เต็ม</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-accent" onclick="saveStaff()">บันทึก</button>
-      <button class="btn" onclick="toggleAddStaff()">ยกเลิก</button>
-    </div>
-    <div class="msg" id="staffMsg"></div>
-  </div>
-</div>
-
-<!-- ── TAB: Password ── -->
-<div id="panel-password" style="display:none;">
-  <div class="pw-wrap">
-    <div style="font-size:14px;font-weight:600;margin-bottom:16px;">เปลี่ยนรหัสผ่าน</div>
-    <div class="field">
-      <label>รหัสผ่านเดิม</label>
-      <div style="position:relative;">
-        <input id="pwOld" type="password" placeholder="••••••••" style="padding-right:38px;" oninput="pwCheck()" />
-        <button type="button" onclick="togglePw('pwOld',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--sb-muted);">👁</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>รหัสผ่านใหม่ <span style="font-weight:400;color:var(--sb-muted);font-size:11px;">(อย่างน้อย 8 ตัวอักษร)</span></label>
-      <div style="position:relative;">
-        <input id="pwNew" type="password" placeholder="••••••••" style="padding-right:38px;" oninput="pwCheck()" />
-        <button type="button" onclick="togglePw('pwNew',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--sb-muted);">👁</button>
-      </div>
-      <span class="check-hint" id="pwNewHint"></span>
-    </div>
-    <div class="field">
-      <label>ยืนยันรหัสผ่านใหม่</label>
-      <div style="position:relative;">
-        <input id="pwConfirm" type="password" placeholder="••••••••" style="padding-right:38px;" oninput="pwCheck()" />
-        <button type="button" onclick="togglePw('pwConfirm',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--sb-muted);">👁</button>
-      </div>
-      <span class="check-hint" id="pwConfirmHint"></span>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-accent" id="pwSaveBtn" onclick="savePassword()" disabled>บันทึก</button>
-      <button class="btn" onclick="clearPassword()">ยกเลิก</button>
-    </div>
-    <div class="msg" id="pwMsg"></div>
-  </div>
-</div>
+<style>
+.sf-btn-primary{padding:9px 18px;background:var(--accent,#C9A84C);color:#1a1a1a;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.sf-btn-primary:hover{opacity:.85;}
+.sf-btn-outline{padding:7px 14px;background:transparent;border:1.5px solid var(--border,#e0e0e0);border-radius:7px;font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--text-main,#1a1a1a);transition:border-color .2s;}
+.sf-btn-outline:hover{border-color:var(--accent,#C9A84C);}
+.sf-btn-cancel{padding:9px 20px;background:transparent;border:1.5px solid var(--border,#e0e0e0);border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--text-sub,#666);}
+.sf-btn-cancel:hover{border-color:#aaa;}
+.sf-btn-save{padding:9px 24px;background:var(--accent,#C9A84C);color:#1a1a1a;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:background .2s,opacity .2s;}
+.sf-btn-save:disabled{background:#d0d0d0 !important;color:#aaa;cursor:not-allowed;opacity:1;}
+.sf-btn-save:not(:disabled):hover{opacity:.85;}
+.sf-label{display:block;font-size:0.78rem;font-weight:600;color:var(--text-main,#1a1a1a);margin-bottom:5px;}
+.sf-req{color:#ef4444;}
+.sf-input{width:100%;padding:9px 11px;border:1.5px solid var(--border,#e0e0e0);border-radius:7px;font-size:0.85rem;color:var(--text-main,#1a1a1a);background:var(--input-bg,#fafafa);outline:none;transition:border-color .2s;font-family:inherit;}
+.sf-input:focus{border-color:var(--accent,#C9A84C);}
+.sf-field{display:flex;flex-direction:column;}
+.sf-perm-group{background:var(--hover-bg,#f9f9f9);border:1px solid var(--border,#e5e5e5);border-radius:9px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;}
+.sf-perm-header{font-size:0.78rem;font-weight:700;color:var(--text-sub,#888);margin-bottom:4px;letter-spacing:.04em;}
+.sf-perm-item{display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text-main,#1a1a1a);cursor:pointer;padding:2px 0;}
+.sf-perm-item input{accent-color:var(--accent,#C9A84C);width:14px;height:14px;cursor:pointer;}
+</style>
 
 <script>
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  ['staff','password'].forEach(p => {
-    document.getElementById('panel-'+p).style.display = p===name ? 'block' : 'none';
+(function(){
+'use strict';
+
+window.sfShowForm = function(){
+  sfHideAll();
+  document.getElementById('sfFormWrap').style.display = 'block';
+  document.getElementById('sfFormWrap').scrollIntoView({behavior:'smooth', block:'start'});
+};
+window.sfHideForm = function(){
+  document.getElementById('sfFormWrap').style.display = 'none';
+  sfResetForm();
+};
+
+window.sfCheckForm = function(){
+  var ok = ['sfFirstName','sfLastName','sfEmail','sfRole','sfPassword','sfPasswordConf'].every(function(id){
+    var el = document.getElementById(id);
+    return el && el.value.trim() !== '';
+  });
+  var pass = document.getElementById('sfPassword').value;
+  var conf = document.getElementById('sfPasswordConf').value;
+  var passMatch = pass === conf;
+  var passErr = document.getElementById('sfPassErr');
+  if(conf && !passMatch){
+    passErr.style.display = 'block';
+    ok = false;
+  } else {
+    passErr.style.display = 'none';
+  }
+  document.getElementById('sfSaveBtn').disabled = !ok;
+};
+
+window.sfTogglePass = function(inputId, iconId){
+  var input = document.getElementById(inputId);
+  var icon  = document.getElementById(iconId);
+  if(input.type === 'password'){
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>';
+  }
+};
+
+window.sfOverlayClose = function(e){
+  if(e.target === document.getElementById('sfFormWrap')) sfHideForm();
+};
+
+window.sfToggleAll = function(cb){
+  document.querySelectorAll('.sf-perm').forEach(function(el){ el.checked = cb.checked; });
+};
+
+window.sfSyncAll = function(){
+  var all = document.querySelectorAll('.sf-perm');
+  var checked = document.querySelectorAll('.sf-perm:checked');
+  document.getElementById('sfPermAll').checked = all.length === checked.length;
+  sfCheckForm();
+};
+
+window.sfPreviewAvatar = function(input){
+  if(!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var el = document.getElementById('sfAvatarPreview');
+    el.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;"/>';
+  };
+  reader.readAsDataURL(input.files[0]);
+};
+
+window.sfPreviewIdCard = function(input){
+  if(!input.files || !input.files[0]) return;
+  document.getElementById('sfIdCardName').textContent = input.files[0].name;
+  var preview = document.getElementById('sfIdCardPreview');
+  if(input.files[0].type.startsWith('image/')){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      document.getElementById('sfIdCardImg').src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+};
+
+window.sfSave = function(){
+  var perms = {};
+  document.querySelectorAll('.sf-perm').forEach(function(el){ perms[el.dataset.key] = el.checked; });
+  var data = {
+    firstName: document.getElementById('sfFirstName').value.trim(),
+    lastName:  document.getElementById('sfLastName').value.trim(),
+    email:     document.getElementById('sfEmail').value.trim(),
+    phone:     document.getElementById('sfPhone').value.trim(),
+    role:      document.getElementById('sfRole').value.trim(),
+    staffId:   document.getElementById('sfStaffId').value.trim(),
+    line:      document.getElementById('sfLine').value.trim(),
+    facebook:  document.getElementById('sfFacebook').value.trim(),
+    note:      document.getElementById('sfNote').value.trim(),
+    permissions: perms
+  };
+  // TODO: POST /api/staff เมื่อ endpoint พร้อม
+  console.log('staff data:', data);
+  sfAddToList(data);
+  sfHideForm();
+};
+
+function sfAddToList(data){
+  var list = document.getElementById('sfList');
+  var initials = (data.firstName.charAt(0) + data.lastName.charAt(0)).toUpperCase();
+  var permCount = Object.values(data.permissions).filter(Boolean).length;
+  var card = document.createElement('div');
+  card.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card-bg,#fff);border:1.5px solid var(--border,#e0e0e0);border-radius:10px;margin-bottom:10px;';
+  card.innerHTML =
+    '<div style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-weight:700;color:#C9A84C;font-size:0.9rem;flex-shrink:0;">'+initials+'</div>'+
+    '<div style="flex:1;">'+
+      '<div style="font-weight:700;font-size:0.88rem;color:var(--text-main,#1a1a1a);">'+data.firstName+' '+data.lastName+'</div>'+
+      '<div style="font-size:0.78rem;color:var(--text-sub,#888);">'+data.role+' · '+data.email+'</div>'+
+    '</div>'+
+    '<div style="font-size:0.75rem;background:rgba(201,168,76,.1);color:#C9A84C;font-weight:600;padding:3px 10px;border-radius:12px;">'+permCount+' สิทธิ์</div>';
+  // ล้าง placeholder แล้ว append
+  if(list.querySelector('[style*="dashed"]')) list.innerHTML = '';
+  list.appendChild(card);
+}
+
+function sfResetForm(){
+  ['sfFirstName','sfLastName','sfEmail','sfPhone','sfRole','sfStaffId','sfLine','sfFacebook','sfNote','sfPassword','sfPasswordConf'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('sfPermAll').checked = false;
+  document.querySelectorAll('.sf-perm').forEach(function(el){ el.checked = false; });
+  document.getElementById('sfAvatarPreview').innerHTML = '👤';
+  document.getElementById('sfIdCardName').textContent = '';
+  document.getElementById('sfIdCardPreview').style.display = 'none';
+  document.getElementById('sfSaveBtn').disabled = true;
+}
+
+
+/* ── staffDB: API backed ── */
+var staffDB = [];
+window.staffDB = staffDB;
+var TOKEN = localStorage.getItem('viiv_token') || '';
+
+async function sfFetchList(){
+  try{
+    var res = await fetch('/api/staff/list',{headers:{'Authorization':'Bearer '+TOKEN}});
+    if(!res.ok) return;
+    var data = await res.json();
+    staffDB.length = 0;
+    data.forEach(function(d){ staffDB.push(d); });
+    window.sfRenderList();
+    window.sfSyncDropdown();
+  }catch(e){ console.error('staff fetch error',e); }
+}
+
+/* override sfSave ให้เก็บใน staffDB + sync dropdown */
+var _origSave = window.sfSave;
+window.sfSave = function(){
+  var perms = {};
+  document.querySelectorAll('.sf-perm').forEach(function(el){ perms[el.dataset.key]=el.checked; });
+  var data = {
+    id: Date.now(),
+    firstName: document.getElementById('sfFirstName').value.trim(),
+    lastName:  document.getElementById('sfLastName').value.trim(),
+    email:     document.getElementById('sfEmail').value.trim(),
+    phone:     document.getElementById('sfPhone').value.trim(),
+    role:      document.getElementById('sfRole').value.trim(),
+    staffId:   document.getElementById('sfStaffId').value.trim(),
+    line:      document.getElementById('sfLine').value.trim(),
+    facebook:  document.getElementById('sfFacebook').value.trim(),
+    note:      document.getElementById('sfNote').value.trim(),
+    password:  document.getElementById('sfPassword').value,
+    permissions: perms
+  };
+  staffDB.push(data);
+  window.sfRenderList();
+  window.sfSyncDropdown();
+  sfHideForm();
+};
+
+window.sfRenderList = function(){
+  var list = document.getElementById('sfList');
+  if(!staffDB.length){
+    list.innerHTML = '<div style="text-align:center;padding:48px 24px;border:1.5px dashed var(--border,#e0e0e0);border-radius:12px;color:var(--text-sub,#aaa);"><div style="font-size:2rem;margin-bottom:8px;">👥</div><div style="font-size:0.88rem;">ยังไม่มีพนักงาน — กด "สร้างพนักงาน" เพื่อเพิ่ม</div></div>';
+    return;
+  }
+  list.innerHTML = staffDB.map(function(d){
+    var initials = (d.firstName.charAt(0)+d.lastName.charAt(0)).toUpperCase();
+    var cnt = Object.values(d.permissions).filter(Boolean).length;
+    return '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card-bg,#fff);border:1.5px solid var(--border,#e0e0e0);border-radius:10px;margin-bottom:10px;">'+
+      '<div style="width:42px;height:42px;border-radius:50%;background:rgba(201,168,76,.15);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-weight:700;color:#C9A84C;font-size:0.9rem;flex-shrink:0;">'+initials+'</div>'+
+      '<div style="flex:1;"><div style="font-weight:700;font-size:0.88rem;color:var(--text-main,#1a1a1a);">'+d.firstName+' '+d.lastName+'</div>'+
+      '<div style="font-size:0.78rem;color:var(--text-sub,#888);">'+d.role+' · '+d.email+'</div></div>'+
+      '<div style="display:flex;gap:6px;align-items:center;">'+
+        '<span style="font-size:0.75rem;background:rgba(201,168,76,.1);color:#C9A84C;font-weight:600;padding:3px 10px;border-radius:12px;">'+cnt+' สิทธิ์</span>'+
+        '<button onclick="sfEditStaff('+d.id+')" style="padding:4px 10px;border:1.5px solid var(--border,#e0e0e0);border-radius:6px;background:transparent;cursor:pointer;font-size:0.75rem;font-weight:600;color:var(--text-sub,#666);">แก้ไข</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+window.sfSyncDropdown = function(){
+  var sel = document.getElementById('sfPermSelect');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">— เลือกพนักงาน —</option>' +
+    staffDB.map(function(d){ return '<option value="'+d.id+'"'+(d.id==cur?' selected':'')+'>'+d.firstName+' '+d.lastName+' ('+d.role+')</option>'; }).join('');
+}
+
+window.sfEditStaff = function(id){
+  document.getElementById('sfPermWrap').style.display = 'block';
+  document.getElementById('sfPermWrap').scrollIntoView({behavior:'smooth'});
+  document.getElementById('sfPermSelect').value = id;
+  sfLoadStaffPerms(id);
+};
+
+function sfHideAll(){
+  ['sfPermWrap','sfFormWrap','sfCpWrap'].forEach(function(id){
+    document.getElementById(id).style.display='none';
   });
 }
-function toggleAddStaff() {
-  var b = document.getElementById('addStaffBox');
-  b.style.display = b.style.display==='none' ? 'block' : 'none';
-}
-function saveStaff() {
-  var msg = document.getElementById('staffMsg');
-  var name = document.getElementById('sName').value.trim();
-  var email = document.getElementById('sEmail').value.trim();
-  if (!name||!email) { msg.className='msg err'; msg.textContent='กรุณากรอกให้ครบ'; return; }
-  msg.className='msg ok'; msg.textContent='✅ บันทึกแล้ว (backend coming soon)';
-}
-function togglePw(id, btn) {
-  var el = document.getElementById(id);
-  el.type = el.type==='password' ? 'text' : 'password';
-  btn.textContent = el.type==='password' ? '👁' : '🙈';
-}
-function pwCheck() {
-  var old = document.getElementById('pwOld').value;
-  var nw  = document.getElementById('pwNew').value;
-  var cf  = document.getElementById('pwConfirm').value;
-  var h1  = document.getElementById('pwNewHint');
-  var h2  = document.getElementById('pwConfirmHint');
-  var btn = document.getElementById('pwSaveBtn');
-  if (nw.length>0&&nw.length<8) { h1.className='check-hint check-err'; h1.textContent='❌ ต้องมีอย่างน้อย 8 ตัวอักษร'; }
-  else if (nw.length>=8) { h1.className='check-hint check-ok'; h1.textContent='✅ ความยาวผ่าน'; }
-  else h1.textContent='';
-  if (cf.length>0&&nw!==cf) { h2.className='check-hint check-err'; h2.textContent='❌ รหัสผ่านไม่ตรงกัน'; }
-  else if (cf.length>0&&nw===cf) { h2.className='check-hint check-ok'; h2.textContent='✅ รหัสผ่านตรงกัน'; }
-  else h2.textContent='';
-  btn.disabled = !(old.length>0 && nw.length>=8 && nw===cf && nw!==old);
-}
-function clearPassword() {
-  ['pwOld','pwNew','pwConfirm'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('pwNewHint').textContent='';
-  document.getElementById('pwConfirmHint').textContent='';
-  document.getElementById('pwMsg').textContent='';
-  document.getElementById('pwSaveBtn').disabled=true;
-}
-async function savePassword() {
-  var old_password = document.getElementById('pwOld').value;
-  var new_password = document.getElementById('pwNew').value;
-  var msg = document.getElementById('pwMsg');
-  var btn = document.getElementById('pwSaveBtn');
-  btn.disabled=true; btn.textContent='กำลังบันทึก...';
-  try {
-    var token = localStorage.getItem('viiv_token');
-    var res = await fetch('/admin/change-password', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({old_password, new_password})
-    });
-    if (res.ok) {
-      msg.className='msg ok'; msg.textContent='✅ เปลี่ยนรหัสผ่านสำเร็จ';
-      clearPassword();
-      setTimeout(()=>{ localStorage.removeItem('viiv_token'); window.location.href='/platform/login.html'; }, 2000);
-    } else if (res.status===401) {
-      msg.className='msg err'; msg.textContent='รหัสผ่านเดิมไม่ถูกต้อง';
+window.sfShowPerms = function(){
+  sfHideAll();
+  window.sfSyncDropdown();
+  document.getElementById('sfPermWrap').style.display='block';
+  document.getElementById('sfPermWrap').scrollIntoView({behavior:'smooth'});
+};
+window.sfHidePerms = function(){
+  document.getElementById('sfPermWrap').style.display = 'none';
+  document.getElementById('sfPermDetail').style.display = 'none';
+  document.getElementById('sfPermEmpty').style.display = 'block';
+  document.getElementById('sfPermSelect').value = '';
+};
+
+window.sfLoadStaffPerms = function(id){
+  var detail = document.getElementById('sfPermDetail');
+  var empty  = document.getElementById('sfPermEmpty');
+  if(!id){ detail.style.display='none'; empty.style.display='block'; return; }
+  var d = staffDB.find(function(x){ return x.id == id; });
+  if(!d){ detail.style.display='none'; empty.style.display='block'; return; }
+  detail.style.display = 'block';
+  empty.style.display  = 'none';
+  var initials = (d.firstName.charAt(0)+d.lastName.charAt(0)).toUpperCase();
+  document.getElementById('sfPermAvatar').textContent = initials;
+  document.getElementById('sfPermFirst').value = d.firstName;
+  document.getElementById('sfPermLast').value  = d.lastName;
+  document.getElementById('sfPermRole').value  = d.role;
+  document.getElementById('sfPermEmail').value = d.email;
+  document.querySelectorAll('.sf-perm-edit').forEach(function(el){
+    el.checked = !!d.permissions[el.dataset.key];
+  });
+  sfPermSyncAll();
+};
+
+window.sfPermToggleAll = function(cb){
+  document.querySelectorAll('.sf-perm-edit').forEach(function(el){ el.checked=cb.checked; });
+};
+window.sfPermSyncAll = function(){
+  var all=document.querySelectorAll('.sf-perm-edit').length;
+  var chk=document.querySelectorAll('.sf-perm-edit:checked').length;
+  document.getElementById('sfPermAllEdit').checked = all===chk;
+};
+window.sfPermSave = function(){
+  var id = document.getElementById('sfPermSelect').value;
+  var d  = staffDB.find(function(x){ return x.id==id; });
+  if(!d) return;
+  d.firstName = document.getElementById('sfPermFirst').value.trim();
+  d.lastName  = document.getElementById('sfPermLast').value.trim();
+  d.role      = document.getElementById('sfPermRole').value.trim();
+  d.email     = document.getElementById('sfPermEmail').value.trim();
+  document.querySelectorAll('.sf-perm-edit').forEach(function(el){ d.permissions[el.dataset.key]=el.checked; });
+  window.sfRenderList();
+  window.sfSyncDropdown();
+  sfHidePerms();
+      var t=document.createElement('div');
+      t.textContent='✓ บันทึกการเปลี่ยนแปลงแล้ว';
+      t.style.cssText='position:fixed;bottom:24px;right:24px;background:#C9A84C;color:#1a1a1a;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);';
+      document.body.appendChild(t);
+      setTimeout(function(){ t.remove(); }, 2500);
     } else {
-      msg.className='msg err'; msg.textContent='เกิดข้อผิดพลาด ('+res.status+')';
+      var err = await res.json();
+      alert(err.detail || 'เกิดข้อผิดพลาด');
     }
-  } catch(e) {
-    msg.className='msg err'; msg.textContent='ไม่สามารถเชื่อมต่อ server ได้';
-  } finally { btn.disabled=false; btn.textContent='บันทึก'; pwCheck(); }
-}
+  }catch(e){ alert('เชื่อมต่อระบบไม่ได้'); }
+};
+
+window.sfShowChangePw = function(){
+  sfHideAll();
+  document.getElementById('sfCpWrap').style.display = 'block';
+  document.getElementById('sfCpWrap').scrollIntoView({behavior:'smooth'});
+};
+window.sfHideCp = function(){
+  document.getElementById('sfCpWrap').style.display = 'none';
+  ['sfCpOld','sfCpNew','sfCpConf'].forEach(function(id){ document.getElementById(id).value=''; });
+  sfCpCheck();
+  document.getElementById('sfCpSuccess').style.display = 'none';
+};
+window.sfCpToggle = function(inputId, iconId){
+  var el = document.getElementById(inputId);
+  var ic = document.getElementById(iconId);
+  var show = el.type==='password';
+  el.type = show?'text':'password';
+  ic.innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>';
+};
+window.sfCpCheck = function(){
+  var o=document.getElementById('sfCpOld').value;
+  var n=document.getElementById('sfCpNew').value;
+  var c=document.getElementById('sfCpConf').value;
+  var score=0;
+  if(n.length>=8)score++; if(/[A-Z]/.test(n))score++; if(/[0-9]/.test(n))score++; if(/[^A-Za-z0-9]/.test(n))score++;
+  var lvs=[{w:'25%',bg:'#ef4444',t:'ง่ายเกินไป'},{w:'50%',bg:'#f97316',t:'พอใช้ได้'},{w:'75%',bg:'#eab308',t:'ดี'},{w:'100%',bg:'#22c55e',t:'แข็งแกร่งมาก'}];
+  var bar=document.getElementById('sfCpBar'),txt=document.getElementById('sfCpStrTxt');
+  if(n.length===0){bar.style.width='0';txt.textContent='';}
+  else{var lv=lvs[score-1]||lvs[0];bar.style.width=lv.w;bar.style.background=lv.bg;txt.textContent=lv.t;txt.style.color=lv.bg;}
+  var match=n===c;
+  document.getElementById('sfCpErr').style.display=(c.length>0&&!match)?'block':'none';
+  var ok=o.length>0&&n.length>=8&&match;
+  var btn=document.getElementById('sfCpSaveBtn');
+  btn.disabled=!ok; btn.style.background=ok?'#C9A84C':'#d0d0d0'; btn.style.color=ok?'#1a1a1a':'#aaa'; btn.style.cursor=ok?'pointer':'not-allowed';
+};
+window.sfCpSave = async function(){
+  var btn=document.getElementById('sfCpSaveBtn');
+  btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  try{
+    var token=localStorage.getItem('viiv_token');
+    var res=await fetch('/admin/change-password',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({current_password:document.getElementById('sfCpOld').value,new_password:document.getElementById('sfCpNew').value})});
+    if(res.ok){
+      document.getElementById('sfCpSuccess').style.display='block';
+      ['sfCpOld','sfCpNew','sfCpConf'].forEach(function(id){document.getElementById(id).value='';});
+      sfCpCheck();
+    } else { var d=await res.json(); alert(d.detail||'เกิดข้อผิดพลาด'); }
+  }catch(e){ alert('เชื่อมต่อระบบไม่ได้'); }
+  btn.textContent='บันทึก'; sfCpCheck();
+};
+
+/* render list on load — fetch from API */
+sfFetchList();
+
+/* eye btn style */
+document.head.insertAdjacentHTML('beforeend','<style>.sf-eye-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;padding:3px;display:flex;align-items:center;}.sf-eye-btn:hover{color:#666;}</style>');
+
+})();
 </script>
 </body>
-</html>

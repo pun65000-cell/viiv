@@ -421,3 +421,116 @@ body {
 .sb-topaction-boost:hover .spark2 {
   animation-play-state: paused;
 }
+
+/* ── SPA Loading Animation ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes pulse-dot {
+  0%,100%{ opacity:1; transform:scale(1); }
+  50%    { opacity:.4; transform:scale(1.4); }
+}
+
+.spa-loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 32px;
+  animation: fadeInUp .3s ease;
+}
+.spa-loader-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+.spa-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(201,168,76,.15);
+  border-top-color: #C9A84C;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  transition: opacity .4s;
+}
+.spa-loader-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(201,168,76,.1);
+  border: 1.5px solid rgba(201,168,76,.25);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spa-loader-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main, #1a1a1a);
+}
+.spa-loader-sub {
+  font-size: 0.83rem;
+  color: var(--text-sub, #888);
+  line-height: 1.6;
+  max-width: 280px;
+}
+.spa-loader-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 10px 24px;
+  background: var(--accent, #C9A84C);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.spa-loader-btn:hover { opacity: .85; }
+.spa-coming-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(201,168,76,.1);
+  border: 1px solid rgba(201,168,76,.25);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #C9A84C;
+  animation: fadeInUp .4s ease;
+}
+.spa-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #C9A84C;
+  animation: pulse-dot 1.4s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* ── SPA content center layout ── */
+.sb-content {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+}
+.sb-content > * {
+  width: 100%;
+  max-width: 900px;
+  box-sizing: border-box;
+}
+/* responsive */
+@media (max-width: 960px) {
+  .sb-content > * { max-width: 100%; padding-left: 8px; padding-right: 8px; }
+}
+/* sb-content-center marker */
+.sb-content-center { display:none; }
