@@ -85,15 +85,6 @@
       flex: 1; display: flex; flex-direction: column;
       background: var(--content-bg); min-width: 0; height: 100vh; overflow: hidden;
     }
-
-    /* topbar */
-    .topbar {
-      background: #f8f6f2; border-bottom: 1px solid #ddd;
-      height: 50px; padding: 0 22px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
-    .topbar-right  { display: flex; align-items: center; gap: 12px; }
     .badge-shop {
       font-size: 11px; font-weight: 600;
       background: var(--accent); color: #1a1200;
@@ -222,46 +213,51 @@
 </div>
 
 <!-- ═══ MAIN ═══ -->
-<div class="main">
-  <div class="topbar">
-    <span class="topbar-title" id="topbarTitle">Dashboard</span>
-    <div class="topbar-right">
-      <span class="badge-shop" id="shopBadge">My Shop</span>
-      <div class="profile-btn" id="profileBtn">
-        <span id="profileName">Admin</span> <span>▾</span>
-        <div class="dropdown" id="profileDropdown">
-          <button onclick="goViiv()">⌂ ไปที่ VIIV Platform</button>
-          <button onclick="doLogout()">⏻ ออกจากระบบ</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="actionbar hidden" id="actionbar">
-    <input type="text" id="searchInput" placeholder="ค้นหา..." />
-    <button class="btn" id="searchBtn">ค้นหา</button>
-    <button class="btn btn-accent" id="createBtn">+ สร้างใหม่</button>
-  </div>
-
-  <div class="content-wrap">
+<div class="main"><div class="content-wrap">
     <div class="card">
-      <div class="card-heading" id="cardHeading">Dashboard</div>
-      <div class="card-sub" id="cardSub">ภาพรวมร้านค้า</div>
       <div id="cardBody"></div>
     </div>
   </div>
 </div>
 
 <script type="module">
+// รับ token จาก URL param (bookmarklet/dev)
+(function(){
+  var p = new URLSearchParams(location.search);
+  var t = p.get('token');
+  if(t) localStorage.setItem('viiv_token', t);
+})();
+
 const PAGES = {
-  dashboard: { title:'Dashboard', sub:'ภาพรวมร้านค้า', action:false, render: renderDashboard },
-  affiliate:  { title:'Affiliate', sub:'จัดการ affiliate link', action:false, render: renderPlaceholder },
-  easysale:   { title:'EasySale', sub:'ขายง่ายด้วย AI', action:false, render: renderPlaceholder },
-  products:   { title:'สินค้า/สโตร์', sub:'จัดการสินค้าและสต็อก', action:true, searchPlaceholder:'ค้นหาสินค้า', createLabel:'+ เพิ่มสินค้า', render: renderPlaceholder },
-  orders:     { title:'คำสั่งซื้อ', sub:'รายการสั่งซื้อทั้งหมด', action:true, searchPlaceholder:'ค้นหาออเดอร์', createLabel:'+ สร้างออเดอร์', render: renderPlaceholder },
-  members:    { title:'สมาชิกร้านค้า', sub:'จัดการสมาชิกและ CRM', action:true, searchPlaceholder:'ค้นหาสมาชิก', createLabel:'+ เพิ่มสมาชิก', render: renderPlaceholder },
-  finance:    { title:'บัญชีการเงิน', sub:'รายรับรายจ่าย', action:false, render: renderPlaceholder },
-  settings:   { title:'ตั้งค่าร้านค้า', sub:'ข้อมูลและการตั้งค่า', action:false, render: renderPlaceholder },
+  dashboard: { title:'Dashboard', tabs: null, render: renderDashboard },
+  affiliate:  { title:'Affiliate', tabs: null, render: renderPlaceholder },
+  easysale:   { title:'EasySale', tabs: null, render: renderPlaceholder },
+  products:  { title:'สินค้า/สโตร์', tabs:[
+    { label:'ทั้งหมด',     file:'products/all.html' },
+    { label:'สร้างสินค้า', file:'products/create.html' },
+    { label:'รับสินค้า',   file:'products/receive.html' },
+    { label:'คลังสินค้า',  file:'products/warehouse.html' },
+    { label:'หมวดหมู่',    file:'products/category.html' },
+    { label:'จัดการสินค้า',file:'products/manage.html' },
+  ]},
+  orders:    { title:'คำสั่งซื้อ', tabs:[
+    { label:'ทั้งหมด',    file:'orders/all.html' },
+    { label:'รอดำเนินการ',file:'orders/pending.html' },
+    { label:'สำเร็จ',     file:'orders/done.html' },
+  ]},
+  members:   { title:'สมาชิกร้านค้า', tabs:[
+    { label:'สมาชิกทั้งหมด', file:'members/all.html' },
+    { label:'VIP',            file:'members/vip.html' },
+  ]},
+  finance:   { title:'บัญชีการเงิน', tabs:[
+    { label:'ภาพรวม',   file:'finance/overview.html' },
+    { label:'รายรับ',   file:'finance/income.html' },
+    { label:'รายจ่าย',  file:'finance/expense.html' },
+  ]},
+  settings:  { title:'ตั้งค่าร้านค้า', tabs:[
+    { label:'ข้อมูลร้านค้า', file:'settings/store.html' },
+    { label:'การชำระเงิน',   file:'settings/payment.html' },
+  ]},
 };
 
 function renderDashboard(el) {
@@ -278,6 +274,25 @@ function renderDashboard(el) {
     </div>`;
 }
 
+function loadSubPage(el, file) {
+  // ซ่อน card header เพราะ sub-page มี header ของตัวเอง
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div>';
+  fetch(file + '?v=' + Date.now())
+    .then(function(r){ return r.text(); })
+    .then(function(html){
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      var body = tmp.querySelector('body');
+      el.innerHTML = body ? body.innerHTML : html;
+      el.querySelectorAll('script').forEach(function(old){
+        var s = document.createElement('script');
+        s.textContent = old.textContent;
+        old.replaceWith(s);
+      });
+    })
+    .catch(function(){ el.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
+}
+
 function renderPlaceholder(el, page) {
   el.innerHTML = `
     <div class="page-placeholder">
@@ -286,24 +301,48 @@ function renderPlaceholder(el, page) {
     </div>`;
 }
 
+function renderTabs(page) {
+  const body = document.getElementById('cardBody');
+  if (!page.tabs || !page.tabs.length) {
+    if (page.render) page.render(body, page);
+    else body.innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;">Coming soon</div>';
+    return;
+  }
+  const tabBar = document.createElement('div');
+  tabBar.style.cssText = 'display:flex;gap:4px;padding:0 0 12px 0;border-bottom:1px solid var(--border,#e5e5e5);margin-bottom:0;flex-wrap:wrap;';
+  const contentEl = document.createElement('div');
+  body.innerHTML = '';
+  body.appendChild(tabBar);
+  body.appendChild(contentEl);
+  page.tabs.forEach(function(tab, i) {
+    const btn = document.createElement('button');
+    btn.textContent = tab.label;
+    btn.className = 'pos-tab' + (i === 0 ? ' active' : '');
+    btn.style.cssText = 'padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:'+(i===0?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(i===0?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;';
+    btn.addEventListener('click', function() {
+      tabBar.querySelectorAll('.pos-tab').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = '#f0ede8';
+        b.style.color = 'var(--text,#1f2937)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'var(--accent,#e8b93e)';
+      btn.style.color = '#1a1200';
+      loadSubPage(contentEl, tab.file);
+    });
+    tabBar.appendChild(btn);
+    if (i === 0) loadSubPage(contentEl, tab.file);
+  });
+}
 function navigate(key) {
   const page = PAGES[key];
   if (!page) return;
+  location.hash = key;
   document.querySelectorAll('#navMenu a').forEach(a => {
     a.classList.toggle('active', a.dataset.page === key);
   });
-  document.getElementById('topbarTitle').textContent = page.title;
-  const ab = document.getElementById('actionbar');
-  if (page.action) {
-    ab.classList.remove('hidden');
-    document.getElementById('searchInput').placeholder = page.searchPlaceholder || 'ค้นหา...';
-    document.getElementById('createBtn').textContent   = page.createLabel || '+ สร้างใหม่';
-  } else {
-    ab.classList.add('hidden');
-  }
-  document.getElementById('cardHeading').textContent = page.title;
-  document.getElementById('cardSub').textContent     = page.sub;
-  page.render(document.getElementById('cardBody'), page);
+
+  renderTabs(page);
 }
 
 function goViiv()    { window.open('https://viiv.me', '_blank'); }
@@ -318,25 +357,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#navMenu a[data-page]').forEach(a => {
     a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.page); });
   });
-  const profileBtn = document.getElementById('profileBtn');
-  const dropdown   = document.getElementById('profileDropdown');
-  profileBtn.addEventListener('click', e => { e.stopPropagation(); dropdown.classList.toggle('open'); });
-  document.addEventListener('click', () => dropdown.classList.remove('open'));
+  // restore page จาก hash
+  window.addEventListener('hashchange', () => {
+    const key = location.hash.replace('#','') || 'dashboard';
+    if (PAGES[key]) navigate(key);
+  });
 
-  // load shop name จาก token
-  const token = localStorage.getItem('viiv_token');
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.store_name) {
-        document.getElementById('shopBadge').textContent  = payload.store_name;
-        document.title = payload.store_name + ' POS';
-        document.querySelector('.brand-title .viiv').textContent = payload.store_name;
-      }
-    } catch(e) {}
-  }
-
-  navigate('dashboard');
+  // restore จาก hash หรือเริ่มที่ dashboard
+  const initPage = location.hash.replace('#','') || 'dashboard';
+  navigate(PAGES[initPage] ? initPage : 'dashboard');
 });
 
 window.goViiv   = goViiv;
