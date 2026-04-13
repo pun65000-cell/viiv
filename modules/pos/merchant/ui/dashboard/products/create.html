@@ -1,0 +1,331 @@
+<body>
+<div style="max-width:100%;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--text,#1f2937);margin:0 0 2px;">สร้างสินค้าใหม่</h3>
+      <p style="font-size:12px;color:var(--muted,#6b7280);margin:0;">กรอกรายละเอียดสินค้า ฟิลด์ที่มี <span style="color:#ef4444;">*</span> จำเป็นต้องกรอก</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="cp-btn-cancel" onclick="posTabClick?posTabClick(document.querySelector('.pos-tab'),null):null">ยกเลิก</button>
+      <button class="cp-btn-save" id="cpSaveBtn" onclick="cpSave()">บันทึกสินค้า</button>
+    </div>
+  </div>
+
+  <!-- รูปภาพ -->
+  <div class="cp-card" style="margin-bottom:14px;">
+    <div class="cp-section-title">รูปภาพสินค้า</div>
+    <div style="display:flex;align-items:flex-start;gap:16px;">
+      <div id="cpImgPreview" onclick="document.getElementById('cpImgInput').click()"
+        style="width:200px;height:200px;border:2px dashed #d1d5db;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#faf9f7;flex-shrink:0;overflow:hidden;transition:border-color .2s;"
+        onmouseover="this.style.borderColor='#e8b93e'" onmouseout="this.style.borderColor='#d1d5db'">
+        <div style="font-size:28px;margin-bottom:6px;opacity:.3;">📷</div>
+        <div style="font-size:11px;color:#9ca3af;text-align:center;">คลิกเพื่ออัพโหลด<br/>200×200 px</div>
+      </div>
+      <div>
+        <button type="button" class="cp-btn-outline" onclick="document.getElementById('cpImgInput').click()">เลือกรูปภาพ</button>
+        <div style="font-size:11px;color:#9ca3af;margin-top:6px;line-height:1.5;">JPG, PNG, WEBP<br/>ไม่เกิน 5MB<br/>แนะนำ 200×200 px</div>
+        <div id="cpImgName" style="font-size:11px;color:#e8b93e;margin-top:6px;"></div>
+      </div>
+      <input type="file" id="cpImgInput" accept="image/*" style="display:none" onchange="cpPreviewImg(this)"/>
+    </div>
+  </div>
+
+  <!-- ข้อมูลพื้นฐาน -->
+  <div class="cp-card" style="margin-bottom:14px;">
+    <div class="cp-section-title">ข้อมูลพื้นฐาน</div>
+    <div class="cp-grid2">
+      <div class="cp-field" style="grid-column:span 2;">
+        <label class="cp-label">ชื่อสินค้า <span class="cp-req">*</span></label>
+        <input class="cp-input" type="text" id="cpName" placeholder="ชื่อสินค้า" oninput="cpCheck()"/>
+      </div>
+      <div class="cp-field">
+        <label class="cp-label">รหัสสินค้า (SKU) <span class="cp-req">*</span></label>
+        <input class="cp-input" type="text" id="cpSku" placeholder="เช่น cha031" oninput="cpCheck()"/>
+        <div id="cpSkuErr" style="display:none;font-size:11px;color:#ef4444;margin-top:3px;"></div>
+      </div>
+      <div class="cp-field">
+        <label class="cp-label">หมวดหมู่</label>
+        <input class="cp-input" type="text" id="cpCat" placeholder="พิมพ์หรือเลือก..." list="cpCatList" oninput="cpCheck()"/>
+        <datalist id="cpCatList"></datalist>
+      </div>
+      <div class="cp-field" style="grid-column:span 2;">
+        <label class="cp-label">รายละเอียดสินค้า</label>
+        <textarea class="cp-input" id="cpDesc" rows="3" placeholder="รายละเอียดสินค้า..." style="resize:vertical;"></textarea>
+      </div>
+      <div class="cp-field" style="grid-column:span 2;">
+        <label class="cp-label">URL QR Code</label>
+        <input class="cp-input" type="text" id="cpQr" placeholder="https://..."/>
+      </div>
+    </div>
+  </div>
+
+  <!-- ราคา -->
+  <div class="cp-card" style="margin-bottom:14px;">
+    <div class="cp-section-title">ราคา</div>
+    <div class="cp-grid2">
+      <div class="cp-field">
+        <label class="cp-label">ราคาขาย (P1) <span class="cp-req">*</span></label>
+        <div style="position:relative;">
+          <input class="cp-input" type="number" id="cpPrice" placeholder="0.00" min="0" step="0.01" oninput="cpCheck()" style="padding-right:36px;"/>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">บาท</span>
+        </div>
+      </div>
+      <div class="cp-field">
+        <label class="cp-label">ต้นทุน/หน่วย</label>
+        <div style="position:relative;">
+          <input class="cp-input" type="number" id="cpCost" placeholder="0.00" min="0" step="0.01" style="padding-right:36px;"/>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">บาท</span>
+        </div>
+      </div>
+      <div class="cp-field">
+        <label class="cp-label">ราคาขายต่ำสุด (PL)</label>
+        <div style="position:relative;">
+          <input class="cp-input" type="number" id="cpPmin" placeholder="0.00" min="0" step="0.01" style="padding-right:36px;"/>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">บาท</span>
+        </div>
+      </div>
+      <div class="cp-field">
+        <label class="cp-label">คะแนนสะสม (PV)</label>
+        <div style="position:relative;">
+          <input class="cp-input" type="number" id="cpPv" placeholder="0" min="0" style="padding-right:28px;"/>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">PV</span>
+        </div>
+      </div>
+      <div class="cp-field">
+        <label class="cp-label">VAT</label>
+        <select class="cp-input" id="cpVat">
+          <option value="no_vat">No VAT</option>
+          <option value="vat7">VAT 7%</option>
+          <option value="vat_included">รวม VAT แล้ว</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- สต็อก -->
+  <div class="cp-card" style="margin-bottom:14px;">
+    <div class="cp-section-title">สต็อกสินค้า</div>
+    <div style="margin-bottom:14px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <div style="position:relative;width:40px;height:22px;flex-shrink:0;">
+          <input type="checkbox" id="cpTrack" checked onchange="cpToggleTrack()" style="opacity:0;width:0;height:0;position:absolute;"/>
+          <div id="cpTrackSlider" style="position:absolute;inset:0;border-radius:11px;background:#e8b93e;transition:background .2s;cursor:pointer;" onclick="document.getElementById('cpTrack').click()">
+            <div id="cpTrackThumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;left:19px;"></div>
+          </div>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:var(--text,#1f2937);" id="cpTrackLabel">นับจำนวนสต็อก</span>
+      </label>
+    </div>
+    <div id="cpStockFields">
+      <div class="cp-grid2">
+        <div class="cp-field">
+          <label class="cp-label">จำนวน(สต็อก) <span class="cp-req" id="cpStockReq">*</span></label>
+          <div style="position:relative;">
+            <input class="cp-input" type="number" id="cpStock" placeholder="0" min="0" step="0.01" oninput="cpCheck()" style="padding-right:28px;"/>
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">ชิ้น</span>
+          </div>
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">จำนวน(หน้าร้าน)</label>
+          <div style="position:relative;">
+            <input class="cp-input" type="number" id="cpFloor" placeholder="0" min="0" step="0.01" style="padding-right:28px;"/>
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">ชิ้น</span>
+          </div>
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">Min Alert (แจ้งเตือนเมื่อเหลือน้อยกว่า)</label>
+          <div style="position:relative;">
+            <input class="cp-input" type="number" id="cpAlert" placeholder="0" min="0" style="padding-right:28px;"/>
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">ชิ้น</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- สถานะ -->
+  <div class="cp-card" style="margin-bottom:20px;">
+    <div class="cp-section-title">สถานะสินค้า</div>
+    <div style="display:flex;gap:10px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:1.5px solid #e8b93e;border-radius:8px;background:rgba(232,185,62,.08);">
+        <input type="radio" name="cpStatus" value="active" checked style="accent-color:#e8b93e;"/>
+        <span style="font-size:13px;font-weight:600;color:#e8b93e;">🟢 จำหน่าย</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border:1.5px solid #e5e7eb;border-radius:8px;">
+        <input type="radio" name="cpStatus" value="inactive" style="accent-color:#6b7280;"/>
+        <span style="font-size:13px;font-weight:600;color:#6b7280;">🔴 หยุดขาย</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- toast -->
+  <div id="cpToast" style="display:none;position:fixed;bottom:24px;right:24px;background:#e8b93e;color:#1a1200;padding:10px 20px;border-radius:8px;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);"></div>
+</div>
+
+<style>
+.cp-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;}
+.cp-section-title{font-size:12px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
+.cp-label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;}
+.cp-req{color:#ef4444;}
+.cp-input{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;color:#1f2937;background:#faf9f7;outline:none;transition:border-color .2s;font-family:inherit;box-sizing:border-box;}
+.cp-input:focus{border-color:#e8b93e;}
+.cp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cp-field{display:flex;flex-direction:column;}
+.cp-btn-save{padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.cp-btn-save:disabled{background:#d1d5db;color:#9ca3af;cursor:not-allowed;}
+.cp-btn-save:not(:disabled):hover{opacity:.85;}
+.cp-btn-cancel{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.cp-btn-cancel:hover{background:#e5e7eb;}
+.cp-btn-outline{padding:7px 14px;background:transparent;border:1px solid #d1d5db;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;color:#374151;}
+.cp-btn-outline:hover{border-color:#e8b93e;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var TOKEN = localStorage.getItem('viiv_token') || '';
+try{ if(!TOKEN) TOKEN = window.parent.localStorage.getItem('viiv_token')||''; }catch(e){}
+var API_BASE = (window.location.hostname === 'merchant.viiv.me') ? '' : 'https://concore.viiv.me';
+// ถ้าอยู่ใน iframe ลอง parent window
+if(!TOKEN){
+  try{ TOKEN = window.parent.localStorage.getItem('viiv_token') || ''; }catch(e){}
+}
+var uploadedImageUrl = '';
+
+// โหลด categories
+async function cpLoadCats(){
+  try{
+    var res = await fetch(API_BASE+'/api/pos/products/categories',{headers:{'Authorization':'Bearer '+TOKEN}});
+    if(!res.ok) return;
+    var cats = await res.json();
+    var dl = document.getElementById('cpCatList');
+    dl.innerHTML = cats.map(function(c){ return '<option value="'+c+'">'; }).join('');
+  }catch(e){}
+}
+cpLoadCats();
+
+// toggle track stock
+window.cpToggleTrack = function(){
+  var cb = document.getElementById('cpTrack');
+  var slider = document.getElementById('cpTrackSlider');
+  var thumb = document.getElementById('cpTrackThumb');
+  var label = document.getElementById('cpTrackLabel');
+  var fields = document.getElementById('cpStockFields');
+  if(cb.checked){
+    slider.style.background = '#e8b93e';
+    thumb.style.left = '19px';
+    label.textContent = 'นับจำนวนสต็อก';
+    fields.style.display = 'block';
+  } else {
+    slider.style.background = '#d1d5db';
+    thumb.style.left = '3px';
+    label.textContent = 'ไม่นับจำนวน';
+    fields.style.display = 'none';
+  }
+  cpCheck();
+};
+
+// preview image
+window.cpPreviewImg = function(input){
+  if(!input.files||!input.files[0]) return;
+  var file = input.files[0];
+  document.getElementById('cpImgName').textContent = file.name;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    document.getElementById('cpImgPreview').innerHTML =
+      '<img src="'+e.target.result+'" style="width:200px;height:200px;object-fit:cover;border-radius:8px;"/>';
+  };
+  reader.readAsDataURL(file);
+};
+
+// validate
+window.cpCheck = function(){
+  var name  = document.getElementById('cpName').value.trim();
+  var sku   = document.getElementById('cpSku').value.trim();
+  var price = document.getElementById('cpPrice').value;
+  var track = document.getElementById('cpTrack').checked;
+  var stock = document.getElementById('cpStock').value;
+  var ok = name && sku && price;
+  if(track && stock === '') ok = false;
+  var btn = document.getElementById('cpSaveBtn');
+  btn.disabled = !ok;
+};
+
+// save
+window.cpSave = async function(){
+  var btn = document.getElementById('cpSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  try{
+    // อัพโหลดรูปก่อน
+    var imgInput = document.getElementById('cpImgInput');
+    var imgUrl = '';
+    if(imgInput.files && imgInput.files[0]){
+      var fd = new FormData();
+      fd.append('file', imgInput.files[0]);
+      var upRes = await fetch(API_BASE+'/api/pos/products/upload-image',{
+        method:'POST', headers:{'Authorization':'Bearer '+TOKEN}, body:fd
+      });
+      if(upRes.ok){ var upData = await upRes.json(); imgUrl = upData.url; }
+    }
+
+    var track = document.getElementById('cpTrack').checked;
+    var status = document.querySelector('input[name="cpStatus"]:checked').value;
+    var payload = {
+      name:        document.getElementById('cpName').value.trim(),
+      sku:         document.getElementById('cpSku').value.trim(),
+      description: document.getElementById('cpDesc').value.trim(),
+      category:    document.getElementById('cpCat').value.trim(),
+      qr_url:      document.getElementById('cpQr').value.trim(),
+      price:       parseFloat(document.getElementById('cpPrice').value)||0,
+      cost_price:  parseFloat(document.getElementById('cpCost').value)||0,
+      price_min:   parseFloat(document.getElementById('cpPmin').value)||0,
+      pv:          parseFloat(document.getElementById('cpPv').value)||0,
+      vat:         document.getElementById('cpVat').value,
+      track_stock: track,
+      stock_qty:   track ? parseFloat(document.getElementById('cpStock').value)||0 : 0,
+      stock_floor: track ? parseFloat(document.getElementById('cpFloor').value)||0 : 0,
+      min_alert:   track ? parseInt(document.getElementById('cpAlert').value)||0 : 0,
+      image_url:   imgUrl,
+      status:      status
+    };
+
+    var res = await fetch(API_BASE+'/api/pos/products/create',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json();
+    if(res.ok){
+      cpShowToast('✓ สร้างสินค้าสำเร็จ');
+      setTimeout(function(){
+        // กลับไปหน้า all
+        var allTab = document.querySelector('.pos-tab');
+        if(allTab) allTab.click();
+      }, 1200);
+    } else {
+      var skuErr = document.getElementById('cpSkuErr');
+      if(data.detail && data.detail.includes('SKU')){
+        skuErr.textContent = data.detail;
+        skuErr.style.display = 'block';
+      } else {
+        alert(data.detail || 'เกิดข้อผิดพลาด');
+      }
+    }
+  }catch(e){ alert('เชื่อมต่อระบบไม่ได้'); }
+  btn.textContent = 'บันทึกสินค้า';
+  cpCheck();
+};
+
+function cpShowToast(msg){
+  var t = document.getElementById('cpToast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(function(){ t.style.display='none'; }, 2500);
+}
+
+// init
+cpCheck();
+})();
+</script>
+</body>

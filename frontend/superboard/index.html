@@ -207,6 +207,18 @@ function checkBellDot(){
   if(dot) dot.style.display = has ? 'block' : 'none';
 }
 
+window.toggleBellDD = function(){
+  var bd = document.getElementById('bellDropdown');
+  if(bd) bd.classList.toggle('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+  document.getElementById('shopDropdown').classList.remove('open');
+  checkBellDot();
+};
+window.markAllRead = function(){
+  document.querySelectorAll('.sb-bell-item.unread').forEach(function(el){ el.classList.remove('unread'); });
+  var dot = document.getElementById('bellDot');
+  if(dot) dot.style.display='none';
+};
 window.toggleShopDD = function(){
   document.getElementById('shopDropdown').classList.toggle('open');
   document.getElementById('profileDropdown').classList.remove('open');

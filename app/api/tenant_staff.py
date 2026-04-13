@@ -12,13 +12,41 @@ JWT_SECRET = os.getenv("JWT_SECRET", "viiv_super_secret_jwt_key_2026_prod")
 def get_tenant_id(authorization: str = Header(...)):
     try:
         token = authorization.replace("Bearer ", "")
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        tid = payload.get("tenant_id") or payload.get("sub")
-        if not tid:
-            raise HTTPException(401, "ไม่พบ tenant_id ใน token")
-        return tid
-    except Exception:
-        raise HTTPException(401, "Token ไม่ถูกต้อง")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], options={"leeway": 86400})
+
+        # 1. มี tenant_id ตรงๆ
+        tid = payload.get("tenant_id")
+        if tid:
+            return tid
+
+        # 2. lookup จาก sub (user_id) → users.email → tenants.email
+        user_id = payload.get("sub")
+        if user_id:
+            with engine.connect() as c:
+                # หา email จาก users
+                u = c.execute(text(
+                    "SELECT email FROM users WHERE id=:uid LIMIT 1"
+                ), {"uid": user_id}).fetchone()
+                if u:
+                    t = c.execute(text(
+                        "SELECT id FROM tenants WHERE email=:email LIMIT 1"
+                    ), {"email": u[0]}).fetchone()
+                    if t:
+                        return t[0]
+                # fallback: admin ให้ใช้ tenant แรก
+                role = payload.get("role","")
+                if role == "admin":
+                    t = c.execute(text(
+                        "SELECT id FROM tenants ORDER BY created_at LIMIT 1"
+                    )).fetchone()
+                    if t:
+                        return t[0]
+
+        raise HTTPException(401, "ไม่พบ tenant สำหรับ user นี้")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(401, f"Token ไม่ถูกต้อง: {e}")
 
 @router.get("/list")
 def list_staff(tenant_id: str = Depends(get_tenant_id)):
@@ -35,7 +63,7 @@ def list_staff(tenant_id: str = Depends(get_tenant_id)):
 
 @router.post("/create")
 def create_staff(payload: dict, tenant_id: str = Depends(get_tenant_id)):
-    required = ["first_name","last_name","email","role","password"]
+    required = ["first_name","last_name","email","phone","role","password"]
     for f in required:
         if not payload.get(f):
             raise HTTPException(400, f"กรุณากรอก {f}")
@@ -61,7 +89,7 @@ def create_staff(payload: dict, tenant_id: str = Depends(get_tenant_id)):
             VALUES
               (:id, :tid, :fn, :ln, :email, :phone,
                :role, :code, :line, :fb, :note,
-               :pw, :perms::jsonb, :avatar)
+               :pw, CAST(:perms AS jsonb), :avatar)
         """), {
             "id": staff_id, "tid": tenant_id,
             "fn": payload["first_name"], "ln": payload["last_name"],
@@ -82,7 +110,7 @@ def update_staff(staff_id: str, payload: dict,
               first_name=:fn, last_name=:ln, email=:email,
               phone=:phone, role=:role, staff_code=:code,
               line_id=:line, facebook=:fb, note=:note,
-              permissions=:perms::jsonb, updated_at=NOW()
+              permissions=CAST(:perms AS jsonb), updated_at=NOW()
             WHERE id=:sid AND tenant_id=:tid
         """), {
             "fn": payload.get("first_name"), "ln": payload.get("last_name"),

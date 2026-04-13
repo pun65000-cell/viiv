@@ -181,7 +181,8 @@ body {
 /* ── CONTENT ── */
 .sb-content {
   flex: 1; overflow-y: auto; padding: 20px 24px;
-  min-width: 0; background: var(--content-bg);
+  position: relative; min-height: 0;
+  background: #f5f3ef;
 }
 .sb-content::-webkit-scrollbar { width: 5px; }
 .sb-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
@@ -534,3 +535,14 @@ body {
 }
 /* sb-content-center marker */
 .sb-content-center { display:none; }
+
+/* POS page — ไม่จำกัด max-width */
+.sb-content.pos-fullscreen {
+  padding: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+.sb-content.pos-fullscreen > * {
+  max-width: 100% !important;
+  height: 100%;
+}

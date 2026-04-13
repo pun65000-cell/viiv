@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from app.api.pos_products import router as pos_products_router
 from app.api.tenant_staff import router as tenant_staff_router
 import os
 import uuid
@@ -11,13 +12,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api.auth_social import router as auth_social_router
-from app.api.routers_auth import router as auth_router
 from app.api.routers_users import router as users_router
 from app.api.routers_orgs import router as orgs_router
-# from modules.module1.mini_pos.api.products import router as products_router
-# from modules.module1.mini_pos.api.orders import router as orders_router
-# from modules.module1.mini_pos.api.receipts import router as receipts_router
-from modules.module1.customer_admin.api.customers import router as customers_router
+# from modules.legacy.mini_pos.api.products import router as products_router
+# from modules.legacy.mini_pos.api.orders import router as orders_router
+# from modules.legacy.mini_pos.api.receipts import router as receipts_router
+from modules.legacy.customer_admin.api.customers import router as customers_router
 from app.api.register_shop import router as register_shop_router
 from modules.pos.pos_router import router as pos_router
 from app.api.cart.cart_router import router as cart_router
@@ -45,10 +45,12 @@ app.add_middleware(
     allow_origins=[
         "https://viiv.me",
         "https://www.viiv.me",
+        "https://merchant.viiv.me",
+        "https://concore.viiv.me"
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 os.makedirs("/home/viivadmin/viiv/uploads", exist_ok=True)
@@ -71,7 +73,7 @@ async def attach_req_id(request: Request, call_next):
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=SESSION_SECRET,
+    secret_key=SESSION_SECRET
 )
 
 class DevAuthMiddleware(BaseHTTPMiddleware):
@@ -126,7 +128,6 @@ def ensure_default_shop():
 def health():
     return {"status": "ok"}
 
-app.include_router(auth_router, prefix="/api/auth")
 app.include_router(login_router)
 app.include_router(users_router, prefix="/api/users")
 app.include_router(orgs_router, prefix="/api/orgs")
@@ -152,4 +153,5 @@ app.include_router(chat_router, prefix="/api")
 app.include_router(auth_social_router)
 app.include_router(admin_auth_router)
 app.include_router(tenant_staff_router)
+app.include_router(pos_products_router)
 app.include_router(customers_router, prefix="/api/customers")

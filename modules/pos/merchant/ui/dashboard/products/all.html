@@ -1,0 +1,122 @@
+<body>
+<div style="width:100%;box-sizing:border-box;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--text,#1f2937);margin:0 0 2px;">สินค้าทั้งหมด</h3>
+      <p style="font-size:12px;color:var(--muted,#6b7280);margin:0;" id="allCount">กำลังโหลด...</p>
+    </div>
+    <button onclick="document.querySelector('.pos-tab:nth-child(2)').click()"
+      style="padding:7px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+      + เพิ่มสินค้า
+    </button>
+  </div>
+
+  <!-- filter bar -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+    <select id="allFilterStatus" class="all-select" onchange="allRender()">
+      <option value="">สถานะทั้งหมด</option>
+      <option value="active">จำหน่าย</option>
+      <option value="inactive">หยุดขาย</option>
+    </select>
+    <select id="allFilterCat" class="all-select" onchange="allRender()">
+      <option value="">หมวดหมู่ทั้งหมด</option>
+    </select>
+    <input type="text" id="allSearch" class="all-input" placeholder="ค้นหาชื่อ/SKU..." oninput="allRender()"/>
+  </div>
+
+  <!-- list -->
+  <div id="allList"></div>
+
+</div>
+
+<style>
+.all-select,.all-input{padding:6px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:12.5px;background:#fff;outline:none;color:#1f2937;}
+.all-select:focus,.all-input:focus{border-color:#e8b93e;}
+.all-input{width:200px;}
+.all-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:9px;margin-bottom:8px;transition:border-color .15s;}
+.all-row:hover{border-color:#e8b93e;}
+.all-img{width:48px;height:48px;border-radius:7px;object-fit:cover;background:#f3f4f6;border:1px solid #e5e7eb;flex-shrink:0;}
+.all-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+.all-badge.active{background:rgba(34,197,94,.1);color:#16a34a;}
+.all-badge.inactive{background:rgba(239,68,68,.1);color:#dc2626;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var TOKEN = localStorage.getItem('viiv_token')||'';
+try{ if(!TOKEN) TOKEN=window.parent.localStorage.getItem('viiv_token')||''; }catch(e){}
+var API = (window.location.hostname === 'merchant.viiv.me') ? '' : 'https://concore.viiv.me';
+var allData = [];
+var allLoaded = false;
+// รับ token จาก CustomEvent (inject โดย dashboard.html)
+
+// รับ token จาก postMessage (superboard iframe)
+window.addEventListener('message', function(e){
+  if(e.data && e.data.type === 'viiv_token' && e.data.token){
+    TOKEN = e.data.token;
+    if(!allLoaded){ allLoaded=true; if(TOKEN){ allLoaded=true; allLoad(); } else { setTimeout(function(){ if(!allLoaded){ allLoaded=true; allLoad(); } }, 2000); } }
+  }
+});
+
+async function allLoad(){
+  try{
+    var res = await fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}});
+    if(!res.ok){ document.getElementById('allList').innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">โหลดข้อมูลไม่ได้ ('+res.status+')</div>'; return; }
+    allData = await res.json();
+    // โหลด categories
+    var cats = [...new Set(allData.map(function(d){ return d.category; }).filter(Boolean))];
+    var sel = document.getElementById('allFilterCat');
+    cats.forEach(function(c){
+      var o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+    allRender();
+  }catch(e){
+    document.getElementById('allList').innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">เชื่อมต่อไม่ได้</div>';
+  }
+}
+
+window.allRender = function(){
+  var q      = document.getElementById('allSearch').value.toLowerCase();
+  var status = document.getElementById('allFilterStatus').value;
+  var cat    = document.getElementById('allFilterCat').value;
+  var filtered = allData.filter(function(d){
+    if(status && d.status !== status) return false;
+    if(cat && d.category !== cat) return false;
+    if(q && !d.name.toLowerCase().includes(q) && !(d.sku||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('allCount').textContent = 'ทั้งหมด '+filtered.length+' รายการ';
+  var list = document.getElementById('allList');
+  if(!filtered.length){
+    list.innerHTML='<div style="text-align:center;padding:48px;color:#aaa;border:1.5px dashed #e5e7eb;border-radius:10px;"><div style="font-size:28px;margin-bottom:8px;">📦</div><div style="font-size:13px;">ไม่พบสินค้า</div></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(d){
+    var img = d.image_url
+      ? '<img class="all-img" src="'+d.image_url+'" onerror="this.src=\'\';this.style.background=\'#f3f4f6\'"/>'
+      : '<div class="all-img" style="display:flex;align-items:center;justify-content:center;font-size:20px;">📦</div>';
+    var badge = '<span class="all-badge '+(d.status||'active')+'">'+(d.status==='inactive'?'🔴 หยุดขาย':'🟢 จำหน่าย')+'</span>';
+    var stock = d.track_stock ? (d.stock_qty||0)+' ชิ้น' : '—';
+    return '<div class="all-row">'+
+      img+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-weight:700;font-size:13px;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+d.name+'</div>'+
+        '<div style="font-size:11px;color:#6b7280;margin-top:2px;">SKU: '+(d.sku||'—')+' · '+(d.category||'ไม่มีหมวดหมู่')+'</div>'+
+      '</div>'+
+      '<div style="text-align:right;flex-shrink:0;">'+
+        '<div style="font-weight:700;font-size:14px;color:#1f2937;">฿'+parseFloat(d.price||0).toLocaleString()+'</div>'+
+        '<div style="font-size:11px;color:#6b7280;">สต็อก: '+stock+'</div>'+
+      '</div>'+
+      '<div style="flex-shrink:0;margin-left:4px;">'+badge+'</div>'+
+    '</div>';
+  }).join('');
+};
+
+allLoad();
+})();
+</script>
+</body>
