@@ -1,0 +1,263 @@
+<body>
+<div class="bn-wrap">
+
+  <!-- header -->
+  <div class="bn-header">
+    <div>
+      <div class="bn-title">สร้างชุดสินค้า</div>
+      <div class="bn-sub">กำหนดสินค้าแบบ Bundle จากสินค้าที่มีอยู่</div>
+    </div>
+    <button class="bn-btn-new" onclick="bnShowForm()">+ สร้างชุดใหม่</button>
+  </div>
+
+  <!-- existing bundles -->
+  <div id="bnList" class="bn-list"></div>
+
+  <!-- form -->
+  <div id="bnForm" class="bn-form" style="display:none;">
+    <div class="bn-form-title">📦 ชุดสินค้าใหม่</div>
+    <div class="bn-grid">
+      <div class="bn-field full">
+        <label>ชื่อชุดสินค้า *</label>
+        <input id="bnName" type="text" placeholder="ชื่อชุดสินค้า" class="bn-input"/>
+      </div>
+      <div class="bn-field">
+        <label>รหัส SKU ชุด *</label>
+        <input id="bnSku" type="text" placeholder="BUNDLE-001" class="bn-input"/>
+      </div>
+      <div class="bn-field">
+        <label>ราคาขาย (บาท) *</label>
+        <input id="bnPrice" type="number" min="0" step="0.01" placeholder="0.00" class="bn-input" oninput="bnCalcCost()"/>
+      </div>
+      <div class="bn-field">
+        <label>หมวดหมู่</label>
+        <input id="bnCat" type="text" placeholder="หมวดหมู่" class="bn-input"/>
+      </div>
+      <div class="bn-field">
+        <label>สถานะ</label>
+        <select id="bnStatus" class="bn-select">
+          <option value="active">จำหน่าย</option>
+          <option value="inactive">ปิดขาย</option>
+        </select>
+      </div>
+      <div class="bn-field full">
+        <label>รายละเอียด</label>
+        <textarea id="bnDesc" class="bn-input" rows="2" placeholder="คำบรรยายชุดสินค้า..."></textarea>
+      </div>
+      <div class="bn-field full">
+        <label>รูปภาพ URL</label>
+        <input id="bnImg" type="text" placeholder="https://..." class="bn-input"/>
+      </div>
+    </div>
+
+    <!-- items picker -->
+    <div class="bn-items-header">
+      <div class="bn-items-title">สินค้าในชุด</div>
+      <div class="bn-cost-summary">ต้นทุนรวม: <span id="bnTotalCost" style="color:#e8b93e;font-weight:700;">฿0</span></div>
+    </div>
+    <div class="bn-search-row">
+      <input id="bnSearchProduct" class="bn-input" placeholder="ค้นหาสินค้าเพื่อเพิ่ม..." oninput="bnSearchProducts()"/>
+    </div>
+    <div id="bnSearchResult" class="bn-search-result"></div>
+    <div id="bnItems" class="bn-items"></div>
+
+    <div class="bn-form-actions">
+      <button class="bn-btn-cancel" onclick="bnHideForm()">ยกเลิก</button>
+      <button class="bn-btn-save" onclick="bnSave()">บันทึกชุดสินค้า</button>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.bn-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.bn-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.bn-title{font-size:15px;font-weight:700;color:#1f2937;}
+.bn-sub{font-size:12px;color:#6b7280;margin-top:2px;}
+.bn-btn-new{padding:8px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.bn-btn-new:hover{opacity:.85;}
+.bn-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.bn-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.bn-card-icon{font-size:22px;width:40px;height:40px;background:#f0ede8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bn-card-info{flex:1;min-width:0;}
+.bn-card-name{font-size:13px;font-weight:700;color:#1f2937;}
+.bn-card-meta{font-size:11px;color:#6b7280;margin-top:2px;}
+.bn-card-price{font-size:14px;font-weight:700;color:#e8b93e;flex-shrink:0;}
+.bn-bundle-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:10px;padding:2px 8px;margin-left:6px;}
+.bn-form{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;margin-bottom:16px;}
+.bn-form-title{font-size:15px;font-weight:700;color:#1f2937;margin-bottom:14px;}
+.bn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.bn-field{display:flex;flex-direction:column;gap:4px;}
+.bn-field.full{grid-column:1/-1;}
+.bn-field label{font-size:12px;font-weight:600;color:#374151;}
+.bn-input{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;}
+.bn-input:focus{border-color:#e8b93e;}
+.bn-select{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;background:#fff;}
+.bn-items-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.bn-items-title{font-size:13px;font-weight:700;color:#1f2937;}
+.bn-cost-summary{font-size:12px;color:#6b7280;}
+.bn-search-row{margin-bottom:8px;}
+.bn-search-result{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;margin-bottom:10px;}
+.bn-search-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f8f6f2;border:1px solid #e5e5e5;border-radius:7px;cursor:pointer;font-size:12px;}
+.bn-search-item:hover{border-color:#e8b93e;background:#fffbf0;}
+.bn-items{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.bn-item-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8f6f2;border:1px solid #e5e5e5;border-radius:8px;}
+.bn-item-name{flex:1;font-size:12px;font-weight:600;color:#1f2937;}
+.bn-item-qty{width:70px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;text-align:center;outline:none;}
+.bn-item-qty:focus{border-color:#e8b93e;}
+.bn-item-unit{width:60px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;outline:none;}
+.bn-item-del{padding:4px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:11px;cursor:pointer;}
+.bn-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;}
+.bn-btn-cancel{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.bn-btn-save{padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.bn-btn-save:hover{opacity:.85;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var API = (location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN = window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allProducts = [];
+var bundleItems = []; // [{id,name,sku,qty,unit,cost_price}]
+var bundles = JSON.parse(localStorage.getItem('viiv_bundles')||'[]');
+
+function loadProducts(){
+  fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      allProducts = data.products||data||[];
+      renderBundles();
+    });
+}
+
+function renderBundles(){
+  var el = document.getElementById('bnList');
+  if(!bundles.length){
+    el.innerHTML='<div style="color:#aaa;padding:30px;text-align:center;">ยังไม่มีชุดสินค้า</div>';
+    return;
+  }
+  el.innerHTML = bundles.map(function(b,i){
+    var items = (b.items||[]).map(function(it){return it.name+'×'+it.qty;}).join(', ');
+    return '<div class="bn-card">'+
+      '<div class="bn-card-icon">🎁</div>'+
+      '<div class="bn-card-info">'+
+        '<div class="bn-card-name">'+b.name+
+          '<span class="bn-bundle-badge">⊞ Bundle</span>'+
+          (b.status==='inactive'?'<span class="bn-bundle-badge" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5;">ปิดขาย</span>':'')+
+        '</div>'+
+        '<div class="bn-card-meta">SKU: '+b.sku+' | ประกอบด้วย: '+items+'</div>'+
+        '<div class="bn-card-meta">ต้นทุน: ฿'+b.total_cost+' | กำไร: ฿'+(b.price-b.total_cost).toFixed(2)+'</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+        '<div class="bn-card-price">฿'+b.price+'</div>'+
+        '<button onclick="bnDelete('+i+')" style="padding:3px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:5px;font-size:11px;cursor:pointer;">ลบ</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+window.bnShowForm = function(){
+  bundleItems=[];
+  document.getElementById('bnForm').style.display='block';
+  document.getElementById('bnItems').innerHTML='';
+  document.getElementById('bnTotalCost').textContent='฿0';
+  document.getElementById('bnSearchResult').innerHTML='';
+  ['bnName','bnSku','bnPrice','bnCat','bnDesc','bnImg','bnSearchProduct'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('bnForm').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+window.bnHideForm = function(){
+  document.getElementById('bnForm').style.display='none';
+  bundleItems=[];
+};
+
+window.bnSearchProducts = function(){
+  var q = document.getElementById('bnSearchProduct').value.toLowerCase();
+  if(!q){ document.getElementById('bnSearchResult').innerHTML=''; return; }
+  var found = allProducts.filter(function(p){
+    return (p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q);
+  }).slice(0,8);
+  document.getElementById('bnSearchResult').innerHTML = found.map(function(p){
+    return '<div class="bn-search-item" onclick="bnAddItem(\''+p.id+'\')">'+
+      '<span>'+p.name+' <span style="color:#6b7280;">('+p.sku+')</span></span>'+
+      '<span style="color:#e8b93e;">+ เพิ่ม</span></div>';
+  }).join('');
+};
+
+window.bnAddItem = function(id){
+  if(bundleItems.find(function(i){return i.id===id;})){
+    alert('สินค้านี้อยู่ในชุดแล้ว'); return;
+  }
+  var p = allProducts.find(function(x){return x.id===id;});
+  if(!p) return;
+  bundleItems.push({id:p.id,name:p.name,sku:p.sku,qty:1,unit:'ชิ้น',cost_price:p.cost_price||0});
+  document.getElementById('bnSearchProduct').value='';
+  document.getElementById('bnSearchResult').innerHTML='';
+  bnRenderItems();
+};
+
+function bnRenderItems(){
+  var el = document.getElementById('bnItems');
+  if(!bundleItems.length){ el.innerHTML='<div style="color:#aaa;font-size:12px;padding:8px;">ยังไม่มีสินค้าในชุด</div>'; bnCalcCost(); return; }
+  el.innerHTML = bundleItems.map(function(item,i){
+    return '<div class="bn-item-row">'+
+      '<div class="bn-item-name">'+item.name+'<div style="font-size:10px;color:#6b7280;">SKU: '+item.sku+'</div></div>'+
+      '<input class="bn-item-qty" type="number" min="0.01" step="0.01" value="'+item.qty+'" title="จำนวน" onchange="bnUpdateQty('+i+',this.value)"/>'+
+      '<input class="bn-item-unit" type="text" value="'+item.unit+'" placeholder="หน่วย" onchange="bnUpdateUnit('+i+',this.value)"/>'+
+      '<button class="bn-item-del" onclick="bnRemoveItem('+i+')">ลบ</button>'+
+    '</div>';
+  }).join('');
+  bnCalcCost();
+}
+
+window.bnUpdateQty = function(i,val){ bundleItems[i].qty=parseFloat(val)||1; bnCalcCost(); };
+window.bnUpdateUnit = function(i,val){ bundleItems[i].unit=val; };
+window.bnRemoveItem = function(i){ bundleItems.splice(i,1); bnRenderItems(); };
+
+window.bnCalcCost = function(){
+  var cost = bundleItems.reduce(function(sum,item){
+    return sum+(item.cost_price*item.qty);
+  },0);
+  document.getElementById('bnTotalCost').textContent='฿'+cost.toFixed(2);
+};
+
+window.bnSave = function(){
+  var name=document.getElementById('bnName').value.trim();
+  var sku=document.getElementById('bnSku').value.trim();
+  var price=parseFloat(document.getElementById('bnPrice').value)||0;
+  if(!name||!sku||!price){ alert('กรุณากรอก ชื่อ, SKU และราคาขาย'); return; }
+  if(!bundleItems.length){ alert('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ'); return; }
+  var cost=bundleItems.reduce(function(s,i){return s+(i.cost_price*i.qty);},0);
+  var bundle={
+    id:'BDL_'+Date.now(),
+    name:name, sku:sku, price:price,
+    category:document.getElementById('bnCat').value,
+    status:document.getElementById('bnStatus').value,
+    description:document.getElementById('bnDesc').value,
+    image_url:document.getElementById('bnImg').value,
+    items:bundleItems.slice(),
+    total_cost:cost.toFixed(2),
+    created_at:new Date().toISOString(),
+  };
+  bundles.unshift(bundle);
+  localStorage.setItem('viiv_bundles',JSON.stringify(bundles));
+  bnHideForm();
+  renderBundles();
+  alert('✅ บันทึกชุดสินค้าเรียบร้อย');
+};
+
+window.bnDelete = function(i){
+  if(!confirm('ลบชุดสินค้านี้?')) return;
+  bundles.splice(i,1);
+  localStorage.setItem('viiv_bundles',JSON.stringify(bundles));
+  renderBundles();
+};
+
+window.addEventListener('viiv_token_ready',function(e){ if(e.detail&&e.detail.token) TOKEN=e.detail.token; loadProducts(); });
+if(TOKEN) loadProducts(); else renderBundles();
+})();
+</script>
+</body>

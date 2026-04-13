@@ -1,0 +1,154 @@
+<body>
+<div class="sort-wrap">
+  <div class="sort-header">
+    <div class="sort-filter-row">
+      <select id="sortCatFilter" class="sort-select" onchange="sortFilter()">
+        <option value="">หมวดหมู่ทั้งหมด</option>
+      </select>
+      <input id="sortSearch" class="sort-input" placeholder="ค้นหาสินค้า..." oninput="sortFilter()"/>
+    </div>
+    <button id="sortEditBtn" class="sort-btn-edit" onclick="sortToggleEdit()">แก้ไขลำดับแสดงผล</button>
+  </div>
+  <div id="sortList" class="sort-list"></div>
+</div>
+<style>
+.sort-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.sort-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.sort-filter-row{display:flex;gap:8px;flex:1;flex-wrap:wrap;}
+.sort-select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;}
+.sort-input{flex:1;min-width:140px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;}
+.sort-input:focus,.sort-select:focus{border-color:#e8b93e;}
+.sort-btn-edit{padding:7px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:#e8e8e8;color:#555;transition:.2s;white-space:nowrap;}
+.sort-btn-edit.active{background:#22c55e;color:#fff;}
+.sort-list{display:flex;flex-direction:column;gap:6px;}
+.sort-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;transition:.15s;user-select:none;}
+.sort-item.dragging{opacity:.4;border:2px dashed #e8b93e;}
+.sort-item.drag-over{border-color:#e8b93e;background:#fffbf0;}
+.sort-handle{font-size:18px;color:#ccc;cursor:default;width:20px;text-align:center;}
+.sort-handle.enabled{cursor:grab;color:#e8b93e;}
+.sort-handle.enabled:active{cursor:grabbing;}
+.sort-img{width:36px;height:36px;border-radius:7px;object-fit:cover;background:#f0ede8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden;}
+.sort-img img{width:100%;height:100%;object-fit:cover;}
+.sort-info{flex:1;min-width:0;}
+.sort-name{font-size:13px;font-weight:700;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sort-meta{font-size:11px;color:#6b7280;margin-top:1px;}
+.sort-rank{font-size:12px;font-weight:700;color:#e8b93e;width:28px;text-align:center;flex-shrink:0;}
+</style>
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allProducts=[];
+var sortedProducts=[];
+var isEditing=false;
+var dragSrcIdx=null;
+
+function loadProducts(){
+  fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      allProducts=data.products||data||[];
+      var saved=JSON.parse(localStorage.getItem('viiv_sort_order')||'[]');
+      if(saved.length){
+        var map={};
+        allProducts.forEach(function(p){map[p.id]=p;});
+        sortedProducts=saved.map(function(id){return map[id];}).filter(Boolean);
+        allProducts.forEach(function(p){if(!saved.includes(p.id))sortedProducts.push(p);});
+      } else {
+        sortedProducts=allProducts.slice();
+      }
+      var cats=[...new Set(allProducts.map(function(p){return p.category;}).filter(Boolean))];
+      var sel=document.getElementById('sortCatFilter');
+      cats.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+      sortFilter();
+    });
+}
+
+window.sortFilter=function(){
+  var cat=document.getElementById('sortCatFilter').value;
+  var q=document.getElementById('sortSearch').value.toLowerCase();
+  var filtered=sortedProducts.filter(function(p){
+    return p&&(!cat||p.category===cat)&&(!q||(p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q));
+  });
+  renderList(filtered);
+};
+
+function renderList(products){
+  var el=document.getElementById('sortList');
+  if(!products.length){el.innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">ไม่พบสินค้า</div>';return;}
+  el.innerHTML=products.map(function(p,i){
+    var imgHtml=p.image_url
+      ?'<div class="sort-img"><img src="'+API+p.image_url+'"></div>'
+      :'<div class="sort-img">📦</div>';
+    return '<div class="sort-item" data-id="'+p.id+'" '+(isEditing?'draggable="true"':'')+'>'+
+      '<div class="sort-handle'+(isEditing?' enabled':'')+'">⠿</div>'+
+      imgHtml+
+      '<div class="sort-info"><div class="sort-name">'+p.name+'</div>'+
+      '<div class="sort-meta">SKU: '+(p.sku||'—')+' · '+(p.category||'ไม่มีหมวดหมู่')+'</div></div>'+
+      '<div class="sort-rank">#'+(i+1)+'</div>'+
+    '</div>';
+  }).join('');
+  if(isEditing)bindDrag(products);
+}
+
+function bindDrag(products){
+  var items=document.querySelectorAll('.sort-item');
+  items.forEach(function(item,idx){
+    item.addEventListener('dragstart',function(e){
+      dragSrcIdx=idx;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    item.addEventListener('dragend',function(){
+      item.classList.remove('dragging');
+      document.querySelectorAll('.sort-item').forEach(function(i){i.classList.remove('drag-over');});
+    });
+    item.addEventListener('dragover',function(e){
+      e.preventDefault();
+      document.querySelectorAll('.sort-item').forEach(function(i){i.classList.remove('drag-over');});
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('drop',function(e){
+      e.preventDefault();
+      if(dragSrcIdx===null||dragSrcIdx===idx)return;
+      var srcP=products[dragSrcIdx];
+      var dstP=products[idx];
+      var srcI=sortedProducts.indexOf(srcP);
+      var dstI=sortedProducts.indexOf(dstP);
+      sortedProducts.splice(srcI,1);
+      sortedProducts.splice(dstI,0,srcP);
+      sortFilter();
+    });
+  });
+}
+
+window.sortToggleEdit=function(){
+  var btn=document.getElementById('sortEditBtn');
+  if(!isEditing){
+    isEditing=true;
+    btn.textContent='บันทึก';
+    btn.classList.add('active');
+    sortFilter();
+  } else {
+    isEditing=false;
+    btn.classList.remove('active');
+    var order=sortedProducts.map(function(p){return p.id;});
+    localStorage.setItem('viiv_sort_order',JSON.stringify(order));
+    sortFilter();
+    btn.textContent='✅ บันทึกแล้ว';
+    btn.style.background='#dcfce7';
+    btn.style.color='#166534';
+    setTimeout(function(){
+      btn.textContent='แก้ไขลำดับแสดงผล';
+      btn.style.background='#e8e8e8';
+      btn.style.color='#555';
+    },2000);
+  }
+};
+
+window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;loadProducts();});
+if(TOKEN)loadProducts();
+})();
+</script>
+</body>

@@ -284,10 +284,8 @@ function loadSubPage(el, file) {
       tmp.innerHTML = html;
       var body = tmp.querySelector('body');
       el.innerHTML = body ? body.innerHTML : html;
-      el.querySelectorAll('script').forEach(function(old){
-        var s = document.createElement('script');
-        s.textContent = old.textContent;
-        old.replaceWith(s);
+      el.querySelectorAll('script').forEach(function(scr){
+        try{ eval(scr.textContent); }catch(e){ console.warn('script eval:', e); }
       });
     })
     .catch(function(){ el.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });

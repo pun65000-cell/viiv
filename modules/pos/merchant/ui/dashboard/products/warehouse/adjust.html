@@ -1,0 +1,343 @@
+<body>
+<div class="adj-wrap">
+
+  <div class="adj-tabs">
+    <button class="adj-tab active" onclick="adjSwitchTab('cut',this)">✂️ ตัดสต็อก</button>
+    <button class="adj-tab" onclick="adjSwitchTab('move',this)">🔀 ย้ายสินค้า</button>
+    <button class="adj-tab" onclick="adjSwitchTab('history',this)">📋 ประวัติ</button>
+  </div>
+
+  <!-- ตัดสต็อก -->
+  <div id="adjCut" class="adj-panel">
+    <div class="adj-note">⚠️ การตัดสต็อกจะเปลี่ยนจำนวนสินค้าโดยไม่มีข้อมูลการขาย ต้องมีสิทธิ์เข้าถึง</div>
+    <div class="adj-search-row">
+      <input id="adjCutSearch" class="adj-input" placeholder="ค้นหาสินค้า..." oninput="adjSearchCut()"/>
+    </div>
+    <div id="adjCutResult" class="adj-search-result"></div>
+    <div id="adjCutSelected" style="display:none;" class="adj-selected-wrap">
+      <div class="adj-selected-name" id="adjCutName"></div>
+      <div class="adj-grid">
+        <div class="adj-field">
+          <label>ประเภทการตัด</label>
+          <select id="adjCutType" class="adj-select">
+            <option value="set">กำหนดค่าใหม่</option>
+            <option value="add">เพิ่มจำนวน</option>
+            <option value="sub">ลดจำนวน</option>
+          </select>
+        </div>
+        <div class="adj-field">
+          <label>จำนวน *</label>
+          <input id="adjCutQty" type="number" min="0" step="1" value="0" class="adj-input"/>
+        </div>
+        <div class="adj-field">
+          <label>คลัง</label>
+          <select id="adjCutWarehouse" class="adj-select">
+            <option value="back">คลังหลังร้าน</option>
+            <option value="front">หน้าร้าน</option>
+          </select>
+        </div>
+        <div class="adj-field">
+          <label>ผู้ดำเนินการ</label>
+          <input id="adjCutOperator" type="text" placeholder="ชื่อผู้ดำเนินการ" class="adj-input"/>
+        </div>
+        <div class="adj-field full">
+          <label>เหตุผล / หมายเหตุ *</label>
+          <textarea id="adjCutReason" class="adj-input" rows="2" placeholder="ระบุเหตุผลการตัดสต็อก..."></textarea>
+        </div>
+        <div class="adj-field">
+          <label>วันที่</label>
+          <input id="adjCutDate" type="date" class="adj-input"/>
+        </div>
+        <div class="adj-field">
+          <label>เวลา</label>
+          <input id="adjCutTime" type="time" class="adj-input"/>
+        </div>
+      </div>
+      <div class="adj-actions">
+        <button class="adj-btn-cancel" onclick="adjClearCut()">ยกเลิก</button>
+        <button class="adj-btn-save" onclick="adjSaveCut()">✔ บันทึกการตัดสต็อก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ย้ายสินค้า -->
+  <div id="adjMove" class="adj-panel" style="display:none;">
+    <div class="adj-note">🔀 ย้ายสินค้าระหว่างคลัง หรือระหว่างสโตร์ (กรณีมีหลายสาขา)</div>
+    <div class="adj-search-row">
+      <input id="adjMoveSearch" class="adj-input" placeholder="ค้นหาสินค้า..." oninput="adjSearchMove()"/>
+    </div>
+    <div id="adjMoveResult" class="adj-search-result"></div>
+    <div id="adjMoveSelected" style="display:none;" class="adj-selected-wrap">
+      <div class="adj-selected-name" id="adjMoveName"></div>
+      <div class="adj-grid">
+        <div class="adj-field">
+          <label>จาก</label>
+          <select id="adjMoveFrom" class="adj-select">
+            <option value="back">คลังหลังร้าน</option>
+            <option value="front">หน้าร้าน</option>
+            <option value="store_a">สโตร์ A</option>
+            <option value="store_b">สโตร์ B</option>
+          </select>
+        </div>
+        <div class="adj-field">
+          <label>ไปที่</label>
+          <select id="adjMoveTo" class="adj-select">
+            <option value="front">หน้าร้าน</option>
+            <option value="back">คลังหลังร้าน</option>
+            <option value="store_a">สโตร์ A</option>
+            <option value="store_b">สโตร์ B</option>
+          </select>
+        </div>
+        <div class="adj-field">
+          <label>จำนวนที่ย้าย *</label>
+          <input id="adjMoveQty" type="number" min="1" step="1" value="1" class="adj-input"/>
+        </div>
+        <div class="adj-field">
+          <label>ผู้ดำเนินการ</label>
+          <input id="adjMoveOperator" type="text" placeholder="ชื่อผู้ดำเนินการ" class="adj-input"/>
+        </div>
+        <div class="adj-field">
+          <label>วันที่</label>
+          <input id="adjMoveDate" type="date" class="adj-input"/>
+        </div>
+        <div class="adj-field">
+          <label>เวลา</label>
+          <input id="adjMoveTime" type="time" class="adj-input"/>
+        </div>
+        <div class="adj-field full">
+          <label>หมายเหตุ</label>
+          <textarea id="adjMoveNote" class="adj-input" rows="2" placeholder="หมายเหตุ..."></textarea>
+        </div>
+      </div>
+      <div class="adj-actions">
+        <button class="adj-btn-cancel" onclick="adjClearMove()">ยกเลิก</button>
+        <button class="adj-btn-save" onclick="adjSaveMove()">✔ บันทึกการย้าย</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ประวัติ -->
+  <div id="adjHistory" class="adj-panel" style="display:none;">
+    <div class="adj-history-filter">
+      <select id="adjHistType" class="adj-select" onchange="adjRenderHistory()">
+        <option value="">ทั้งหมด</option>
+        <option value="cut">ตัดสต็อก</option>
+        <option value="move">ย้ายสินค้า</option>
+      </select>
+      <input id="adjHistSearch" class="adj-input" placeholder="ค้นหาสินค้า..." oninput="adjRenderHistory()"/>
+    </div>
+    <div id="adjHistoryList" class="adj-history-list"></div>
+  </div>
+
+</div>
+
+<style>
+.adj-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.adj-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.adj-tab{padding:7px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:#f0ede8;color:#374151;transition:.15s;}
+.adj-tab:hover{background:#e5e2dc;}
+.adj-tab.active{background:#e8b93e;color:#1a1200;}
+.adj-note{background:#fffbf0;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:14px;}
+.adj-search-row{margin-bottom:8px;}
+.adj-input{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;}
+.adj-input:focus{border-color:#e8b93e;}
+.adj-select{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;background:#fff;box-sizing:border-box;}
+.adj-select:focus{border-color:#e8b93e;}
+.adj-search-result{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;margin-bottom:10px;}
+.adj-search-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f8f6f2;border:1px solid #e5e5e5;border-radius:7px;cursor:pointer;font-size:12px;}
+.adj-search-item:hover{border-color:#e8b93e;}
+.adj-selected-wrap{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;}
+.adj-selected-name{font-size:14px;font-weight:700;color:#1f2937;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0ede8;}
+.adj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.adj-field{display:flex;flex-direction:column;gap:4px;}
+.adj-field.full{grid-column:1/-1;}
+.adj-field label{font-size:12px;font-weight:600;color:#374151;}
+.adj-actions{display:flex;justify-content:flex-end;gap:8px;}
+.adj-btn-cancel{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.adj-btn-save{padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.adj-btn-save:hover{opacity:.85;}
+.adj-history-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.adj-history-list{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;}
+.adj-history-item{padding:10px 14px;background:#f8f6f2;border-radius:8px;border-left:3px solid #e8b93e;}
+.adj-history-item.move{border-left-color:#60a5fa;}
+.adj-history-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#1f2937;}
+.adj-history-sub{font-size:11px;color:#6b7280;margin-top:3px;}
+.adj-history-reason{font-size:11px;color:#374151;margin-top:2px;font-style:italic;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var API = (location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN = window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allProducts = [];
+var selectedCutProduct = null;
+var selectedMoveProduct = null;
+var adjLogs = JSON.parse(localStorage.getItem('viiv_adj_logs')||'[]');
+
+function setDefaults(){
+  var now = new Date();
+  var d = now.toISOString().split('T')[0];
+  var t = now.toTimeString().slice(0,5);
+  ['adjCutDate','adjMoveDate'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=d; });
+  ['adjCutTime','adjMoveTime'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=t; });
+}
+
+function loadProducts(){
+  fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(data){ allProducts=data.products||data||[]; });
+}
+
+// tab switch
+window.adjSwitchTab = function(tab, btn){
+  document.querySelectorAll('.adj-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  ['adjCut','adjMove','adjHistory'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  var map={cut:'adjCut',move:'adjMove',history:'adjHistory'};
+  document.getElementById(map[tab]).style.display='block';
+  if(tab==='history') adjRenderHistory();
+};
+
+// search cut
+window.adjSearchCut = function(){
+  var q = document.getElementById('adjCutSearch').value.toLowerCase();
+  adjRenderSearch('adjCutResult', q, function(id){ adjSelectCut(id); });
+};
+window.adjSearchMove = function(){
+  var q = document.getElementById('adjMoveSearch').value.toLowerCase();
+  adjRenderSearch('adjMoveResult', q, function(id){ adjSelectMove(id); });
+};
+
+function adjRenderSearch(elId, q, onSelect){
+  if(!q){ document.getElementById(elId).innerHTML=''; return; }
+  var found = allProducts.filter(function(p){
+    return (p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q);
+  }).slice(0,8);
+  document.getElementById(elId).innerHTML = found.map(function(p){
+    return '<div class="adj-search-item" onclick="('+onSelect.toString()+')(\''+p.id+'\')">'+
+      '<span>'+p.name+' <span style="color:#6b7280;">('+p.sku+')</span></span>'+
+      '<span style="color:#6b7280;">สต็อก: '+(p.stock_qty||0)+'</span></div>';
+  }).join('');
+}
+
+window.adjSelectCut = function(id){
+  selectedCutProduct = allProducts.find(function(p){return p.id===id;});
+  if(!selectedCutProduct) return;
+  document.getElementById('adjCutResult').innerHTML='';
+  document.getElementById('adjCutSearch').value='';
+  document.getElementById('adjCutName').innerHTML =
+    '📦 '+selectedCutProduct.name+
+    ' <span style="color:#6b7280;font-weight:400;font-size:12px;">(SKU: '+selectedCutProduct.sku+') สต็อกปัจจุบัน: '+
+    '<span style="color:#e8b93e;font-weight:700;">'+(selectedCutProduct.stock_qty||0)+'</span></span>';
+  document.getElementById('adjCutSelected').style.display='block';
+  setDefaults();
+};
+
+window.adjSelectMove = function(id){
+  selectedMoveProduct = allProducts.find(function(p){return p.id===id;});
+  if(!selectedMoveProduct) return;
+  document.getElementById('adjMoveResult').innerHTML='';
+  document.getElementById('adjMoveSearch').value='';
+  document.getElementById('adjMoveName').innerHTML =
+    '📦 '+selectedMoveProduct.name+
+    ' <span style="color:#6b7280;font-weight:400;font-size:12px;">(SKU: '+selectedMoveProduct.sku+')</span>';
+  document.getElementById('adjMoveSelected').style.display='block';
+  setDefaults();
+};
+
+window.adjClearCut = function(){
+  selectedCutProduct=null;
+  document.getElementById('adjCutSelected').style.display='none';
+  document.getElementById('adjCutSearch').value='';
+};
+window.adjClearMove = function(){
+  selectedMoveProduct=null;
+  document.getElementById('adjMoveSelected').style.display='none';
+  document.getElementById('adjMoveSearch').value='';
+};
+
+window.adjSaveCut = function(){
+  if(!selectedCutProduct){ alert('กรุณาเลือกสินค้า'); return; }
+  var qty = parseFloat(document.getElementById('adjCutQty').value)||0;
+  var reason = document.getElementById('adjCutReason').value.trim();
+  if(!reason){ alert('กรุณาระบุเหตุผล'); return; }
+  var log = {
+    type:'cut',
+    product_id: selectedCutProduct.id,
+    product_name: selectedCutProduct.name,
+    sku: selectedCutProduct.sku,
+    cut_type: document.getElementById('adjCutType').value,
+    qty: qty,
+    warehouse: document.getElementById('adjCutWarehouse').value,
+    operator: document.getElementById('adjCutOperator').value,
+    reason: reason,
+    date: document.getElementById('adjCutDate').value,
+    time: document.getElementById('adjCutTime').value,
+    created_at: new Date().toISOString(),
+  };
+  adjLogs.unshift(log);
+  localStorage.setItem('viiv_adj_logs', JSON.stringify(adjLogs.slice(0,500)));
+  alert('✅ บันทึกการตัดสต็อกเรียบร้อย');
+  adjClearCut();
+};
+
+window.adjSaveMove = function(){
+  if(!selectedMoveProduct){ alert('กรุณาเลือกสินค้า'); return; }
+  var qty = parseInt(document.getElementById('adjMoveQty').value)||0;
+  if(qty<=0){ alert('กรุณาระบุจำนวน'); return; }
+  var from = document.getElementById('adjMoveFrom').value;
+  var to = document.getElementById('adjMoveTo').value;
+  if(from===to){ alert('ต้นทางและปลายทางต้องไม่ซ้ำกัน'); return; }
+  var log = {
+    type:'move',
+    product_id: selectedMoveProduct.id,
+    product_name: selectedMoveProduct.name,
+    sku: selectedMoveProduct.sku,
+    qty: qty,
+    from: from,
+    to: to,
+    operator: document.getElementById('adjMoveOperator').value,
+    note: document.getElementById('adjMoveNote').value,
+    date: document.getElementById('adjMoveDate').value,
+    time: document.getElementById('adjMoveTime').value,
+    created_at: new Date().toISOString(),
+  };
+  adjLogs.unshift(log);
+  localStorage.setItem('viiv_adj_logs', JSON.stringify(adjLogs.slice(0,500)));
+  alert('✅ บันทึกการย้ายสินค้าเรียบร้อย');
+  adjClearMove();
+};
+
+window.adjRenderHistory = function(){
+  var typeF = document.getElementById('adjHistType').value;
+  var q = (document.getElementById('adjHistSearch').value||'').toLowerCase();
+  var logs = adjLogs.filter(function(l){
+    return (!typeF||l.type===typeF) && (!q||(l.product_name||'').toLowerCase().includes(q)||(l.sku||'').toLowerCase().includes(q));
+  });
+  var el = document.getElementById('adjHistoryList');
+  if(!logs.length){ el.innerHTML='<div style="color:#aaa;padding:20px;text-align:center;">ยังไม่มีประวัติ</div>'; return; }
+  var whMap={back:'คลังหลังร้าน',front:'หน้าร้าน',store_a:'สโตร์ A',store_b:'สโตร์ B'};
+  var cutTypeMap={set:'กำหนดค่าใหม่',add:'เพิ่ม',sub:'ลด'};
+  el.innerHTML = logs.map(function(l){
+    var detail = l.type==='cut'
+      ? cutTypeMap[l.cut_type]+' '+l.qty+' | '+(whMap[l.warehouse]||l.warehouse)+' | เหตุผล: '+l.reason
+      : 'ย้าย '+l.qty+' จาก '+(whMap[l.from]||l.from)+' → '+(whMap[l.to]||l.to)+(l.note?' | '+l.note:'');
+    return '<div class="adj-history-item '+(l.type==='move'?'move':'')+'">'+
+      '<div class="adj-history-top">'+
+        '<span>'+l.product_name+'</span>'+
+        '<span style="font-size:11px;color:#6b7280;">'+l.date+' '+l.time+'</span>'+
+      '</div>'+
+      '<div class="adj-history-sub">'+detail+'</div>'+
+      (l.operator?'<div class="adj-history-reason">ผู้ดำเนินการ: '+l.operator+'</div>':'')+
+    '</div>';
+  }).join('');
+};
+
+window.addEventListener('viiv_token_ready',function(e){ if(e.detail&&e.detail.token) TOKEN=e.detail.token; loadProducts(); });
+if(TOKEN) loadProducts();
+})();
+</script>
+</body>
