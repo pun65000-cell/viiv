@@ -1,7 +1,59 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">🏭</div>
-  <div style="font-size:14px;">คลังสินค้า</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="wh-wrap">
+  <!-- sub-menu bar -->
+  <div class="wh-submenu" id="whSubmenu">
+    <button class="wh-sub-btn active" onclick="whNav('all',this)">ทั้งหมด</button>
+    <button class="wh-sub-btn" onclick="whNav('bundle',this)">สร้างชุดสินค้า</button>
+    <button class="wh-sub-btn" onclick="whNav('adjust',this)">ตัด/ย้าย</button>
+    <button class="wh-sub-btn" onclick="whNav('sort',this)">ปรับอันดับ</button>
+  </div>
+  <div id="whContent"></div>
 </div>
+
+<style>
+.wh-wrap{padding:16px;box-sizing:border-box;width:100%;}
+.wh-submenu{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--border,#e5e5e5);}
+.wh-sub-btn{padding:5px 14px;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:#e8e8e8;color:#555;transition:.15s;}
+.wh-sub-btn:hover{background:#d5d5d5;}
+.wh-sub-btn.active{background:#e8b93e;color:#1a1200;}
+#whContent{min-height:200px;}
+</style>
+
+<script>
+(function(){
+'use strict';
+window.VIIV_TOKEN = window.VIIV_TOKEN || localStorage.getItem('viiv_token') || '';
+
+window.whNav = function(page, btn) {
+  document.querySelectorAll('.wh-sub-btn').forEach(function(b){
+    b.classList.remove('active');
+    b.style.background='#e8e8e8';
+    b.style.color='#555';
+  });
+  btn.classList.add('active');
+  btn.style.background='#e8b93e';
+  btn.style.color='#1a1200';
+
+  var c = document.getElementById('whContent');
+  c.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div>';
+  fetch('warehouse/'+page+'.html?v='+Date.now())
+    .then(function(r){ return r.text(); })
+    .then(function(html){
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      var body = tmp.querySelector('body');
+      c.innerHTML = body ? body.innerHTML : html;
+      c.querySelectorAll('script').forEach(function(old){
+        var s = document.createElement('script');
+        s.textContent = old.textContent;
+        old.replaceWith(s);
+      });
+    })
+    .catch(function(){ c.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
+};
+
+// โหลด all เป็น default
+whNav('all', document.querySelector('.wh-sub-btn'));
+})();
+</script>
 </body>

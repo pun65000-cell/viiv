@@ -1,7 +1,289 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">📥</div>
-  <div style="font-size:14px;">รับสินค้าเข้าคลัง</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="rv-wrap">
+
+<!-- ── TOP ACTIONS ── -->
+<div class="rv-topbar">
+  <div class="rv-topbar-left">
+    <button class="rv-btn-scan" id="rvScanBtn" onclick="rvToggleScan()">
+      <span>📷</span> สแกนรับสินค้า
+    </button>
+    <span class="rv-badge-future">อนาคต: สแกนจากใบเสร็จ</span>
+  </div>
+  <button class="rv-btn-history" onclick="rvToggleHistory()">📋 ประวัติการรับ</button>
 </div>
+
+<!-- ── SCAN AREA (hidden by default) ── -->
+<div id="rvScanArea" class="rv-scan-area" style="display:none;">
+  <div class="rv-scan-box">
+    <div class="rv-scan-icon">▦</div>
+    <div class="rv-scan-label">พร้อมรับการสแกน QR / บาร์โค้ด</div>
+    <input id="rvScanInput" class="rv-scan-input" placeholder="สแกนหรือพิมพ์บาร์โค้ด..." autofocus
+      onkeydown="if(event.key==='Enter') rvSearchByCode(this.value)"/>
+  </div>
+</div>
+
+<!-- ── SEARCH ── -->
+<div class="rv-search-row">
+  <select id="rvCatFilter" class="rv-select" onchange="rvFilterProducts()">
+    <option value="">หมวดหมู่ทั้งหมด</option>
+  </select>
+  <input id="rvSearchInput" class="rv-input" placeholder="ค้นหาชื่อสินค้า / รหัส SKU..."
+    oninput="rvFilterProducts()"/>
+</div>
+
+<!-- ── PRODUCT PICKER ── -->
+<div id="rvProductList" class="rv-product-list"></div>
+
+<!-- ── RECEIVE FORM ── -->
+<div id="rvForm" class="rv-form" style="display:none;">
+  <div class="rv-form-title">📥 บันทึกรับสินค้า</div>
+  <div class="rv-selected-product" id="rvSelectedProduct"></div>
+
+  <div class="rv-grid">
+    <div class="rv-field">
+      <label>จำนวน *</label>
+      <input type="number" id="rvQty" min="1" value="1" class="rv-input"/>
+    </div>
+    <div class="rv-field">
+      <label>หน่วยนับ</label>
+      <input type="text" id="rvUnit" placeholder="ชิ้น / กล่อง / กก." class="rv-input"/>
+    </div>
+    <div class="rv-field">
+      <label>ราคารับเข้า (ต่อหน่วย)</label>
+      <input type="number" id="rvCostPrice" min="0" step="0.01" placeholder="0.00" class="rv-input"/>
+    </div>
+    <div class="rv-field">
+      <label>คลังปลายทาง</label>
+      <select id="rvWarehouse" class="rv-select">
+        <option value="back">คลังหลังร้าน</option>
+        <option value="front">หน้าร้าน</option>
+      </select>
+    </div>
+    <div class="rv-field">
+      <label>วันที่รับ</label>
+      <input type="date" id="rvDate" class="rv-input"/>
+    </div>
+    <div class="rv-field">
+      <label>เวลา</label>
+      <input type="time" id="rvTime" class="rv-input"/>
+    </div>
+    <div class="rv-field">
+      <label>ผู้รับสินค้า</label>
+      <input type="text" id="rvReceiver" placeholder="ชื่อผู้รับ" class="rv-input"/>
+    </div>
+    <div class="rv-field">
+      <label>คู่ค้า / ซัพพลายเออร์</label>
+      <input type="text" id="rvSupplier" placeholder="ชื่อคู่ค้า" class="rv-input"/>
+    </div>
+  </div>
+
+  <div class="rv-field" style="margin-top:8px;">
+    <label>หมายเหตุ</label>
+    <textarea id="rvNote" class="rv-input" rows="2" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
+  </div>
+
+  <div class="rv-form-actions">
+    <button class="rv-btn-cancel" onclick="rvClearForm()">ยกเลิก</button>
+    <button class="rv-btn-save" id="rvSaveBtn" onclick="rvSave()">✔ บันทึกการรับสินค้า</button>
+  </div>
+</div>
+
+<!-- ── HISTORY ── -->
+<div id="rvHistory" class="rv-history" style="display:none;">
+  <div class="rv-history-title">📋 ประวัติการรับสินค้า</div>
+  <div id="rvHistoryList" class="rv-history-list"></div>
+</div>
+
+</div>
+
+<style>
+.rv-wrap{padding:16px;max-width:100%;box-sizing:border-box;}
+.rv-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.rv-topbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rv-badge-future{font-size:11px;color:#e8b93e;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.3);border-radius:20px;padding:3px 10px;}
+.rv-btn-scan{padding:8px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.rv-btn-scan:hover{opacity:.85;}
+.rv-btn-history{padding:7px 14px;background:#f0ede8;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.rv-btn-history:hover{background:#e5e7eb;}
+.rv-scan-area{margin-bottom:14px;}
+.rv-scan-box{background:#f8f6f2;border:2px dashed #e8b93e;border-radius:12px;padding:20px;text-align:center;}
+.rv-scan-icon{font-size:32px;margin-bottom:8px;opacity:.4;}
+.rv-scan-label{font-size:13px;color:#6b7280;margin-bottom:10px;}
+.rv-scan-input{width:100%;max-width:320px;padding:9px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;text-align:center;outline:none;box-sizing:border-box;}
+.rv-scan-input:focus{border-color:#e8b93e;}
+.rv-search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.rv-select{padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;outline:none;}
+.rv-select:focus{border-color:#e8b93e;}
+.rv-input{padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;width:100%;box-sizing:border-box;}
+.rv-input:focus{border-color:#e8b93e;}
+.rv-product-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;max-height:240px;overflow-y:auto;}
+.rv-product-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid #e5e5e5;border-radius:8px;cursor:pointer;transition:.15s;}
+.rv-product-item:hover{border-color:#e8b93e;background:#fffbf0;}
+.rv-product-img{width:36px;height:36px;border-radius:6px;object-fit:cover;background:#f0ede8;}
+.rv-product-name{font-size:13px;font-weight:600;color:#1f2937;}
+.rv-product-sku{font-size:11px;color:#6b7280;}
+.rv-form{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;margin-bottom:16px;}
+.rv-form-title{font-size:15px;font-weight:700;color:#1f2937;margin-bottom:12px;}
+.rv-selected-product{background:#f8f6f2;border:1px solid #e8b93e;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;color:#1f2937;}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.rv-field{display:flex;flex-direction:column;gap:4px;}
+.rv-field label{font-size:12px;font-weight:600;color:#374151;}
+.rv-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
+.rv-btn-cancel{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.rv-btn-save{padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.rv-btn-save:hover{opacity:.85;}
+.rv-history{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;}
+.rv-history-title{font-size:15px;font-weight:700;color:#1f2937;margin-bottom:12px;}
+.rv-history-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;}
+.rv-history-item{padding:10px 14px;background:#f8f6f2;border-radius:8px;font-size:13px;}
+.rv-history-item-top{display:flex;justify-content:space-between;font-weight:600;}
+.rv-history-item-sub{color:#6b7280;font-size:11px;margin-top:2px;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var API = (location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN = window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allProducts = [];
+var selectedProduct = null;
+var history = JSON.parse(localStorage.getItem('rv_history')||'[]');
+
+// set default date/time
+function setDefaults(){
+  var now = new Date();
+  var d = now.toISOString().split('T')[0];
+  var t = now.toTimeString().slice(0,5);
+  document.getElementById('rvDate').value = d;
+  document.getElementById('rvTime').value = t;
+}
+
+// load products
+function loadProducts(){
+  fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      allProducts = data.products||data||[];
+      // populate categories
+      var cats = [...new Set(allProducts.map(function(p){return p.category;}).filter(Boolean))];
+      var sel = document.getElementById('rvCatFilter');
+      cats.forEach(function(c){
+        var o = document.createElement('option');
+        o.value=c; o.textContent=c; sel.appendChild(o);
+      });
+      rvFilterProducts();
+    })
+    .catch(function(){
+      document.getElementById('rvProductList').innerHTML='<div style="color:#aaa;padding:20px;text-align:center;">โหลดสินค้าไม่ได้</div>';
+    });
+}
+
+window.rvFilterProducts = function(){
+  var cat = document.getElementById('rvCatFilter').value;
+  var q = document.getElementById('rvSearchInput').value.toLowerCase();
+  var filtered = allProducts.filter(function(p){
+    var matchCat = !cat || p.category===cat;
+    var matchQ = !q || (p.name||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderProductList(filtered);
+};
+
+function renderProductList(products){
+  var el = document.getElementById('rvProductList');
+  if(!products.length){
+    el.innerHTML='<div style="color:#aaa;padding:20px;text-align:center;">ไม่พบสินค้า</div>';
+    return;
+  }
+  el.innerHTML = products.map(function(p){
+    var img = p.image_url ? '<img src="'+API+p.image_url+'" class="rv-product-img"/>' : '<div class="rv-product-img" style="display:flex;align-items:center;justify-content:center;font-size:18px;">📦</div>';
+    return '<div class="rv-product-item" onclick="rvSelectProduct(\''+p.id+'\')">'+img+
+      '<div><div class="rv-product-name">'+p.name+'</div><div class="rv-product-sku">SKU: '+(p.sku||'-')+'</div></div></div>';
+  }).join('');
+}
+
+window.rvSelectProduct = function(id){
+  selectedProduct = allProducts.find(function(p){return p.id===id;});
+  if(!selectedProduct) return;
+  document.getElementById('rvSelectedProduct').innerHTML =
+    '📦 '+selectedProduct.name+' <span style="color:#6b7280;font-weight:400;">(SKU: '+(selectedProduct.sku||'-')+')</span>';
+  document.getElementById('rvCostPrice').value = selectedProduct.cost_price||'';
+  document.getElementById('rvForm').style.display='block';
+  document.getElementById('rvForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+
+window.rvSearchByCode = function(code){
+  var p = allProducts.find(function(p){return p.sku===code||p.id===code;});
+  if(p){ rvSelectProduct(p.id); document.getElementById('rvScanInput').value=''; }
+  else { alert('ไม่พบสินค้า: '+code); }
+};
+
+window.rvToggleScan = function(){
+  var el = document.getElementById('rvScanArea');
+  el.style.display = el.style.display==='none'?'block':'none';
+  if(el.style.display==='block') document.getElementById('rvScanInput').focus();
+};
+
+window.rvToggleHistory = function(){
+  var el = document.getElementById('rvHistory');
+  el.style.display = el.style.display==='none'?'block':'none';
+  if(el.style.display==='block') renderHistory();
+};
+
+window.rvClearForm = function(){
+  selectedProduct = null;
+  document.getElementById('rvForm').style.display='none';
+  document.getElementById('rvQty').value=1;
+};
+
+window.rvSave = function(){
+  if(!selectedProduct){ alert('กรุณาเลือกสินค้าก่อน'); return; }
+  var qty = parseInt(document.getElementById('rvQty').value)||0;
+  if(qty<=0){ alert('กรุณาระบุจำนวน'); return; }
+  var record = {
+    id: Date.now(),
+    product_id: selectedProduct.id,
+    product_name: selectedProduct.name,
+    sku: selectedProduct.sku,
+    qty: qty,
+    unit: document.getElementById('rvUnit').value,
+    cost_price: document.getElementById('rvCostPrice').value,
+    warehouse: document.getElementById('rvWarehouse').value,
+    date: document.getElementById('rvDate').value,
+    time: document.getElementById('rvTime').value,
+    receiver: document.getElementById('rvReceiver').value,
+    supplier: document.getElementById('rvSupplier').value,
+    note: document.getElementById('rvNote').value,
+  };
+  history.unshift(record);
+  localStorage.setItem('rv_history', JSON.stringify(history.slice(0,200)));
+  alert('✅ บันทึกการรับสินค้าเรียบร้อย');
+  rvClearForm();
+  setDefaults();
+};
+
+function renderHistory(){
+  var el = document.getElementById('rvHistoryList');
+  if(!history.length){
+    el.innerHTML='<div style="color:#aaa;text-align:center;padding:20px;">ยังไม่มีประวัติ</div>';
+    return;
+  }
+  el.innerHTML = history.map(function(r){
+    var wh = r.warehouse==='front'?'หน้าร้าน':'คลังหลังร้าน';
+    return '<div class="rv-history-item">'+
+      '<div class="rv-history-item-top"><span>'+r.product_name+'</span><span style="color:#e8b93e;">+'+r.qty+' '+(r.unit||'ชิ้น')+'</span></div>'+
+      '<div class="rv-history-item-sub">'+r.date+' '+r.time+' | '+wh+' | ผู้รับ: '+(r.receiver||'-')+' | คู่ค้า: '+(r.supplier||'-')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+// init
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token) TOKEN=e.detail.token;
+  loadProducts();
+});
+setDefaults();
+if(TOKEN) loadProducts();
+})();
+</script>
 </body>
