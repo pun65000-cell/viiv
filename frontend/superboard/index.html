@@ -5,11 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VIIV Superboard</title>
   <link rel="stylesheet" href="/superboard/css/theme.css" />
+  <link rel="manifest" href="/superboard/manifest.json">
+  <meta name="theme-color" content="#C9A84C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VIIV">
+  <script>
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('/superboard/sw.js');
+    }
+  </script>
 </head>
 <body>
 
 <header class="sb-topbar">
-  <a href="/superboard/" class="sb-logo">VIIV</a>
+  <a href="/superboard/" class="sb-logo" id="sbLogo">
+    <img id="sbLogoImg" src="" alt="VIIV"
+      style="width:36px;height:36px;object-fit:contain;border-radius:8px;display:none;">
+    <span id="sbLogoText">VIIV</span>
+  </a>
 
   <div class="sb-shop-wrap">
     <div class="sb-shop-btn" id="shopBtn" onclick="toggleShopDD()">
@@ -270,6 +284,26 @@ document.addEventListener('DOMContentLoaded', function(){
   loadShops();
   sbNav('home'); checkBellDot();
 });
+})();
+</script>
+
+<script>
+(function(){
+  function applyIcon(){
+    var icon = localStorage.getItem('viiv_app_icon');
+    var img = document.getElementById('sbLogoImg');
+    var txt = document.getElementById('sbLogoText');
+    if(!img||!txt) return;
+    if(icon){ img.src=icon; img.style.display='block'; txt.style.display='none'; }
+    else { img.style.display='none'; txt.style.display=''; }
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', applyIcon);
+  } else {
+    applyIcon();
+  }
+  // expose ให้ settings page เรียกได้หลัง save
+  window.viivApplyIcon = applyIcon;
 })();
 </script>
 </body>

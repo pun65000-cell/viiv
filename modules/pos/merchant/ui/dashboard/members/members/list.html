@@ -1,0 +1,308 @@
+<body>
+<div class="ml-wrap">
+
+  <div class="ml-header">
+    <div class="ml-search-row">
+      <input id="mlSearch" class="ml-input" placeholder="ค้นหาชื่อ / รหัส / เบอร์โทร..." oninput="mlFilter()"/>
+      <select id="mlPlatform" class="ml-select" onchange="mlFilter()">
+        <option value="">แพลตฟอร์มทั้งหมด</option>
+        <option value="facebook">Facebook</option>
+        <option value="line">LINE</option>
+        <option value="instagram">Instagram</option>
+        <option value="tiktok">TikTok</option>
+        <option value="walk_in">Walk-in</option>
+        <option value="manual">Manual</option>
+      </select>
+    </div>
+    <button class="ml-btn-new" onclick="mlOpenForm(null)">+ สร้างสมาชิก</button>
+  </div>
+
+  <div class="ml-stats-row" id="mlStats"></div>
+  <div id="mlList" class="ml-list"></div>
+  <div id="mlPager"></div>
+
+  <!-- overlay + form -->
+  <div id="mlOverlay" class="ml-overlay" style="display:none;" onclick="mlCloseForm()"></div>
+  <div id="mlFormWrap" class="ml-form-wrap" style="display:none;"></div>
+
+</div>
+
+<style>
+.ml-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.ml-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.ml-search-row{display:flex;gap:8px;flex:1;flex-wrap:wrap;}
+.ml-input{flex:1;min-width:160px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;}
+.ml-input:focus{border-color:#e8b93e;}
+.ml-select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;}
+.ml-select:focus{border-color:#e8b93e;}
+.ml-btn-new{padding:8px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.ml-btn-new:hover{opacity:.85;}
+.ml-stats-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.ml-stat{flex:1;min-width:80px;background:#f8f6f2;border:1px solid #eae8e2;border-radius:8px;padding:8px 12px;text-align:center;}
+.ml-stat-val{font-size:18px;font-weight:700;color:#e8b93e;}
+.ml-stat-label{font-size:11px;color:#6b7280;margin-top:2px;}
+.ml-list{display:flex;flex-direction:column;gap:6px;}
+.ml-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;cursor:pointer;transition:.15s;}
+.ml-row:hover{border-color:#e8b93e;background:#fffbf0;}
+.ml-avatar{width:38px;height:38px;border-radius:50%;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#e8b93e;flex-shrink:0;overflow:hidden;}
+.ml-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.ml-info{flex:1;min-width:0;}
+.ml-name{font-size:13px;font-weight:700;color:#1f2937;}
+.ml-meta{font-size:11px;color:#6b7280;margin-top:2px;}
+.ml-platforms{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;}
+.ml-platform-badge{font-size:10px;padding:1px 7px;border-radius:10px;background:#f0ede8;color:#374151;}
+.ml-platform-badge.facebook{background:#e7f0fd;color:#1877f2;}
+.ml-platform-badge.line{background:#e6f9ee;color:#06c755;}
+.ml-platform-badge.instagram{background:#fce4ec;color:#e1306c;}
+.ml-platform-badge.tiktok{background:#f0f0f0;color:#000;}
+.ml-stats{text-align:right;flex-shrink:0;}
+.ml-pv{font-size:12px;font-weight:700;color:#e8b93e;}
+.ml-credit{font-size:11px;color:#6b7280;}
+.ml-pager{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+/* overlay */
+.ml-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;}
+.ml-form-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,95vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px;z-index:201;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+</style>
+
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var PAGE_SIZE=20;
+var currentPage=1;
+var allMembers=[];
+var filteredCache=[];
+
+// โหลดจาก localStorage (รอ API จริง)
+function loadMembers(){
+  allMembers=JSON.parse(localStorage.getItem('viiv_members')||'[]');
+  renderStats();
+  mlFilter();
+}
+
+function renderStats(){
+  var el=document.getElementById('mlStats');
+  var total=allMembers.length;
+  var totalPV=allMembers.reduce(function(s,m){return s+(parseFloat(m.pv_total)||0);},0);
+  var totalCredit=allMembers.reduce(function(s,m){return s+(parseFloat(m.credit)||0);},0);
+  el.innerHTML=[
+    {val:total,label:'สมาชิกทั้งหมด'},
+    {val:totalPV.toLocaleString(),label:'PV รวม'},
+    {val:'฿'+totalCredit.toLocaleString(),label:'Credit รวม'},
+  ].map(function(s){
+    return '<div class="ml-stat"><div class="ml-stat-val">'+s.val+'</div><div class="ml-stat-label">'+s.label+'</div></div>';
+  }).join('');
+}
+
+window.mlFilter=function(reset){
+  if(reset!==false) currentPage=1;
+  var q=document.getElementById('mlSearch').value.toLowerCase();
+  var pf=document.getElementById('mlPlatform').value;
+  filteredCache=allMembers.filter(function(m){
+    var matchQ=!q||(m.name||'').toLowerCase().includes(q)||(m.code||'').includes(q)||(m.phone||'').includes(q);
+    var matchPF=!pf||(m.platforms||[]).includes(pf);
+    return matchQ&&matchPF;
+  });
+  renderList();
+};
+
+function renderList(){
+  var el=document.getElementById('mlList');
+  var total=filteredCache.length;
+  if(!total){el.innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">ไม่พบสมาชิก</div>';document.getElementById('mlPager').innerHTML='';return;}
+  var totalPages=Math.ceil(total/PAGE_SIZE);
+  var page=filteredCache.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE);
+  el.innerHTML=page.map(function(m){
+    var avatar=m.avatar_url
+      ?'<div class="ml-avatar"><img src="'+m.avatar_url+'"></div>'
+      :'<div class="ml-avatar">'+(m.name||'?').charAt(0).toUpperCase()+'</div>';
+    var platforms=(m.platforms||[]).map(function(p){
+      return '<span class="ml-platform-badge '+p+'">'+p+'</span>';
+    }).join('');
+    return '<div class="ml-row" onclick="mlOpenForm(\''+m.id+'\')">'+
+      avatar+
+      '<div class="ml-info">'+
+        '<div class="ml-name">'+(m.name||'ไม่ระบุชื่อ')+'</div>'+
+        '<div class="ml-meta">รหัส: '+(m.code||'—')+' | '+(m.phone||'ไม่มีเบอร์')+'</div>'+
+        '<div class="ml-platforms">'+platforms+'</div>'+
+      '</div>'+
+      '<div class="ml-stats">'+
+        '<div class="ml-pv">PV: '+(m.pv_total||0)+'</div>'+
+        '<div class="ml-credit">Credit: ฿'+(m.credit||0)+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  // pager
+  var pager=document.getElementById('mlPager');
+  if(totalPages>1){
+    pager.innerHTML='<button onclick="mlPage('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+
+      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">◀</button>'+
+      '<span style="font-size:12px;color:#6b7280;align-self:center;">'+currentPage+'/'+totalPages+' ('+total+' คน)</span>'+
+      '<button onclick="mlPage('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+
+      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">▶</button>';
+  } else { pager.innerHTML=''; }
+}
+
+window.mlPage=function(p){
+  if(p<1||p>Math.ceil(filteredCache.length/PAGE_SIZE))return;
+  currentPage=p; renderList();
+};
+
+window.mlOpenForm=function(id){
+  var m=id?allMembers.find(function(x){return x.id===id;}):null;
+  var isEdit=!!m;
+  document.getElementById('mlOverlay').style.display='block';
+  var fw=document.getElementById('mlFormWrap');
+  fw.style.display='block';
+  fw.innerHTML=buildForm(m,isEdit);
+};
+
+window.mlCloseForm=function(){
+  document.getElementById('mlOverlay').style.display='none';
+  document.getElementById('mlFormWrap').style.display='none';
+};
+
+function buildForm(m,isEdit){
+  m=m||{};
+  var platforms=['facebook','line','instagram','tiktok','walk_in','manual'];
+  var selPF=m.platforms||[];
+  return '<div style="padding:20px;">'+
+    '<div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:16px;">'+(isEdit?'✏️ จัดการสมาชิก':'➕ สร้างสมาชิกใหม่')+'</div>'+
+
+    // avatar
+    '<div style="display:flex;justify-content:center;margin-bottom:16px;">'+
+      '<div style="position:relative;width:72px;height:72px;">'+
+        '<div id="mfAvatarPreview" style="width:72px;height:72px;border-radius:50%;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;border:2px solid #e8b93e;">'+
+          (m.avatar_url?'<img src="'+m.avatar_url+'" style="width:100%;height:100%;object-fit:cover;">':'👤')+
+        '</div>'+
+        '<button onclick="document.getElementById(\'mfAvatarInput\').click()" style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:#e8b93e;border:none;cursor:pointer;font-size:12px;">✎</button>'+
+        '<input type="file" id="mfAvatarInput" accept="image/*" style="display:none;" onchange="mlPreviewAvatar(this)"/>'+
+      '</div>'+
+    '</div>'+
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
+      mfField('รหัสลูกค้า','mf-code','text',m.code||'','auto-generate ถ้าว่าง')+
+      mfField('ชื่อลูกค้า *','mf-name','text',m.name||'')+
+      mfField('เบอร์โทร','mf-phone','tel',m.phone||'')+
+      mfField('Tax ID','mf-taxid','text',m.tax_id||'')+
+      mfField('อีเมล','mf-email','email',m.email||'')+
+      mfField('วันเกิด','mf-birthday','date',m.birthday||'')+
+      '<div style="grid-column:1/-1;">'+mfField('ที่อยู่','mf-address','text',m.address||'')+'</div>'+
+      mfField('แผนที่ (lat,lng)','mf-geo','text',m.geo||'')+
+      mfField('PV สะสม','mf-pv','number',m.pv_total||0)+
+      mfField('เงินสด','mf-cash','number',m.cash||0)+
+      mfField('Credit','mf-credit','number',m.credit||0)+
+      mfField('จำกัดสินเชื่อ (บาท)','mf-credit-limit','number',m.credit_limit||0)+
+      '<div style="grid-column:1/-1;">'+
+        '<label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">แพลตฟอร์ม (เลือกได้หลายอัน)</label>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          platforms.map(function(p){
+            var checked=selPF.includes(p);
+            return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;background:'+(checked?'#e8b93e':'#f0ede8')+';border-radius:20px;cursor:pointer;color:'+(checked?'#1a1200':'#374151')+';">'+
+              '<input type="checkbox" name="mf-platform" value="'+p+'" '+(checked?'checked':'')+' style="display:none;" onchange="mlTogglePlatform(this,this.parentNode)"/>'+
+              p+'</label>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<div style="grid-column:1/-1;">'+mfField('หมายเหตุ','mf-note','text',m.note||'')+'</div>'+
+    '</div>'+
+
+    // chat source
+    '<div style="margin-top:12px;padding:10px;background:#f8f6f2;border-radius:8px;">'+
+      '<div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">สร้างอัตโนมัติจากแชท</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+        ['Facebook DM','LINE OA','Instagram DM','TikTok DM'].map(function(s){
+          return '<button onclick="mlAutoCreate(\''+s+'\')" style="padding:5px 12px;background:#fff;border:1px solid #d1d5db;border-radius:6px;font-size:11px;cursor:pointer;">'+s+'</button>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+
+    // actions
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">'+
+      (isEdit?'<button onclick="mlDelete(\''+m.id+'\')" style="padding:8px 14px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">🗑 ลบสมาชิก</button>':'<div></div>')+
+      '<div style="display:flex;gap:8px;">'+
+        '<button onclick="mlCloseForm()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">ยกเลิก</button>'+
+        '<button onclick="mlSave(\''+( m.id||'')+'\',\''+isEdit+'\')" style="padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึก</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function mfField(label,id,type,val,placeholder){
+  return '<div style="display:flex;flex-direction:column;gap:4px;">'+
+    '<label style="font-size:12px;font-weight:600;color:#374151;">'+label+'</label>'+
+    '<input id="'+id+'" type="'+type+'" value="'+(val||'')+'" placeholder="'+(placeholder||'')+'" '+
+    'style="padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;"/>'+
+  '</div>';
+}
+
+window.mlTogglePlatform=function(cb,label){
+  label.style.background=cb.checked?'#e8b93e':'#f0ede8';
+  label.style.color=cb.checked?'#1a1200':'#374151';
+};
+
+window.mlPreviewAvatar=function(input){
+  if(!input.files||!input.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    document.getElementById('mfAvatarPreview').innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;">';
+  };
+  r.readAsDataURL(input.files[0]);
+};
+
+window.mlAutoCreate=function(platform){
+  alert('ฟีเจอร์ดึงข้อมูลจาก '+platform+' จะพร้อมใช้งานเมื่อเชื่อมต่อแชท');
+};
+
+window.mlSave=function(id,isEdit){
+  var name=document.getElementById('mf-name').value.trim();
+  if(!name){alert('กรุณาระบุชื่อลูกค้า');return;}
+  var platforms=Array.from(document.querySelectorAll('input[name="mf-platform"]:checked')).map(function(cb){return cb.value;});
+  var avatarEl=document.getElementById('mfAvatarPreview').querySelector('img');
+  var member={
+    id: id||'MEM_'+Date.now(),
+    code: document.getElementById('mf-code').value||'C'+Date.now().toString().slice(-6),
+    name: name,
+    phone: document.getElementById('mf-phone').value,
+    tax_id: document.getElementById('mf-taxid').value,
+    email: document.getElementById('mf-email').value,
+    birthday: document.getElementById('mf-birthday').value,
+    address: document.getElementById('mf-address').value,
+    geo: document.getElementById('mf-geo').value,
+    pv_total: parseFloat(document.getElementById('mf-pv').value)||0,
+    cash: parseFloat(document.getElementById('mf-cash').value)||0,
+    credit: parseFloat(document.getElementById('mf-credit').value)||0,
+    credit_limit: parseFloat(document.getElementById('mf-credit-limit').value)||0,
+    note: document.getElementById('mf-note').value,
+    platforms: platforms,
+    avatar_url: avatarEl?avatarEl.src:'',
+    updated_at: new Date().toISOString(),
+  };
+  if(isEdit==='true'){
+    var idx=allMembers.findIndex(function(m){return m.id===id;});
+    if(idx>=0) allMembers[idx]=member;
+  } else {
+    member.created_at=new Date().toISOString();
+    allMembers.unshift(member);
+  }
+  localStorage.setItem('viiv_members',JSON.stringify(allMembers));
+  mlCloseForm();
+  renderStats();
+  mlFilter();
+};
+
+window.mlDelete=function(id){
+  if(!confirm('ลบสมาชิกนี้?'))return;
+  allMembers=allMembers.filter(function(m){return m.id!==id;});
+  localStorage.setItem('viiv_members',JSON.stringify(allMembers));
+  mlCloseForm();
+  renderStats();
+  mlFilter();
+};
+
+window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;});
+loadMembers();
+})();
+</script>
+</body>

@@ -107,15 +107,14 @@
   <div class="cp-card" style="margin-bottom:14px;">
     <div class="cp-section-title">สต็อกสินค้า</div>
     <div style="margin-bottom:14px;">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window.cpToggleTrack()">
         <div style="position:relative;width:40px;height:22px;flex-shrink:0;">
-          <input type="checkbox" id="cpTrack" checked onchange="cpToggleTrack()" style="opacity:0;width:0;height:0;position:absolute;"/>
-          <div id="cpTrackSlider" style="position:absolute;inset:0;border-radius:11px;background:#e8b93e;transition:background .2s;cursor:pointer;" onclick="document.getElementById('cpTrack').click()">
-            <div id="cpTrackThumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;left:19px;"></div>
+          <div id="cpTrackSlider" style="position:absolute;inset:0;border-radius:11px;background:#e8b93e;transition:background .2s;">
+            <div id="cpTrackThumb" style="position:absolute;top:3px;left:19px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;"></div>
           </div>
         </div>
         <span style="font-size:13px;font-weight:600;color:var(--text,#1f2937);" id="cpTrackLabel">นับจำนวนสต็อก</span>
-      </label>
+      </div>
     </div>
     <div id="cpStockFields">
       <div class="cp-grid2">
@@ -159,6 +158,11 @@
     </div>
   </div>
 
+  <!-- bottom actions -->
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;padding:0 0 8px 0;">
+    <button class="cp-btn-cancel" onclick="posTabClick?posTabClick(document.querySelector('.pos-tab'),null):null">ยกเลิก</button>
+    <button class="cp-btn-save" id="cpSaveBtnBottom" disabled onclick="cpSave()">บันทึกสินค้า</button>
+  </div>
   <!-- toast -->
   <div id="cpToast" style="display:none;position:fixed;bottom:24px;right:24px;background:#e8b93e;color:#1a1200;padding:10px 20px;border-radius:8px;font-weight:700;font-size:13px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);"></div>
 </div>
@@ -206,13 +210,14 @@ async function cpLoadCats(){
 cpLoadCats();
 
 // toggle track stock
+var _trackStock = true;
 window.cpToggleTrack = function(){
-  var cb = document.getElementById('cpTrack');
+  _trackStock = !_trackStock;
   var slider = document.getElementById('cpTrackSlider');
   var thumb = document.getElementById('cpTrackThumb');
   var label = document.getElementById('cpTrackLabel');
   var fields = document.getElementById('cpStockFields');
-  if(cb.checked){
+  if(_trackStock){
     slider.style.background = '#e8b93e';
     thumb.style.left = '19px';
     label.textContent = 'นับจำนวนสต็อก';
@@ -244,7 +249,7 @@ window.cpCheck = function(){
   var name  = document.getElementById('cpName').value.trim();
   var sku   = document.getElementById('cpSku').value.trim();
   var price = document.getElementById('cpPrice').value;
-  var track = document.getElementById('cpTrack').checked;
+  var track = (typeof _trackStock !== 'undefined') ? _trackStock : true;
   var stock = document.getElementById('cpStock').value;
   var ok = name && sku && price;
   if(track && stock === '') ok = false;
@@ -270,7 +275,7 @@ window.cpSave = async function(){
       if(upRes.ok){ var upData = await upRes.json(); imgUrl = upData.url; }
     }
 
-    var track = document.getElementById('cpTrack').checked;
+    var track = (typeof _trackStock !== 'undefined') ? _trackStock : true;
     var status = document.querySelector('input[name="cpStatus"]:checked').value;
     var payload = {
       name:        document.getElementById('cpName').value.trim(),

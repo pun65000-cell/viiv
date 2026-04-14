@@ -1,0 +1,259 @@
+<body>
+<div class="pt-wrap">
+
+  <div class="pt-header">
+    <div class="pt-search-row">
+      <input id="ptSearch" class="pt-input" placeholder="ค้นหาชื่อ / เลขผู้เสียภาษี / เบอร์..." oninput="ptFilter()"/>
+      <select id="ptType" class="pt-select" onchange="ptFilter()">
+        <option value="">ประเภทคู่ค้าทั้งหมด</option>
+        <option value="supplier">ซัพพลายเออร์</option>
+        <option value="distributor">ตัวแทนจำหน่าย</option>
+        <option value="manufacturer">ผู้ผลิต</option>
+        <option value="service">บริการ</option>
+        <option value="other">อื่นๆ</option>
+      </select>
+    </div>
+    <button class="pt-btn-new" onclick="ptOpenForm(null)">+ สร้างคู่ค้า</button>
+  </div>
+
+  <div id="ptList" class="pt-list"></div>
+  <div id="ptPager"></div>
+
+  <div id="ptOverlay" class="pt-overlay" style="display:none;" onclick="ptCloseForm()"></div>
+  <div id="ptFormWrap" class="pt-form-wrap" style="display:none;"></div>
+
+</div>
+
+<style>
+.pt-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.pt-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.pt-search-row{display:flex;gap:8px;flex:1;flex-wrap:wrap;}
+.pt-input{flex:1;min-width:160px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;}
+.pt-input:focus{border-color:#e8b93e;}
+.pt-select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;}
+.pt-select:focus{border-color:#e8b93e;}
+.pt-btn-new{padding:8px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.pt-btn-new:hover{opacity:.85;}
+.pt-list{display:flex;flex-direction:column;gap:6px;}
+.pt-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;cursor:pointer;transition:.15s;}
+.pt-row:hover{border-color:#e8b93e;background:#fffbf0;}
+.pt-icon{width:40px;height:40px;border-radius:9px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pt-info{flex:1;min-width:0;}
+.pt-name{font-size:13px;font-weight:700;color:#1f2937;}
+.pt-meta{font-size:11px;color:#6b7280;margin-top:2px;}
+.pt-type-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:#f0ede8;color:#374151;margin-top:3px;}
+.pt-type-badge.supplier{background:#e7f0fd;color:#1d4ed8;}
+.pt-type-badge.distributor{background:#fef3c7;color:#92400e;}
+.pt-type-badge.manufacturer{background:#f0fdf4;color:#166534;}
+.pt-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;}
+.pt-form-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(600px,95vw);max-height:90vh;overflow-y:auto;background:#fff;border-radius:14px;z-index:201;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+</style>
+
+<script>
+(function(){
+'use strict';
+var PAGE_SIZE=20;
+var currentPage=1;
+var allPartners=[];
+var filteredCache=[];
+
+function loadPartners(){
+  allPartners=JSON.parse(localStorage.getItem('viiv_partners')||'[]');
+  ptFilter();
+}
+
+window.ptFilter=function(reset){
+  if(reset!==false) currentPage=1;
+  var q=document.getElementById('ptSearch').value.toLowerCase();
+  var t=document.getElementById('ptType').value;
+  filteredCache=allPartners.filter(function(p){
+    var matchQ=!q||(p.company_name||'').toLowerCase().includes(q)||(p.tax_id||'').includes(q)||(p.phone||'').includes(q);
+    var matchT=!t||p.type===t;
+    return matchQ&&matchT;
+  });
+  renderList();
+};
+
+function renderList(){
+  var el=document.getElementById('ptList');
+  var total=filteredCache.length;
+  if(!total){el.innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">ไม่พบบริษัทคู่ค้า</div>';document.getElementById('ptPager').innerHTML='';return;}
+  var totalPages=Math.ceil(total/PAGE_SIZE);
+  var page=filteredCache.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE);
+  var typeMap={supplier:'ซัพพลายเออร์',distributor:'ตัวแทนจำหน่าย',manufacturer:'ผู้ผลิต',service:'บริการ',other:'อื่นๆ'};
+  el.innerHTML=page.map(function(p){
+    return '<div class="pt-row" onclick="ptOpenForm(\''+p.id+'\')">'+
+      '<div class="pt-icon">🏢</div>'+
+      '<div class="pt-info">'+
+        '<div class="pt-name">'+(p.company_name||'ไม่ระบุชื่อ')+'</div>'+
+        '<div class="pt-meta">เลขผู้เสียภาษี: '+(p.tax_id||'—')+' | '+(p.phone||'ไม่มีเบอร์')+'</div>'+
+        '<div class="pt-meta">'+(p.contact_name?'ผู้ติดต่อ: '+p.contact_name+' | ':'')+(p.email||'')+'</div>'+
+        '<span class="pt-type-badge '+(p.type||'other')+'">'+(typeMap[p.type]||'อื่นๆ')+'</span>'+
+      '</div>'+
+      '<div style="text-align:right;flex-shrink:0;">'+
+        '<div style="font-size:12px;font-weight:700;color:#e8b93e;">฿'+(p.credit_limit||0).toLocaleString()+'</div>'+
+        '<div style="font-size:10px;color:#6b7280;">วงเงิน</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  var pager=document.getElementById('ptPager');
+  if(totalPages>1){
+    pager.innerHTML='<div style="display:flex;justify-content:center;gap:8px;margin-top:12px;">'+
+      '<button onclick="ptPage('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+
+      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">◀</button>'+
+      '<span style="font-size:12px;color:#6b7280;align-self:center;">'+currentPage+'/'+totalPages+' ('+total+' บริษัท)</span>'+
+      '<button onclick="ptPage('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+
+      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">▶</button>'+
+    '</div>';
+  } else { pager.innerHTML=''; }
+}
+
+window.ptPage=function(p){
+  if(p<1||p>Math.ceil(filteredCache.length/PAGE_SIZE))return;
+  currentPage=p; renderList();
+};
+
+window.ptOpenForm=function(id){
+  var p=id?allPartners.find(function(x){return x.id===id;}):null;
+  var isEdit=!!p;
+  document.getElementById('ptOverlay').style.display='block';
+  var fw=document.getElementById('ptFormWrap');
+  fw.style.display='block';
+  fw.innerHTML=buildForm(p,isEdit);
+};
+
+window.ptCloseForm=function(){
+  document.getElementById('ptOverlay').style.display='none';
+  document.getElementById('ptFormWrap').style.display='none';
+};
+
+function buildForm(p,isEdit){
+  p=p||{};
+  return '<div style="padding:20px;">'+
+    '<div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:16px;">'+(isEdit?'✏️ จัดการคู่ค้า':'➕ สร้างคู่ค้าใหม่')+'</div>'+
+
+    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">ข้อมูลบริษัท</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
+      ptField('ชื่อบริษัท / ร้านค้า *','pt-company','text',p.company_name||'')+
+      ptField('เลขประจำตัวผู้เสียภาษี *','pt-taxid','text',p.tax_id||'')+
+      ptField('ประเภทคู่ค้า','pt-type-sel','select',p.type||'supplier')+
+      ptField('เว็บไซต์','pt-website','url',p.website||'')+
+      '<div style="grid-column:1/-1;">'+ptField('ที่อยู่บริษัท','pt-address','text',p.address||'')+'</div>'+
+      ptField('จังหวัด','pt-province','text',p.province||'')+
+      ptField('รหัสไปรษณีย์','pt-zipcode','text',p.zipcode||'')+
+      ptField('ประเทศ','pt-country','text',p.country||'ไทย')+
+    '</div>'+
+
+    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">ผู้ติดต่อหลัก</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
+      ptField('ชื่อผู้ติดต่อ','pt-contact','text',p.contact_name||'')+
+      ptField('ตำแหน่ง','pt-position','text',p.position||'')+
+      ptField('เบอร์โทรศัพท์','pt-phone','tel',p.phone||'')+
+      ptField('เบอร์แฟกซ์','pt-fax','tel',p.fax||'')+
+      ptField('อีเมล','pt-email','email',p.email||'')+
+      ptField('LINE ID','pt-line','text',p.line_id||'')+
+    '</div>'+
+
+    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">ข้อมูลทางการเงิน</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
+      ptField('วงเงินสินเชื่อ (บาท)','pt-credit-limit','number',p.credit_limit||0)+
+      ptField('เครดิตเทอม (วัน)','pt-credit-term','number',p.credit_term||30)+
+      ptField('ส่วนลด (%)','pt-discount','number',p.discount||0)+
+      ptField('ธนาคาร','pt-bank','text',p.bank||'')+
+      ptField('เลขบัญชี','pt-bank-acc','text',p.bank_account||'')+
+      ptField('ชื่อบัญชี','pt-bank-name','text',p.bank_account_name||'')+
+    '</div>'+
+
+    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">หมายเหตุ</div>'+
+    '<div style="margin-bottom:16px;">'+
+      '<textarea id="pt-note" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;" rows="3" placeholder="หมายเหตุเพิ่มเติม...">'+(p.note||'')+'</textarea>'+
+    '</div>'+
+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+      (isEdit?
+        '<button onclick="ptDelete(\''+p.id+'\')" style="padding:8px 14px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">🗑 ลบคู่ค้า</button>'
+        :'<div></div>')+
+      '<div style="display:flex;gap:8px;">'+
+        '<button onclick="ptCloseForm()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">ยกเลิก</button>'+
+        '<button onclick="ptSave(\''+( p.id||'')+'\',\''+isEdit+'\')" style="padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึก</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function ptField(label,id,type,val){
+  if(type==='select'){
+    var opts=[
+      {v:'supplier',l:'ซัพพลายเออร์'},
+      {v:'distributor',l:'ตัวแทนจำหน่าย'},
+      {v:'manufacturer',l:'ผู้ผลิต'},
+      {v:'service',l:'บริการ'},
+      {v:'other',l:'อื่นๆ'},
+    ];
+    return '<div style="display:flex;flex-direction:column;gap:4px;">'+
+      '<label style="font-size:12px;font-weight:600;color:#374151;">'+label+'</label>'+
+      '<select id="'+id+'" style="padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;background:#fff;width:100%;">'+
+        opts.map(function(o){return '<option value="'+o.v+'"'+(val===o.v?' selected':'')+'>'+o.l+'</option>';}).join('')+
+      '</select></div>';
+  }
+  return '<div style="display:flex;flex-direction:column;gap:4px;">'+
+    '<label style="font-size:12px;font-weight:600;color:#374151;">'+label+'</label>'+
+    '<input id="'+id+'" type="'+type+'" value="'+(val||'')+'" '+
+    'style="padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;"/>'+
+  '</div>';
+}
+
+window.ptSave=function(id,isEdit){
+  var company=document.getElementById('pt-company').value.trim();
+  var taxid=document.getElementById('pt-taxid').value.trim();
+  if(!company){alert('กรุณาระบุชื่อบริษัท');return;}
+  if(!taxid){alert('กรุณาระบุเลขประจำตัวผู้เสียภาษี');return;}
+  var partner={
+    id: id||'PTN_'+Date.now(),
+    company_name: company,
+    tax_id: taxid,
+    type: document.getElementById('pt-type-sel').value,
+    website: document.getElementById('pt-website').value,
+    address: document.getElementById('pt-address').value,
+    province: document.getElementById('pt-province').value,
+    zipcode: document.getElementById('pt-zipcode').value,
+    country: document.getElementById('pt-country').value,
+    contact_name: document.getElementById('pt-contact').value,
+    position: document.getElementById('pt-position').value,
+    phone: document.getElementById('pt-phone').value,
+    fax: document.getElementById('pt-fax').value,
+    email: document.getElementById('pt-email').value,
+    line_id: document.getElementById('pt-line').value,
+    credit_limit: parseFloat(document.getElementById('pt-credit-limit').value)||0,
+    credit_term: parseInt(document.getElementById('pt-credit-term').value)||30,
+    discount: parseFloat(document.getElementById('pt-discount').value)||0,
+    bank: document.getElementById('pt-bank').value,
+    bank_account: document.getElementById('pt-bank-acc').value,
+    bank_account_name: document.getElementById('pt-bank-name').value,
+    note: document.getElementById('pt-note').value,
+    updated_at: new Date().toISOString(),
+  };
+  if(isEdit==='true'){
+    var idx=allPartners.findIndex(function(x){return x.id===id;});
+    if(idx>=0) allPartners[idx]=partner;
+  } else {
+    partner.created_at=new Date().toISOString();
+    allPartners.unshift(partner);
+  }
+  localStorage.setItem('viiv_partners',JSON.stringify(allPartners));
+  ptCloseForm();
+  ptFilter();
+};
+
+window.ptDelete=function(id){
+  if(!confirm('ยืนยันการลบคู่ค้านี้?\n\nการดำเนินการนี้ไม่สามารถยกเลิกได้'))return;
+  allPartners=allPartners.filter(function(p){return p.id!==id;});
+  localStorage.setItem('viiv_partners',JSON.stringify(allPartners));
+  ptCloseForm();
+  ptFilter();
+};
+
+loadPartners();
+})();
+</script>
+</body>

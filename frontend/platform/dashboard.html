@@ -536,10 +536,12 @@ function renderPage(el, name) {
       const body = tmp.querySelector('body');
       el.innerHTML = body ? body.innerHTML : html;
       // รัน scripts ที่อยู่ใน page
-      el.querySelectorAll('script').forEach(old => {
-        const s = document.createElement('script');
-        s.textContent = old.textContent;
-        old.replaceWith(s);
+      el.querySelectorAll('script').forEach(scr => {
+        try {
+          const s = document.createElement('script');
+          s.textContent = scr.textContent;
+          scr.parentNode.replaceChild(s, scr);
+        } catch(e) { console.warn('script inject:', e); }
       });
     })
     .catch(() => {

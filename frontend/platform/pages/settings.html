@@ -14,6 +14,7 @@
 <div class="tabs" id="tabs">
   <button class="tab active" onclick="switchTab('staff', this)">บุคลากร</button>
   <button class="tab"        onclick="switchTab('password', this)">Password</button>
+  <button class="tab"        onclick="switchTab('icons', this)">ไอคอน</button>
 </div>
 
 <!-- ── TAB: บุคลากร ── -->
@@ -98,7 +99,7 @@
 function switchTab(name, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['staff','password'].forEach(p => {
+  ['staff','password','icons'].forEach(p => {
     document.getElementById('panel-'+p).style.display = p === name ? 'block' : 'none';
   });
 }
@@ -212,5 +213,134 @@ function togglePw(id, btn) {
   else { el.type = 'password'; btn.textContent = '👁'; }
 }
 </script>
+
+<!-- ── TAB: ไอคอน ── -->
+<div id="panel-icons" style="display:none;">
+  <div style="font-size:14px;font-weight:600;margin-bottom:16px;">จัดการไอคอน</div>
+
+  <!-- App Icon -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">App Icon / Logo</div>
+    <div style="font-size:11px;color:#888;margin-bottom:12px;">แสดงที่มุมบนซ้าย Superboard แทนข้อความ VIIV</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+      <div id="iconPreview" style="width:60px;height:60px;border-radius:12px;background:#1a1a1a;border:2px solid #C9A84C;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:22px;font-weight:700;color:#C9A84C;">V</div>
+      <div>
+        <div style="font-size:12px;color:#666;margin-bottom:6px;">แนะนำ: 512×512px, PNG/JPG</div>
+        <button class="btn btn-accent" onclick="document.getElementById('iconFileInput').click()">📁 เลือกรูป</button>
+        <button class="btn" onclick="iconClear()" style="margin-left:6px;">รีเซ็ต</button>
+      </div>
+    </div>
+    <input type="file" id="iconFileInput" accept="image/*" style="display:none;" onchange="window.iconPreview(this)"/>
+    <div style="font-size:11px;color:#888;">* รูปจะถูกเก็บในเบราว์เซอร์ และแสดงบนอุปกรณ์นี้เท่านั้น</div>
+  </div>
+
+  <!-- Favicon -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Favicon (เว็บไอคอน)</div>
+    <div style="font-size:11px;color:#888;margin-bottom:12px;">แสดงบน browser tab — ดาวกระพริบ</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+      <div id="faviconPreview" style="width:32px;height:32px;border-radius:6px;background:#1a1a1a;border:1px solid #C9A84C;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:14px;">V</div>
+      <div>
+        <div style="font-size:12px;color:#666;margin-bottom:6px;">แนะนำ: 32×32px หรือ 512×512px, PNG</div>
+        <button class="btn btn-accent" onclick="document.getElementById('faviconFileInput').click()">📁 เลือกรูป</button>
+        <button class="btn" onclick="faviconClear()" style="margin-left:6px;">รีเซ็ต</button>
+      </div>
+    </div>
+    <input type="file" id="faviconFileInput" accept="image/*" style="display:none;" onchange="window.faviconPreviewFn(this)"/>
+  </div>
+
+  <!-- PWA Install -->
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">ติดตั้งเป็น App บนมือถือ</div>
+    <div style="font-size:11px;color:#888;margin-bottom:12px;">เพิ่ม VIIV ไปยังหน้าจอหลักของมือถือ</div>
+    <button class="btn btn-accent" id="pwaInstallBtn" onclick="pwaTriggerInstall()" style="display:none;">📲 ติดตั้ง App</button>
+    <div id="pwaInstallGuide" style="font-size:12px;color:#666;line-height:1.6;">
+      <b>Android (Chrome):</b> กดเมนู ⋮ → "เพิ่มในหน้าจอหลัก"<br>
+      <b>iOS (Safari):</b> กด Share → "เพิ่มไปยังหน้าจอโฮม"
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // โหลด icon ที่บันทึกไว้
+  var savedIcon = localStorage.getItem('viiv_app_icon');
+  if(savedIcon){
+    var p = document.getElementById('iconPreview');
+    if(p) p.innerHTML = '<img src="'+savedIcon+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">';
+  }
+  var savedFav = localStorage.getItem('viiv_favicon');
+  if(savedFav){
+    var fp = document.getElementById('faviconPreview');
+    if(fp) fp.innerHTML = '<img src="'+savedFav+'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">';
+  }
+
+  // icon upload
+  window.iconPreview = function(input){
+    if(!input.files||!input.files[0]) return;
+    var r = new FileReader();
+    r.onload = function(e){
+      var data = e.target.result;
+      localStorage.setItem('viiv_app_icon', data);
+      var p = document.getElementById('iconPreview');
+      p.innerHTML = '<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">';
+      // อัพเดท Superboard logo ทันที
+      var sbImg = window.opener ? window.opener.document.getElementById('sbLogoImg') : null;
+      alert('✅ บันทึก App Icon แล้ว — refresh Superboard เพื่อเห็นผล');
+    };
+    r.readAsDataURL(input.files[0]);
+  };
+
+  window.iconClear = function(){
+    localStorage.removeItem('viiv_app_icon');
+    document.getElementById('iconPreview').innerHTML = '<span style="font-size:22px;font-weight:700;color:#C9A84C;">V</span>';
+    alert('✅ รีเซ็ต App Icon แล้ว');
+  };
+
+  // favicon upload
+  window.faviconPreviewFn = function(input){
+    if(!input.files||!input.files[0]) return;
+    var r = new FileReader();
+    r.onload = function(e){
+      var data = e.target.result;
+      localStorage.setItem('viiv_favicon', data);
+      var fp = document.getElementById('faviconPreview');
+      fp.innerHTML = '<img src="'+data+'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">';
+      // เปลี่ยน favicon ทันที
+      var link = document.querySelector('link[rel*="icon"]') || document.createElement('link');
+      link.rel = 'shortcut icon';
+      link.href = data;
+      document.head.appendChild(link);
+      alert('✅ บันทึก Favicon แล้ว — refresh เพื่อเห็นผลบน tab');
+    };
+    r.readAsDataURL(input.files[0]);
+  };
+
+  window.faviconClear = function(){
+    localStorage.removeItem('viiv_favicon');
+    document.getElementById('faviconPreview').innerHTML = '<span style="font-size:14px;">V</span>';
+    alert('✅ รีเซ็ต Favicon แล้ว');
+  };
+
+  // PWA install prompt
+  var deferredPrompt;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    var btn = document.getElementById('pwaInstallBtn');
+    var guide = document.getElementById('pwaInstallGuide');
+    if(btn){ btn.style.display='inline-block'; }
+    if(guide){ guide.style.display='none'; }
+  });
+
+  window.pwaTriggerInstall = function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(){ deferredPrompt=null; });
+    }
+  };
+})();
+</script>
+
 </body>
 </html>

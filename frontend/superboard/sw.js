@@ -1,0 +1,19 @@
+var CACHE = 'viiv-v1';
+var ASSETS = [
+  '/superboard/',
+  '/superboard/index.html',
+  '/superboard/css/theme.css',
+  '/superboard/login.html'
+];
+
+self.addEventListener('install', function(e){
+  e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(ASSETS); }));
+});
+
+self.addEventListener('fetch', function(e){
+  e.respondWith(
+    caches.match(e.request).then(function(r){
+      return r || fetch(e.request);
+    })
+  );
+});

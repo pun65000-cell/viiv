@@ -1,7 +1,329 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">🏷</div>
-  <div style="font-size:14px;">หมวดหมู่สินค้า</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="cat-wrap">
+
+  <!-- header -->
+  <div class="cat-header">
+    <div>
+      <div class="cat-title">หมวดหมู่สินค้า</div>
+      <div class="cat-sub" id="catCount">กำลังโหลด...</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="catSortBtn" class="cat-btn-sort" onclick="catToggleSort()">จัดอันดับ</button>
+      <button class="cat-btn-new" onclick="catOpenForm(null)">+ สร้างหมวดหมู่</button>
+    </div>
+  </div>
+
+  <!-- list -->
+  <div id="catList" class="cat-list"></div>
+
+  <!-- form panel -->
+  <div id="catFormPanel" class="cat-form-panel" style="display:none;">
+    <div class="cat-form-title" id="catFormTitle">สร้างหมวดหมู่ใหม่</div>
+
+    <div class="cat-form-grid">
+      <div class="cat-field full">
+        <label>ชื่อหมวดหมู่ *</label>
+        <input id="cfName" type="text" placeholder="เช่น อาหาร, เครื่องดื่ม..." class="cat-input"/>
+      </div>
+      <div class="cat-field full">
+        <label>คำอธิบาย</label>
+        <input id="cfDesc" type="text" placeholder="คำอธิบายสั้นๆ" class="cat-input"/>
+      </div>
+      <div class="cat-field">
+        <label>ไอคอน (emoji)</label>
+        <input id="cfIcon" type="text" placeholder="🏷" maxlength="4" class="cat-input" style="font-size:20px;text-align:center;width:60px;"/>
+      </div>
+      <div class="cat-field">
+        <label>สถานะ</label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button id="cfVisBtn" class="cat-vis-btn active" onclick="catToggleVis()">👁 แสดง</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- กำหนดเวลาขาย -->
+    <div class="cat-section-title">⏰ กำหนดเวลาจำหน่าย</div>
+    <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">ถ้าไม่กำหนด = จำหน่ายตลอดเวลา</div>
+    <div id="cfSchedules" class="cat-schedules"></div>
+    <button class="cat-btn-add-schedule" onclick="catAddSchedule()">+ เพิ่มช่วงเวลา</button>
+
+    <div class="cat-form-actions">
+      <button id="cfDeleteBtn" class="cat-btn-delete" style="display:none;" onclick="catDelete()">🗑 ลบหมวดหมู่</button>
+      <div style="display:flex;gap:8px;">
+        <button class="cat-btn-cancel" onclick="catCloseForm()">ยกเลิก</button>
+        <button class="cat-btn-save" onclick="catSave()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<style>
+.cat-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.cat-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.cat-title{font-size:15px;font-weight:700;color:#1f2937;}
+.cat-sub{font-size:12px;color:#6b7280;margin-top:2px;}
+.cat-btn-new{padding:7px 14px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
+.cat-btn-new:hover{opacity:.85;}
+.cat-btn-sort{padding:7px 14px;background:#e8e8e8;color:#555;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;}
+.cat-btn-sort.active{background:#22c55e;color:#fff;}
+.cat-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.cat-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;transition:.15s;}
+.cat-row:hover{border-color:#e8b93e;}
+.cat-row.hidden-cat{opacity:.5;background:#f8f8f8;}
+.cat-drag-handle{font-size:16px;color:#ccc;cursor:default;width:20px;text-align:center;}
+.cat-drag-handle.enabled{cursor:grab;color:#e8b93e;}
+.cat-icon-box{width:36px;height:36px;border-radius:8px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.cat-info{flex:1;min-width:0;}
+.cat-name{font-size:13px;font-weight:700;color:#1f2937;}
+.cat-desc{font-size:11px;color:#6b7280;margin-top:1px;}
+.cat-meta{font-size:10px;color:#9ca3af;margin-top:2px;}
+.cat-vis-tag{font-size:10px;padding:2px 7px;border-radius:10px;margin-left:6px;}
+.cat-vis-tag.show{background:#dcfce7;color:#166534;}
+.cat-vis-tag.hide{background:#f3f4f6;color:#9ca3af;}
+.cat-actions{display:flex;gap:6px;flex-shrink:0;}
+.cat-btn-edit{padding:4px 10px;background:#f0ede8;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#374151;}
+.cat-btn-edit:hover{background:#e8b93e;color:#1a1200;}
+.cat-btn-vis{padding:4px 8px;background:#f0ede8;border:none;border-radius:6px;font-size:11px;cursor:pointer;}
+/* form */
+.cat-form-panel{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;margin-bottom:16px;}
+.cat-form-title{font-size:14px;font-weight:700;color:#1f2937;margin-bottom:14px;}
+.cat-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.cat-field{display:flex;flex-direction:column;gap:4px;}
+.cat-field.full{grid-column:1/-1;}
+.cat-field label{font-size:12px;font-weight:600;color:#374151;}
+.cat-input{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;}
+.cat-input:focus{border-color:#e8b93e;}
+.cat-vis-btn{padding:6px 14px;border:1px solid #d1d5db;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;background:#f3f4f6;color:#374151;}
+.cat-vis-btn.active{background:#dcfce7;color:#166534;border-color:#86efac;}
+.cat-section-title{font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #f0ede8;}
+.cat-schedules{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.cat-schedule-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;background:#f8f6f2;border-radius:8px;}
+.cat-schedule-row input{padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;outline:none;}
+.cat-schedule-row input:focus{border-color:#e8b93e;}
+.cat-btn-add-schedule{padding:6px 14px;background:#f0ede8;border:1px dashed #d1d5db;border-radius:7px;font-size:12px;cursor:pointer;color:#374151;margin-bottom:14px;}
+.cat-btn-add-schedule:hover{border-color:#e8b93e;color:#e8b93e;}
+.cat-form-actions{display:flex;justify-content:space-between;align-items:center;}
+.cat-btn-delete{padding:7px 12px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;}
+.cat-btn-cancel{padding:7px 14px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;}
+.cat-btn-save{padding:7px 18px;background:#e8b93e;color:#1a1200;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;}
+.cat-btn-save:hover{opacity:.85;}
+.cat-row.dragging{opacity:.4;border:2px dashed #e8b93e;}
+.cat-row.drag-over{border-color:#e8b93e;background:#fffbf0;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var categories=JSON.parse(localStorage.getItem('viiv_categories')||'[]');
+var editingId=null;
+var isVis=true;
+var isSorting=false;
+var dragSrcIdx=null;
+var scheduleCount=0;
+
+function renderList(){
+  var el=document.getElementById('catList');
+  var count=document.getElementById('catCount');
+  count.textContent='ทั้งหมด '+categories.length+' หมวดหมู่';
+  if(!categories.length){
+    el.innerHTML='<div style="color:#aaa;padding:30px;text-align:center;">ยังไม่มีหมวดหมู่</div>';
+    return;
+  }
+  el.innerHTML=categories.map(function(c,i){
+    var hidden=c.visible===false;
+    var schedText=c.schedules&&c.schedules.length?'⏰ '+c.schedules.length+' ช่วงเวลา':'ตลอดเวลา';
+    return '<div class="cat-row'+(hidden?' hidden-cat':'')+'" data-id="'+c.id+'" '+(isSorting?'draggable="true"':'')+'>'+
+      '<div class="cat-drag-handle'+(isSorting?' enabled':'')+'">⠿</div>'+
+      '<div class="cat-icon-box">'+(c.icon||'🏷')+'</div>'+
+      '<div class="cat-info">'+
+        '<div class="cat-name">'+c.name+
+          '<span class="cat-vis-tag '+(hidden?'hide':'show')+'">'+(hidden?'ซ่อน':'แสดง')+'</span>'+
+        '</div>'+
+        '<div class="cat-desc">'+(c.desc||'')+'</div>'+
+        '<div class="cat-meta">#'+(i+1)+' · '+schedText+'</div>'+
+      '</div>'+
+      '<div class="cat-actions">'+
+        '<button class="cat-btn-vis" onclick="catQuickVis(\''+c.id+'\')">'+(hidden?'👁':'🙈')+'</button>'+
+        '<button class="cat-btn-edit" onclick="catOpenForm(\''+c.id+'\')">แก้ไข</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  if(isSorting) bindDrag();
+}
+
+function bindDrag(){
+  var items=document.querySelectorAll('.cat-row');
+  items.forEach(function(item,idx){
+    item.addEventListener('dragstart',function(e){
+      dragSrcIdx=idx;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    item.addEventListener('dragend',function(){
+      item.classList.remove('dragging');
+      document.querySelectorAll('.cat-row').forEach(function(i){i.classList.remove('drag-over');});
+    });
+    item.addEventListener('dragover',function(e){
+      e.preventDefault();
+      document.querySelectorAll('.cat-row').forEach(function(i){i.classList.remove('drag-over');});
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('drop',function(e){
+      e.preventDefault();
+      if(dragSrcIdx===null||dragSrcIdx===idx) return;
+      var moved=categories.splice(dragSrcIdx,1)[0];
+      categories.splice(idx,0,moved);
+      renderList();
+    });
+  });
+}
+
+window.catToggleSort=function(){
+  isSorting=!isSorting;
+  var btn=document.getElementById('catSortBtn');
+  if(isSorting){
+    btn.textContent='💾 บันทึกลำดับ';
+    btn.classList.add('active');
+  } else {
+    btn.textContent='จัดอันดับ';
+    btn.classList.remove('active');
+    localStorage.setItem('viiv_categories',JSON.stringify(categories));
+    showToast('✅ บันทึกลำดับแล้ว');
+  }
+  renderList();
+};
+
+window.catQuickVis=function(id){
+  var c=categories.find(function(x){return x.id===id;});
+  if(!c) return;
+  c.visible=c.visible===false?true:false;
+  localStorage.setItem('viiv_categories',JSON.stringify(categories));
+  renderList();
+};
+
+window.catOpenForm=function(id){
+  editingId=id;
+  var c=id?categories.find(function(x){return x.id===id;}):null;
+  isVis=c?c.visible!==false:true;
+  document.getElementById('catFormTitle').textContent=id?'แก้ไขหมวดหมู่':'สร้างหมวดหมู่ใหม่';
+  document.getElementById('cfName').value=c?c.name:'';
+  document.getElementById('cfDesc').value=c?c.desc||'':'';
+  document.getElementById('cfIcon').value=c?c.icon||'🏷':'🏷';
+  document.getElementById('cfDeleteBtn').style.display=id?'block':'none';
+  catUpdateVisBtn();
+  // schedules
+  scheduleCount=0;
+  var sc=document.getElementById('cfSchedules');
+  sc.innerHTML='';
+  if(c&&c.schedules){
+    c.schedules.forEach(function(s){ catAddSchedule(s); });
+  }
+  document.getElementById('catFormPanel').style.display='block';
+  document.getElementById('catFormPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+
+window.catCloseForm=function(){
+  document.getElementById('catFormPanel').style.display='none';
+  editingId=null;
+};
+
+window.catToggleVis=function(){
+  isVis=!isVis;
+  catUpdateVisBtn();
+};
+
+function catUpdateVisBtn(){
+  var btn=document.getElementById('cfVisBtn');
+  if(isVis){ btn.textContent='👁 แสดง'; btn.classList.add('active'); }
+  else { btn.textContent='🙈 ซ่อน'; btn.classList.remove('active'); }
+}
+
+window.catAddSchedule=function(data){
+  scheduleCount++;
+  var i=scheduleCount;
+  var el=document.getElementById('cfSchedules');
+  var d=data||{};
+  var div=document.createElement('div');
+  div.className='cat-schedule-row';
+  div.id='sched-'+i;
+  div.innerHTML=
+    '<select id="sd-day-'+i+'" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;outline:none;">'+
+      ['ทุกวัน','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'].map(function(d){
+        return '<option value="'+d+'"'+(data&&data.day===d?' selected':'')+'>'+d+'</option>';
+      }).join('')+
+    '</select>'+
+    '<span style="font-size:12px;color:#6b7280;">เวลา</span>'+
+    '<input type="time" id="sd-from-'+i+'" value="'+(d.from||'08:00')+'" style="width:90px;">'+
+    '<span style="font-size:12px;color:#6b7280;">ถึง</span>'+
+    '<input type="time" id="sd-to-'+i+'" value="'+(d.to||'22:00')+'" style="width:90px;">'+
+    '<button onclick="document.getElementById(\'sched-'+i+'\').remove()" '+
+    'style="padding:3px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:5px;font-size:11px;cursor:pointer;">ลบ</button>';
+  el.appendChild(div);
+};
+
+window.catSave=function(){
+  var name=document.getElementById('cfName').value.trim();
+  if(!name){alert('กรุณาระบุชื่อหมวดหมู่');return;}
+  // collect schedules
+  var schedules=[];
+  document.querySelectorAll('.cat-schedule-row').forEach(function(row){
+    var id=row.id.replace('sched-','');
+    var days=[];
+    DAYS.forEach(function(day){
+      var btn=document.getElementById('sd-'+day.key+'-'+id);
+      if(btn&&(btn.style.background==='rgb(232, 185, 62)'||btn.style.background==='#e8b93e')){
+        days.push(day.key);
+      }
+    });
+    if(!days.length) days=['mon','tue','wed','thu','fri','sat','sun'];
+    schedules.push({
+      days: days,
+      from: document.getElementById('sd-from-'+id).value,
+      to: document.getElementById('sd-to-'+id).value,
+    });
+  });
+  var cat={
+    id: editingId||'CAT_'+Date.now(),
+    name: name,
+    desc: document.getElementById('cfDesc').value,
+    icon: document.getElementById('cfIcon').value||'🏷',
+    visible: isVis,
+    schedules: schedules,
+    updated_at: new Date().toISOString(),
+  };
+  if(editingId){
+    var idx=categories.findIndex(function(x){return x.id===editingId;});
+    if(idx>=0) categories[idx]=cat;
+  } else {
+    cat.created_at=new Date().toISOString();
+    categories.push(cat);
+  }
+  localStorage.setItem('viiv_categories',JSON.stringify(categories));
+  catCloseForm();
+  renderList();
+  showToast('✅ บันทึกแล้ว');
+};
+
+window.catDelete=function(){
+  if(!confirm('ลบหมวดหมู่นี้?\nสินค้าในหมวดนี้จะไม่ถูกลบ แต่จะไม่มีหมวดหมู่')) return;
+  categories=categories.filter(function(x){return x.id!==editingId;});
+  localStorage.setItem('viiv_categories',JSON.stringify(categories));
+  catCloseForm();
+  renderList();
+};
+
+function showToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:20px;right:20px;background:#e8b93e;color:#1a1200;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15);';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},2500);
+}
+
+renderList();
+})();
+</script>
 </body>

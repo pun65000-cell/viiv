@@ -201,8 +201,11 @@
       <a href="#" data-page="finance">
         <span class="nav-icon">◉</span> บัญชีการเงิน
       </a>
+      <a href="#" data-page="sales">
+        <span class="nav-icon">↑</span> ยอดขาย
+      </a>
       <a href="#" data-page="settings">
-        <span class="nav-icon">⚙</span> ตั้งค่าร้านค้า
+        <span class="nav-icon">⚙</span> จัดการร้านค้า
       </a>
     </div>
   </nav>
@@ -254,7 +257,12 @@ const PAGES = {
     { label:'รายรับ',   file:'finance/income.html' },
     { label:'รายจ่าย',  file:'finance/expense.html' },
   ]},
-  settings:  { title:'ตั้งค่าร้านค้า', tabs:[
+  sales: { title:'ยอดขาย', tabs:[
+    { label:'ยอดขายวันนี้',    file:'sales/today.html' },
+    { label:'ค้นหายอดขาย',    file:'sales/search.html' },
+    { label:'ยอดขายล่วงหน้า', file:'sales/advance.html' },
+  ]},
+  settings:  { title:'จัดการร้านค้า', tabs:[
     { label:'ข้อมูลร้านค้า', file:'settings/store.html' },
     { label:'การชำระเงิน',   file:'settings/payment.html' },
   ]},

@@ -1,7 +1,86 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">◎</div>
-  <div style="font-size:14px;">สมาชิกทั้งหมด</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="mem-wrap">
+  <div class="mem-tabbar">
+    <button class="mem-tab active" onclick="memNav('overview',this)">สมาชิกทั้งหมด</button>
+    <button class="mem-tab" onclick="memNav('members',this)">สมาชิกร้านค้า</button>
+    <button class="mem-tab" onclick="memNav('partners',this)">บริษัทคู่ค้า</button>
+  </div>
+  <div id="memContent"></div>
 </div>
+
+<style>
+.mem-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.mem-tabbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--border,#e5e5e5);}
+.mem-tab{padding:6px 16px;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:#e8e8e8;color:#555;transition:.15s;}
+.mem-tab:hover{background:#d5d5d5;}
+.mem-tab.active{background:#e8b93e;color:#1a1200;}
+#memContent{min-height:200px;}
+</style>
+
+<script>
+(function(){
+'use strict';
+window.VIIV_TOKEN = window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var BASE = 'members/';
+
+window.memNav = function(page, btn){
+  document.querySelectorAll('.mem-tab').forEach(function(b){
+    b.classList.remove('active');
+    b.style.background='#e8e8e8'; b.style.color='#555';
+  });
+  if(btn){ btn.classList.add('active'); btn.style.background='#e8b93e'; btn.style.color='#1a1200'; }
+  // หา memContent จาก DOM หรือ parent element
+  var c = document.getElementById('memContent');
+  if(!c){
+    // ถ้าหาไม่เจอ ใช้ parent ของ .mem-wrap แทน
+    var wrap = document.querySelector('.mem-wrap');
+    if(wrap) c = wrap.querySelector('#memContent');
+  }
+  if(!c){ console.warn('memContent not found'); return; }
+  c.innerHTML='<div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div>';
+  var fileMap = { overview:'members/list.html', members:'members/list.html', partners:'partners/list.html' };
+  fetch(BASE+(fileMap[page]||'members/list.html')+'?v='+Date.now())
+    .then(function(r){ return r.text(); })
+    .then(function(html){
+      var tmp=document.createElement('div');
+      tmp.innerHTML=html;
+      var body=tmp.querySelector('body');
+      c.innerHTML=body?body.innerHTML:html;
+      c.querySelectorAll('script').forEach(function(scr){
+        try{
+          var s=document.createElement('script');
+          s.textContent=scr.textContent;
+          scr.parentNode.replaceChild(s,scr);
+        }catch(e){}
+      });
+      // ส่ง context ให้ sub-page รู้ว่าอยู่ tab ไหน
+      window.MEM_CONTEXT = page;
+    })
+    .catch(function(){ c.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
+};
+
+window.memLoadPage = function(file){
+  var c=document.getElementById('memContent');
+  c.innerHTML='<div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div>';
+  fetch(BASE+file+'?v='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(html){
+      var tmp=document.createElement('div');
+      tmp.innerHTML=html;
+      var body=tmp.querySelector('body');
+      c.innerHTML=body?body.innerHTML:html;
+      c.querySelectorAll('script').forEach(function(scr){
+        try{
+          var s=document.createElement('script');
+          s.textContent=scr.textContent;
+          scr.parentNode.replaceChild(s,scr);
+        }catch(e){}
+      });
+    })
+    .catch(function(){ c.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
+};
+
+memNav('members', document.querySelectorAll('.mem-tab')[1]);
+})();
+</script>
 </body>
