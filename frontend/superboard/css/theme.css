@@ -33,15 +33,21 @@ body {
   background: #f8f6f2;
   border-bottom: 1px solid #dddddd;
   display: flex; align-items: center;
-  padding: 0 18px; gap: 10px;
+  padding: 0 10px; gap: 6px;
   z-index: 100; flex-shrink: 0;
 }
 .sb-logo {
-  font-size: 16px; font-weight: 800;
-  letter-spacing: 2px; color: var(--accent);
+  font-size: 15px; font-weight: 800;
+  letter-spacing: 1px; color: var(--accent);
   text-decoration: none; flex-shrink: 0;
-  padding-right: 14px;
+  padding-right: 12px;
   border-right: 1px solid #dddddd;
+  display: flex; align-items: center;
+  gap: 8px;
+}
+.sb-logo img {
+  width: 38px; height: 38px;
+  object-fit: contain; border-radius: 8px;
 }
 .sb-shop-wrap { position: relative; flex-shrink: 0; }
 .sb-shop-btn {

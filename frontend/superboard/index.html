@@ -306,5 +306,21 @@ document.addEventListener('DOMContentLoaded', function(){
   window.viivApplyIcon = applyIcon;
 })();
 </script>
+<script>
+(function(){
+  var logo = document.querySelector('.sb-logo');
+  if(!logo) return;
+  var img = document.createElement('img');
+  img.src = '/superboard/icon-192.png';
+  img.alt = 'VIIV';
+  img.style.cssText = 'width:42px;height:42px;object-fit:contain;border-radius:9px;flex-shrink:0;';
+  var txt = document.createElement('span');
+  txt.textContent = 'VIIV';
+  img.onerror = function(){ logo.textContent = 'VIIV'; };
+  logo.textContent = '';
+  logo.appendChild(img);
+  logo.appendChild(txt);
+})();
+</script>
 </body>
 </html>

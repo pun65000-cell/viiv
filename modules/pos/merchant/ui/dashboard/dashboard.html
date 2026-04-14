@@ -204,6 +204,9 @@
       <a href="#" data-page="sales">
         <span class="nav-icon">↑</span> ยอดขาย
       </a>
+      <a href="#" data-page="billing">
+        <span class="nav-icon">🧾</span> บิลใบเสร็จ
+      </a>
       <a href="#" data-page="settings">
         <span class="nav-icon">⚙</span> จัดการร้านค้า
       </a>
@@ -261,6 +264,15 @@ const PAGES = {
     { label:'ยอดขายวันนี้',    file:'sales/today.html' },
     { label:'ค้นหายอดขาย',    file:'sales/search.html' },
     { label:'ยอดขายล่วงหน้า', file:'sales/advance.html' },
+  ]},
+  billing: { title:'บิลใบเสร็จ', tabs:[
+    { label:'สร้างบิล',     file:'billing/create.html' },
+    { label:'ค้นหาบิล',    file:'billing/search.html' },
+    { label:'ใบจอง',        file:'billing/reserve.html' },
+    { label:'ใบส่งของ',    file:'billing/delivery.html' },
+    { label:'ใบเสร็จ',     file:'billing/receipt.html' },
+    { label:'ใบวางบิล',    file:'billing/invoice.html' },
+    { label:'ใบลดหนี้',    file:'billing/creditnote.html' },
   ]},
   settings:  { title:'จัดการร้านค้า', tabs:[
     { label:'ข้อมูลร้านค้า', file:'settings/store.html' },

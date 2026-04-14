@@ -142,3 +142,34 @@ def update_product(pid: str, payload: dict, authorization: str = Header("")):
             "status":payload.get("status","active")
         })
     return {"message":"อัพเดทสำเร็จ"}
+
+@router.post("/upload-icon")
+async def upload_app_icon(file: UploadFile = File(...)):
+    import shutil
+    ext = file.filename.split('.')[-1].lower()
+    if ext not in ['png','jpg','jpeg','webp']:
+        raise HTTPException(status_code=400, detail="ไฟล์ต้องเป็น PNG/JPG/WEBP")
+    dest = "/home/viivadmin/viiv/frontend/superboard/logo-original." + ext
+    with open(dest, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    try:
+        from PIL import Image
+        img = Image.open(dest).convert("RGBA")
+        for size in [192, 512]:
+            img.resize((size,size), Image.LANCZOS).save(
+                f"/home/viivadmin/viiv/frontend/superboard/icon-{size}.png"
+            )
+        img.resize((32,32), Image.LANCZOS).save(
+            "/home/viivadmin/viiv/frontend/superboard/favicon.ico", format="ICO"
+        )
+        shutil.copy(
+            "/home/viivadmin/viiv/frontend/superboard/favicon.ico",
+            "/home/viivadmin/viiv/frontend/favicon.ico"
+        )
+        shutil.copy(
+            "/home/viivadmin/viiv/frontend/superboard/favicon.ico",
+            "/home/viivadmin/viiv/modules/pos/merchant/ui/dashboard/favicon.ico"
+        )
+    except Exception as e:
+        return {"url": f"/superboard/logo-original.{ext}", "warning": str(e)}
+    return {"url": "/superboard/icon-192.png"}
