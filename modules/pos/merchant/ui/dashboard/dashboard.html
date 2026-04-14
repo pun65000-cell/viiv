@@ -305,7 +305,14 @@ function loadSubPage(el, file) {
       var body = tmp.querySelector('body');
       el.innerHTML = body ? body.innerHTML : html;
       el.querySelectorAll('script').forEach(function(scr){
-        try{ eval(scr.textContent); }catch(e){ console.warn('script eval:', e); }
+        try{
+          var blob = new Blob([scr.textContent], {type:'application/javascript'});
+          var url = URL.createObjectURL(blob);
+          var s = document.createElement('script');
+          s.src = url;
+          s.onload = function(){ URL.revokeObjectURL(url); };
+          document.head.appendChild(s);
+        }catch(e){ console.warn('script inject:', e); }
       });
     })
     .catch(function(){ el.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });

@@ -1,7 +1,90 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">🧾</div>
-  <div style="font-size:14px;">ค้นหาบิล</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="bs-wrap">
+  <div class="bs-header">
+    <div class="bs-filters">
+      <input id="bsQ" class="bs-input" placeholder="ค้นหา เลขบิล / ชื่อลูกค้า..." oninput="bsFilter()"/>
+      <select id="bsStatus" class="bs-select" onchange="bsFilter()">
+        <option value="">สถานะทั้งหมด</option>
+        <option value="paid">จ่ายแล้ว</option>
+        <option value="draft">ร่าง</option>
+      </select>
+      <select id="bsType" class="bs-select" onchange="bsFilter()">
+        <option value="">ประเภททั้งหมด</option>
+        <option value="receipt">ใบเสร็จ</option>
+        <option value="delivery">ใบส่งของ</option>
+        <option value="quotation">ใบเสนอราคา</option>
+        <option value="reserve">ใบจอง</option>
+      </select>
+    </div>
+    <div id="bsCount" style="font-size:12px;color:#6b7280;align-self:center;"></div>
+  </div>
+  <div id="bsList" class="bs-list"></div>
 </div>
+
+<style>
+.bs-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.bs-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.bs-filters{display:flex;gap:8px;flex-wrap:wrap;flex:1;}
+.bs-input{flex:1;min-width:160px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;}
+.bs-input:focus{border-color:#e8b93e;}
+.bs-select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;}
+.bs-list{display:flex;flex-direction:column;gap:6px;}
+.bs-row{padding:10px 14px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;cursor:pointer;transition:.15s;}
+.bs-row:hover{border-color:#e8b93e;}
+.bs-row-top{display:flex;justify-content:space-between;align-items:center;}
+.bs-bill-id{font-size:12px;font-weight:700;color:#1f2937;}
+.bs-amount{font-size:14px;font-weight:700;color:#e8b93e;}
+.bs-row-sub{font-size:11px;color:#6b7280;margin-top:3px;}
+.bs-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin-left:6px;}
+.bs-badge.paid{background:#dcfce7;color:#166534;}
+.bs-badge.draft{background:#fef3c7;color:#92400e;}
+</style>
+
+<script>
+(function(){
+'use strict';
+var allBills = JSON.parse(localStorage.getItem('viiv_bills')||'[]');
+var typeMap = {receipt:'🧾 ใบเสร็จ',delivery:'🚚 ใบส่งของ',quotation:'📋 ใบเสนอราคา',reserve:'📌 ใบจอง'};
+
+window.bsFilter = function(){
+  var q = (document.getElementById('bsQ').value||'').toLowerCase();
+  var st = document.getElementById('bsStatus').value;
+  var tp = document.getElementById('bsType').value;
+  var filtered = allBills.filter(function(b){
+    var matchQ = !q || (b.id||'').toLowerCase().includes(q) || (b.customer||'').toLowerCase().includes(q);
+    var matchSt = !st || b.status === st;
+    var matchTp = !tp || b.doc_type === tp;
+    return matchQ && matchSt && matchTp;
+  });
+  document.getElementById('bsCount').textContent = 'พบ '+filtered.length+' รายการ';
+  render(filtered);
+};
+
+function render(bills){
+  var el = document.getElementById('bsList');
+  if(!bills.length){
+    el.innerHTML='<div style="color:#aaa;padding:30px;text-align:center;">ไม่พบบิล</div>';
+    return;
+  }
+  el.innerHTML = bills.map(function(b){
+    var date = new Date(b.created_at).toLocaleString('th');
+    var badge = '<span class="bs-badge '+(b.status||'draft')+'">'+(b.status==='paid'?'จ่ายแล้ว':'ร่าง')+'</span>';
+    return '<div class="bs-row">'+
+      '<div class="bs-row-top">'+
+        '<div><span class="bs-bill-id">'+b.id.slice(-10)+'</span>'+
+          '<span style="margin-left:8px;font-size:11px;color:#6b7280;">'+(typeMap[b.doc_type]||b.doc_type)+'</span>'+
+          badge+'</div>'+
+        '<div class="bs-amount">฿'+(b.total||0).toLocaleString()+'</div>'+
+      '</div>'+
+      '<div class="bs-row-sub">'+
+        (b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+
+        (b.items||[]).length+' รายการ · จ่ายแบบ '+(b.pay_method||'—')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+bsFilter();
+})();
+</script>
 </body>
