@@ -229,10 +229,31 @@ function addProduct(id){
     billItems.push({
       id:p.id,sku:p.sku||'',name:p.name,qty:qty,
       price:parseFloat(p.price)||0,
-      opts:[
-        {l:'P1 '+fmt(p.price),v:parseFloat(p.price)||0},
-        ...(p.price_min&&p.price_min<p.price?[{l:'PL '+fmt(p.price_min),v:parseFloat(p.price_min)}]:[])
-      ]
+      opts:(function(){
+        var p1=parseFloat(p.price)||0;
+        var pl=parseFloat(p.price_min)||0;
+        var opts=[{l:'P1 '+fmt(p1),v:p1}];
+        if(pl>0&&pl<p1){
+          var diff=p1-pl;
+          if(diff>50){
+            // ปัดเศษ step 5
+            var step=5;
+            for(var r=p1-step;r>=pl;r-=step){
+              opts.push({l:fmt(r),v:Math.round(r*100)/100});
+            }
+          } else {
+            // step 1
+            for(var r=p1-1;r>=pl;r--){
+              opts.push({l:fmt(r),v:r});
+            }
+          }
+          opts.push({l:'PL '+fmt(pl),v:pl});
+        } else if(!(pl>0)){
+          // ไม่ได้ตั้งค่าต่ำสุด แสดงแค่ P1 และ 0
+          opts.push({l:'ฟรี ฿0',v:0});
+        }
+        return opts;
+      })()
     });
   }
   document.getElementById('billSearchInput').value='';
