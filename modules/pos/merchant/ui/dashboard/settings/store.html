@@ -376,7 +376,34 @@ window.addEventListener('viiv_token_ready',function(e){
       document.getElementById('stTabStore').style.display=tab==='store'?'block':'none';
       document.getElementById('stTabReceipt').style.display=tab==='receipt'?'block':'none';
       document.getElementById('stTabPayment').style.display=tab==='payment'?'block':'none';
-      if(tab==='payment') renderBankList();
+      if(tab==='payment'){
+        if(!window._paymentBound){
+          window._paymentBound=true;
+          document.getElementById('stAddBankBtn').addEventListener('click',function(){
+            if(_banks.length>=3){showMsg('stBankMsg','สร้างได้สูงสุด 3 บัญชี','#ef4444');return;}
+            openBankForm(-1);
+          });
+          document.getElementById('stBankCancelBtn').addEventListener('click',function(){
+            document.getElementById('stBankFormWrap').style.display='none';
+          });
+          document.getElementById('stBankSaveBtn').addEventListener('click',saveBankForm);
+          var qrInput=document.getElementById('stQrInput');
+          document.getElementById('stQrBtn').addEventListener('click',function(){qrInput.click();});
+          document.getElementById('stQrPreview').addEventListener('click',function(){qrInput.click();});
+          qrInput.addEventListener('change',function(){
+            if(!this.files||!this.files[0]) return;
+            _qrFile=this.files[0];
+            document.getElementById('stQrName').textContent=_qrFile.name;
+            var r=new FileReader();
+            r.onload=function(e){
+              var prev=document.getElementById('stQrPreview');
+              prev.innerHTML='<img src="'+e.target.result+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">';
+            };
+            r.readAsDataURL(_qrFile);
+          });
+        }
+        renderBankList();
+      }
     });
   });
 
@@ -480,30 +507,7 @@ window.addEventListener('viiv_token_ready',function(e){
     } else { doSave(''); }
   }
 
-  document.getElementById('stAddBankBtn').addEventListener('click',function(){
-    if(_banks.length>=3){showMsg('stBankMsg','สร้างได้สูงสุด 3 บัญชี','#ef4444');return;}
-    openBankForm(-1);
-  });
-  document.getElementById('stBankCancelBtn').addEventListener('click',function(){
-    document.getElementById('stBankFormWrap').style.display='none';
-  });
-  document.getElementById('stBankSaveBtn').addEventListener('click',saveBankForm);
-
-  // QR upload
-  var qrInput=document.getElementById('stQrInput');
-  document.getElementById('stQrBtn').addEventListener('click',function(){qrInput.click();});
-  document.getElementById('stQrPreview').addEventListener('click',function(){qrInput.click();});
-  qrInput.addEventListener('change',function(){
-    if(!this.files||!this.files[0]) return;
-    _qrFile=this.files[0];
-    document.getElementById('stQrName').textContent=_qrFile.name;
-    var r=new FileReader();
-    r.onload=function(e){
-      var prev=document.getElementById('stQrPreview');
-      prev.innerHTML='<img src="'+e.target.result+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">';
-    };
-    r.readAsDataURL(_qrFile);
-  });
+  // payment bindings moved to lazy init on tab click
   // logo
   var logoInput=document.getElementById('stLogoInput');
   var logoPrev=document.getElementById('stLogoPreview');

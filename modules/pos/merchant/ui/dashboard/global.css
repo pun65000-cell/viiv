@@ -1,0 +1,90 @@
+/* === VIIV POS Global Component CSS === */
+/* โหลดที่ loadSubPage ใน dashboard.html */
+
+/* SUB-MENU TABS (บรรทัดล่าง) - เล็กกว่า main tab */
+.wh-sub-btn,
+.pos-sub-btn,
+[class*="-sub-btn"] {
+  padding: 4px 10px !important;
+  border: none !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  background: #e8e8e8 !important;
+  color: #555 !important;
+  transition: .15s !important;
+}
+[class*="-sub-btn"]:hover { background: #d5d5d5 !important; }
+[class*="-sub-btn"].active { background: #e8b93e !important; color: #1a1200 !important; }
+
+/* MAIN TABS (pos-tab บรรทัดบน) */
+.pos-tab {
+  padding: 7px 14px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: .15s !important;
+}
+
+/* CARDS */
+.page-card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+/* INPUTS */
+.viiv-input {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.viiv-input:focus { border-color: #e8b93e; }
+
+/* BUTTONS */
+.viiv-btn-primary {
+  padding: 8px 20px;
+  background: #e8b93e;
+  color: #1a1200;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.viiv-btn-primary:hover { opacity: .85; }
+.viiv-btn-secondary {
+  padding: 8px 16px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.viiv-btn-danger {
+  padding: 8px 14px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* BADGES */
+.badge-active { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.badge-inactive { background: #fee2e2; color: #991b1b; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.badge-paid { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.badge-draft { background: #fef3c7; color: #92400e; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.badge-voided { background: #fee2e2; color: #991b1b; font-size: 10px; padding: 2px 8px; border-radius: 10px; }

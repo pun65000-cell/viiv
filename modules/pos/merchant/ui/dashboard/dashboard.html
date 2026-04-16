@@ -188,7 +188,7 @@
 <div class="sidebar">
   <div class="brand">
     <div class="brand-title">
-      <span class="viiv">My Shop</span> <span class="platform">POS</span>
+      <span class="viiv" id="storeNameDisplay">My Shop</span> <span class="platform">POS</span>
     </div>
     <div class="brand-dot"></div>
   </div>
@@ -312,6 +312,13 @@ function renderDashboard(el) {
 function loadSubPage(el, file) {
   // ซ่อน card header เพราะ sub-page มี header ของตัวเอง
   el.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div>';
+  // inject global CSS ถ้ายังไม่มี
+  if(!document.getElementById('viiv-global-css')){
+    var gl=document.createElement('link');
+    gl.id='viiv-global-css';gl.rel='stylesheet';
+    gl.href='/merchant/global.css?v='+Date.now();
+    document.head.appendChild(gl);
+  }
   fetch(file + '?v=' + Date.now())
     .then(function(r){ return r.text(); })
     .then(function(html){
@@ -321,6 +328,21 @@ function loadSubPage(el, file) {
       el.innerHTML = body ? body.innerHTML : html;
       // inject VIIV_TOKEN ให้ sub-page script เห็นก่อนรัน
       window.VIIV_TOKEN = localStorage.getItem('viiv_token') || '';
+      // โหลดชื่อร้านทันทีที่มี token
+      if(window.VIIV_TOKEN && !window._storeLoaded){
+        window._storeLoaded=true;
+        var _api=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+        fetch(_api+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+window.VIIV_TOKEN}})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d&&d.store_name){
+            var el=document.getElementById('storeNameDisplay');
+            if(el) el.textContent=d.store_name;
+            document.title=d.store_name+' POS';
+            window._storeSettings=d;
+          }
+        }).catch(function(){});
+      }
       var _scripts = Array.from(el.querySelectorAll('script'));
       var _total = _scripts.length;
       var _done = 0;
