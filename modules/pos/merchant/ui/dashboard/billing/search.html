@@ -48,8 +48,48 @@
 <script>
 (function(){
 'use strict';
-var allBills = JSON.parse(localStorage.getItem('viiv_bills')||'[]');
-var typeMap = {receipt:'ใบเสร็จ',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allBills=[];
+var typeMap={receipt:'ใบเสร็จ',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
+
+function loadBills(){
+  // โหลดจาก DB
+  fetch(API+'/api/pos/bills/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(dbBills){
+    // merge กับ localStorage drafts
+    var local=JSON.parse(localStorage.getItem('viiv_bills')||'[]');
+    var drafts=local.filter(function(b){return b.status==='draft';});
+    // normalize DB bills
+    var normalized=dbBills.map(function(b){
+      return {
+        id:b.bill_no||b.id,db_id:b.id,
+        doc_type:b.doc_type,status:b.status,
+        customer:b.customer_name||b.customer||'',
+        customer_code:b.customer_code||'',
+        items:typeof b.items==='string'?JSON.parse(b.items):b.items||[],
+        total:parseFloat(b.total)||0,
+        pay_method:b.pay_method||'cash',
+        paid:parseFloat(b.paid_amount)||0,
+        discount:parseFloat(b.discount)||0,
+        discount_type:b.discount_type||'amount',
+        vat:b.vat_rate||0,
+        note:b.note||'',
+        void_reason:b.void_reason||'',
+        created_at:b.created_at
+      };
+    });
+    allBills=normalized.concat(drafts);
+    bsFilter();
+    document.getElementById('bsCount').textContent='พบ '+allBills.length+' รายการ';
+  })
+  .catch(function(){
+    // fallback localStorage
+    allBills=JSON.parse(localStorage.getItem('viiv_bills')||'[]');
+    bsFilter();
+  });
+}
 
 function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
 var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
@@ -209,7 +249,11 @@ function render(bills){
   });
 }
 
-bsFilter();
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token) TOKEN=e.detail.token;
+  loadBills();
+});
+if(TOKEN) loadBills(); else bsFilter();
 })();
 </script>
 </body>
