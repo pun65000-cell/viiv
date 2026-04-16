@@ -1,33 +1,37 @@
 /* ============================================
-   VIIV POS — Global Component CSS v1.0
-   inject โดย dashboard.html ทุก sub-page ใช้ร่วม
+   VIIV POS Global CSS v2.0
+   Naming convention:
+   - .viiv-tab     = main page tabs (top row)
+   - .viiv-subtab  = sub-level tabs (second row)
+   - .viiv-btn-*   = buttons
    ============================================ */
 
-/* === MAIN TABS (บรรทัดบน) === */
-.pos-tab {
-  padding: 7px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  background: #f0ede8;
-  color: var(--text,#1f2937);
-  transition: .15s;
-  white-space: nowrap;
+/* === MAIN PAGE TABS (viiv-tab / pos-tab) === */
+.viiv-tab, .pos-tab {
+  padding: 7px 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  background: #f0ede8 !important;
+  color: var(--text,#1f2937) !important;
+  transition: .15s !important;
+  white-space: nowrap !important;
 }
-.pos-tab.active {
-  background: var(--accent,#e8b93e);
-  color: #1a1200;
+.viiv-tab.active, .pos-tab.active {
+  background: var(--accent,#e8b93e) !important;
+  color: #1a1200 !important;
 }
-.pos-tab:hover:not(.active) { background: #e5e0d8; }
+.viiv-tab:hover:not(.active), .pos-tab:hover:not(.active) {
+  background: #e5e0d8 !important;
+}
 
-/* === SUB TABS (บรรทัดล่าง) — เล็กกว่า main ~35% === */
-.pos-sub-tab,
+/* === SUB TABS (viiv-subtab) - smaller ~35% === */
+.viiv-subtab,
 .wh-sub-btn,
 .st-tab,
-[class$="-sub-btn"],
-[class$="-sub-tab"] {
+[class$="-sub-btn"] {
   padding: 4px 10px !important;
   border: none !important;
   border-radius: 6px !important;
@@ -39,23 +43,20 @@
   transition: .15s !important;
   white-space: nowrap !important;
 }
-.pos-sub-tab.active,
+.viiv-subtab.active,
 .wh-sub-btn.active,
-.st-tab.active,
-[class$="-sub-btn"].active,
-[class$="-sub-tab"].active {
+.st-tab.active {
   background: var(--accent,#e8b93e) !important;
   color: #1a1200 !important;
 }
-.pos-sub-tab:hover:not(.active),
+.viiv-subtab:hover:not(.active),
 .wh-sub-btn:hover:not(.active),
 .st-tab:hover:not(.active) {
   background: #e5e0d8 !important;
 }
 
 /* === BUTTONS === */
-.viiv-btn, .wa-btn-save, .st-btn-save, .ml-btn-new,
-.bill-btn-print, .cp-btn-save {
+.viiv-btn-primary {
   padding: 8px 20px;
   background: var(--accent,#e8b93e);
   color: #1a1200;
@@ -65,12 +66,11 @@
   font-weight: 700;
   cursor: pointer;
   transition: opacity .15s;
+  white-space: nowrap;
 }
-.viiv-btn:hover, .wa-btn-save:hover, .st-btn-save:hover,
-.ml-btn-new:hover, .bill-btn-print:hover, .cp-btn-save:hover { opacity: .85; }
+.viiv-btn-primary:hover { opacity: .85; }
 
-.viiv-btn-secondary, .wa-btn-cancel, .st-btn-cancel,
-.bill-btn-save, .cp-btn-cancel {
+.viiv-btn-secondary {
   padding: 8px 16px;
   background: #f3f4f6;
   color: #374151;
@@ -80,7 +80,6 @@
   font-weight: 600;
   cursor: pointer;
 }
-
 .viiv-btn-danger {
   padding: 8px 14px;
   background: #fee2e2;
@@ -93,8 +92,7 @@
 }
 
 /* === INPUTS === */
-.viiv-input, .wa-field input, .wa-field select, .wa-field textarea,
-.st-input, .bill-input, .cp-input, .ml-input, .bs-input, .rc-input {
+.viiv-input {
   padding: 8px 10px;
   border: 1px solid #d1d5db;
   border-radius: 7px;
@@ -106,84 +104,33 @@
   font-family: inherit;
   color: var(--text,#1f2937);
 }
-.viiv-input:focus, .wa-field input:focus, .wa-field select:focus,
-.st-input:focus, .bill-input:focus, .cp-input:focus,
-.ml-input:focus, .bs-input:focus, .rc-input:focus {
-  border-color: var(--accent,#e8b93e);
-}
-.viiv-input.error, .st-input.error, .bill-input.error { border-color: #ef4444; }
+.viiv-input:focus { border-color: var(--accent,#e8b93e); }
+.viiv-input.error { border-color: #ef4444; }
 
 /* === CARDS === */
-.viiv-card, .wa-popup, .st-card, .bs-row, .rc-row,
-.wa-card, .ml-row {
+.viiv-card {
   background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 10px;
+  padding: 14px;
 }
 
 /* === BADGES === */
-.badge-active, .wa-card-badge.active { background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
-.badge-inactive, .wa-card-badge.inactive { background:#fee2e2;color:#991b1b;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
-.bs-badge.paid, .rc-badge.paid { background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.viiv-badge-active  { background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.viiv-badge-inactive{ background:#fee2e2;color:#991b1b;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.viiv-badge-paid    { background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.viiv-badge-draft   { background:#fef3c7;color:#92400e;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.viiv-badge-voided  { background:#fee2e2;color:#991b1b;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.viiv-badge-deleted { background:#f3f4f6;color:#9ca3af;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block;text-decoration:line-through; }
+
+/* === LEGACY COMPAT (เก็บไว้ให้ sub-pages เก่าใช้ได้) === */
+.wa-btn-save, .st-btn-save, .ml-btn-new, .bill-btn-print, .cp-btn-save,
+.wa-btn-cancel, .st-btn-cancel, .bill-btn-save, .cp-btn-cancel { cursor:pointer; }
+.bs-badge.paid, .rc-badge.paid   { background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
 .bs-badge.draft, .rc-badge.draft { background:#fef3c7;color:#92400e;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
-.bs-badge.voided, .rc-badge.voided { background:#fee2e2;color:#991b1b;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
-.bs-badge.deleted { background:#f3f4f6;color:#9ca3af;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block;text-decoration:line-through; }
+.bs-badge.voided,.rc-badge.voided{ background:#fee2e2;color:#991b1b;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block; }
+.bs-badge.deleted                { background:#f3f4f6;color:#9ca3af;font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block;text-decoration:line-through; }
 
-/* === LABELS === */
-.viiv-label, .wa-field label, .st-field label,
-.bill-field label, .cp-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #374151;
-  display: block;
-  margin-bottom: 4px;
-}
-
-/* === SEARCH DROPDOWN === */
-.bill-search-drop, .ml-search-drop {
-  position: absolute;
-  top: 100%;
-  left: 0; right: 0;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.12);
-  z-index: 100;
-  max-height: 220px;
-  overflow-y: auto;
-}
-.bill-search-item, .ml-search-item {
-  padding: 8px 14px;
-  cursor: pointer;
-  font-size: 13px;
-  display: flex;
-  justify-content: space-between;
-}
-.bill-search-item:hover, .ml-search-item:hover { background: #fffbf0; }
-
-/* === SECTION TITLES === */
-.viiv-section-title, .st-section-title, .cp-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-/* === OVERLAY === */
-.viiv-overlay, .wa-overlay, .ml-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 200;
-}
-.viiv-popup, .wa-popup, .ml-form-wrap, .st-card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.18);
-}
-
-/* === FONT SIZE CONTENT === */
+/* === CONTENT FONT === */
 #cardBody { font-size: 15px; }
 #cardBody th { font-size: 12px; }

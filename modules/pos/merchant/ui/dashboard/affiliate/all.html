@@ -23,7 +23,7 @@ function renderShell(){
   [['all','ทั้งหมด'],['create','สร้างสินค้า'],['store','สโตร์ลิ้งค์'],['trend','เทรนขายดี']].forEach(function(t){
     var btn=document.createElement('button');
     btn.textContent=t[1];
-    btn.style.cssText='padding:7px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:'+(_tab===t[0]?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(_tab===t[0]?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;white-space:nowrap;';
+    btn.className='viiv-subtab'+(_tab===t[0]?' active':'');
     btn.addEventListener('click',function(){
       _tab=t[0]; renderShell();
       if(t[0]==='all') renderAll();
