@@ -60,9 +60,12 @@ def create_bill(payload: dict, authorization: str = Header("")):
         disc = sub*dv/100 if dt=="percent" else dv
         after = max(0,sub-disc)
         vr = int(payload.get("vat",0)); va = after*vr/100; total = after+va
-        c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
-            VALUES(:id,:tid,:bno,:ino,:dt,:st,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
+        src = payload.get("source","billing")
+        ship_st = payload.get("shipping_status", None)
+        c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
+            VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
             {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":payload.get("doc_type","receipt"),"st":status,
+             "src":src,"ship":ship_st,
              "cid":(payload.get("customer_data") or {}).get("id"),"cn":payload.get("customer",""),"cc":payload.get("customer_code",""),
              "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
              "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"total":total,
@@ -78,16 +81,52 @@ def create_bill(payload: dict, authorization: str = Header("")):
     return {"id":bid,"bill_no":bill_no,"inv_no":inv_no,"total":total,"status":status}
 
 @router.get("/list")
-def list_bills(authorization: str = Header(""), status: str = "", doc_type: str = "", q: str = ""):
+def list_bills(authorization: str = Header(""), status: str = "", doc_type: str = "", q: str = "", source: str = ""):
     tid, _ = get_tenant_user(authorization)
     filters = "WHERE tenant_id=:tid AND status != 'deleted'"
     params = {"tid":tid}
     if status: filters += " AND status=:status"; params["status"]=status
     if doc_type: filters += " AND doc_type=:dt"; params["dt"]=doc_type
     if q: filters += " AND (bill_no ILIKE :q OR customer_name ILIKE :q OR customer_code ILIKE :q)"; params["q"]=f"%{q}%"
+    if source: filters += " AND source=:source"; params["source"]=source
     with engine.connect() as c:
-        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
+        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
     return [dict(r._mapping) for r in rows]
+
+VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted'}
+VALID_SHIPPING = {
+    'pending','scheduled','packing_in','packing_out',
+    'shipped_no_recipient','shipped_cod','shipped_collect',
+    'chargeback','bill_check','overdue',
+    'received_payment','pending_payment','cod'
+}
+
+@router.post("/update-status/{bid}")
+def update_bill_status(bid: str, payload: dict, authorization: str = Header("")):
+    tid, uid = get_tenant_user(authorization)
+    new_status = payload.get("status")
+    new_shipping = payload.get("shipping_status")
+    slip_url = payload.get("slip_url")
+    if new_status and new_status not in VALID_FINANCIAL:
+        raise HTTPException(400, f"invalid status: {new_status}")
+    if new_shipping and new_shipping not in VALID_SHIPPING:
+        raise HTTPException(400, f"invalid shipping_status: {new_shipping}")
+    with engine.begin() as c:
+        bill = c.execute(text("SELECT id,source FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
+        if not bill: raise HTTPException(404,"ไม่พบบิล")
+        sets, params = [], {"id":bid}
+        if new_status:
+            sets.append("status=:status"); params["status"]=new_status
+        if new_shipping is not None:
+            if bill.source == "pos":
+                raise HTTPException(400,"บิล POS ไม่สามารถอัพเดท shipping_status ได้")
+            sets.append("shipping_status=:shipping"); params["shipping"]=new_shipping
+        if slip_url:
+            sets.append("slip_url=:slip"); params["slip"]=slip_url
+        if not sets: raise HTTPException(400,"ไม่มีข้อมูลที่จะอัพเดท")
+        sets.append("updated_at=NOW()")
+        c.execute(text(f"UPDATE bills SET {','.join(sets)} WHERE id=:id"),params)
+    return {"ok":True,"bill_id":bid}
 
 @router.get("/detail/{bid}")
 def get_bill(bid: str, authorization: str = Header("")):

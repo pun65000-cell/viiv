@@ -43,6 +43,16 @@
 .bs-badge.draft{background:#fef3c7;color:#92400e;}
 .bs-badge.voided{background:#fee2e2;color:#991b1b;}
 .bs-badge.deleted{background:#f3f4f6;color:#6b7280;text-decoration:line-through;}
+.bs-badge.pending{background:#fef3c7;color:#92400e;}
+.bs-badge.credit{background:#dbeafe;color:#1e40af;}
+.bs-badge.partial{background:#ede9fe;color:#5b21b6;}
+.bs-badge.ship{background:#e0f2fe;color:#0369a1;}
+.bs-badge.pos{background:#f1f5f9;color:#94a3b8;font-size:9px;}
+.bs-icon-btn{border:none;background:none;cursor:pointer;font-size:16px;padding:2px 4px;border-radius:6px;position:relative;line-height:1;transition:.15s;}
+.bs-icon-btn:hover{background:#f3f4f6;}
+.bs-icon-btn.fin:hover{background:#fef3c7;}
+.bs-icon-btn.ship:hover{background:#e0f2fe;}
+.bs-icon-dot{position:absolute;top:0;right:0;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1px solid #fff;}
 </style>
 
 <script>
@@ -183,7 +193,8 @@ function showBillDetail(b){
     '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'+
       draftBtnHtml+
       '<button id="bsPrintBtn" style="padding:7px 14px;background:#1f2937;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">พิมพ์ใบเสร็จ</button>'+
-    '<button id="bsDismissBtn" style="padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">ปิด</button>'+
+    '<button id="bsStatusBtn" style="padding:7px 14px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">ปรับสถานะ</button>'+
+      '<button id="bsDismissBtn" style="padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">ปิด</button>'+
     '</div>';
   var ov=document.getElementById('bsOverlay');
   ov.innerHTML='';
@@ -192,6 +203,7 @@ function showBillDetail(b){
   document.getElementById('bsCloseBtn').addEventListener('click',function(){ ov.style.display='none'; });
   document.getElementById('bsDismissBtn').addEventListener('click',function(){ ov.style.display='none'; });
   document.getElementById('bsPrintBtn').addEventListener('click',function(){ waPrintBill(b); });
+  document.getElementById('bsStatusBtn').addEventListener('click',function(){ ov.style.display='none'; openStatusPopup(b); });
   if(isDraft){
     document.getElementById('bsReopenBtn').addEventListener('click',function(){
       ov.style.display='none';
@@ -236,15 +248,32 @@ function render(bills){
   el.innerHTML='';
   bills.forEach(function(b){
     var date=new Date(b.created_at).toLocaleString('th');
-    var badge='<span class="bs-badge '+(b.status||'draft')+'">'+(b.status==='paid'?'จ่ายแล้ว':'ร่าง')+'</span>';
+    var _stMap={paid:'จ่ายแล้ว',pending:'รอชำระ',credit:'เครดิต',draft:'ร่าง',voided:'ยกเลิก',deleted:'ลบแล้ว',partial:'ชำระบางส่วน'};
+    var _stCls={paid:'paid',pending:'pending',credit:'credit',draft:'draft',voided:'voided',deleted:'deleted',partial:'partial'};
+    var _shipMap={pending:'รอดำเนินการ',scheduled:'รอนัดส่ง',packing_in:'เตรียมส่ง-เข้า',packing_out:'เตรียมส่ง-ออก',shipped_no_recipient:'ส่งแล้ว(ไม่มีผู้รับ)',shipped_cod:'ส่งแล้ว+วางบิล',shipped_collect:'ส่งแล้ว+เก็บเงิน',chargeback:'ชะลอจ่าย',bill_check:'วางบิล/เช็ค',overdue:'เลยกำหนด',received_payment:'รับชำระแล้ว',pending_payment:'รอชำระ',cod:'จ่ายปลายทาง'};
+    var badge='<span class="bs-badge '+(_stCls[b.status]||'draft')+'">'+(_stMap[b.status]||b.status||'ร่าง')+'</span>';
+    var shipBadge=b.shipping_status?'<span class="bs-badge ship">🚚 '+(_shipMap[b.shipping_status]||b.shipping_status)+'</span>':(b.source==='pos'?'<span class="bs-badge pos">POS</span>':'');
+    var isPOS = b.source==='pos';
+    var canEditShip = !isPOS && b.status!=='voided' && b.status!=='deleted';
+    var shipIcon = canEditShip
+      ? '<button class="bs-icon-btn ship" title="สถานะจัดส่ง" onclick="event.stopPropagation();window.openShipPopup(''''+b.db_id+''')">🚚'+(b.shipping_status?'<span class="bs-icon-dot ship-active"></span>':'')+'</button>'
+      : (isPOS ? '<span class="bs-badge pos" style="font-size:9px;">POS</span>' : '');
+    var finIcon = (b.status!=='voided'&&b.status!=='deleted')
+      ? '<button class="bs-icon-btn fin" title="สถานะการเงิน" onclick="event.stopPropagation();window.openFinPopup(''''+b.db_id+''')">💰</button>'
+      : '';
     var row=document.createElement('div');
     row.className='bs-row';
     row.innerHTML=
       '<div class="bs-row-top">'+
-        '<div><span class="bs-bill-id">'+(b.id.length>10?b.id.slice(-10):b.id)+'</span>'+
-          '<span style="margin-left:8px;font-size:11px;color:#6b7280;">'+(typeMap[b.doc_type]||b.doc_type)+'</span>'+
-          badge+'</div>'+
-        '<div class="bs-amount">'+fmt(b.total)+'</div>'+
+        '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+
+          '<span class="bs-bill-id">'+(b.id.length>10?b.id.slice(-10):b.id)+'</span>'+
+          '<span style="font-size:11px;color:#6b7280;">'+(typeMap[b.doc_type]||b.doc_type)+'</span>'+
+          badge+' '+shipBadge+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:4px;">'+
+          finIcon+shipIcon+
+          '<span class="bs-amount">'+fmt(b.total)+'</span>'+
+        '</div>'+
       '</div>'+
       '<div class="bs-row-sub">'+(b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+
         (b.items||[]).length+' รายการ · '+(payLabel[b.pay_method]||b.pay_method||'—')+'</div>';
@@ -252,6 +281,169 @@ function render(bills){
     el.appendChild(row);
   });
 }
+
+// ============ STATUS POPUP ============
+var _spBill = null;
+var _shipOptions = [
+  ['pending','กำลังดำเนินการ'],['scheduled','รอเวลานัดส่ง'],
+  ['packing_in','จัดสินค้าเตรียมส่ง-เข้า'],['packing_out','จัดสินค้าเตรียมส่ง-ออก'],
+  ['shipped_no_recipient','จัดส่งแล้ว (ไม่มีผู้รับ)'],['shipped_cod','จัดส่งแล้ว + วางบิล'],
+  ['shipped_collect','จัดส่งแล้ว + เก็บเงิน'],['chargeback','ชะลอจ่าย (รอเคลมสินค้า)'],
+  ['bill_check','วางบิล/เก็บเช็ค'],['overdue','ชำระเลยกำหนดเวลา'],
+  ['received_payment','รับชำระเงินแล้ว'],['pending_payment','รอการชำระ'],['cod','จ่ายปลายทาง']
+];
+
+window.openFinPopup = function(dbId){
+  var b = allBills.find(function(x){return x.db_id===dbId||x.id===dbId;});
+  if(!b) return;
+  _spBill = b;
+  var popup = document.getElementById('spPopup');
+  if(!popup){ buildStatusPopup(); popup = document.getElementById('spPopup'); }
+  document.getElementById('spBillLabel').textContent = 'บิล: '+(b.id||b.db_id||'');
+  document.getElementById('spFinancial').value = b.status||'pending';
+  // Lock: ถ้า paid แล้ว ล็อค option ที่ถอยหลัง
+  var finSel = document.getElementById('spFinancial');
+  Array.from(finSel.options).forEach(function(opt){
+    var backStatus = ['pending','draft','credit'];
+    opt.disabled = (b.status==='paid' && backStatus.includes(opt.value));
+  });
+  document.getElementById('spShipRow').style.display = 'none';
+  document.getElementById('spSlipRow').style.display = 'none';
+  document.getElementById('spSaveTarget').value = 'fin';
+  popup.style.display = 'flex';
+};
+
+window.openShipPopup = function(dbId){
+  var b = allBills.find(function(x){return x.db_id===dbId||x.id===dbId;});
+  if(!b) return;
+  _spBill = b;
+  var popup = document.getElementById('spPopup');
+  if(!popup){ buildStatusPopup(); popup = document.getElementById('spPopup'); }
+  document.getElementById('spBillLabel').textContent = 'บิล: '+(b.id||b.db_id||'')+' (จัดส่ง)';
+  document.getElementById('spShipRow').style.display = 'block';
+  document.getElementById('spShipping').value = b.shipping_status||'pending';
+  document.getElementById('spFinancial').closest('div').style.display = 'none';
+  window.checkSlipRequired();
+  document.getElementById('spSaveTarget').value = 'ship';
+  popup.style.display = 'flex';
+};
+
+function openStatusPopup(b){
+  _spBill = b;
+  // reset fin section
+  var finDiv = document.getElementById('spFinancial');
+  if(finDiv) finDiv.closest('div').style.display = 'block';
+  var popup = document.getElementById('spPopup');
+  if(!popup){ buildStatusPopup(); popup = document.getElementById('spPopup'); }
+  document.getElementById('spBillLabel').textContent = 'บิล: '+(b.id||b.db_id||'');
+  document.getElementById('spFinancial').value = b.status||'pending';
+  var shipRow = document.getElementById('spShipRow');
+  var isPOS = b.source==='pos';
+  shipRow.style.display = isPOS ? 'none' : 'block';
+  if(!isPOS){
+    document.getElementById('spShipping').value = b.shipping_status||'pending';
+    checkSlipRequired();
+  }
+  document.getElementById('spSlipRow').style.display = 'none';
+  popup.style.display = 'flex';
+}
+
+function buildStatusPopup(){
+  var shipOpts = _shipOptions.map(function(o){
+    return '<option value="'+o[0]+'">'+o[1]+'</option>';
+  }).join('');
+  var div = document.createElement('div');
+  div.id = 'spPopup';
+  div.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;';
+  div.innerHTML =
+    '<div style="background:#fff;border-radius:14px;padding:24px;width:min(420px,92vw);position:relative;">'+
+      '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">ปรับสถานะบิล</div>'+
+      '<input type="hidden" id="spSaveTarget" value="fin">'+
+      '<div id="spBillLabel" style="font-size:11px;color:#9ca3af;margin-bottom:16px;"></div>'+
+      '<div style="margin-bottom:14px;">'+
+        '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">สถานะการเงิน</label>'+
+        '<select id="spFinancial" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;">'+
+          '<option value="pending">รอชำระเงิน</option>'+
+          '<option value="paid">จ่ายแล้ว</option>'+
+          '<option value="partial">ชำระบางส่วน</option>'+
+          '<option value="credit">เครดิต</option>'+
+          '<option value="voided">ยกเลิก</option>'+
+        '</select>'+
+      '</div>'+
+      '<div id="spShipRow" style="margin-bottom:14px;">'+
+        '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">สถานะการจัดส่ง</label>'+
+        '<select id="spShipping" onchange="window.checkSlipRequired()" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;">'+
+          shipOpts+
+        '</select>'+
+      '</div>'+
+      '<div id="spSlipRow" style="display:none;margin-bottom:14px;">'+
+        '<label style="font-size:12px;font-weight:600;color:#dc2626;display:block;margin-bottom:5px;">⚠️ ต้องแนบสลิป/หลักฐานการโอน</label>'+
+        '<input type="file" id="spSlipFile" accept="image/*" style="width:100%;padding:6px;border:1px solid #fca5a5;border-radius:8px;font-size:12px;">'+
+        '<div id="spSlipPreview" style="margin-top:6px;"></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:4px;">'+
+        '<button onclick="window.closeStatusPopup()" style="flex:1;padding:9px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">ยกเลิก</button>'+
+        '<button onclick="window.saveStatus()" style="flex:1;padding:9px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึก</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(div);
+  // preview slip
+  document.getElementById('spSlipFile').addEventListener('change',function(){
+    var f=this.files[0]; if(!f) return;
+    var r=new FileReader(); r.onload=function(e){
+      document.getElementById('spSlipPreview').innerHTML='<img src="'+e.target.result+'" style="max-width:100%;max-height:120px;border-radius:6px;margin-top:4px;">';
+    }; r.readAsDataURL(f);
+  });
+}
+
+window.checkSlipRequired = function checkSlipRequired(){
+  var el = document.getElementById('spShipping');
+  var row = document.getElementById('spSlipRow');
+  if(!el||!row) return;
+  row.style.display = (el.value==='received_payment') ? 'block' : 'none';
+}
+
+window.closeStatusPopup = function closeStatusPopup(){
+  var p = document.getElementById('spPopup');
+  if(p) p.style.display='none';
+}
+
+window.saveStatus = async function saveStatus(){
+  if(!_spBill) return;
+  var financial = document.getElementById('spFinancial').value;
+  var shipEl = document.getElementById('spShipping');
+  var shipping = shipEl ? shipEl.value : null;
+  var isPOS = _spBill.source==='pos';
+  // ตรวจสลิป
+  if(!isPOS && shipping==='received_payment'){
+    var slipFile = document.getElementById('spSlipFile').files[0];
+    if(!slipFile){ alert('กรุณาแนบสลิป/หลักฐานการโอนก่อนบันทึก'); return; }
+  }
+  var target = (document.getElementById('spSaveTarget')||{}).value||'fin';
+  var payload = {};
+  if(target==='fin') payload.status = financial;
+  if(target==='ship' && !isPOS && shipping) payload.shipping_status = shipping;
+  if(!Object.keys(payload).length){ alert('ไม่มีการเปลี่ยนแปลง'); return; }
+  var saveBtn = document.querySelector('#spPopup button[onclick="saveStatus()"]');
+  if(saveBtn){ saveBtn.textContent='กำลังบันทึก...'; saveBtn.disabled=true; }
+  try{
+    var res = await fetch(API+'/api/pos/bills/update-status/'+(_spBill.db_id||_spBill.id),{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    var d = await res.json();
+    if(d.ok){
+      closeStatusPopup();
+      // อัพเดท allBills local
+      var b = allBills.find(function(x){ return x.db_id===_spBill.db_id||x.id===_spBill.id; });
+      if(b){ b.status=financial; if(!isPOS) b.shipping_status=shipping; }
+      bsFilter();
+    } else { alert('บันทึกไม่สำเร็จ: '+(d.detail||'error')); }
+  }catch(e){ alert('Error: '+e.message); }
+  finally{ if(saveBtn){ saveBtn.textContent='บันทึก'; saveBtn.disabled=false; } }
+}
+// ============ END STATUS POPUP ============
 
 window.addEventListener('viiv_token_ready',function(e){
   if(e.detail&&e.detail.token) TOKEN=e.detail.token;

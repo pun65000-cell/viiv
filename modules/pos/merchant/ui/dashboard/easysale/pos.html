@@ -187,8 +187,12 @@ function renderCartSummary(){
 function checkout(){
   if(!cartItems.length){showMsg('กรุณาเพิ่มสินค้า','#ef4444');return;}
   if(!_selectedMember){showMsg('กรุณาเลือกลูกค้า','#ef4444');return;}
+  var _pmStatusMap={cash:'paid',transfer:'paid',qr:'paid',credit:'pending'};
   var payload={
-    doc_type:'receipt',status:'paid',
+    doc_type:'receipt',
+    status:_pmStatusMap[_esPm]||'paid',
+    source:'pos',
+    shipping_status:null,
     items:cartItems.map(function(i){return{id:i.id,sku:i.sku,name:i.name,qty:i.qty,price:i.price};}),
     customer:_selectedMember.name+(_selectedMember.phone?' ('+_selectedMember.phone+')':''),
     customer_code:_selectedMember.code||'',
