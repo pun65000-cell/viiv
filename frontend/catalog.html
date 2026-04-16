@@ -220,6 +220,11 @@ function shareStore(){
       '<input id="shareUrlInp" value="'+url+'" readonly style="flex:1;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:12px;outline:none;"/>'+
       '<button onclick="var i=document.getElementById('shareUrlInp');i.select();document.execCommand('copy');this.textContent='คัดลอกแล้ว';" style="padding:8px 12px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">คัดลอก</button>'+
     '</div>';
+  var copyBtn=box.querySelector('#shareCopyBtn');
+  if(copyBtn) copyBtn.addEventListener('click',function(){
+    var inp=document.getElementById('shareUrlInp');
+    if(inp){inp.select();document.execCommand('copy');copyBtn.textContent='คัดลอกแล้ว';}
+  });
   var closeOv=document.createElement('button');
   closeOv.textContent='ปิด';
   closeOv.style.cssText='width:100%;padding:10px;background:#f3f4f6;border:none;border-radius:10px;font-size:14px;cursor:pointer;margin-top:10px;';
