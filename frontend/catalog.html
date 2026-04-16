@@ -146,14 +146,19 @@ function showDetail(p){
   var ov=document.getElementById('catOverlay');
   var dt=document.getElementById('catDetail');
   if(!ov||!dt)return;
-  dt.innerHTML=
-    '<button class="cat-close" onclick="document.getElementById('catOverlay').classList.remove('show')">x</button>'+
-    (p.image_url?'<img class="cat-detail-img" src="'+API+p.image_url+'">':'')+
-    '<div style="font-size:17px;font-weight:700;color:#1f2937;margin-bottom:6px;">'+p.name+'</div>'+
-    '<div style="font-size:20px;font-weight:700;color:#e8b93e;margin-bottom:10px;">฿'+parseFloat(p.price||0).toLocaleString()+'</div>'+
-    (p.description?'<div style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:10px;">'+p.description+'</div>':'')+
-    '<div style="font-size:12px;color:#9ca3af;">SKU: '+(p.sku||'—')+'</div>'+
-    '<button class="cat-buy-btn" onclick="buyProduct(''+p.id+'',''+encodeURIComponent(p.name)+'')">&#x1F6D2; สั่งซื้อ</button>';
+  dt.innerHTML='';
+  var closeBtn=document.createElement('button');
+  closeBtn.className='cat-close';closeBtn.textContent='x';
+  closeBtn.addEventListener('click',function(){ov.classList.remove('show');});
+  dt.appendChild(closeBtn);
+  if(p.image_url){var img=document.createElement('img');img.className='cat-detail-img';img.src=API+p.image_url;dt.appendChild(img);}
+  var name=document.createElement('div');name.style.cssText='font-size:17px;font-weight:700;color:#1f2937;margin-bottom:6px;';name.textContent=p.name;dt.appendChild(name);
+  var price=document.createElement('div');price.style.cssText='font-size:20px;font-weight:700;color:#e8b93e;margin-bottom:10px;';price.textContent='฿'+parseFloat(p.price||0).toLocaleString();dt.appendChild(price);
+  if(p.description){var desc=document.createElement('div');desc.style.cssText='font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:10px;';desc.textContent=p.description;dt.appendChild(desc);}
+  var sku=document.createElement('div');sku.style.cssText='font-size:12px;color:#9ca3af;';sku.textContent='SKU: '+(p.sku||'—');dt.appendChild(sku);
+  var buyBtn=document.createElement('button');buyBtn.className='cat-buy-btn';buyBtn.innerHTML='&#x1F6D2; สั่งซื้อ';
+  buyBtn.addEventListener('click',function(){buyProduct(p.id,p.name);});
+  dt.appendChild(buyBtn);
   ov.classList.add('show');
 }
 
