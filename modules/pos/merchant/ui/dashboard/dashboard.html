@@ -382,12 +382,14 @@ function renderTabs(page) {
     const btn = document.createElement('button');
     btn.textContent = tab.label;
     btn.className = 'pos-tab' + (i === 0 ? ' active' : '');
-    btn.style.cssText = 'padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:'+(i===0?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(i===0?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;';
+    btn.style.cssText = 'padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:'+(i===0?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(i===0?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;';
     btn.addEventListener('click', function() {
       tabBar.querySelectorAll('.pos-tab').forEach(b => {
         b.classList.remove('active');
         b.style.background = '#f0ede8';
         b.style.color = 'var(--text,#1f2937)';
+        b.style.fontSize = '11px';
+        b.style.padding = '5px 10px';
       });
       btn.classList.add('active');
       btn.style.background = 'var(--accent,#e8b93e)';

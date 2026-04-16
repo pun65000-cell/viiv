@@ -3,6 +3,7 @@
   <div class="st-tabs">
     <button class="st-tab active" data-tab="store">ร้านค้า</button>
     <button class="st-tab" data-tab="receipt">ตั้งค่าใบเสร็จ</button>
+    <button class="st-tab" data-tab="payment">การชำระเงิน</button>
   </div>
   <div id="stTabStore" class="st-panel">
     <div class="st-card">
@@ -104,6 +105,86 @@
         <button class="st-btn-save" id="stReceiptSaveBtn">บันทึก</button>
       </div>
       <div id="stReceiptMsg" style="display:none;font-size:12px;text-align:right;margin-top:6px;"></div>
+    </div>
+  </div>
+  <div id="stTabPayment" class="st-panel" style="display:none;">
+    <div class="st-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="st-section-title" style="margin:0;">บัญชีรับชำระเงิน</div>
+        <button id="stAddBankBtn" class="st-btn-save" style="font-size:12px;padding:6px 14px;">+ เพิ่มบัญชี</button>
+      </div>
+      <div id="stBankList"></div>
+      <div id="stBankMsg" style="display:none;font-size:12px;margin-top:8px;"></div>
+    </div>
+    <!-- form เพิ่ม/แก้ไขบัญชี -->
+    <div id="stBankFormWrap" style="display:none;margin-top:12px;">
+      <div class="st-card">
+        <div class="st-section-title" id="stBankFormTitle">เพิ่มบัญชีใหม่</div>
+        <div class="st-grid">
+          <div class="st-field">
+            <label>ธนาคาร <span class="st-req">*</span></label>
+            <select id="stBankName" class="st-input">
+              <option value="">เลือกธนาคาร</option>
+              <option value="กสิกรไทย">ธนาคารกสิกรไทย (KBank)</option>
+              <option value="ไทยพาณิชย์">ธนาคารไทยพาณิชย์ (SCB)</option>
+              <option value="กรุงเทพ">ธนาคารกรุงเทพ (BBL)</option>
+              <option value="กรุงไทย">ธนาคารกรุงไทย (KTB)</option>
+              <option value="กรุงศรีอยุธยา">ธนาคารกรุงศรีอยุธยา (BAY)</option>
+              <option value="ทหารไทยธนชาต">ธนาคารทหารไทยธนชาต (TTB)</option>
+              <option value="ออมสิน">ธนาคารออมสิน (GSB)</option>
+              <option value="ธ.ก.ส.">ธนาคารเพื่อการเกษตร (ธ.ก.ส.)</option>
+              <option value="อิสลาม">ธนาคารอิสลามแห่งประเทศไทย</option>
+              <option value="ซีไอเอ็มบี">ธนาคารซีไอเอ็มบีไทย (CIMB)</option>
+              <option value="ยูโอบี">ธนาคารยูโอบี (UOB)</option>
+              <option value="แลนด์แอนด์เฮ้าส์">ธนาคารแลนด์แอนด์เฮ้าส์ (LH Bank)</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>ประเภทบัญชี</label>
+            <select id="stBankType" class="st-input">
+              <option value="ออมทรัพย์">ออมทรัพย์</option>
+              <option value="กระแสรายวัน">กระแสรายวัน</option>
+              <option value="ฝากประจำ">ฝากประจำ</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>ชื่อบัญชี <span class="st-req">*</span></label>
+            <input id="stBankAccName" type="text" class="st-input" placeholder="ชื่อ-นามสกุลเจ้าของบัญชี"/>
+          </div>
+          <div class="st-field">
+            <label>เลขบัญชี <span class="st-req">*</span></label>
+            <input id="stBankAccNo" type="text" class="st-input" placeholder="000-0-00000-0"/>
+          </div>
+          <div class="st-field">
+            <label>สาขา</label>
+            <input id="stBankBranch" type="text" class="st-input" placeholder="สาขา"/>
+          </div>
+          <div class="st-field">
+            <label>
+              <input type="checkbox" id="stBankDefault" style="accent-color:#e8b93e;margin-right:6px;"/>
+              ตั้งเป็นค่าเริ่มต้น
+            </label>
+          </div>
+          <div class="st-field full">
+            <label>QR รับเงิน (ไม่บังคับ)</label>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div id="stQrPreview" style="width:80px;height:80px;border:2px dashed #d1d5db;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#faf9f7;flex-shrink:0;">
+                <span style="font-size:24px;opacity:.3;">&#x25A6;</span>
+              </div>
+              <div>
+                <button id="stQrBtn" class="st-btn-outline">อัพโหลด QR</button>
+                <div id="stQrName" style="font-size:11px;color:#e8b93e;margin-top:4px;"></div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:2px;">PNG, JPG ไม่เกิน 2MB</div>
+              </div>
+              <input type="file" id="stQrInput" accept="image/*" style="display:none;"/>
+            </div>
+          </div>
+        </div>
+        <div class="st-actions">
+          <button class="st-btn-cancel" id="stBankCancelBtn">ยกเลิก</button>
+          <button class="st-btn-save" id="stBankSaveBtn">บันทึก</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -294,7 +375,134 @@ window.addEventListener('viiv_token_ready',function(e){
       var tab=btn.dataset.tab;
       document.getElementById('stTabStore').style.display=tab==='store'?'block':'none';
       document.getElementById('stTabReceipt').style.display=tab==='receipt'?'block':'none';
+      document.getElementById('stTabPayment').style.display=tab==='payment'?'block':'none';
+      if(tab==='payment') renderBankList();
     });
+  });
+
+  // === PAYMENT / BANK ACCOUNTS ===
+  var _banks=JSON.parse(localStorage.getItem('viiv_bank_accounts')||'[]');
+  var _editBankIdx=-1;
+  var _qrFile=null;
+
+  function renderBankList(){
+    var el=document.getElementById('stBankList');
+    if(!el) return;
+    if(!_banks.length){
+      el.innerHTML='<div style="color:#aaa;padding:20px;text-align:center;font-size:13px;">ยังไม่มีบัญชี กด "+ เพิ่มบัญชี"</div>';
+      return;
+    }
+    el.innerHTML='';
+    _banks.forEach(function(b,i){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f8f6f2;border-radius:10px;margin-bottom:8px;';
+      var qrHtml=b.qr_url?'<img src="'+b.qr_url+'" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid #e5e5e5;">':'<div style="width:44px;height:44px;background:#e5e5e5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.4;">&#x25A6;</div>';
+      row.innerHTML=
+        '<div style="flex-shrink:0;">'+qrHtml+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:13px;font-weight:700;">'+b.bank_name+'</div>'+
+          '<div style="font-size:12px;color:#6b7280;">'+b.acc_name+' | '+b.acc_no+(b.branch?' | '+b.branch:'')+'</div>'+
+          '<div style="font-size:11px;color:#9ca3af;">'+b.acc_type+(b.is_default?' &nbsp;<span style="background:#e8b93e;color:#1a1200;padding:1px 7px;border-radius:10px;font-size:10px;">ค่าเริ่มต้น</span>':'')+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-shrink:0;">'+
+          '<button data-idx="'+i+'" class="stBankEditBtn" style="padding:5px 10px;background:#f0ede8;border:1px solid #d1d5db;border-radius:7px;font-size:11px;cursor:pointer;">แก้ไข</button>'+
+          '<button data-idx="'+i+'" class="stBankDelBtn" style="padding:5px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:7px;font-size:11px;cursor:pointer;">ลบ</button>'+
+        '</div>';
+      el.appendChild(row);
+    });
+    el.querySelectorAll('.stBankEditBtn').forEach(function(btn){
+      btn.addEventListener('click',function(){ openBankForm(parseInt(this.dataset.idx)); });
+    });
+    el.querySelectorAll('.stBankDelBtn').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=parseInt(this.dataset.idx);
+        if(!confirm('ลบบัญชี "'+_banks[idx].bank_name+'" ?')) return;
+        _banks.splice(idx,1);
+        localStorage.setItem('viiv_bank_accounts',JSON.stringify(_banks));
+        renderBankList();
+      });
+    });
+  }
+
+  function openBankForm(idx){
+    _editBankIdx=idx;
+    _qrFile=null;
+    var b=idx>=0?_banks[idx]:{};
+    document.getElementById('stBankFormTitle').textContent=idx>=0?'แก้ไขบัญชี':'เพิ่มบัญชีใหม่';
+    document.getElementById('stBankName').value=b.bank_name||'';
+    document.getElementById('stBankType').value=b.acc_type||'ออมทรัพย์';
+    document.getElementById('stBankAccName').value=b.acc_name||'';
+    document.getElementById('stBankAccNo').value=b.acc_no||'';
+    document.getElementById('stBankBranch').value=b.branch||'';
+    document.getElementById('stBankDefault').checked=b.is_default||false;
+    document.getElementById('stQrName').textContent='';
+    var qrPrev=document.getElementById('stQrPreview');
+    qrPrev.innerHTML=b.qr_url?'<img src="'+b.qr_url+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">':'<span style="font-size:24px;opacity:.3;">&#x25A6;</span>';
+    document.getElementById('stBankFormWrap').style.display='block';
+  }
+
+  function saveBankForm(){
+    var bank=document.getElementById('stBankName').value;
+    var accName=document.getElementById('stBankAccName').value.trim();
+    var accNo=document.getElementById('stBankAccNo').value.trim();
+    if(!bank||!accName||!accNo){
+      showMsg('stBankMsg','กรุณากรอกข้อมูลที่จำเป็น (ธนาคาร / ชื่อบัญชี / เลขบัญชี)','#ef4444');
+      return;
+    }
+    if(_banks.length>=3&&_editBankIdx<0){
+      showMsg('stBankMsg','สร้างได้สูงสุด 3 บัญชี','#ef4444');
+      return;
+    }
+    function doSave(qrUrl){
+      var obj={
+        bank_name:bank,
+        acc_type:document.getElementById('stBankType').value,
+        acc_name:accName,
+        acc_no:accNo,
+        branch:document.getElementById('stBankBranch').value.trim(),
+        is_default:document.getElementById('stBankDefault').checked,
+        qr_url:qrUrl||(_editBankIdx>=0?_banks[_editBankIdx].qr_url:'')
+      };
+      if(obj.is_default) _banks.forEach(function(b){b.is_default=false;});
+      if(_editBankIdx>=0) _banks[_editBankIdx]=obj;
+      else _banks.push(obj);
+      localStorage.setItem('viiv_bank_accounts',JSON.stringify(_banks));
+      document.getElementById('stBankFormWrap').style.display='none';
+      renderBankList();
+      showMsg('stBankMsg','บันทึกสำเร็จ','#16a34a');
+    }
+    if(_qrFile){
+      var fd=new FormData();fd.append('file',_qrFile);
+      fetch(API+'/api/pos/store/upload-logo',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+      .then(function(r){return r.json();})
+      .then(function(d){doSave(d.url||'');})
+      .catch(function(){doSave('');});
+    } else { doSave(''); }
+  }
+
+  document.getElementById('stAddBankBtn').addEventListener('click',function(){
+    if(_banks.length>=3){showMsg('stBankMsg','สร้างได้สูงสุด 3 บัญชี','#ef4444');return;}
+    openBankForm(-1);
+  });
+  document.getElementById('stBankCancelBtn').addEventListener('click',function(){
+    document.getElementById('stBankFormWrap').style.display='none';
+  });
+  document.getElementById('stBankSaveBtn').addEventListener('click',saveBankForm);
+
+  // QR upload
+  var qrInput=document.getElementById('stQrInput');
+  document.getElementById('stQrBtn').addEventListener('click',function(){qrInput.click();});
+  document.getElementById('stQrPreview').addEventListener('click',function(){qrInput.click();});
+  qrInput.addEventListener('change',function(){
+    if(!this.files||!this.files[0]) return;
+    _qrFile=this.files[0];
+    document.getElementById('stQrName').textContent=_qrFile.name;
+    var r=new FileReader();
+    r.onload=function(e){
+      var prev=document.getElementById('stQrPreview');
+      prev.innerHTML='<img src="'+e.target.result+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">';
+    };
+    r.readAsDataURL(_qrFile);
   });
   // logo
   var logoInput=document.getElementById('stLogoInput');
