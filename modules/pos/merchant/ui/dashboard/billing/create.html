@@ -506,7 +506,8 @@ window.addEventListener('viiv_token_ready',function(e){
           var s1=document.createElement('span');s1.textContent=m.name;
           var s2=document.createElement('span');s2.style.cssText='color:#9ca3af;font-size:11px;';s2.textContent=m.code||m.phone||'';
           div.appendChild(s1);div.appendChild(s2);
-          div.addEventListener('click',function(){
+          div.addEventListener('mousedown',function(e){
+            e.preventDefault();
             _selectedMember=m;
             ci.value=m.name+(m.phone?' ('+m.phone+')':'');ci.classList.remove('error');
             var mc=document.getElementById('billMemberCode');if(mc)mc.value=m.code||m.id||'—';
@@ -518,7 +519,7 @@ window.addEventListener('viiv_token_ready',function(e){
       var ab=document.createElement('div');
       ab.style.cssText='padding:8px 14px;font-size:12px;color:#e8b93e;font-weight:600;cursor:pointer;border-top:1px solid #f0ede8;';
       ab.textContent='+ สร้างสมาชิกใหม่';
-      ab.addEventListener('click',function(){md.style.display='none';showNewMemberPopup(ci.value);});
+      ab.addEventListener('mousedown',function(e){e.preventDefault();md.style.display='none';showNewMemberPopup(ci.value);});
       md.appendChild(ab);md.style.display='block';
     });
     ci.addEventListener('blur',function(){

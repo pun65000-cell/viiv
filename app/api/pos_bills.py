@@ -128,3 +128,54 @@ def void_log(authorization: str = Header("")):
     with engine.connect() as c:
         rows = c.execute(text("SELECT id,bill_id,bill_no,void_type,void_reason,total,voided_by,voided_at FROM bill_void_log WHERE tenant_id=:tid ORDER BY voided_at DESC LIMIT 200"),{"tid":tid}).fetchall()
     return [dict(r._mapping) for r in rows]
+
+@router.post("/migrate")
+def migrate_bill(payload: dict, authorization: str = Header("")):
+    """รับบิลเก่าจาก localStorage มาเก็บใน DB"""
+    tid, uid = get_tenant_user(authorization)
+    import json as _json
+    # ถ้ามี bill_no นี้แล้วให้ skip
+    bill_no = payload.get("id","")
+    with engine.connect() as c:
+        ex = c.execute(text("SELECT id FROM bills WHERE tenant_id=:tid AND (bill_no=:bno OR id=:bno)"),
+                       {"tid":tid,"bno":bill_no}).fetchone()
+        if ex: return {"message":"already exists","bill_no":bill_no}
+    items = payload.get("items",[])
+    sub = sum(float(i.get("qty",1))*float(i.get("price",0)) for i in items)
+    dv = float(payload.get("discount",0))
+    dt = payload.get("discount_type","amount")
+    disc = sub*dv/100 if dt=="percent" else dv
+    after = max(0,sub-disc)
+    vr = int(payload.get("vat",0))
+    total = float(payload.get("total",after+after*vr/100))
+    bid = generate_id("bill")
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,
+              customer_name,customer_code,customer_data,items,
+              subtotal,discount,discount_type,vat_rate,vat_amount,total,
+              pay_method,paid_amount,note,void_reason,created_by,created_at,updated_at)
+            VALUES(:id,:tid,:bno,:ino,:dt,:st,
+              :cn,:cc,:cd,:items,
+              :sub,:disc,:dtype,:vr,:va,:total,
+              :pm,:paid,:note,:voidr,:uid,:cat,NOW())
+        """),{
+            "id":bid,"tid":tid,
+            "bno":bill_no,
+            "ino":bill_no.replace("BILL","INV") if "BILL" in bill_no else "",
+            "dt":payload.get("doc_type","receipt"),
+            "st":payload.get("status","paid"),
+            "cn":payload.get("customer",""),
+            "cc":payload.get("customer_code","") or (payload.get("customer_data") or {}).get("code",""),
+            "cd":_json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
+            "items":_json.dumps(items),
+            "sub":sub,"disc":disc,"dtype":dt,"vr":vr,
+            "va":after*vr/100,"total":total,
+            "pm":payload.get("pay_method","cash"),
+            "paid":float(payload.get("paid",0)),
+            "note":payload.get("note",""),
+            "voidr":payload.get("void_reason",""),
+            "uid":uid,
+            "cat":payload.get("created_at","NOW()")
+        })
+    return {"message":"migrated","bill_no":bill_no,"id":bid}
