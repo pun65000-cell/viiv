@@ -8,6 +8,8 @@
         <option value="">สถานะทั้งหมด</option>
         <option value="paid">จ่ายแล้ว</option>
         <option value="draft">ร่าง</option>
+        <option value="voided">ยกเลิกแล้ว</option>
+        <option value="deleted">ลบแล้ว</option>
       </select>
       <select id="bsType" class="bs-select" onchange="bsFilter()">
         <option value="">ประเภททั้งหมด</option>
@@ -39,6 +41,8 @@
 .bs-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin-left:6px;}
 .bs-badge.paid{background:#dcfce7;color:#166534;}
 .bs-badge.draft{background:#fef3c7;color:#92400e;}
+.bs-badge.voided{background:#fee2e2;color:#991b1b;}
+.bs-badge.deleted{background:#f3f4f6;color:#6b7280;text-decoration:line-through;}
 </style>
 
 <script>
@@ -48,6 +52,54 @@ var allBills = JSON.parse(localStorage.getItem('viiv_bills')||'[]');
 var typeMap = {receipt:'ใบเสร็จ',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
 
 function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
+var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
+
+function waPrintBill(b){
+  var typeLabel={receipt:'ใบเสร็จรับเงิน',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
+  var rows=(b.items||[]).map(function(i){
+    return '<tr><td style="padding:4px 8px;border-bottom:1px solid #f0ede8;">'+i.sku+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;">'+i.name+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:center;">'+i.qty+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:right;">'+fmt(i.price)+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:right;font-weight:600;">'+fmt(i.qty*i.price)+'</td></tr>';
+  }).join('');
+  var storeName=window._storeSettings?window._storeSettings.store_name:'';
+  var storeAddr=window._storeSettings?(window._storeSettings.address||''):'';
+  var storeTax=window._storeSettings?(window._storeSettings.tax_id||''):'';
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+b.bill_no+'</title>'+
+    '<style>body{font-family:sans-serif;font-size:13px;margin:0;padding:20px;}'+
+    'h2{font-size:16px;margin:0 0 4px;}'+
+    '.meta{font-size:11px;color:#6b7280;margin-bottom:12px;}'+
+    'table{width:100%;border-collapse:collapse;}'+
+    'th{background:#f8f6f2;padding:6px 8px;text-align:left;font-size:11px;}'+
+    '.total-row{font-size:15px;font-weight:700;color:#e8b93e;}'+
+    '@media print{body{padding:10px;}}</style></head><body>'+
+    (storeName?'<h2>'+storeName+'</h2>':'<h2>ใบเสร็จรับเงิน</h2>')+
+    (storeAddr?'<div style="font-size:11px;color:#6b7280;">'+storeAddr+'</div>':'')+
+    (storeTax?'<div style="font-size:11px;color:#6b7280;">เลขผู้เสียภาษี: '+storeTax+'</div>':'')+
+    '<div class="meta">'+
+      (typeLabel[b.doc_type]||b.doc_type)+' #'+(b.bill_no||b.id)+'<br>'+
+      'วันที่: '+new Date(b.created_at).toLocaleString('th')+'<br>'+
+      'ลูกค้า: '+(b.customer||b.customer_name||'ไม่ระบุ')+(b.customer_code?' ('+b.customer_code+')':'')+
+    '</div>'+
+    '<table><thead><tr>'+
+      '<th>SKU</th><th>สินค้า</th><th style="text-align:center;">จำนวน</th>'+
+      '<th style="text-align:right;">ราคา/หน่วย</th><th style="text-align:right;">รวม</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:12px;text-align:right;max-width:240px;margin-left:auto;">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>ส่วนลด</span><span>'+
+        (b.discount_type==='percent'?(b.discount||0)+'%':fmt(b.discount||0))+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>VAT</span><span>'+
+        (b.vat_rate||b.vat?((b.vat_rate||b.vat)+'%'):'ไม่มี')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;border-top:2px solid #e8b93e;padding-top:6px;"><span>ยอดสุทธิ</span><span>'+fmt(b.total)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:12px;color:#6b7280;"><span>วิธีชำระ</span><span>'+(payLabel[b.pay_method]||b.pay_method||'—')+'</span></div>'+
+    '</div>'+
+    (b.note?'<div style="margin-top:10px;font-size:11px;color:#6b7280;border-top:1px solid #f0ede8;padding-top:8px;">หมายเหตุ: '+b.note+'</div>':'')+
+    '<div style="margin-top:16px;font-size:10px;color:#9ca3af;text-align:center;">ขอบคุณที่ใช้บริการ</div>'+
+    '</body></html>';
+  var w=window.open('','_blank','width=400,height=600');
+  if(w){w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);}
+}
 var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
 
 function showBillDetail(b){
@@ -90,7 +142,8 @@ function showBillDetail(b){
     '</div>'+
     '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'+
       draftBtnHtml+
-      '<button id="bsDismissBtn" style="padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">ปิด</button>'+
+      '<button id="bsPrintBtn" style="padding:7px 14px;background:#1f2937;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">พิมพ์ใบเสร็จ</button>'+
+    '<button id="bsDismissBtn" style="padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">ปิด</button>'+
     '</div>';
   var ov=document.getElementById('bsOverlay');
   ov.innerHTML='';
@@ -98,6 +151,7 @@ function showBillDetail(b){
   ov.style.display='flex';
   document.getElementById('bsCloseBtn').addEventListener('click',function(){ ov.style.display='none'; });
   document.getElementById('bsDismissBtn').addEventListener('click',function(){ ov.style.display='none'; });
+  document.getElementById('bsPrintBtn').addEventListener('click',function(){ waPrintBill(b); });
   if(isDraft){
     document.getElementById('bsReopenBtn').addEventListener('click',function(){
       ov.style.display='none';

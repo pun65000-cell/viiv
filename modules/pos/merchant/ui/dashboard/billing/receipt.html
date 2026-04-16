@@ -6,6 +6,7 @@
       <select id="rcStatus" class="rc-select" onchange="rcFilter()">
         <option value="paid">จ่ายแล้ว</option>
         <option value="draft">ร่าง (พักไว้)</option>
+        <option value="voided">ยกเลิกแล้ว</option>
         <option value="">ทั้งหมด</option>
       </select>
     </div>
@@ -36,6 +37,33 @@
 (function(){
 var allBills=JSON.parse(localStorage.getItem('viiv_bills')||'[]');
 
+
+function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
+var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
+function waPrintBill(b){
+  var typeLabel={receipt:'ใบเสร็จรับเงิน',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
+  var rows=(b.items||[]).map(function(i){
+    return '<tr><td style="padding:4px 8px;border-bottom:1px solid #f0ede8;">'+i.sku+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;">'+i.name+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:center;">'+i.qty+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:right;">'+fmt(i.price)+'</td>'+
+      '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:right;font-weight:600;">'+fmt(i.qty*i.price)+'</td></tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+b.bill_no+'</title>'+
+    '<style>body{font-family:sans-serif;font-size:13px;margin:0;padding:20px;}h2{font-size:16px;margin:0 0 4px;}.meta{font-size:11px;color:#6b7280;margin-bottom:12px;}table{width:100%;border-collapse:collapse;}th{background:#f8f6f2;padding:6px 8px;text-align:left;font-size:11px;}@media print{body{padding:10px;}}</style></head><body>'+
+    '<h2>ใบเสร็จรับเงิน</h2>'+
+    '<div class="meta">'+(typeLabel[b.doc_type]||b.doc_type)+' #'+(b.bill_no||b.id)+'<br>'+
+    'วันที่: '+new Date(b.created_at).toLocaleString('th')+'<br>'+
+    'ลูกค้า: '+(b.customer||b.customer_name||'ไม่ระบุ')+'</div>'+
+    '<table><thead><tr><th>SKU</th><th>สินค้า</th><th>จำนวน</th><th style="text-align:right;">ราคา</th><th style="text-align:right;">รวม</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:12px;text-align:right;max-width:200px;margin-left:auto;">'+
+    '<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:2px solid #e8b93e;padding-top:6px;"><span>ยอดสุทธิ</span><span>'+fmt(b.total)+'</span></div>'+
+    '<div style="font-size:12px;color:#6b7280;margin-top:4px;">วิธีชำระ: '+(payLabel[b.pay_method]||'—')+'</div></div>'+
+    (b.note?'<div style="margin-top:10px;font-size:11px;color:#9ca3af;">หมายเหตุ: '+b.note+'</div>':'')+
+    '<div style="margin-top:16px;font-size:10px;color:#9ca3af;text-align:center;">ขอบคุณที่ใช้บริการ</div></body></html>';
+  var w=window.open('','_blank','width=400,height=600');
+  if(w){w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);}
+}
 window.rcFilter=function(){
   var q=(document.getElementById('rcQ').value||'').toLowerCase();
   var st=document.getElementById('rcStatus').value;
