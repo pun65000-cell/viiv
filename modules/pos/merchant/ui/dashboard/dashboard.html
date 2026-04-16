@@ -328,6 +328,7 @@ function loadSubPage(el, file) {
       el.innerHTML = body ? body.innerHTML : html;
       // inject VIIV_TOKEN ให้ sub-page script เห็นก่อนรัน
       window.VIIV_TOKEN = localStorage.getItem('viiv_token') || '';
+      window._tokenReadyFired = false;
       // โหลดชื่อร้านทันทีที่มี token
       if(window.VIIV_TOKEN && !window._storeLoaded){
         window._storeLoaded=true;
@@ -351,9 +352,12 @@ function loadSubPage(el, file) {
         if(_done >= _total){
           // รอให้ DOM settle ก่อน fire token_ready
           setTimeout(function(){
-            window.dispatchEvent(new CustomEvent('viiv_token_ready',{
-              detail:{token: window.VIIV_TOKEN}
-            }));
+            if(!window._tokenReadyFired){
+              window._tokenReadyFired=true;
+              window.dispatchEvent(new CustomEvent('viiv_token_ready',{
+                detail:{token: window.VIIV_TOKEN}
+              }));
+            }
           },50);
         }
       }
@@ -370,9 +374,12 @@ function loadSubPage(el, file) {
       });
       if(_total === 0){
         requestAnimationFrame(function(){
-          window.dispatchEvent(new CustomEvent('viiv_token_ready',{
-            detail:{token: window.VIIV_TOKEN}
-          }));
+          if(!window._tokenReadyFired){
+            window._tokenReadyFired=true;
+            window.dispatchEvent(new CustomEvent('viiv_token_ready',{
+              detail:{token: window.VIIV_TOKEN}
+            }));
+          }
         });
       }
     })
