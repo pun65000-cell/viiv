@@ -1,0 +1,374 @@
+<body>
+<div id="affWrap" style="padding:4px 0;box-sizing:border-box;width:100%;"></div>
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var _products=[];
+var _editId=null;
+var _mediaImages=[];
+var _mediaVideos=[];
+var _options=[];
+var _tab='all';
+
+function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
+
+function renderShell(){
+  var wrap=document.getElementById('affWrap');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  var tabBar=document.createElement('div');
+  tabBar.style.cssText='display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;';
+  [['all','ทั้งหมด'],['create','สร้างสินค้า'],['store','สโตร์ลิ้งค์'],['trend','เทรนขายดี']].forEach(function(t){
+    var btn=document.createElement('button');
+    btn.textContent=t[1];
+    btn.style.cssText='padding:7px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:'+(_tab===t[0]?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(_tab===t[0]?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;white-space:nowrap;';
+    btn.addEventListener('click',function(){
+      _tab=t[0]; renderShell();
+      if(t[0]==='all') renderAll();
+      else if(t[0]==='create'){_editId=null;_mediaImages=[];_mediaVideos=[];_options=[];renderForm(null);}
+      else if(t[0]==='store') renderStore();
+      else if(t[0]==='trend') renderTrend();
+    });
+    tabBar.appendChild(btn);
+  });
+  wrap.appendChild(tabBar);
+  var c=document.createElement('div');
+  c.id='affContent';
+  wrap.appendChild(c);
+}
+
+function renderAll(){
+  loadProducts(function(){
+    var el=document.getElementById('affContent');
+    if(!el) return;
+    el.innerHTML='';
+    var active=_products.filter(function(p){return p.status==='active';}).length;
+    var totalClicks=_products.reduce(function(s,p){return s+(p.click_count||0);},0);
+    var stats=document.createElement('div');
+    stats.style.cssText='display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;';
+    [{l:'สินค้าทั้งหมด',v:_products.length},{l:'จำหน่ายอยู่',v:active},{l:'คลิกรวม',v:totalClicks.toLocaleString()}].forEach(function(s){
+      var card=document.createElement('div');
+      card.style.cssText='flex:1;min-width:100px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:12px 16px;text-align:center;';
+      card.innerHTML='<div style="font-size:22px;font-weight:700;color:#e8b93e;">'+s.v+'</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">'+s.l+'</div>';
+      stats.appendChild(card);
+    });
+    el.appendChild(stats);
+    var toolbar=document.createElement('div');
+    toolbar.style.cssText='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;';
+    var searchIn=document.createElement('input');
+    searchIn.id='affSearch';
+    searchIn.placeholder='ค้นหาชื่อ / URL...';
+    searchIn.style.cssText='flex:1;min-width:160px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;';
+    searchIn.addEventListener('input',filterList);
+    var statusSel=document.createElement('select');
+    statusSel.id='affStatusFilter';
+    statusSel.style.cssText='padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;';
+    [['',' สถานะทั้งหมด'],['active','จำหน่าย'],['inactive','หยุดขาย']].forEach(function(o){
+      var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];statusSel.appendChild(opt);
+    });
+    statusSel.addEventListener('change',filterList);
+    var addBtn=document.createElement('button');
+    addBtn.textContent='+ สร้างสินค้า';
+    addBtn.style.cssText='padding:7px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;';
+    addBtn.addEventListener('click',function(){_tab='create';_editId=null;_mediaImages=[];_mediaVideos=[];_options=[];renderShell();renderForm(null);});
+    toolbar.appendChild(searchIn);toolbar.appendChild(statusSel);toolbar.appendChild(addBtn);
+    el.appendChild(toolbar);
+    var listEl=document.createElement('div');listEl.id='affList';
+    el.appendChild(listEl);
+    filterList();
+  });
+}
+
+function filterList(){
+  var q=((document.getElementById('affSearch')||{}).value||'').toLowerCase();
+  var st=((document.getElementById('affStatusFilter')||{}).value||'');
+  var filtered=_products.filter(function(p){
+    return(!st||p.status===st)&&(!q||(p.title||'').toLowerCase().includes(q)||(p.aff_url||'').toLowerCase().includes(q));
+  });
+  renderList(filtered);
+}
+
+function renderList(products){
+  var el=document.getElementById('affList');
+  if(!el) return;
+  if(!products.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;border:1.5px dashed #e5e5e5;border-radius:10px;">ยังไม่มีสินค้า affiliate</div>';
+    return;
+  }
+  el.innerHTML='';
+  products.forEach(function(p){
+    var card=document.createElement('div');
+    card.style.cssText='background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:border-color .15s;';
+    card.onmouseover=function(){this.style.borderColor='#e8b93e';};
+    card.onmouseout=function(){this.style.borderColor='#e5e5e5';};
+    var imgs=p.images||[];
+    var thumbEl=document.createElement(imgs.length?'img':'div');
+    if(imgs.length){thumbEl.src=API+imgs[0];thumbEl.style.cssText='width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;';}
+    else{thumbEl.style.cssText='width:64px;height:64px;background:#f0ede8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;';thumbEl.innerHTML='&#x1F517;';}
+    var info=document.createElement('div');info.style.flex='1';
+    info.innerHTML='<div style="font-size:14px;font-weight:700;color:#1f2937;margin-bottom:4px;">'+p.title+'</div>'+
+      '<div style="font-size:11px;color:#6b7280;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.aff_url+'</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+
+        '<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:'+(p.status==='active'?'#dcfce7':'#fee2e2')+';color:'+(p.status==='active'?'#166534':'#991b1b')+';">'+(p.status==='active'?'จำหน่าย':'หยุดขาย')+'</span>'+
+        '<span style="font-size:11px;color:#6b7280;">'+fmt(p.price)+'</span>'+
+        '<span style="font-size:11px;color:#6b7280;">คอม: '+(p.commission||0)+(p.commission_type==='percent'?'%':'฿')+'</span>'+
+        '<span style="font-size:11px;color:#e8b93e;font-weight:600;">คลิก: '+(p.click_count||0)+'</span>'+
+        (p.source?'<span style="font-size:10px;background:#f0ede8;padding:2px 6px;border-radius:6px;">'+p.source+'</span>':'')+
+      '</div>';
+    card.appendChild(thumbEl);card.appendChild(info);
+    card.addEventListener('click',function(){
+      _tab='create';_editId=p.id;
+      _mediaImages=(p.images||[]).slice();_mediaVideos=(p.videos||[]).slice();_options=(p.options||[]).slice();
+      renderShell();renderForm(p);
+    });
+    el.appendChild(card);
+  });
+}
+
+function renderForm(p){
+  var el=document.getElementById('affContent');
+  if(!el) return;
+  var isEdit=!!p; p=p||{};
+  el.innerHTML='';
+  var card=document.createElement('div');
+  card.style.cssText='background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;';
+  var ttl=document.createElement('div');
+  ttl.style.cssText='font-size:15px;font-weight:700;color:#1f2937;margin-bottom:12px;';
+  ttl.textContent=isEdit?'แก้ไขสินค้า Affiliate':'สร้างสินค้า Affiliate';
+  card.appendChild(ttl);
+  var tip=document.createElement('div');
+  tip.style.cssText='background:#fffbf0;border:1px solid #e8b93e;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px;line-height:1.6;';
+  tip.innerHTML='<b>Tips:</b> รูปคุณภาพสูง + คลิปสาธิต + ชื่อที่มีคีย์เวิร์ด + ราคาชัดเจน + ตัวเลือกหลากหลาย เพิ่มโอกาสปิดการขาย 3 เท่า';
+  card.appendChild(tip);
+  function addF(lbl,id,type,val,full,ph,req){
+    var d=document.createElement('div');
+    if(full) d.style.gridColumn='1/-1';
+    d.innerHTML='<label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">'+lbl+(req?' <span style="color:#ef4444;">*</span>':'')+'</label>';
+    var inp=document.createElement(type==='textarea'?'textarea':'input');
+    if(type!=='textarea') inp.type=type;
+    inp.id=id; inp.value=val||'';
+    if(ph) inp.placeholder=ph;
+    if(type==='textarea'){inp.rows=3;inp.style.resize='vertical';}
+    inp.style.cssText=(inp.style.cssText||'')+'width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;background:#faf9f7;font-family:inherit;';
+    inp.addEventListener('focus',function(){this.style.borderColor='#e8b93e';});
+    inp.addEventListener('blur',function(){this.style.borderColor='#d1d5db';});
+    d.appendChild(inp); return d;
+  }
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px;';
+  var titleF=addF('ชื่อสินค้า / ไตเติ้ล','affTitle','text',p.title,true,'ชื่อที่ดึงดูด...',true);
+  titleF.style.gridColumn='1/-1'; grid.appendChild(titleF);
+  var urlF=addF('ลิ้งค์ Affiliate','affUrl','url',p.aff_url,true,'https://...',true);
+  urlF.style.gridColumn='1/-1'; grid.appendChild(urlF);
+  grid.appendChild(addF('แหล่งที่มา','affSource','text',p.source,false,'Shopee / Lazada'));
+  grid.appendChild(addF('ราคาขาย','affPrice','number',p.price||0));
+  grid.appendChild(addF('ค่าคอมมิชชั่น','affComm','number',p.commission||0));
+  var ctDiv=document.createElement('div');
+  ctDiv.innerHTML='<label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">ประเภทค่าคอม</label>';
+  var ctSel=document.createElement('select');ctSel.id='affCommType';
+  ctSel.style.cssText='width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;background:#faf9f7;';
+  [['percent','% เปอร์เซ็นต์'],['amount','฿ จำนวนเงิน']].forEach(function(o){
+    var opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
+    if(p.commission_type===o[0]) opt.selected=true;
+    ctSel.appendChild(opt);
+  });
+  ctDiv.appendChild(ctSel); grid.appendChild(ctDiv);
+  var descF=addF('คำบรรยาย','affDesc','textarea',p.description,true,'จุดเด่น ข้อดี...');
+  descF.style.gridColumn='1/-1'; grid.appendChild(descF);
+  card.appendChild(grid);
+  // media sections
+  function makeMediaSection(label,listId,type,inputAccept){
+    var sec=document.createElement('div');sec.style.marginTop='16px';
+    sec.innerHTML='<div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">'+label+'</div>';
+    var lst=document.createElement('div');lst.id=listId;lst.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;';
+    renderMediaList(lst,type);
+    sec.appendChild(lst);
+    var addBtn=document.createElement('button');
+    addBtn.textContent='+ เพิ่ม';
+    addBtn.style.cssText='padding:6px 14px;background:#f0ede8;border:1px solid #d1d5db;border-radius:7px;font-size:12px;cursor:pointer;';
+    var inp=document.createElement('input');inp.type='file';inp.accept=inputAccept;inp.multiple=true;inp.style.display='none';
+    addBtn.addEventListener('click',function(){inp.click();});
+    inp.addEventListener('change',function(){
+      uploadMediaFiles(Array.from(this.files),type,function(){renderMediaList(lst,type);});
+      this.value='';
+    });
+    sec.appendChild(addBtn);sec.appendChild(inp);
+    return sec;
+  }
+  card.appendChild(makeMediaSection('รูปภาพสินค้า','affImgList','image','image/*'));
+  card.appendChild(makeMediaSection('คลิปสั้น (MP4/MOV)','affVidList','video','video/*'));
+  // options
+  var optSec=document.createElement('div');optSec.style.marginTop='16px';
+  optSec.innerHTML='<div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">ตัวเลือกสินค้า <span style="color:#9ca3af;font-weight:400;">(สี/ขนาด/รุ่น)</span></div>';
+  var optList=document.createElement('div');optList.id='affOptList';
+  renderOptionList(optList);
+  optSec.appendChild(optList);
+  var addOptBtn=document.createElement('button');
+  addOptBtn.textContent='+ เพิ่มตัวเลือก';
+  addOptBtn.style.cssText='padding:6px 14px;background:#f0ede8;border:1px solid #d1d5db;border-radius:7px;font-size:12px;cursor:pointer;';
+  addOptBtn.addEventListener('click',function(){_options.push({name:'',value:''});renderOptionList(optList);});
+  optSec.appendChild(addOptBtn);
+  card.appendChild(optSec);
+  // status toggle
+  var _status=p.status||'active';
+  var stRow=document.createElement('div');stRow.style.cssText='margin-top:16px;display:flex;gap:10px;align-items:center;';
+  stRow.innerHTML='<span style="font-size:12px;font-weight:600;color:#374151;">สถานะ:</span>';
+  var stBtn=document.createElement('button');
+  function updateStBtn(){stBtn.textContent=_status==='active'?'จำหน่าย':'หยุดขาย';stBtn.style.cssText='padding:6px 16px;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:'+(_status==='active'?'#dcfce7':'#fee2e2')+';color:'+(_status==='active'?'#166534':'#991b1b')+'+';}
+  updateStBtn();
+  stBtn.addEventListener('click',function(){_status=_status==='active'?'inactive':'active';updateStBtn();});
+  stRow.appendChild(stBtn);card.appendChild(stRow);
+  var msgEl=document.createElement('div');msgEl.id='affFormMsg';msgEl.style.cssText='display:none;font-size:12px;margin-top:8px;text-align:right;';
+  card.appendChild(msgEl);
+  var actRow=document.createElement('div');actRow.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:20px;';
+  var leftBtn=document.createElement('button');
+  if(isEdit){
+    leftBtn.textContent='ลบสินค้า';
+    leftBtn.style.cssText='padding:8px 14px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;';
+    leftBtn.addEventListener('click',function(){
+      if(!confirm('ลบ "'+p.title+'" ?')) return;
+      fetch(API+'/api/pos/affiliate/delete/'+_editId,{method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}})
+      .then(function(r){return r.json();}).then(function(){_tab='all';renderShell();renderAll();});
+    });
+  } else {
+    leftBtn.textContent='ล้างข้อมูล';
+    leftBtn.style.cssText='padding:8px 14px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;';
+    leftBtn.addEventListener('click',function(){_mediaImages=[];_mediaVideos=[];_options=[];renderForm(null);});
+  }
+  var rBtns=document.createElement('div');rBtns.style.cssText='display:flex;gap:8px;';
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='ยกเลิก';
+  cancelBtn.style.cssText='padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;';
+  cancelBtn.addEventListener('click',function(){_tab='all';renderShell();renderAll();});
+  var saveBtn=document.createElement('button');saveBtn.id='affSaveBtn';saveBtn.textContent='บันทึก';
+  saveBtn.style.cssText='padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;';
+  saveBtn.addEventListener('click',function(){saveForm(isEdit,_status,msgEl,saveBtn);});
+  rBtns.appendChild(cancelBtn);rBtns.appendChild(saveBtn);
+  actRow.appendChild(leftBtn);actRow.appendChild(rBtns);
+  card.appendChild(actRow);
+  el.appendChild(card);
+}
+
+function renderMediaList(container,type){
+  var items=type==='image'?_mediaImages:_mediaVideos;
+  container.innerHTML='';
+  items.forEach(function(url,i){
+    var wrap=document.createElement('div');wrap.style.position='relative';
+    var media=document.createElement(type==='image'?'img':'video');
+    media.src=API+url;media.style.cssText='width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #e5e5e5;display:block;';
+    var del=document.createElement('button');del.textContent='x';
+    del.style.cssText='position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:10px;cursor:pointer;line-height:1;padding:0;';
+    del.addEventListener('click',function(){
+      if(type==='image') _mediaImages.splice(i,1); else _mediaVideos.splice(i,1);
+      renderMediaList(container,type);
+    });
+    wrap.appendChild(media);wrap.appendChild(del);container.appendChild(wrap);
+  });
+}
+
+function renderOptionList(container){
+  container.innerHTML='';
+  _options.forEach(function(opt,i){
+    var row=document.createElement('div');row.style.cssText='display:flex;gap:8px;margin-bottom:6px;align-items:center;';
+    var nIn=document.createElement('input');nIn.type='text';nIn.value=opt.name||'';nIn.placeholder='ชื่อตัวเลือก';
+    nIn.style.cssText='flex:1;padding:6px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:12px;outline:none;';
+    nIn.addEventListener('input',function(){_options[i].name=this.value;});
+    var vIn=document.createElement('input');vIn.type='text';vIn.value=opt.value||'';vIn.placeholder='ค่า (เช่น แดง,น้ำเงิน)';
+    vIn.style.cssText='flex:2;padding:6px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:12px;outline:none;';
+    vIn.addEventListener('input',function(){_options[i].value=this.value;});
+    var del=document.createElement('button');del.textContent='x';
+    del.style.cssText='padding:4px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:11px;cursor:pointer;';
+    del.addEventListener('click',function(){_options.splice(i,1);renderOptionList(container);});
+    row.appendChild(nIn);row.appendChild(vIn);row.appendChild(del);container.appendChild(row);
+  });
+}
+
+function uploadMediaFiles(files,type,cb){
+  var pending=files.length;
+  if(!pending){cb();return;}
+  files.forEach(function(file){
+    var fd=new FormData();fd.append('file',file);
+    fetch(API+'/api/pos/affiliate/upload-media',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d.url){if(type==='image')_mediaImages.push(d.url);else _mediaVideos.push(d.url);}pending--;if(!pending)cb();})
+    .catch(function(){pending--;if(!pending)cb();});
+  });
+}
+
+function saveForm(isEdit,status,msgEl,saveBtn){
+  var title=((document.getElementById('affTitle')||{}).value||'').trim();
+  var url=((document.getElementById('affUrl')||{}).value||'').trim();
+  if(!title||!url){msgEl.textContent='กรุณากรอกชื่อและลิ้งค์';msgEl.style.color='#ef4444';msgEl.style.display='block';return;}
+  saveBtn.textContent='กำลังบันทึก...';saveBtn.disabled=true;
+  var payload={title:title,aff_url:url,source:((document.getElementById('affSource')||{}).value||''),price:parseFloat(((document.getElementById('affPrice')||{}).value)||0)||0,commission:parseFloat(((document.getElementById('affComm')||{}).value)||0)||0,commission_type:((document.getElementById('affCommType')||{}).value||'percent'),description:((document.getElementById('affDesc')||{}).value||''),images:_mediaImages.slice(),videos:_mediaVideos.slice(),options:_options.filter(function(o){return o.name;}),status:status};
+  var ep=isEdit?API+'/api/pos/affiliate/update/'+_editId:API+'/api/pos/affiliate/create';
+  fetch(ep,{method:isEdit?'PUT':'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();})
+  .then(function(d){if(d.id||d.message){_tab='all';renderShell();renderAll();}else{msgEl.textContent=d.detail||'เกิดข้อผิดพลาด';msgEl.style.color='#ef4444';msgEl.style.display='block';saveBtn.textContent='บันทึก';saveBtn.disabled=false;}})
+  .catch(function(){msgEl.textContent='เชื่อมต่อไม่ได้';msgEl.style.color='#ef4444';msgEl.style.display='block';saveBtn.textContent='บันทึก';saveBtn.disabled=false;});
+}
+
+function renderStore(){
+  var el=document.getElementById('affContent');if(!el)return;
+  loadProducts(function(){
+    el.innerHTML='<div style="font-size:14px;font-weight:700;margin-bottom:12px;">สโตร์ลิ้งค์ทั้งหมด ('+_products.length+')</div>';
+    if(!_products.length){el.innerHTML+='<div style="text-align:center;padding:40px;color:#aaa;">ยังไม่มีสินค้า</div>';return;}
+    var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;';
+    _products.forEach(function(p){
+      var card=document.createElement('div');card.style.cssText='background:#fff;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s;';
+      card.onmouseover=function(){this.style.borderColor='#e8b93e';};card.onmouseout=function(){this.style.borderColor='#e5e5e5';};
+      var imgs=p.images||[];
+      var thumb=document.createElement(imgs.length?'img':'div');
+      if(imgs.length){thumb.src=API+imgs[0];thumb.style.cssText='width:100%;height:110px;object-fit:cover;display:block;';}
+      else{thumb.style.cssText='width:100%;height:110px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:28px;';thumb.innerHTML='&#x1F517;';}
+      var info=document.createElement('div');info.style.cssText='padding:8px;';
+      info.innerHTML='<div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px;">'+p.title+'</div>'+
+        '<div style="font-size:11px;color:#e8b93e;font-weight:600;margin-bottom:4px;">'+fmt(p.price)+'</div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;"><span>คลิก: '+(p.click_count||0)+'</span><span>'+(p.source||'')+'</span></div>';
+      card.appendChild(thumb);card.appendChild(info);
+      card.addEventListener('click',function(){_tab='create';_editId=p.id;_mediaImages=(p.images||[]).slice();_mediaVideos=(p.videos||[]).slice();_options=(p.options||[]).slice();renderShell();renderForm(p);});
+      grid.appendChild(card);
+    });
+    el.appendChild(grid);
+  });
+}
+
+function renderTrend(){
+  var el=document.getElementById('affContent');if(!el)return;
+  loadProducts(function(){
+    el.innerHTML='<div style="font-size:14px;font-weight:700;margin-bottom:12px;">เทรนขายดี — เรียงตามคลิก</div>';
+    var sorted=_products.slice().sort(function(a,b){return(b.click_count||0)-(a.click_count||0);});
+    if(!sorted.length){el.innerHTML+='<div style="text-align:center;padding:40px;color:#aaa;">ยังไม่มีข้อมูล</div>';return;}
+    sorted.forEach(function(p,idx){
+      var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;margin-bottom:8px;';
+      var rank=document.createElement('div');rank.style.cssText='width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;background:'+(idx===0?'#e8b93e':idx===1?'#d1d5db':idx===2?'#cd7f32':'#f0ede8')+';color:'+(idx<3?'#fff':'#6b7280')+';';
+      rank.textContent=idx+1;
+      var imgs=p.images||[];
+      var thumb=document.createElement(imgs.length?'img':'div');
+      if(imgs.length){thumb.src=API+imgs[0];thumb.style.cssText='width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;';}
+      else{thumb.style.cssText='width:48px;height:48px;background:#f0ede8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;';thumb.innerHTML='&#x1F517;';}
+      var info=document.createElement('div');info.style.flex='1';
+      info.innerHTML='<div style="font-size:13px;font-weight:700;">'+p.title+'</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">'+fmt(p.price)+' · คอม '+(p.commission||0)+(p.commission_type==='percent'?'%':'฿')+(p.source?' · '+p.source:'')+'</div>';
+      var clicks=document.createElement('div');clicks.style.cssText='text-align:right;flex-shrink:0;';
+      clicks.innerHTML='<div style="font-size:18px;font-weight:700;color:#e8b93e;">'+(p.click_count||0)+'</div><div style="font-size:10px;color:#9ca3af;">คลิก</div>';
+      row.appendChild(rank);row.appendChild(thumb);row.appendChild(info);row.appendChild(clicks);
+      el.appendChild(row);
+    });
+  });
+}
+
+function loadProducts(cb){
+  fetch(API+'/api/pos/affiliate/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(d){_products=d||[];if(cb)cb();})
+  .catch(function(){_products=[];if(cb)cb();});
+}
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token) TOKEN=e.detail.token;
+  renderShell();renderAll();
+});
+})();
+</script>
+</body>
