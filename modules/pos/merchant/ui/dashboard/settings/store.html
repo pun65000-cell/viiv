@@ -1,7 +1,331 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">⚙</div>
-  <div style="font-size:14px;">ตั้งค่าร้านค้า</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="st-wrap">
+  <div class="st-tabs">
+    <button class="st-tab active" data-tab="store">ร้านค้า</button>
+    <button class="st-tab" data-tab="receipt">ตั้งค่าใบเสร็จ</button>
+  </div>
+  <div id="stTabStore" class="st-panel">
+    <div class="st-card">
+      <div class="st-section-title">โลโก้ร้านค้า</div>
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;">
+        <div id="stLogoPreview" style="width:88px;height:88px;border:2px dashed #d1d5db;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#faf9f7;flex-shrink:0;cursor:pointer;">
+          <span style="font-size:28px;opacity:.3;">&#x1F3EA;</span>
+        </div>
+        <div>
+          <button id="stLogoBtn" class="st-btn-outline">เลือกโลโก้</button>
+          <div style="font-size:11px;color:#9ca3af;margin-top:6px;line-height:1.5;">JPG, PNG, WEBP ไม่เกิน 5MB<br>แนะนำ 200x200px</div>
+          <div id="stLogoName" style="font-size:11px;color:#e8b93e;margin-top:4px;"></div>
+        </div>
+        <input type="file" id="stLogoInput" accept="image/*" style="display:none;"/>
+      </div>
+      <div class="st-grid">
+        <div class="st-field full">
+          <label>ชื่อร้านค้า <span class="st-req">*</span></label>
+          <input id="stStoreName" type="text" class="st-input" placeholder="ชื่อร้านค้าของคุณ"/>
+        </div>
+        <div class="st-field full">
+          <label>เลขประจำตัวผู้เสียภาษี</label>
+          <input id="stTaxId" type="text" class="st-input" placeholder="0000000000000"/>
+        </div>
+        <div class="st-field full">
+          <label>เบอร์โทร <span class="st-req">*</span></label>
+          <input id="stPhone" type="tel" class="st-input" placeholder="0812345678"/>
+        </div>
+        <div class="st-field full">
+          <label>ที่อยู่ <span class="st-req">*</span></label>
+          <input id="stAddress" type="text" class="st-input" placeholder="บ้านเลขที่ / หมู่บ้าน / ซอย"/>
+        </div>
+        <div class="st-field full">
+          <label>ถนน</label>
+          <input id="stRoad" type="text" class="st-input" placeholder="ถนน"/>
+        </div>
+        <div class="st-field">
+          <label>ตำบล/แขวง</label>
+          <input id="stSubdistrict" type="text" class="st-input" placeholder="ตำบล"/>
+        </div>
+        <div class="st-field">
+          <label>อำเภอ/เขต</label>
+          <input id="stDistrict" type="text" class="st-input" placeholder="อำเภอ"/>
+        </div>
+        <div class="st-field">
+          <label>จังหวัด <span class="st-req">*</span></label>
+          <input id="stProvince" type="text" class="st-input" placeholder="จังหวัด"/>
+        </div>
+        <div class="st-field">
+          <label>รหัสไปรษณีย์</label>
+          <input id="stPostal" type="text" class="st-input" placeholder="10000"/>
+        </div>
+      </div>
+      <div class="st-actions">
+        <button class="st-btn-cancel" id="stStoreCancelBtn">ยกเลิก</button>
+        <button class="st-btn-save" id="stStoreSaveBtn">บันทึก</button>
+      </div>
+      <div id="stStoreMsg" style="display:none;font-size:12px;text-align:right;margin-top:6px;"></div>
+    </div>
+  </div>
+  <div id="stTabReceipt" class="st-panel" style="display:none;">
+    <div class="st-card">
+      <div class="st-section-title">รูปแบบเลขบิล</div>
+      <div class="st-grid">
+        <div class="st-field">
+          <label>รูปแบบบิล</label>
+          <select id="stBillFormat" class="st-input">
+            <option value="BILL-YYYY-NNNNNN">BILL-2026-000001</option>
+            <option value="PREFIX-NNNNNN">PREFIX-000001</option>
+          </select>
+        </div>
+        <div class="st-field">
+          <label>อักษรนำหน้าบิล</label>
+          <input id="stBillPrefix" type="text" class="st-input" placeholder="BILL" maxlength="10"/>
+        </div>
+        <div class="st-field">
+          <label>อักษรนำหน้า Invoice</label>
+          <input id="stInvPrefix" type="text" class="st-input" placeholder="INV" maxlength="10"/>
+        </div>
+        <div class="st-field">
+          <label>เลขเริ่มต้น (สำหรับย้ายมาจากระบบเดิม)</label>
+          <input id="stBillStartSeq" type="number" class="st-input" placeholder="1" min="1"/>
+        </div>
+      </div>
+      <div class="st-preview" id="stBillPreview"></div>
+      <div class="st-section-title" style="margin-top:16px;">แสดงในใบเสร็จ</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="stShowTaxId" style="width:16px;height:16px;accent-color:#e8b93e;"/>
+          แสดงเลขประจำตัวผู้เสียภาษีในใบเสร็จ
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="stShowAddress" style="width:16px;height:16px;accent-color:#e8b93e;"/>
+          แสดงที่อยู่ในใบเสร็จ
+        </label>
+      </div>
+      <div class="st-actions">
+        <button class="st-btn-cancel" id="stReceiptCancelBtn">ยกเลิก</button>
+        <button class="st-btn-save" id="stReceiptSaveBtn">บันทึก</button>
+      </div>
+      <div id="stReceiptMsg" style="display:none;font-size:12px;text-align:right;margin-top:6px;"></div>
+    </div>
+  </div>
 </div>
+<style>
+.st-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.st-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.st-tab{padding:8px 18px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#6b7280;}
+.st-tab.active{border-color:#e8b93e;background:#fffbf0;color:#1a1200;}
+.st-panel{}
+.st-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;}
+.st-section-title{font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
+.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.st-field{display:flex;flex-direction:column;gap:4px;}
+.st-field.full{grid-column:1/-1;}
+.st-field label{font-size:12px;font-weight:600;color:#374151;}
+.st-req{color:#ef4444;}
+.st-input{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;background:#faf9f7;}
+.st-input:focus{border-color:#e8b93e;}
+.st-input.error{border-color:#ef4444;}
+.st-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+.st-btn-cancel{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.st-btn-save{padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.st-btn-save:hover{opacity:.85;}
+.st-btn-outline{padding:7px 14px;background:transparent;border:1px solid #d1d5db;border-radius:7px;font-size:12px;cursor:pointer;color:#374151;}
+.st-preview{margin-top:12px;padding:10px 14px;background:#f8f6f2;border-radius:8px;font-size:12px;color:#6b7280;}
+</style>
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var _origData={};
+var _logoFile=null;
+
+function showMsg(id,msg,color){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=msg;el.style.color=color||'#16a34a';el.style.display='block';
+  setTimeout(function(){el.style.display='none';},3500);
+}
+
+function updatePreview(){
+  var fmt=document.getElementById('stBillFormat').value;
+  var prefix=document.getElementById('stBillPrefix').value||'BILL';
+  var invPrefix=document.getElementById('stInvPrefix').value||'INV';
+  var start=document.getElementById('stBillStartSeq').value||'1';
+  var year=new Date().getFullYear();
+  var seq=String(parseInt(start)||1).padStart(6,'0');
+  var bill_no=fmt==='BILL-YYYY-NNNNNN'?prefix+'-'+year+'-'+seq:prefix+'-'+seq;
+  var inv_no=invPrefix+'-'+seq;
+  var el=document.getElementById('stBillPreview');
+  if(el) el.textContent='ตัวอย่าง: '+bill_no+' / '+inv_no;
+}
+
+function loadSettings(){
+  fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    _origData=d;
+    // store tab
+    document.getElementById('stStoreName').value=d.store_name||'';
+    document.getElementById('stTaxId').value=d.tax_id||'';
+    document.getElementById('stPhone').value=d.phone||'';
+    document.getElementById('stAddress').value=d.address||'';
+    document.getElementById('stRoad').value=d.road||'';
+    document.getElementById('stSubdistrict').value=d.subdistrict||'';
+    document.getElementById('stDistrict').value=d.district||'';
+    document.getElementById('stProvince').value=d.province||'';
+    document.getElementById('stPostal').value=d.postal_code||'';
+    if(d.logo_url){
+      var img=document.createElement('img');
+      img.src=API+d.logo_url;
+      img.style.cssText='width:88px;height:88px;object-fit:cover;border-radius:10px;';
+      document.getElementById('stLogoPreview').innerHTML='';
+      document.getElementById('stLogoPreview').appendChild(img);
+    }
+    // receipt tab
+    document.getElementById('stBillFormat').value=d.bill_format||'BILL-YYYY-NNNNNN';
+    document.getElementById('stBillPrefix').value=d.bill_prefix||'BILL';
+    document.getElementById('stInvPrefix').value=d.inv_prefix||'INV';
+    document.getElementById('stBillStartSeq').value=d.bill_start_seq||1;
+    document.getElementById('stShowTaxId').checked=d.show_tax_id!==false;
+    document.getElementById('stShowAddress').checked=d.show_address!==false;
+    updatePreview();
+  })
+  .catch(function(){});
+}
+
+function resetStore(){
+  var d=_origData;
+  document.getElementById('stStoreName').value=d.store_name||'';
+  document.getElementById('stTaxId').value=d.tax_id||'';
+  document.getElementById('stPhone').value=d.phone||'';
+  document.getElementById('stAddress').value=d.address||'';
+  document.getElementById('stRoad').value=d.road||'';
+  document.getElementById('stSubdistrict').value=d.subdistrict||'';
+  document.getElementById('stDistrict').value=d.district||'';
+  document.getElementById('stProvince').value=d.province||'';
+  document.getElementById('stPostal').value=d.postal_code||'';
+  ['stStoreName','stPhone','stAddress','stProvince'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.classList.remove('error');
+  });
+}
+
+function saveStore(){
+  var errors=[];
+  ['stStoreName','stPhone','stAddress','stProvince'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el.value.trim()){el.classList.add('error');errors.push(el.id);}
+    else el.classList.remove('error');
+  });
+  if(errors.length){showMsg('stStoreMsg','กรุณากรอกข้อมูลที่จำเป็น','#ef4444');return;}
+  var btn=document.getElementById('stStoreSaveBtn');
+  btn.textContent='กำลังบันทึก...';btn.disabled=true;
+
+  function doSave(logoUrl){
+    var payload={
+      store_name:document.getElementById('stStoreName').value.trim(),
+      logo_url:logoUrl||_origData.logo_url||'',
+      tax_id:document.getElementById('stTaxId').value.trim(),
+      phone:document.getElementById('stPhone').value.trim(),
+      address:document.getElementById('stAddress').value.trim(),
+      road:document.getElementById('stRoad').value.trim(),
+      subdistrict:document.getElementById('stSubdistrict').value.trim(),
+      district:document.getElementById('stDistrict').value.trim(),
+      province:document.getElementById('stProvince').value.trim(),
+      postal_code:document.getElementById('stPostal').value.trim(),
+      bill_prefix:_origData.bill_prefix||'BILL',
+      inv_prefix:_origData.inv_prefix||'INV',
+      bill_start_seq:_origData.bill_start_seq||1,
+      inv_start_seq:_origData.inv_start_seq||1,
+      bill_format:_origData.bill_format||'BILL-YYYY-NNNNNN',
+      show_tax_id:_origData.show_tax_id!==false,
+      show_address:_origData.show_address!==false
+    };
+    fetch(API+'/api/pos/store/settings',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      showMsg('stStoreMsg',d.message||'บันทึกสำเร็จ','#16a34a');
+      _origData=Object.assign(_origData,payload);
+    })
+    .catch(function(){showMsg('stStoreMsg','เกิดข้อผิดพลาด','#ef4444');})
+    .finally(function(){btn.textContent='บันทึก';btn.disabled=false;});
+  }
+
+  if(_logoFile){
+    var fd=new FormData();fd.append('file',_logoFile);
+    fetch(API+'/api/pos/store/upload-logo',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){doSave(d.url||'');})
+    .catch(function(){doSave('');});
+  } else { doSave(''); }
+}
+
+function saveReceipt(){
+  var btn=document.getElementById('stReceiptSaveBtn');
+  btn.textContent='กำลังบันทึก...';btn.disabled=true;
+  var payload=Object.assign({},_origData,{
+    bill_format:document.getElementById('stBillFormat').value,
+    bill_prefix:document.getElementById('stBillPrefix').value||'BILL',
+    inv_prefix:document.getElementById('stInvPrefix').value||'INV',
+    bill_start_seq:parseInt(document.getElementById('stBillStartSeq').value)||1,
+    show_tax_id:document.getElementById('stShowTaxId').checked,
+    show_address:document.getElementById('stShowAddress').checked
+  });
+  if(!payload.store_name){payload.store_name='ร้านค้า';}
+  if(!payload.phone){payload.phone='-';}
+  if(!payload.address){payload.address='-';}
+  if(!payload.province){payload.province='-';}
+  fetch(API+'/api/pos/store/settings',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    showMsg('stReceiptMsg',d.message||'บันทึกสำเร็จ','#16a34a');
+    _origData=payload;updatePreview();
+  })
+  .catch(function(){showMsg('stReceiptMsg','เกิดข้อผิดพลาด','#ef4444');})
+  .finally(function(){btn.textContent='บันทึก';btn.disabled=false;});
+}
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token)TOKEN=e.detail.token;
+  loadSettings();
+  // tabs
+  document.querySelectorAll('.st-tab').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.st-tab').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      var tab=btn.dataset.tab;
+      document.getElementById('stTabStore').style.display=tab==='store'?'block':'none';
+      document.getElementById('stTabReceipt').style.display=tab==='receipt'?'block':'none';
+    });
+  });
+  // logo
+  var logoInput=document.getElementById('stLogoInput');
+  var logoPrev=document.getElementById('stLogoPreview');
+  document.getElementById('stLogoBtn').addEventListener('click',function(){logoInput.click();});
+  logoPrev.addEventListener('click',function(){logoInput.click();});
+  logoInput.addEventListener('change',function(){
+    if(!this.files||!this.files[0])return;
+    _logoFile=this.files[0];
+    document.getElementById('stLogoName').textContent=_logoFile.name;
+    var r=new FileReader();
+    r.onload=function(e){
+      logoPrev.innerHTML='';
+      var img=document.createElement('img');img.src=e.target.result;
+      img.style.cssText='width:88px;height:88px;object-fit:cover;border-radius:10px;';
+      logoPrev.appendChild(img);
+    };
+    r.readAsDataURL(_logoFile);
+  });
+  // store buttons
+  document.getElementById('stStoreCancelBtn').addEventListener('click',resetStore);
+  document.getElementById('stStoreSaveBtn').addEventListener('click',saveStore);
+  // receipt buttons
+  document.getElementById('stReceiptCancelBtn').addEventListener('click',loadSettings);
+  document.getElementById('stReceiptSaveBtn').addEventListener('click',saveReceipt);
+  // preview
+  ['stBillFormat','stBillPrefix','stInvPrefix','stBillStartSeq'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('input',updatePreview);
+  });
+});
+})();
+</script>
 </body>
