@@ -511,9 +511,10 @@ window.addEventListener('viiv_token_ready',function(e){
   // logo
   var logoInput=document.getElementById('stLogoInput');
   var logoPrev=document.getElementById('stLogoPreview');
-  document.getElementById('stLogoBtn').addEventListener('click',function(){logoInput.click();});
-  logoPrev.addEventListener('click',function(){logoInput.click();});
-  logoInput.addEventListener('change',function(){
+  var logoBtn=document.getElementById('stLogoBtn');
+  if(logoBtn) logoBtn.addEventListener('click',function(){if(logoInput)logoInput.click();});
+  if(logoPrev) logoPrev.addEventListener('click',function(){if(logoInput)logoInput.click();});
+  if(logoInput) logoInput.addEventListener('change',function(){
     if(!this.files||!this.files[0])return;
     _logoFile=this.files[0];
     document.getElementById('stLogoName').textContent=_logoFile.name;
@@ -527,11 +528,14 @@ window.addEventListener('viiv_token_ready',function(e){
     r.readAsDataURL(_logoFile);
   });
   // store buttons
-  document.getElementById('stStoreCancelBtn').addEventListener('click',resetStore);
-  document.getElementById('stStoreSaveBtn').addEventListener('click',saveStore);
-  // receipt buttons
-  document.getElementById('stReceiptCancelBtn').addEventListener('click',loadSettings);
-  document.getElementById('stReceiptSaveBtn').addEventListener('click',saveReceipt);
+  var sCancelBtn=document.getElementById('stStoreCancelBtn');
+  var sSaveBtn=document.getElementById('stStoreSaveBtn');
+  var rCancelBtn=document.getElementById('stReceiptCancelBtn');
+  var rSaveBtn=document.getElementById('stReceiptSaveBtn');
+  if(sCancelBtn) sCancelBtn.addEventListener('click',resetStore);
+  if(sSaveBtn) sSaveBtn.addEventListener('click',saveStore);
+  if(rCancelBtn) rCancelBtn.addEventListener('click',loadSettings);
+  if(rSaveBtn) rSaveBtn.addEventListener('click',saveReceipt);
   // preview
   ['stBillFormat','stBillPrefix','stInvPrefix','stBillStartSeq'].forEach(function(id){
     var el=document.getElementById(id);
