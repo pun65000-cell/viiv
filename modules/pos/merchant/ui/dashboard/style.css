@@ -343,3 +343,33 @@
         font-size: 13px;
       }
     
+/* === GLOBAL FONT SIZE SCALE === */
+.main, .main * {
+  font-size-adjust: none;
+}
+/* content area - เพิ่มทุก text ใน main content */
+.main label,
+.main input,
+.main select,
+.main textarea,
+.main button,
+.main td,
+.main th,
+.main span,
+.main div,
+.main p {
+  font-size: inherit;
+}
+.main {
+  font-size: 15px;
+}
+/* table headers */
+.main th {
+  font-size: 13px;
+}
+/* small badges/meta text ยังคงเล็กได้ */
+.main .badge,
+.main .meta,
+.main small {
+  font-size: 12px;
+}
