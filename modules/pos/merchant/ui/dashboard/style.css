@@ -73,7 +73,7 @@
       .menu a {
         display: block;
         width: 100%;
-        padding: 10px 12px;
+        padding: 12px 14px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         background: rgba(255, 255, 255, 0.06);
         color: #fff;
@@ -81,6 +81,9 @@
         cursor: pointer;
         text-align: left;
         text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.4;
       }
 
       .menu a.active {
@@ -265,8 +268,8 @@
         padding-top: 12px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--accent);
-        font-size: 11px;
-        line-height: 1.1;
+        font-size: 13px;
+        line-height: 1.3;
         text-align: center;
       }
 
@@ -302,16 +305,16 @@
       /* === SAFE COMPACT UI PATCH (INLINE MODE) === */
 
       .sidebar {
-        width: 200px;
+        width: 220px;
       }
 
       .sidebar .menu-item {
-        padding: 8px 10px;
-        font-size: 13px;
+        padding: 12px 14px;
+        font-size: 15px;
       }
 
       body {
-        font-size: 14px;
+        font-size: 15px;
       }
 
       h1 {
