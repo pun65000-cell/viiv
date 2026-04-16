@@ -251,7 +251,9 @@
 
 const PAGES = {
   dashboard: { title:'Dashboard', tabs: null, render: renderDashboard },
-  affiliate:  { title:'Affiliate', tabs: null, render: renderPlaceholder },
+  affiliate:  { title:'Affiliate', tabs:[
+    { label:'Affiliate', file:'affiliate/all.html' },
+  ]},
   easysale:   { title:'EasySale', tabs: null, render: renderPlaceholder },
   products:  { title:'สินค้า/สโตร์', tabs:[
     { label:'ทั้งหมด',     file:'products/all.html' },
