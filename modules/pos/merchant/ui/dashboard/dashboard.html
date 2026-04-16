@@ -254,7 +254,10 @@ const PAGES = {
   affiliate:  { title:'Affiliate', tabs:[
     { label:'Affiliate', file:'affiliate/all.html' },
   ]},
-  easysale:   { title:'EasySale', tabs: null, render: renderPlaceholder },
+  easysale:   { title:'EasySale', tabs:[
+    { label:'POS ขายสินค้า',   file:'easysale/pos.html' },
+    { label:'เว็บแคตตาล็อก', file:'easysale/catalog.html' },
+  ]},
   products:  { title:'สินค้า/สโตร์', tabs:[
     { label:'ทั้งหมด',     file:'products/all.html' },
     { label:'สร้างสินค้า', file:'products/create.html' },

@@ -1,0 +1,97 @@
+<body>
+<div style="padding:4px 0;box-sizing:border-box;width:100%;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-size:15px;font-weight:700;color:#1f2937;">เว็บแคตตาล็อกสินค้า</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px;">แชร์ลิ้งก์ให้ลูกค้าดูสินค้าและสั่งซื้อได้ทันที</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="catCopyBtn" style="padding:8px 16px;background:#f0ede8;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">คัดลอก URL</button>
+      <button id="catOpenBtn" style="padding:8px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">เปิดแคตตาล็อก</button>
+    </div>
+  </div>
+
+  <!-- URL bar -->
+  <div style="background:#f8f6f2;border:1px solid #e5e5e5;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;color:#6b7280;white-space:nowrap;">URL:</span>
+    <code id="catUrl" style="flex:1;font-size:12px;color:#1f2937;word-break:break-all;"></code>
+  </div>
+
+  <!-- preview -->
+  <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;">ตัวอย่างหน้าแคตตาล็อก</div>
+  <div id="catPreview" style="background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;"></div>
+</div>
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allProducts=[];
+var storeSettings={};
+
+function loadAll(){
+  Promise.all([
+    fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}}).then(function(r){return r.json();}),
+    fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}}).then(function(r){return r.json();})
+  ]).then(function(results){
+    allProducts=(results[0].products||results[0]||[]).filter(function(p){return p.status!=='inactive';});
+    storeSettings=results[1]||{};
+    renderCatalogUrl();
+    renderPreview();
+  }).catch(function(){renderPreview();});
+}
+
+function getCatalogUrl(){
+  var host=location.hostname==='merchant.viiv.me'?'merchant.viiv.me':'concore.viiv.me';
+  return 'https://'+host+'/catalog.html';
+}
+
+function renderCatalogUrl(){
+  var el=document.getElementById('catUrl');
+  if(el) el.textContent=getCatalogUrl();
+}
+
+function renderPreview(){
+  var el=document.getElementById('catPreview');if(!el)return;
+  var storeName=storeSettings.store_name||'My Shop';
+  var logoUrl=storeSettings.logo_url?API+storeSettings.logo_url:'';
+
+  el.innerHTML=
+    // header
+    '<div style="background:#1a1200;padding:14px 16px;display:flex;align-items:center;gap:12px;">'+
+      (logoUrl?'<img src="'+logoUrl+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">':'<div style="width:40px;height:40px;background:#e8b93e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#1a1200;">'+storeName.charAt(0)+'</div>')+
+      '<div>'+
+        '<div style="font-size:15px;font-weight:700;color:#fff;">'+storeName+'</div>'+
+        '<div style="font-size:11px;color:#e8b93e;">'+allProducts.length+' สินค้า</div>'+
+      '</div>'+
+    '</div>'+
+    // search
+    '<div style="padding:10px;background:#f8f6f2;border-bottom:1px solid #e5e5e5;">'+
+      '<input placeholder="ค้นหาสินค้า..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;background:#fff;" readonly/>'+
+    '</div>'+
+    // grid
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;">'+
+      allProducts.slice(0,8).map(function(p){
+        var img=p.image_url?'<img src="'+API+p.image_url+'" style="width:100%;height:80px;object-fit:cover;">':'<div style="width:100%;height:80px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F4E6;</div>';
+        return '<div style="border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;background:#fff;">'+img+'<div style="padding:6px;"><div style="font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.name+'</div><div style="font-size:11px;color:#e8b93e;font-weight:700;">฿'+parseFloat(p.price||0).toLocaleString()+'</div></div></div>';
+      }).join('')+
+      (allProducts.length>8?'<div style="grid-column:1/-1;text-align:center;padding:8px;font-size:12px;color:#9ca3af;">+ '+(allProducts.length-8)+' รายการ</div>':'')+
+    '</div>';
+}
+
+var copyBtn=document.getElementById('catCopyBtn');
+var openBtn=document.getElementById('catOpenBtn');
+if(copyBtn) copyBtn.addEventListener('click',function(){
+  var url=getCatalogUrl();
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){copyBtn.textContent='คัดลอกแล้ว';setTimeout(function(){copyBtn.textContent='คัดลอก URL';},1500);});}
+  else{var t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);copyBtn.textContent='คัดลอกแล้ว';}
+});
+if(openBtn) openBtn.addEventListener('click',function(){window.open(getCatalogUrl(),'_blank');});
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token) TOKEN=e.detail.token;
+  loadAll();
+});
+})();
+</script>
+</body>
