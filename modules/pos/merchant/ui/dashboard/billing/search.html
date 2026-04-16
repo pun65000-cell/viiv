@@ -210,9 +210,13 @@ function showBillDetail(b){
 }
 
 window.bsFilter = function(){
-  var q = (document.getElementById('bsQ').value||'').toLowerCase();
-  var st = document.getElementById('bsStatus').value;
-  var tp = document.getElementById('bsType').value;
+  var qEl=document.getElementById('bsQ');
+  var stEl=document.getElementById('bsStatus');
+  var tpEl=document.getElementById('bsType');
+  if(!qEl||!stEl||!tpEl) return;
+  var q=(qEl.value||'').toLowerCase();
+  var st=stEl.value;
+  var tp=tpEl.value;
   var filtered = allBills.filter(function(b){
     var matchQ = !q || (b.id||'').toLowerCase().includes(q) || (b.customer||'').toLowerCase().includes(q);
     var matchSt = !st || b.status === st;
