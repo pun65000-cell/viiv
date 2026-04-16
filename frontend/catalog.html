@@ -64,19 +64,22 @@ body{background:#f5f4f0;min-height:100vh;}
 var API='https://concore.viiv.me';
 var allProducts=[],storeSettings={},selCat='',searchQ='';
 
+function getTenant(){
+  var params=new URLSearchParams(window.location.search);
+  return params.get('tenant')||'';
+}
 function init(){
+  var tenant=getTenant();
+  var q=tenant?'?tenant='+tenant:'';
   Promise.all([
-    fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+getToken()}}).then(function(r){return r.json();}),
-    fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+getToken()}}).then(function(r){return r.json();})
+    fetch(API+'/api/pos/products/public/list'+q).then(function(r){return r.json();}),
+    fetch(API+'/api/pos/products/public/store'+q).then(function(r){return r.json();})
   ]).then(function(r){
-    allProducts=(r[0].products||r[0]||[]).filter(function(p){return p.status!=='inactive';});
+    allProducts=(r[0]||[]);
     storeSettings=r[1]||{};
     renderHeader();renderCats();filterProducts();
   }).catch(function(){
-    // ถ้าไม่มี token ลองโหลดสินค้า public
-    fetch(API+'/api/pos/products/list').then(function(r){return r.json();})
-    .then(function(d){allProducts=(d.products||d||[]).filter(function(p){return p.status!=='inactive';});filterProducts();})
-    .catch(function(){document.getElementById('catGrid').innerHTML='<div class="cat-empty">ไม่สามารถโหลดสินค้าได้</div>';});
+    document.getElementById('catGrid').innerHTML='<div class="cat-empty">ไม่สามารถโหลดสินค้าได้</div>';
   });
 }
 

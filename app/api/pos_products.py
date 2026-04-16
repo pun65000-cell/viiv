@@ -173,3 +173,36 @@ async def upload_app_icon(file: UploadFile = File(...)):
     except Exception as e:
         return {"url": f"/superboard/logo-original.{ext}", "warning": str(e)}
     return {"url": "/superboard/icon-192.png"}
+
+@router.get("/public/list")
+def public_list_products(tenant: str = ""):
+    """Public endpoint - ไม่ต้องใช้ token"""
+    with engine.connect() as c:
+        if tenant:
+            rows = c.execute(text("""
+                SELECT id,sku,name,description,image_url,price,cost_price,price_min,
+                       pv,vat,category,track_stock,stock_qty,status
+                FROM products WHERE tenant_id=:tid AND status='active' ORDER BY created_at DESC
+            """),{"tid":tenant}).fetchall()
+        else:
+            # default: ใช้ tenant แรก
+            t = c.execute(text("SELECT id FROM tenants ORDER BY created_at LIMIT 1")).fetchone()
+            if not t: return []
+            rows = c.execute(text("""
+                SELECT id,sku,name,description,image_url,price,cost_price,price_min,
+                       pv,vat,category,track_stock,stock_qty,status
+                FROM products WHERE tenant_id=:tid AND status='active' ORDER BY created_at DESC
+            """),{"tid":t[0]}).fetchall()
+    return [dict(r._mapping) for r in rows]
+
+@router.get("/public/store")
+def public_store_info(tenant: str = ""):
+    """Public store settings"""
+    with engine.connect() as c:
+        if not tenant:
+            t = c.execute(text("SELECT id FROM tenants ORDER BY created_at LIMIT 1")).fetchone()
+            if not t: return {}
+            tenant = t[0]
+        r = c.execute(text("SELECT * FROM store_settings WHERE tenant_id=:tid"),{"tid":tenant}).fetchone()
+    if not r: return {"store_name":"My Shop","logo_url":""}
+    return dict(r._mapping)
