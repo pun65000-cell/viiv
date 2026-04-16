@@ -1,4 +1,5 @@
 <body>
+<div id="bsOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;overflow-y:auto;padding:40px 0;box-sizing:border-box;"></div>
 <div class="bs-wrap">
   <div class="bs-header">
     <div class="bs-filters">
@@ -44,7 +45,75 @@
 (function(){
 'use strict';
 var allBills = JSON.parse(localStorage.getItem('viiv_bills')||'[]');
-var typeMap = {receipt:'🧾 ใบเสร็จ',delivery:'🚚 ใบส่งของ',quotation:'📋 ใบเสนอราคา',reserve:'📌 ใบจอง'};
+var typeMap = {receipt:'ใบเสร็จ',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
+
+function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
+var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
+
+function showBillDetail(b){
+  var isDraft=b.status==='draft';
+  var rows=(b.items||[]).map(function(i){
+    return '<tr>'+
+      '<td style="padding:5px 8px;font-size:12px;">'+i.sku+'</td>'+
+      '<td style="padding:5px 8px;font-size:12px;">'+i.name+'</td>'+
+      '<td style="padding:5px 8px;font-size:12px;text-align:center;">'+i.qty+'</td>'+
+      '<td style="padding:5px 8px;font-size:12px;text-align:right;">'+fmt(i.price)+'</td>'+
+      '<td style="padding:5px 8px;font-size:12px;text-align:right;font-weight:600;">'+fmt(i.qty*i.price)+'</td>'+
+    '</tr>';
+  }).join('');
+  var draftBtnHtml=isDraft
+    ? '<button id="bsReopenBtn" style="padding:7px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">เปิดแก้บิลต่อ</button>'
+    : '';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(540px,95vw);position:relative;margin:auto;';
+  box.innerHTML=
+    '<button id="bsCloseBtn" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1;">x</button>'+
+    '<div style="font-size:14px;font-weight:700;margin-bottom:2px;">'+(typeMap[b.doc_type]||b.doc_type)+'</div>'+
+    '<div style="font-size:11px;color:#9ca3af;margin-bottom:12px;">#'+b.id+' | '+new Date(b.created_at).toLocaleString('th')+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:12px;">'+
+      '<thead><tr style="background:#f8f6f2;">'+
+        '<th style="padding:5px 8px;text-align:left;font-size:11px;">SKU</th>'+
+        '<th style="padding:5px 8px;text-align:left;font-size:11px;">สินค้า</th>'+
+        '<th style="padding:5px 8px;text-align:center;font-size:11px;">จำนวน</th>'+
+        '<th style="padding:5px 8px;text-align:right;font-size:11px;">ราคา/หน่วย</th>'+
+        '<th style="padding:5px 8px;text-align:right;font-size:11px;">รวม</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table>'+
+    '<div style="display:flex;flex-direction:column;gap:4px;max-width:280px;margin-left:auto;font-size:12px;">'+
+      '<div style="display:flex;justify-content:space-between;"><span>ลูกค้า</span><span style="font-weight:600;">'+(b.customer||'ไม่ระบุ')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;"><span>ส่วนลด</span><span>'+(b.discount_type==='percent'?(b.discount||0)+'%':fmt(b.discount||0))+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;"><span>VAT</span><span>'+(b.vat?b.vat+'%':'ไม่มี')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid #f0ede8;font-size:14px;font-weight:700;"><span>ยอดสุทธิ</span><span style="color:#e8b93e;">'+fmt(b.total)+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;"><span>วิธีชำระ</span><span>'+(payLabel[b.pay_method]||b.pay_method||'—')+'</span></div>'+
+      (b.note?'<div style="color:#6b7280;margin-top:4px;">หมายเหตุ: '+b.note+'</div>':'')+
+    '</div>'+
+    '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'+
+      draftBtnHtml+
+      '<button id="bsDismissBtn" style="padding:7px 14px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer;">ปิด</button>'+
+    '</div>';
+  var ov=document.getElementById('bsOverlay');
+  ov.innerHTML='';
+  ov.appendChild(box);
+  ov.style.display='flex';
+  document.getElementById('bsCloseBtn').addEventListener('click',function(){ ov.style.display='none'; });
+  document.getElementById('bsDismissBtn').addEventListener('click',function(){ ov.style.display='none'; });
+  if(isDraft){
+    document.getElementById('bsReopenBtn').addEventListener('click',function(){
+      ov.style.display='none';
+      if(typeof navigate==='function') navigate('billing_create');
+      else if(window.parent&&window.parent.navigate) window.parent.navigate('billing_create');
+      setTimeout(function(){
+        var ev=new CustomEvent('viiv_load_draft',{detail:{bill:b}});
+        window.dispatchEvent(ev);
+        try{
+          var frames=window.parent.document.querySelectorAll('iframe');
+          frames.forEach(function(fr){ try{fr.contentWindow.dispatchEvent(new CustomEvent('viiv_load_draft',{detail:{bill:b}}));}catch(e){} });
+        }catch(e){}
+      },700);
+    });
+  }
+}
 
 window.bsFilter = function(){
   var q = (document.getElementById('bsQ').value||'').toLowerCase();
@@ -66,22 +135,24 @@ function render(bills){
     el.innerHTML='<div style="color:#aaa;padding:30px;text-align:center;">ไม่พบบิล</div>';
     return;
   }
-  el.innerHTML = bills.map(function(b){
-    var date = new Date(b.created_at).toLocaleString('th');
-    var badge = '<span class="bs-badge '+(b.status||'draft')+'">'+(b.status==='paid'?'จ่ายแล้ว':'ร่าง')+'</span>';
-    return '<div class="bs-row">'+
+  el.innerHTML='';
+  bills.forEach(function(b){
+    var date=new Date(b.created_at).toLocaleString('th');
+    var badge='<span class="bs-badge '+(b.status||'draft')+'">'+(b.status==='paid'?'จ่ายแล้ว':'ร่าง')+'</span>';
+    var row=document.createElement('div');
+    row.className='bs-row';
+    row.innerHTML=
       '<div class="bs-row-top">'+
-        '<div><span class="bs-bill-id">'+b.id.slice(-10)+'</span>'+
+        '<div><span class="bs-bill-id">'+(b.id.length>10?b.id.slice(-10):b.id)+'</span>'+
           '<span style="margin-left:8px;font-size:11px;color:#6b7280;">'+(typeMap[b.doc_type]||b.doc_type)+'</span>'+
           badge+'</div>'+
-        '<div class="bs-amount">฿'+(b.total||0).toLocaleString()+'</div>'+
+        '<div class="bs-amount">'+fmt(b.total)+'</div>'+
       '</div>'+
-      '<div class="bs-row-sub">'+
-        (b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+
-        (b.items||[]).length+' รายการ · จ่ายแบบ '+(b.pay_method||'—')+
-      '</div>'+
-    '</div>';
-  }).join('');
+      '<div class="bs-row-sub">'+(b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+
+        (b.items||[]).length+' รายการ · '+(payLabel[b.pay_method]||b.pay_method||'—')+'</div>';
+    row.addEventListener('click',function(){ showBillDetail(b); });
+    el.appendChild(row);
+  });
 }
 
 bsFilter();

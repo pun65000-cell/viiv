@@ -304,16 +304,40 @@ function loadSubPage(el, file) {
       tmp.innerHTML = html;
       var body = tmp.querySelector('body');
       el.innerHTML = body ? body.innerHTML : html;
-      el.querySelectorAll('script').forEach(function(scr){
+      // inject VIIV_TOKEN ให้ sub-page script เห็นก่อนรัน
+      window.VIIV_TOKEN = localStorage.getItem('viiv_token') || '';
+      var _scripts = Array.from(el.querySelectorAll('script'));
+      var _total = _scripts.length;
+      var _done = 0;
+      function _onScriptDone(){
+        _done++;
+        if(_done >= _total){
+          // รอให้ DOM settle ก่อน fire token_ready
+          setTimeout(function(){
+            window.dispatchEvent(new CustomEvent('viiv_token_ready',{
+              detail:{token: window.VIIV_TOKEN}
+            }));
+          },50);
+        }
+      }
+      _scripts.forEach(function(scr){
         try{
           var blob = new Blob([scr.textContent], {type:'application/javascript'});
           var url = URL.createObjectURL(blob);
           var s = document.createElement('script');
           s.src = url;
-          s.onload = function(){ URL.revokeObjectURL(url); };
+          s.onload = function(){ URL.revokeObjectURL(url); _onScriptDone(); };
+          s.onerror = function(){ _onScriptDone(); };
           document.head.appendChild(s);
-        }catch(e){ console.warn('script inject:', e); }
+        }catch(e){ console.warn('script inject:', e); _onScriptDone(); }
       });
+      if(_total === 0){
+        requestAnimationFrame(function(){
+          window.dispatchEvent(new CustomEvent('viiv_token_ready',{
+            detail:{token: window.VIIV_TOKEN}
+          }));
+        });
+      }
     })
     .catch(function(){ el.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
 }
