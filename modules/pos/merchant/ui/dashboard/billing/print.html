@@ -31,6 +31,8 @@ body{margin:0;padding:0;}
   #printPage{width:100%!important;box-shadow:none!important;padding:10mm!important;}
   body{-webkit-print-color-adjust:exact;}
 }
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+#printPage{font-family:'Sarabun',sans-serif!important;font-size:13px;}
 .doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .doc-logo{width:70px;height:70px;object-fit:contain;}
 .doc-store-info{font-size:11px;line-height:1.5;}
@@ -41,9 +43,12 @@ body{margin:0;padding:0;}
 .doc-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;margin-bottom:10px;}
 .doc-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;}
 .doc-table th{background:#f3f4f6;padding:5px 6px;border:1px solid #d1d5db;text-align:center;}
-.doc-table td{padding:4px 6px;border:1px solid #d1d5db;}
+.doc-table td{padding:4px 6px;border:none;}
 .doc-table td.num{text-align:right;}
 .doc-table td.ctr{text-align:center;}
+.doc-table tbody{min-height:200px;}
+.doc-items-wrap{min-height:220px;}
+#printPage{min-height:297mm;}
 .doc-summary{display:flex;justify-content:flex-end;margin-bottom:10px;}
 .doc-summary-box{width:240px;font-size:11px;}
 .doc-summary-row{display:flex;justify-content:space-between;padding:2px 0;}
@@ -104,17 +109,77 @@ function storeHeader(){
 }
 
 function customerBlock(){
-  var cd=_bill.customer_data?JSON.parse(typeof _bill.customer_data==='string'?_bill.customer_data:JSON.stringify(_bill.customer_data)):null;
+  var cd=null;
+  try{ cd=_bill.customer_data?JSON.parse(typeof _bill.customer_data==='string'?_bill.customer_data:JSON.stringify(_bill.customer_data)):null; }catch(e){}
   var name=_bill.customer_name||_bill.customer||'';
-  var phone=cd?cd.phone:'';
-  var addr=cd?cd.address:'';
-  return '<div class="doc-customer">'+
-    '<span class="doc-label">ชื่อลูกค้า: </span>'+name+(phone?' โทร: '+phone:'')+
-    (addr?'<br><span class="doc-label">ที่อยู่: </span>'+addr:'')+
+  var phone=cd?cd.phone||'':'';
+  var taxid=cd?cd.tax_id||cd.taxid||'':'';
+  var road=cd?cd.road||'':'';
+  var sub=cd?cd.subdistrict||cd.sub||'':'';
+  var dist=cd?cd.district||cd.dist||'':'';
+  var prov=cd?cd.province||cd.prov||'':'';
+  var zip=cd?cd.postal_code||cd.zip||'':'';
+  var addr=cd?cd.address||'':'';
+  var gps=cd?cd.gps||'':'';
+  var fullAddr=[addr,road,sub,dist,prov,zip].filter(Boolean).join(' ');
+  var sched=_bill.scheduled_at?new Date(_bill.scheduled_at).toLocaleString('th-TH'):'-';
+  var created=_bill.created_at?new Date(_bill.created_at).toLocaleDateString('th-TH'):'-';
+  var staff=_bill.created_by||'-';
+  var credit=cd?cd.credit||'-':'-';
+  var branch=cd?cd.branch||cd.code||'-':'-';
+  var dueDate=_bill.scheduled_at?new Date(_bill.scheduled_at).toLocaleDateString('th-TH'):'-';
+
+  function row(label,val,req){
+    if(!req&&(!val||val==='-'||val==='- วัน')) return '';
+    return '<tr>'+
+      '<td style="padding:2px 8px 2px 0;color:#374151;white-space:nowrap;font-size:12px;">'+label+'</td>'+
+      '<td style="padding:2px 0;font-size:12px;">'+val+'</td>'+
+    '</tr>';
+  }
+
+  function rowAlways(label,val){
+    var v=val&&val!=='-'&&!val.startsWith('usr_')?val:'';
+    return '<tr>'+
+      '<td style="padding:1px 6px 1px 0;color:#000;white-space:nowrap;font-size:12px;">'+label+'</td>'+
+      '<td style="padding:1px 0;font-size:12px;color:#000;">'+v+'</td>'+
+    '</tr>';
+  }
+
+  return '<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px;border-bottom:1.5px solid #000;padding-bottom:6px;">'+
+    '<div style="flex:1;padding-right:20px;">'+
+      '<table style="border-collapse:collapse;">'+
+        '<tr>'+
+          '<td style="font-size:12px;color:#000;padding:1px 6px 1px 0;white-space:nowrap;">ชื่อ</td>'+
+          '<td style="font-size:12px;font-weight:600;color:#000;padding:1px 0;">'+name+'</td>'+
+        '</tr>'+
+        '<tr>'+
+          '<td style="font-size:12px;color:#000;padding:1px 6px 1px 0;vertical-align:top;">ที่อยู่</td>'+
+          '<td style="font-size:12px;color:#000;padding:1px 0;line-height:1.5;">'+
+            (fullAddr||'')+
+            '<br>&nbsp;'+
+          '</td>'+
+        '</tr>'+
+        '<tr><td colspan="2" style="height:3px;"></td></tr>'+
+        rowAlways('เลขประจำตัวผู้เสียภาษี',taxid)+
+        rowAlways('เบอร์โทร',phone)+
+        rowAlways('พิกัด (GPS)',gps)+
+      '</table>'+
+    '</div>'+
+    '<div style="min-width:200px;">'+
+      '<table style="border-collapse:collapse;">'+
+        rowAlways('วันที่',created)+
+        rowAlways('วันที่ส่ง',sched)+
+        rowAlways('เครดิต',credit&&credit!=='-'?credit+' วัน':'')+
+        rowAlways('กำหนดชำระ',dueDate)+
+        rowAlways('รหัสสาขา',branch)+
+        rowAlways('พนักงานขาย',staff)+
+      '</table>'+
+    '</div>'+
   '</div>';
 }
 
 function itemsTable(showSku,showPrice){
+  var MIN_ROWS=16;
   var rows=(_bill.items||[]).map(function(it,i){
     var amount=parseFloat(it.qty)*parseFloat(it.price);
     return '<tr>'+
@@ -124,6 +189,15 @@ function itemsTable(showSku,showPrice){
       (showPrice?'<td class="num">'+fmt(it.price)+'</td><td class="num">'+fmt(amount)+'</td>':'')+
     '</tr>';
   }).join('');
+  var colCount=2+(showSku?1:0)+(showPrice?2:0);
+  var emptyRows='';
+  var itemCount=(_bill.items||[]).length;
+  var padCount=Math.max(0, MIN_ROWS-itemCount);
+  for(var ei=0;ei<padCount;ei++){
+    emptyRows+='<tr style="height:22px;border-bottom:none;">';
+    for(var ec=0;ec<colCount;ec++) emptyRows+='<td>&nbsp;</td>';
+    emptyRows+='</tr>';
+  }
   return '<table class="doc-table">'+
     '<thead><tr>'+
       '<th style="width:35px;">ลำดับ</th>'+
@@ -131,7 +205,7 @@ function itemsTable(showSku,showPrice){
       '<th>รายละเอียด</th>'+
       '<th style="width:60px;">จำนวน</th>'+
       (showPrice?'<th style="width:80px;">ราคา/หน่วย</th><th style="width:80px;">จำนวนเงิน</th>':'')+
-    '</tr></thead><tbody>'+rows+'</tbody></table>';
+    '</tr></thead><tbody>'+rows+emptyRows+'</tbody></table>';
 }
 
 function summaryBlock(showVat){
@@ -183,11 +257,7 @@ window.renderForm = function renderForm(f){
       '</div></div>'+
       '<hr class="doc-divider"/>'+
       customerBlock()+
-      '<div style="font-size:11px;margin-bottom:8px;">'+
-        '<div>วันที่: '+created+'</div>'+
-        (sched?'<div>วันที่ส่ง: '+sched+'</div>':'')+
-        (f==1?'<div>วันครบกำหนด: '+(sched||'-')+'</div>':'')+
-      '</div>'+
+
       itemsTable(false,true)+
       summaryBlock(f==3)+
       (f==1?'<div style="font-size:10px;margin-bottom:6px;">หมายเหตุ: '+(_bill.note||'แก้ไขใบส่งของกรุณาติดต่อภายใน 7 วัน')+'</div>':'')+
