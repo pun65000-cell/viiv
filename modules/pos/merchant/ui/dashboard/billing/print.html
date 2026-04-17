@@ -140,7 +140,7 @@ function customerBlock(){
   function rowAlways(label,val){
     var v=val&&val!=='-'&&!val.startsWith('usr_')?val:'';
     return '<tr>'+
-      '<td style="padding:1px 6px 1px 0;color:#000;white-space:nowrap;font-size:12px;">'+label+'</td>'+
+      '<td style="padding:1px 6px 1px 0;color:#000;white-space:nowrap;font-size:12px;width:72px;">'+label+'</td>'+
       '<td style="padding:1px 0;font-size:12px;color:#000;">'+v+'</td>'+
     '</tr>';
   }
@@ -149,20 +149,20 @@ function customerBlock(){
     '<div style="flex:1;padding-right:20px;">'+
       '<table style="border-collapse:collapse;">'+
         '<tr>'+
-          '<td style="font-size:12px;color:#000;padding:1px 6px 1px 0;white-space:nowrap;">ชื่อ</td>'+
+          '<td style="font-size:12px;color:#000;padding:1px 6px 1px 0;white-space:nowrap;width:72px;">ชื่อ</td>'+
           '<td style="font-size:12px;font-weight:600;color:#000;padding:1px 0;">'+name+'</td>'+
         '</tr>'+
         '<tr>'+
-          '<td style="font-size:12px;color:#000;padding:1px 6px 1px 0;vertical-align:top;">ที่อยู่</td>'+
+          '<td style="font-size:12px;color:#000;padding:1px 6px 1px 0;vertical-align:top;width:72px;">ที่อยู่</td>'+
           '<td style="font-size:12px;color:#000;padding:1px 0;line-height:1.5;">'+
             (fullAddr||'')+
             '<br>&nbsp;'+
           '</td>'+
         '</tr>'+
-        '<tr><td colspan="2" style="height:3px;"></td></tr>'+
-        rowAlways('เลขประจำตัวผู้เสียภาษี',taxid)+
         rowAlways('เบอร์โทร',phone)+
         rowAlways('พิกัด (GPS)',gps)+
+        '<tr><td style="font-size:12px;color:#000;padding:1px 0;" colspan="2">เลขประจำตัวผู้เสียภาษี : '+(taxid||'')+'</td></tr>'+
+        '<tr><td colspan="2" style="height:3px;"></td></tr>'+
       '</table>'+
     '</div>'+
     '<div style="min-width:200px;">'+

@@ -1,7 +1,116 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">📊</div>
-  <div style="font-size:14px;">ค้นหายอดขาย</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="ss-wrap">
+  <div class="ss-filters">
+    <input id="ssQ" class="ss-input" placeholder="เลขบิล / ชื่อลูกค้า..." oninput="ssFilter()"/>
+    <select id="ssDateFrom" class="ss-select" onchange="ssFilter()">
+      <option value="">ช่วงวันที่</option>
+    </select>
+    <input id="ssFrom" type="date" class="ss-select" onchange="ssFilter()"/>
+    <input id="ssTo" type="date" class="ss-select" onchange="ssFilter()"/>
+    <select id="ssStatus" class="ss-select" onchange="ssFilter()">
+      <option value="">สถานะจ่าย</option>
+      <option value="paid">จ่ายแล้ว</option>
+      <option value="pending">รอชำระ</option>
+      <option value="credit">เครดิต</option>
+      <option value="voided">ยกเลิก</option>
+    </select>
+    <select id="ssSource" class="ss-select" onchange="ssFilter()">
+      <option value="">ทุกช่องทาง</option>
+      <option value="pos">EasySale POS</option>
+      <option value="billing">สร้างบิล</option>
+    </select>
+    <select id="ssPay" class="ss-select" onchange="ssFilter()">
+      <option value="">วิธีชำระ</option>
+      <option value="cash">เงินสด</option>
+      <option value="transfer">โอน</option>
+      <option value="qr">QR</option>
+      <option value="credit">เครดิต</option>
+    </select>
+    <select id="ssShip" class="ss-select" onchange="ssFilter()">
+      <option value="">สถานะจัดส่ง</option>
+      <option value="scheduled">กำหนดวันส่ง</option>
+      <option value="shipped_no_recipient">ส่งไม่มีผู้รับ</option>
+      <option value="shipped_cod">ส่ง+วางบิล</option>
+      <option value="shipped_collect">ส่ง+เก็บเงิน</option>
+      <option value="received_payment">รับชำระแล้ว</option>
+      <option value="debt">หนี้ค้างชำระ</option>
+    </select>
+  </div>
+  <div class="ss-result-bar">
+    <span id="ssCount" style="font-size:12px;color:#6b7280;"></span>
+    <span id="ssTotal" style="font-size:13px;font-weight:700;color:#e8b93e;"></span>
+  </div>
+  <div id="ssList"></div>
 </div>
+<style>
+.ss-wrap{padding:4px 0;}
+.ss-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.ss-input{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:12px;outline:none;min-width:160px;flex:1;}
+.ss-select{padding:6px 8px;border:1px solid #d1d5db;border-radius:8px;font-size:12px;background:#fff;outline:none;}
+.ss-result-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.ss-row{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:9px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+.ss-row:hover{border-color:#e8b93e;}
+</style>
+<script>
+(function(){
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allBills=[];
+function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
+var stMap={paid:'จ่ายแล้ว',pending:'รอชำระ',credit:'เครดิต',voided:'ยกเลิก',deleted:'ลบแล้ว'};
+var stColor={paid:'#22c55e',pending:'#f59e0b',credit:'#3b82f6',voided:'#ef4444'};
+
+async function load(){
+  var r=await fetch(API+'/api/pos/bills/list',{headers:{'Authorization':'Bearer '+TOKEN}});
+  allBills=await r.json();
+  ssFilter();
+}
+
+window.ssFilter=function(){
+  var q=(document.getElementById('ssQ').value||'').toLowerCase();
+  var status=document.getElementById('ssStatus').value;
+  var source=document.getElementById('ssSource').value;
+  var pay=document.getElementById('ssPay').value;
+  var ship=document.getElementById('ssShip').value;
+  var from=document.getElementById('ssFrom').value;
+  var to=document.getElementById('ssTo').value;
+  var filtered=allBills.filter(function(b){
+    var mQ=!q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);
+    var mS=!status||b.status===status;
+    var mSrc=!source||b.source===source;
+    var mP=!pay||b.pay_method===pay;
+    var mSh=!ship||b.shipping_status===ship;
+    var mFrom=!from||b.created_at>=from;
+    var mTo=!to||b.created_at<=(to+'T23:59:59');
+    return mQ&&mS&&mSrc&&mP&&mSh&&mFrom&&mTo;
+  });
+  var total=filtered.reduce(function(s,b){return s+parseFloat(b.total||0);},0);
+  document.getElementById('ssCount').textContent='พบ '+filtered.length+' รายการ';
+  document.getElementById('ssTotal').textContent='รวม '+fmt(total);
+  var el=document.getElementById('ssList');
+  if(!filtered.length){el.innerHTML='<div style="color:#aaa;padding:20px;text-align:center;">ไม่พบข้อมูล</div>';return;}
+  el.innerHTML=filtered.map(function(b){
+    var st=b.status||'pending';
+    return '<div class="ss-row">'+
+      '<div>'+
+        '<span style="font-weight:600;">'+(b.bill_no||b.id||'')+'</span>'+
+        '<span style="color:#9ca3af;margin-left:6px;">'+(b.customer_name||'')+'</span>'+
+        '<span style="background:#f3f4f6;border-radius:4px;padding:1px 5px;font-size:10px;margin-left:6px;">'+(b.source==='pos'?'POS':'บิล')+'</span>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:10px;color:#9ca3af;">'+new Date(b.created_at).toLocaleDateString('th')+'</span>'+
+        '<span style="background:'+(stColor[st]||'#9ca3af')+'20;color:'+(stColor[st]||'#9ca3af')+';padding:1px 6px;border-radius:4px;font-size:10px;">'+(stMap[st]||st)+'</span>'+
+        '<span style="font-weight:700;color:#e8b93e;">'+fmt(b.total)+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+};
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token)TOKEN=e.detail.token;
+  load();
+});
+if(TOKEN)load();
+})();
+</script>
 </body>

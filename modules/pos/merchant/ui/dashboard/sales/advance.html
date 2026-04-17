@@ -1,7 +1,87 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">📊</div>
-  <div style="font-size:14px;">ยอดขายล่วงหน้า</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="sa-wrap">
+  <div class="sa-filters">
+    <select id="saStatus" class="sa-select" onchange="saFilter()">
+      <option value="reserve">ใบจอง (ล่วงหน้า)</option>
+      <option value="">ทั้งหมด</option>
+    </select>
+    <input id="saFrom" type="date" class="sa-select" onchange="saFilter()"/>
+    <input id="saTo" type="date" class="sa-select" onchange="saFilter()"/>
+    <span id="saCount" style="font-size:12px;color:#6b7280;align-self:center;"></span>
+  </div>
+  <div id="saList"></div>
 </div>
+<style>
+.sa-wrap{padding:4px 0;}
+.sa-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.sa-select{padding:6px 8px;border:1px solid #d1d5db;border-radius:8px;font-size:12px;background:#fff;outline:none;}
+.sa-row{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:10px 14px;margin-bottom:6px;}
+.sa-row:hover{border-color:#e8b93e;}
+.sa-row-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.sa-row-detail{font-size:11px;color:#6b7280;display:flex;gap:16px;flex-wrap:wrap;}
+.sa-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:6px;background:#fef3c7;color:#92400e;}
+</style>
+<script>
+(function(){
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var allBills=[];
+function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
+
+async function load(){
+  var r=await fetch(API+'/api/pos/bills/list',{headers:{'Authorization':'Bearer '+TOKEN}});
+  var data=await r.json();
+  allBills=data.filter(function(b){
+    return b.doc_type==='reserve'||b.shipping_status==='scheduled'||b.scheduled_at;
+  });
+  saFilter();
+}
+
+window.saFilter=function(){
+  var status=document.getElementById('saStatus').value;
+  var from=document.getElementById('saFrom').value;
+  var to=document.getElementById('saTo').value;
+  var filtered=allBills.filter(function(b){
+    var mS=!status||b.doc_type===status||b.status===status;
+    var mFrom=!from||(b.scheduled_at||b.created_at)>=from;
+    var mTo=!to||(b.scheduled_at||b.created_at)<=(to+'T23:59:59');
+    return mS&&mFrom&&mTo;
+  });
+  // sort by scheduled_at
+  filtered.sort(function(a,b){
+    return new Date(a.scheduled_at||a.created_at)-new Date(b.scheduled_at||b.created_at);
+  });
+  document.getElementById('saCount').textContent='พบ '+filtered.length+' รายการ';
+  var el=document.getElementById('saList');
+  if(!filtered.length){el.innerHTML='<div style="color:#aaa;padding:20px;text-align:center;">ไม่พบข้อมูล</div>';return;}
+  el.innerHTML=filtered.map(function(b){
+    var sched=b.scheduled_at?new Date(b.scheduled_at).toLocaleString('th'):'-';
+    var created=new Date(b.created_at).toLocaleDateString('th');
+    var itemCount=(b.items?JSON.parse(typeof b.items==='string'?b.items:JSON.stringify(b.items)):[]).length;
+    return '<div class="sa-row">'+
+      '<div class="sa-row-top">'+
+        '<div>'+
+          '<span style="font-size:12px;font-weight:700;">'+(b.bill_no||b.id)+'</span>'+
+          '<span style="color:#9ca3af;font-size:11px;margin-left:8px;">'+(b.customer_name||'')+'</span>'+
+          '<span class="sa-badge" style="margin-left:6px;">'+(b.doc_type==='reserve'?'ใบจอง':'กำหนดส่ง')+'</span>'+
+        '</div>'+
+        '<span style="font-size:14px;font-weight:700;color:#e8b93e;">'+fmt(b.total)+'</span>'+
+      '</div>'+
+      '<div class="sa-row-detail">'+
+        '<span>📅 กำหนดส่ง: <strong>'+sched+'</strong></span>'+
+        '<span>📋 สร้างวันที่: '+created+'</span>'+
+        '<span>📦 '+itemCount+' รายการ</span>'+
+        (b.shipping_status?'<span>🚚 '+(b.shipping_status)+'</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+};
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token)TOKEN=e.detail.token;
+  load();
+});
+if(TOKEN)load();
+})();
+</script>
 </body>

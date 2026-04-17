@@ -1,8 +1,159 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">📊</div>
-  <div style="font-size:14px;">ยอดขายวันนี้
-ค้นหายอดขาย</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="sv-wrap">
+  <div class="sv-summary-grid" id="svSummaryGrid">
+    <div class="sv-card"><div class="sv-card-label">ยอดขายรวมวันนี้</div><div class="sv-card-val gold" id="svTotalToday">—</div></div>
+    <div class="sv-card"><div class="sv-card-label">จำนวนบิลวันนี้</div><div class="sv-card-val" id="svBillCount">—</div></div>
+    <div class="sv-card"><div class="sv-card-label">ยอดเดือนนี้</div><div class="sv-card-val gold" id="svTotalMonth">—</div></div>
+    <div class="sv-card"><div class="sv-card-label">จำนวนบิลเดือนนี้</div><div class="sv-card-val" id="svBillMonth">—</div></div>
+    <div class="sv-card"><div class="sv-card-label">ยอดเฉลี่ย/บิล</div><div class="sv-card-val" id="svAvgBill">—</div></div>
+    <div class="sv-card"><div class="sv-card-label">ยอด Affiliate</div><div class="sv-card-val blue" id="svAffTotal">—</div></div>
+  </div>
+  <div class="sv-section-title">แยกตามช่องทาง</div>
+  <div class="sv-channel-grid" id="svChannelGrid">
+    <div style="text-align:center;padding:20px;color:#aaa;">กำลังโหลด...</div>
+  </div>
+  <div class="sv-section-title">แยกตามวิธีชำระ</div>
+  <div id="svPayGrid" class="sv-pay-grid"></div>
+  <div class="sv-section-title">Affiliate วันนี้</div>
+  <div id="svAffGrid" class="sv-aff-list"></div>
+  <div class="sv-section-title">รายการบิลวันนี้</div>
+  <div id="svBillList"></div>
 </div>
+<style>
+.sv-wrap{padding:4px 0;}
+.sv-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.sv-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:12px 14px;}
+.sv-card-label{font-size:11px;color:#6b7280;margin-bottom:4px;}
+.sv-card-val{font-size:20px;font-weight:700;color:#1f2937;}
+.sv-card-val.gold{color:#e8b93e;}
+.sv-card-val.blue{color:#3b82f6;}
+.sv-section-title{font-size:12px;font-weight:700;color:#374151;margin:14px 0 8px;border-left:3px solid #e8b93e;padding-left:8px;}
+.sv-channel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px;}
+.sv-ch-card{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:10px 12px;}
+.sv-ch-name{font-size:11px;color:#6b7280;}
+.sv-ch-val{font-size:16px;font-weight:700;color:#1f2937;}
+.sv-ch-count{font-size:10px;color:#9ca3af;}
+.sv-pay-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.sv-pay-chip{background:#f3f4f6;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:#374151;}
+.sv-aff-list{display:flex;flex-direction:column;gap:6px;margin-bottom:4px;}
+.sv-aff-row{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;font-size:12px;}
+.sv-bill-row{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:8px 14px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:12px;}
+@media(max-width:600px){.sv-summary-grid{grid-template-columns:1fr 1fr;}.sv-channel-grid{grid-template-columns:1fr 1fr;}}
+</style>
+<script>
+(function(){
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
+
+async function load(){
+  var today=new Date();
+  var y=today.getFullYear(),m=today.getMonth()+1,d=today.getDate();
+  var dateStr=y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d;
+  try{
+    var [billRes,affRes]=await Promise.all([
+      fetch(API+'/api/pos/bills/list',{headers:{'Authorization':'Bearer '+TOKEN}}),
+      fetch(API+'/api/pos/affiliate/stats',{headers:{'Authorization':'Bearer '+TOKEN}})
+    ]);
+    var allBills=await billRes.json();
+    var affData=await affRes.json().catch(function(){return {};});
+    // filter วันนี้
+    var todayBills=allBills.filter(function(b){
+      return b.created_at&&b.created_at.startsWith(dateStr)&&b.status!=='voided'&&b.status!=='deleted';
+    });
+    var monthStr=y+'-'+(m<10?'0':'')+m;
+    var monthBills=allBills.filter(function(b){
+      return b.created_at&&b.created_at.startsWith(monthStr)&&b.status!=='voided'&&b.status!=='deleted';
+    });
+    renderSummary(todayBills,affData,monthBills);
+    renderChannels(todayBills);
+    renderPayMethods(todayBills);
+    renderBills(todayBills);
+    renderAff(affData,dateStr);
+  }catch(e){console.error(e);}
+}
+
+function renderSummary(bills,aff,monthBills){
+  var total=bills.reduce(function(s,b){return s+parseFloat(b.total||0);},0);
+  var avg=bills.length?total/bills.length:0;
+  var monthTotal=monthBills.reduce(function(s,b){return s+parseFloat(b.total||0);},0);
+  document.getElementById('svTotalToday').textContent=fmt(total);
+  document.getElementById('svBillCount').textContent=bills.length+' บิล';
+  document.getElementById('svTotalMonth').textContent=fmt(monthTotal);
+  document.getElementById('svBillMonth').textContent=monthBills.length+' บิล';
+  document.getElementById('svAvgBill').textContent=fmt(avg);
+  document.getElementById('svAffTotal').textContent=fmt(aff.total_revenue||0);
+}
+
+function renderChannels(bills){
+  var channels={pos:0,billing:0};
+  var counts={pos:0,billing:0};
+  bills.forEach(function(b){
+    var src=b.source||'billing';
+    channels[src]=(channels[src]||0)+parseFloat(b.total||0);
+    counts[src]=(counts[src]||0)+1;
+  });
+  var labels={pos:'EasySale POS',billing:'สร้างบิล'};
+  var html=Object.keys(channels).map(function(k){
+    return '<div class="sv-ch-card">'+
+      '<div class="sv-ch-name">'+labels[k]+'</div>'+
+      '<div class="sv-ch-val">'+fmt(channels[k])+'</div>'+
+      '<div class="sv-ch-count">'+counts[k]+' บิล</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('svChannelGrid').innerHTML=html||'<div style="color:#aaa;font-size:12px;">ยังไม่มีข้อมูล</div>';
+}
+
+function renderPayMethods(bills){
+  var pay={};
+  bills.forEach(function(b){
+    var p=b.pay_method||'cash';
+    pay[p]=(pay[p]||0)+parseFloat(b.total||0);
+  });
+  var labels={cash:'เงินสด',transfer:'โอน',qr:'QR',credit:'เครดิต'};
+  var html=Object.keys(pay).map(function(k){
+    return '<div class="sv-pay-chip">'+labels[k]||k+' '+fmt(pay[k])+'</div>';
+  }).join('');
+  document.getElementById('svPayGrid').innerHTML=html||'<div style="color:#aaa;font-size:12px;">ยังไม่มีข้อมูล</div>';
+}
+
+function renderAff(aff,dateStr){
+  var el=document.getElementById('svAffGrid');
+  var items=aff.top_products||[];
+  if(!items.length){el.innerHTML='<div style="color:#aaa;font-size:12px;">ยังไม่มีข้อมูล</div>';return;}
+  el.innerHTML=items.slice(0,5).map(function(p){
+    return '<div class="sv-aff-row">'+
+      '<span>'+p.title+'</span>'+
+      '<span style="color:#3b82f6;font-weight:600;">'+p.clicks+' clicks</span>'+
+    '</div>';
+  }).join('');
+}
+
+function renderBills(bills){
+  var el=document.getElementById('svBillList');
+  if(!bills.length){el.innerHTML='<div style="color:#aaa;font-size:12px;padding:10px;">ยังไม่มีบิลวันนี้</div>';return;}
+  var stMap={paid:'จ่ายแล้ว',pending:'รอชำระ',credit:'เครดิต'};
+  var stColor={paid:'#22c55e',pending:'#f59e0b',credit:'#3b82f6'};
+  el.innerHTML=bills.map(function(b){
+    var st=b.status||'pending';
+    return '<div class="sv-bill-row">'+
+      '<div>'+
+        '<span style="font-weight:600;">'+(b.bill_no||b.id)+'</span>'+
+        '<span style="color:#9ca3af;margin-left:8px;">'+(b.customer_name||'')+'</span>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<span style="background:'+stColor[st]+'20;color:'+stColor[st]+';padding:1px 6px;border-radius:4px;font-size:10px;">'+(stMap[st]||st)+'</span>'+
+        '<span style="font-weight:700;color:#e8b93e;">'+fmt(b.total)+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token)TOKEN=e.detail.token;
+  load();
+});
+if(TOKEN)load();
+})();
+</script>
 </body>

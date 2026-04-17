@@ -544,7 +544,13 @@ window.addEventListener('viiv_token_ready',function(e){
       md.appendChild(ab);md.style.display='block';
     });
     ci.addEventListener('blur',function(){
-      setTimeout(function(){if(ci.value&&!_selectedMember){ci.value='';ci.classList.remove('error');}},250);
+      setTimeout(function(){
+        md.style.display='none';
+        // ถ้าพิมพ์ชื่อตรงๆ โดยไม่เลือกจาก dropdown ให้เก็บเป็น manual customer
+        if(ci.value&&!_selectedMember){
+          _selectedMember={name:ci.value,phone:'',code:'',id:''};
+        }
+      },250);
     });
   }
   // Buttons
