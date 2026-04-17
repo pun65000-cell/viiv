@@ -43,7 +43,13 @@
         <div id="billMemberDrop" class="bill-search-drop" style="display:none;"></div>
       </div>
     </div>
-    <div class="bill-field" style="flex:2;">
+    <div class="bill-field" style="flex:1;">
+      <label>กำหนดการส่ง</label>
+      <input id="billScheduledAt" type="datetime-local" class="bill-input" style="font-size:12px;"/>
+    </div>
+  </div>
+  <div class="bill-meta-row" style="margin-top:6px;">
+    <div class="bill-field" style="flex:1;">
       <label>หมายเหตุ</label>
       <input id="billNote" type="text" placeholder="หมายเหตุในบันทึกการขาย" class="bill-input"/>
     </div>
@@ -298,6 +304,12 @@ function save(status){
     customer_code:_selectedMember?(_selectedMember.code||_selectedMember.id||''):'',
     customer_data:_selectedMember?{id:_selectedMember.id,name:_selectedMember.name,phone:_selectedMember.phone,code:_selectedMember.code}:null,
     note:(document.getElementById('billNote')||{}).value||'',
+    scheduled_at:(function(){
+      var el=document.getElementById('billScheduledAt');
+      if(el&&el.value) return el.value;
+      var d=new Date(); d.setMinutes(d.getMinutes()+45);
+      return d.toISOString().slice(0,16);
+    })(),
     total:_total,
     pay_method:(document.getElementById('billPayMethod')||{}).value||'cash',
     paid:parseFloat((document.getElementById('billPaid')||{}).value)||0,
@@ -429,6 +441,15 @@ window.addEventListener('viiv_load_draft',function(e){
   uiDocType();renderItems();
   showMsg('โหลดบิลร่าง #'+bill.id+' แล้ว','#e8b93e');
 });
+// set default scheduled_at = now + 45min
+(function(){
+  var el=document.getElementById('billScheduledAt');
+  if(el&&!el.value){
+    var d=new Date(); d.setMinutes(d.getMinutes()+45);
+    el.value=d.toISOString().slice(0,16);
+  }
+})();
+
 window.addEventListener('viiv_token_ready',function(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   loadData();

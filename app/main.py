@@ -55,6 +55,7 @@ app.add_middleware(
 
 os.makedirs("/home/viivadmin/viiv/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="/home/viivadmin/viiv/uploads"), name="uploads")
+app.mount("/merchant", StaticFiles(directory="/home/viivadmin/viiv/modules/pos/merchant/ui/dashboard"), name="merchant")
 
 _debug_req_logs = os.getenv("DEBUG_REQ_LOGS") == "1"
 

@@ -62,10 +62,11 @@ def create_bill(payload: dict, authorization: str = Header("")):
         vr = int(payload.get("vat",0)); va = after*vr/100; total = after+va
         src = payload.get("source","billing")
         ship_st = payload.get("shipping_status", None)
-        c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
-            VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
+        sched = payload.get("scheduled_at")
+        c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
+            VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
             {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":payload.get("doc_type","receipt"),"st":status,
-             "src":src,"ship":ship_st,
+             "src":src,"ship":ship_st,"sched":sched,
              "cid":(payload.get("customer_data") or {}).get("id"),"cn":payload.get("customer",""),"cc":payload.get("customer_code",""),
              "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
              "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"total":total,
@@ -90,7 +91,7 @@ def list_bills(authorization: str = Header(""), status: str = "", doc_type: str 
     if q: filters += " AND (bill_no ILIKE :q OR customer_name ILIKE :q OR customer_code ILIKE :q)"; params["q"]=f"%{q}%"
     if source: filters += " AND source=:source"; params["source"]=source
     with engine.connect() as c:
-        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
+        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
     return [dict(r._mapping) for r in rows]
 
 VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted'}
@@ -218,3 +219,17 @@ def migrate_bill(payload: dict, authorization: str = Header("")):
             "cat":payload.get("created_at","NOW()")
         })
     return {"message":"migrated","bill_no":bill_no,"id":bid}
+
+
+import shutil, uuid
+from fastapi import UploadFile, File
+
+@router.post("/upload-slip")
+async def upload_slip(file: UploadFile = File(...), authorization: str = Header("")):
+    tid, uid = get_tenant_user(authorization)
+    ext = file.filename.rsplit(".",1)[-1].lower() if "." in file.filename else "jpg"
+    fname = f"{uuid.uuid4().hex}.{ext}"
+    dest = f"/home/viivadmin/viiv/uploads/slips/{fname}"
+    import os; os.makedirs("/home/viivadmin/viiv/uploads/slips", exist_ok=True)
+    with open(dest,"wb") as f: shutil.copyfileobj(file.file, f)
+    return {"url": f"/uploads/slips/{fname}"}

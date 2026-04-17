@@ -3,9 +3,9 @@
 <div class="bs-wrap">
   <div class="bs-header">
     <div class="bs-filters">
-      <input id="bsQ" class="bs-input" placeholder="ค้นหา เลขบิล / ชื่อลูกค้า..." oninput="bsFilter()"/>
+      <input id="bsQ" class="bs-input" placeholder="เลขบิล / ลูกค้า..." oninput="bsFilter()" style="min-width:120px;max-width:220px;"/>
       <select id="bsStatus" class="bs-select" onchange="bsFilter()">
-        <option value="">สถานะการเงินทั้งหมด</option>
+        <option value="">สถานะจ่าย</option>
         <option value="paid">จ่ายแล้ว</option>
         <option value="pending">รอชำระ</option>
         <option value="credit">เครดิต</option>
@@ -15,11 +15,28 @@
         <option value="deleted">ลบแล้ว</option>
       </select>
       <select id="bsType" class="bs-select" onchange="bsFilter()">
-        <option value="">ประเภททั้งหมด</option>
+        <option value="">ประเภทบิล</option>
         <option value="receipt">ใบเสร็จ</option>
         <option value="delivery">ใบส่งของ</option>
         <option value="quotation">ใบเสนอราคา</option>
         <option value="reserve">ใบจอง</option>
+      </select>
+      <select id="bsShipStatus" class="bs-select" onchange="bsFilter()">
+        <option value="">สถานะจัดส่ง</option>
+        <option value="__none__">ยังไม่ส่ง</option>
+        <option value="pending">กำลังดำเนินการ</option>
+        <option value="scheduled">รอนัดส่ง</option>
+        <option value="packing_in">เตรียมส่ง-เข้า</option>
+        <option value="packing_out">เตรียมส่ง-ออก</option>
+        <option value="shipped_no_recipient">ส่งแล้ว(ไม่มีผู้รับ)</option>
+        <option value="shipped_cod">ส่งแล้ว+วางบิล</option>
+        <option value="shipped_collect">ส่งแล้ว+เก็บเงิน</option>
+        <option value="chargeback">ชะลอจ่าย</option>
+        <option value="bill_check">วางบิล/เช็ค</option>
+        <option value="overdue">เลยกำหนด</option>
+        <option value="received_payment">รับชำระแล้ว</option>
+        <option value="pending_payment">รอชำระ</option>
+        <option value="cod">จ่ายปลายทาง</option>
       </select>
     </div>
     <div id="bsCount" style="font-size:12px;color:#6b7280;align-self:center;"></div>
@@ -37,12 +54,12 @@
 .bs-list{display:flex;flex-direction:column;gap:6px;}
 .bs-row{padding:10px 14px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;cursor:pointer;transition:.15s;}
 .bs-row:hover{border-color:#e8b93e;}
-.bs-row-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.bs-row-left{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1;}
-.bs-row-right{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.bs-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.bs-row-left{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1;min-width:0;}
+.bs-row-right{display:flex;align-items:center;gap:4px;flex-shrink:0;}
 .bs-bill-id{font-size:12px;font-weight:700;color:#1f2937;}
-.bs-amount{font-size:14px;font-weight:700;color:#e8b93e;}
-.bs-row-sub{font-size:11px;color:#6b7280;margin-top:3px;}
+.bs-amount{font-size:13px;font-weight:700;color:#e8b93e;white-space:nowrap;}
+.bs-row-sub{font-size:11px;color:#6b7280;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
 .bs-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;}
 .bs-badge.paid{background:#dcfce7;color:#166534;}
 .bs-badge.pending{background:#fef3c7;color:#92400e;}
@@ -54,10 +71,25 @@
 .bs-badge.ship{background:#e0f2fe;color:#0369a1;}
 .bs-badge.pos{background:#f1f5f9;color:#94a3b8;font-size:9px;}
 .bs-action-btn{border:none;cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;transition:.15s;}
-.bs-action-btn.fin{background:#fef9c3;color:#854d0e;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;}
-.bs-action-btn.fin:hover{background:#fde047;color:#713f12;}
-.bs-action-btn.ship{background:#e0f2fe;color:#0369a1;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
-.bs-action-btn.ship:hover{background:#7dd3fc;color:#0c4a6e;}
+.bs-action-btn{font-size:10px;padding:2px 6px;border-radius:6px;border:0.5px solid;cursor:pointer;font-weight:500;transition:.15s;width:60px;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex-shrink:0;line-height:1.4;}
+.bs-action-btn.fin-paid{background:#f0fdf4;color:#166534;border-color:#d1fae5;}
+.bs-action-btn.fin-paid:hover{background:#dcfce7;}
+.bs-action-btn.fin-pending{background:#fffbeb;color:#92400e;border-color:#fde68a;}
+.bs-action-btn.fin-pending:hover{background:#fef3c7;}
+.bs-action-btn.fin-credit{background:#eff6ff;color:#1e40af;border-color:#bfdbfe;}
+.bs-action-btn.fin-credit:hover{background:#dbeafe;}
+.bs-action-btn.fin-partial{background:#f5f3ff;color:#5b21b6;border-color:#ddd6fe;}
+.bs-action-btn.fin-partial:hover{background:#ede9fe;}
+.bs-action-btn.fin-voided{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
+.bs-action-btn.fin-voided:hover{background:#fee2e2;}
+.bs-action-btn.ship-none{background:#f8fafc;color:#64748b;border-color:#e2e8f0;}
+.bs-action-btn.ship-none:hover{background:#f1f5f9;}
+.bs-action-btn.ship-active{background:#f0f9ff;color:#0369a1;border-color:#bae6fd;}
+.bs-action-btn.ship-active:hover{background:#e0f2fe;}
+.bs-action-btn.ship-done{background:#f0fdf4;color:#166534;border-color:#d1fae5;}
+.bs-action-btn.ship-done:hover{background:#dcfce7;}
+.bs-action-btn.ship-warn{background:#fff7ed;color:#9a3412;border-color:#fed7aa;}
+.bs-action-btn.ship-warn:hover{background:#ffedd5;}
 </style>
 
 <script>
@@ -114,11 +146,14 @@ window.bsFilter=function(){
   var q=(qEl.value||'').toLowerCase();
   var st=stEl.value;
   var tp=tpEl.value;
+  var shipEl=document.getElementById('bsShipStatus');
+  var ship=shipEl?shipEl.value:'';
   var filtered=allBills.filter(function(b){
     var matchQ=!q||(b.id||'').toLowerCase().includes(q)||(b.customer||'').toLowerCase().includes(q);
     var matchSt=!st||b.status===st;
     var matchTp=!tp||b.doc_type===tp;
-    return matchQ&&matchSt&&matchTp;
+    var matchShip=!ship||(ship==='__none__'?!b.shipping_status:b.shipping_status===ship);
+    return matchQ&&matchSt&&matchTp&&matchShip;
   });
   document.getElementById('bsCount').textContent='พบ '+filtered.length+' รายการ';
   render(filtered);
@@ -170,10 +205,12 @@ function render(bills){
     right.className='bs-row-right';
 
     if(isActive){
+      var finCls={paid:'fin-paid',pending:'fin-pending',credit:'fin-credit',partial:'fin-partial',voided:'fin-voided',draft:'fin-pending'};
+      var finIcon={paid:'✓',pending:'○',credit:'◷',partial:'◑',voided:'✕',draft:'○'};
       var finBtn=document.createElement('button');
-      finBtn.className='bs-action-btn fin';
-      var finLabel=stMap[b.status]||b.status||'ร่าง';
-      finBtn.innerHTML='💰 '+finLabel;
+      finBtn.className='bs-action-btn '+(finCls[b.status]||'fin-pending');
+      finBtn.title=(stMap[b.status]||b.status||'ร่าง');
+      finBtn.textContent=(finIcon[b.status]||'○')+' '+(stMap[b.status]||b.status||'ร่าง');
       finBtn.setAttribute('data-id',b.db_id||b.id);
       finBtn.addEventListener('click',function(e){
         e.stopPropagation();
@@ -183,10 +220,18 @@ function render(bills){
     }
 
     if(isActive&&!isPOS){
+      var shipDoneList=['shipped_no_recipient','shipped_cod','shipped_collect','received_payment'];
+      var shipWarnList=['chargeback','overdue'];
+      var shipCls=b.shipping_status
+        ?(shipDoneList.includes(b.shipping_status)?'ship-done'
+          :(shipWarnList.includes(b.shipping_status)?'ship-warn':'ship-active'))
+        :'ship-none';
+      var shipIcon=b.shipping_status?'⬆':'–';
+      var shipLabel=b.shipping_status?(shipMap[b.shipping_status]||b.shipping_status):'จัดส่ง';
       var shipBtn=document.createElement('button');
-      shipBtn.className='bs-action-btn ship';
-      var shipLabel=b.shipping_status?(shipMap[b.shipping_status]||b.shipping_status):'ยังไม่ส่ง';
-      shipBtn.innerHTML='🚚 '+shipLabel;
+      shipBtn.className='bs-action-btn '+shipCls;
+      shipBtn.title=shipLabel;
+      shipBtn.textContent=shipIcon+' '+shipLabel;
       shipBtn.setAttribute('data-id',b.db_id||b.id);
       shipBtn.addEventListener('click',function(e){
         e.stopPropagation();
@@ -205,7 +250,23 @@ function render(bills){
 
     var sub=document.createElement('div');
     sub.className='bs-row-sub';
-    sub.textContent=(b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+(b.items||[]).length+' รายการ · '+(payLabel[b.pay_method]||b.pay_method||'—');
+    // badge สถานะการเงิน
+    var sBadge=document.createElement('span');
+    var finCls2={paid:'paid',pending:'pending',credit:'credit',partial:'partial',draft:'draft',voided:'voided',deleted:'deleted'};
+    sBadge.className='bs-badge '+(finCls2[b.status]||'draft');
+    sBadge.textContent=stMap[b.status]||b.status||'ร่าง';
+    sub.appendChild(sBadge);
+    // badge จัดส่ง (ถ้ามี)
+    if(b.shipping_status){
+      var shBadge=document.createElement('span');
+      shBadge.className='bs-badge ship';
+      shBadge.textContent='🚚 '+(shipMap[b.shipping_status]||b.shipping_status);
+      sub.appendChild(shBadge);
+    }
+    // ข้อมูลย่อย
+    var infoSpan=document.createElement('span');
+    infoSpan.textContent=(b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+(b.items||[]).length+' รายการ · '+(payLabel[b.pay_method]||b.pay_method||'—');
+    sub.appendChild(infoSpan);
 
     row.appendChild(top);
     row.appendChild(sub);
