@@ -110,6 +110,7 @@ function loadBills(){
         scheduled_at:b.scheduled_at||null,
         ship_note:b.ship_note||null,
         ship_report:b.ship_report||[],
+        activity_log:b.activity_log||[],
         source:b.source||'billing',
         customer:b.customer_name||b.customer||'',
         items:typeof b.items==='string'?JSON.parse(b.items):b.items||[],
@@ -130,6 +131,10 @@ function loadBills(){
     bsFilter();
   });
 }
+
+window.openPrintPopup=function(bid){
+  window.open(API+'/merchant/billing/print.html?bid='+bid+'&v='+Date.now(),'_blank');
+};
 
 window.bsFilter=function(){
   var qEl=document.getElementById('bsQ');
@@ -299,8 +304,30 @@ function showBillDetail(b){
   ov.innerHTML=''; ov.appendChild(box); ov.style.display='flex';
   document.getElementById('bsCloseBtn').addEventListener('click',function(){ ov.style.display='none'; });
   document.getElementById('bsDismissBtn').addEventListener('click',function(){ ov.style.display='none'; });
-  document.getElementById('bsPrintBtn').addEventListener('click',function(){ waPrintBill(b); });
+  document.getElementById('bsPrintBtn').addEventListener('click',function(){
+    var bid=b.db_id||b.id;
+    window.openPrintPopup(bid);
+  });
 }
+
+window.viewPhoto = function(url){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='position:relative;max-width:90vw;max-height:90vh;';
+  var closeBtn=document.createElement('button');
+  closeBtn.textContent='✕';
+  closeBtn.style.cssText='position:absolute;top:-14px;right:-14px;width:28px;height:28px;border-radius:50%;background:#fff;border:none;font-size:16px;cursor:pointer;line-height:1;z-index:1;';
+  closeBtn.addEventListener('click',function(){ ov.remove(); });
+  var img=document.createElement('img');
+  img.src=url;
+  img.style.cssText='max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;display:block;';
+  box.appendChild(closeBtn);
+  box.appendChild(img);
+  ov.appendChild(box);
+  ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+};
 
 // ======== POPUP ========
 var _spBill=null, _selectedShip=null;
@@ -491,6 +518,24 @@ window.openShipPopup=function(dbId){
     }
     infoHtml+='</div>';
   }
+  // activity log
+  if(b.activity_log&&b.activity_log.length){
+    var logs=b.activity_log.slice().reverse();
+    infoHtml+='<div style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;">ประวัติการเปลี่ยนแปลง</div>';
+    logs.forEach(function(log){
+      var dt=new Date(log.at).toLocaleString('th');
+      infoHtml+='<div style="font-size:10px;padding:5px 8px;background:#f8fafc;border-radius:6px;margin-bottom:3px;border-left:3px solid #e2e8f0;">';
+      infoHtml+='<div style="color:#9ca3af;font-size:9px;">'+dt+' · '+log.by+'</div>';
+      if(log.status) infoHtml+='<div>💰 '+log.status+'</div>';
+      if(log.shipping) infoHtml+='<div>🚚 '+log.shipping+'</div>';
+      if(log.scheduled_at) infoHtml+='<div>📅 '+new Date(log.scheduled_at).toLocaleString('th')+'</div>';
+      if(log.note) infoHtml+='<div>📝 '+log.note+'</div>';
+      if(log.report) infoHtml+='<div>📋 '+log.report+'</div>';
+      if(log.photo) infoHtml+='<button onclick="window.viewPhoto(\''+log.photo+'\')" style="margin-top:4px;background:#e0f2fe;border:1px solid #bae6fd;border-radius:6px;padding:3px 8px;font-size:10px;color:#0369a1;cursor:pointer;">🖼 ดูรูปภาพ</button>';
+      infoHtml+='</div>';
+    });
+    infoHtml+='</div>';
+  }
   infoEl.innerHTML=infoHtml;
   // reset grid
   setTimeout(function(){
@@ -568,6 +613,7 @@ async function doSave(){
         if(payload.ship_note) b.ship_note=payload.ship_note;
         if(payload.ship_report) b.ship_report=payload.ship_report;
         if(payload.ship_photo_url) b.ship_photo_url=payload.ship_photo_url;
+        if(d.log) b.activity_log=(b.activity_log||[]).concat([d.log]);
       }
       bsFilter();
     } else { alert('บันทึกไม่สำเร็จ: '+(d.detail||'error')); }

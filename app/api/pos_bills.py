@@ -91,7 +91,7 @@ def list_bills(authorization: str = Header(""), status: str = "", doc_type: str 
     if q: filters += " AND (bill_no ILIKE :q OR customer_name ILIKE :q OR customer_code ILIKE :q)"; params["q"]=f"%{q}%"
     if source: filters += " AND source=:source"; params["source"]=source
     with engine.connect() as c:
-        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
+        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,ship_report,activity_log,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
     return [dict(r._mapping) for r in rows]
 
 VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted'}
@@ -102,32 +102,61 @@ VALID_SHIPPING = {
     'received_payment','pending_payment','cod'
 }
 
+LOCK_SHIPPING = {'received_payment','debt'}
+COLLECT_NEXT = {'received_payment'}
+
 @router.post("/update-status/{bid}")
 def update_bill_status(bid: str, payload: dict, authorization: str = Header("")):
+    from datetime import datetime, timezone
     tid, uid = get_tenant_user(authorization)
     new_status = payload.get("status")
     new_shipping = payload.get("shipping_status")
-    slip_url = payload.get("slip_url")
+    ship_photo = payload.get("ship_photo_url")
+    ship_note = payload.get("ship_note")
+    ship_report = payload.get("ship_report")
+    scheduled_at = payload.get("scheduled_at")
+
     if new_status and new_status not in VALID_FINANCIAL:
         raise HTTPException(400, f"invalid status: {new_status}")
     if new_shipping and new_shipping not in VALID_SHIPPING:
         raise HTTPException(400, f"invalid shipping_status: {new_shipping}")
+
     with engine.begin() as c:
-        bill = c.execute(text("SELECT id,source FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
+        bill = c.execute(text("SELECT id,source,shipping_status,status,activity_log FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
         if not bill: raise HTTPException(404,"ไม่พบบิล")
+
+        if bill.shipping_status in LOCK_SHIPPING:
+            raise HTTPException(400,f"ไม่สามารถเปลี่ยนสถานะนี้ได้ (ต้องลบบิลเท่านั้น)")
+        if bill.shipping_status == "shipped_collect" and new_shipping and new_shipping not in COLLECT_NEXT:
+            raise HTTPException(400,"จัดส่งพร้อมเก็บเงิน → รับชำระเงินแล้ว เท่านั้น")
+        if new_status and bill.status == "paid" and new_status in ("pending","draft","credit"):
+            raise HTTPException(400,"ไม่สามารถย้อนสถานะจาก paid ได้")
+
+        # build log entry
+        log_entry = {"at": datetime.now(timezone.utc).isoformat(), "by": uid}
+        if new_status: log_entry["status"] = f"{bill.status} → {new_status}"
+        if new_shipping: log_entry["shipping"] = f"{bill.shipping_status or '-'} → {new_shipping}"
+        if scheduled_at: log_entry["scheduled_at"] = scheduled_at
+        if ship_note: log_entry["note"] = ship_note
+        if ship_photo: log_entry["photo"] = ship_photo
+        if ship_report and len(ship_report): log_entry["report"] = ship_report[-1].get("text","")
+
+        existing_log = bill.activity_log or []
+        if isinstance(existing_log, str): existing_log = json.loads(existing_log)
+        existing_log.append(log_entry)
+
         sets, params = [], {"id":bid}
-        if new_status:
-            sets.append("status=:status"); params["status"]=new_status
-        if new_shipping is not None:
-            if bill.source == "pos":
-                raise HTTPException(400,"บิล POS ไม่สามารถอัพเดท shipping_status ได้")
-            sets.append("shipping_status=:shipping"); params["shipping"]=new_shipping
-        if slip_url:
-            sets.append("slip_url=:slip"); params["slip"]=slip_url
+        if new_status: sets.append("status=:status"); params["status"]=new_status
+        if new_shipping is not None: sets.append("shipping_status=:shipping"); params["shipping"]=new_shipping
+        if ship_photo: sets.append("ship_photo_url=:photo"); params["photo"]=ship_photo
+        if ship_note is not None: sets.append("ship_note=:snote"); params["snote"]=ship_note
+        if ship_report is not None: sets.append("ship_report=:sreport"); params["sreport"]=json.dumps(ship_report)
+        if scheduled_at is not None: sets.append("scheduled_at=:sched"); params["sched"]=scheduled_at
+        sets.append("activity_log=:alog"); params["alog"]=json.dumps(existing_log)
         if not sets: raise HTTPException(400,"ไม่มีข้อมูลที่จะอัพเดท")
         sets.append("updated_at=NOW()")
         c.execute(text(f"UPDATE bills SET {','.join(sets)} WHERE id=:id"),params)
-    return {"ok":True,"bill_id":bid}
+    return {"ok":True,"bill_id":bid,"log":log_entry}
 
 @router.get("/detail/{bid}")
 def get_bill(bid: str, authorization: str = Header("")):

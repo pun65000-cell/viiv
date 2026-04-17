@@ -1,0 +1,373 @@
+<body>
+<div id="printWrap">
+  <div id="printToolbar" class="no-print" style="background:#1f2937;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="color:#fff;font-size:13px;font-weight:600;">พิมพ์ใบเสร็จ</span>
+    <select id="formSelector" style="padding:6px 10px;border-radius:6px;font-size:12px;border:none;outline:none;">
+      <option value="1">1. ใบกำกับภาษี/ใบแจ้งหนี้/ใบส่งของ</option>
+      <option value="2">2. ใบแจ้งหนี้/ใบส่งของ</option>
+      <option value="3">3. ใบกำกับภาษีเต็มรูป (มี VAT แยก)</option>
+      <option value="4">4. ใบเสร็จรับเงิน/ใบกำกับภาษี</option>
+      <option value="5">5. ใบส่งของชั่วคราว</option>
+      <option value="6">6. ใบเสร็จรับเงิน (แบบสั้น)</option>
+      <option value="7">7. ใบส่งสินค้า (จำนวนเท่านั้น)</option>
+      <option value="8">8. ใบปะหน้าจัดส่ง</option>
+    </select>
+    <button id="printBtn" style="padding:6px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🖨 พิมพ์</button>
+    <button id="closeBtn" style="padding:6px 12px;background:#6b7280;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">✕ ปิด</button>
+    <span id="printStatus" style="color:#9ca3af;font-size:11px;"></span>
+  </div>
+  <div id="printPreview" style="background:#e5e7eb;padding:20px;min-height:calc(100vh - 50px);display:flex;justify-content:center;">
+    <div id="printPage" style="background:#fff;width:210mm;min-height:297mm;padding:15mm 15mm;box-sizing:border-box;font-family:sans-serif;font-size:13px;position:relative;">
+      <div style="text-align:center;padding:60px;color:#aaa;"><div style="font-size:32px;margin-bottom:12px;">⏳</div><div style="font-size:14px;">กำลังโหลดข้อมูลบิล...</div></div>
+    </div>
+  </div>
+</div>
+
+<style>
+body{margin:0;padding:0;}
+@media print {
+  .no-print{display:none!important;}
+  #printPreview{background:none!important;padding:0!important;}
+  #printPage{width:100%!important;box-shadow:none!important;padding:10mm!important;}
+  body{-webkit-print-color-adjust:exact;}
+}
+.doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.doc-logo{width:70px;height:70px;object-fit:contain;}
+.doc-store-info{font-size:11px;line-height:1.5;}
+.doc-store-name{font-size:15px;font-weight:700;color:#e8b93e;}
+.doc-title{text-align:right;font-size:12px;line-height:1.6;}
+.doc-title-main{font-size:14px;font-weight:700;}
+.doc-divider{border:none;border-top:1px solid #000;margin:8px 0;}
+.doc-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;margin-bottom:10px;}
+.doc-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;}
+.doc-table th{background:#f3f4f6;padding:5px 6px;border:1px solid #d1d5db;text-align:center;}
+.doc-table td{padding:4px 6px;border:1px solid #d1d5db;}
+.doc-table td.num{text-align:right;}
+.doc-table td.ctr{text-align:center;}
+.doc-summary{display:flex;justify-content:flex-end;margin-bottom:10px;}
+.doc-summary-box{width:240px;font-size:11px;}
+.doc-summary-row{display:flex;justify-content:space-between;padding:2px 0;}
+.doc-summary-total{font-size:16px;font-weight:700;color:#e8b93e;border-top:2px solid #000;padding-top:4px;}
+.doc-sign-box{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;border:1px solid #000;padding:10px;font-size:10px;margin-top:8px;}
+.doc-sign-item{text-align:center;}
+.doc-sign-line{border-bottom:1px dotted #000;margin:16px 4px 2px;}
+.doc-footer{text-align:center;font-size:10px;color:#6b7280;margin-top:10px;}
+.doc-customer{font-size:11px;margin-bottom:8px;line-height:1.6;}
+.doc-label{font-weight:700;}
+</style>
+
+<script>
+(function(){
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+if(!TOKEN){ setTimeout(function(){ TOKEN=localStorage.getItem('viiv_token')||''; },300); }
+var _bill=null, _store=null, _form=1;
+
+function fmt(n){ return (parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2}); }
+function fmtDate(d){ return d?new Date(d).toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'}):''; }
+function fmtDateTime(d){ return d?new Date(d).toLocaleString('th-TH'):''; }
+
+window.loadData = async function loadData(bid){
+  var status=document.getElementById('printStatus');
+  if(status) status.textContent='กำลังโหลด...';
+  try{
+    var [bRes,sRes]=await Promise.all([
+      fetch(API+'/api/pos/bills/detail/'+bid,{headers:{'Authorization':'Bearer '+TOKEN}}),
+      fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}})
+    ]);
+    _bill=await bRes.json();
+    _store=await sRes.json();
+    if(_bill.items && typeof _bill.items==='string') _bill.items=JSON.parse(_bill.items);
+    if(status) status.textContent='';
+    renderForm(_form);
+  }catch(e){
+    if(status) status.textContent='โหลดไม่สำเร็จ: '+e.message;
+  }
+}
+
+function storeHeader(){
+  var logoUrl='';
+    if(_store.logo_url){
+      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
+    }
+  var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
+  return '<div class="doc-header">'+
+    '<div style="display:flex;gap:10px;align-items:flex-start;">'+
+      (logoUrl?'<img src="'+logoUrl+'" class="doc-logo"/>':'')+
+      '<div class="doc-store-info">'+
+        '<div class="doc-store-name">'+(_store.store_name||'')+'</div>'+
+        '<div>'+addr+'</div>'+
+        (_store.tax_id?'<div>เลขประจำตัวผู้เสียภาษี: '+_store.tax_id+'</div>':'')+
+        (_store.phone?'<div>โทร: '+_store.phone+'</div>':'')+
+      '</div>'+
+    '</div>';
+}
+
+function customerBlock(){
+  var cd=_bill.customer_data?JSON.parse(typeof _bill.customer_data==='string'?_bill.customer_data:JSON.stringify(_bill.customer_data)):null;
+  var name=_bill.customer_name||_bill.customer||'';
+  var phone=cd?cd.phone:'';
+  var addr=cd?cd.address:'';
+  return '<div class="doc-customer">'+
+    '<span class="doc-label">ชื่อลูกค้า: </span>'+name+(phone?' โทร: '+phone:'')+
+    (addr?'<br><span class="doc-label">ที่อยู่: </span>'+addr:'')+
+  '</div>';
+}
+
+function itemsTable(showSku,showPrice){
+  var rows=(_bill.items||[]).map(function(it,i){
+    var amount=parseFloat(it.qty)*parseFloat(it.price);
+    return '<tr>'+
+      '<td class="ctr">'+(i+1)+'</td>'+
+      (showSku?'<td>'+it.sku+'</td>':'')+'<td>'+it.name+'</td>'+
+      '<td class="num">'+fmt(it.qty)+'</td>'+
+      (showPrice?'<td class="num">'+fmt(it.price)+'</td><td class="num">'+fmt(amount)+'</td>':'')+
+    '</tr>';
+  }).join('');
+  return '<table class="doc-table">'+
+    '<thead><tr>'+
+      '<th style="width:35px;">ลำดับ</th>'+
+      (showSku?'<th style="width:70px;">รหัส</th>':'')+
+      '<th>รายละเอียด</th>'+
+      '<th style="width:60px;">จำนวน</th>'+
+      (showPrice?'<th style="width:80px;">ราคา/หน่วย</th><th style="width:80px;">จำนวนเงิน</th>':'')+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function summaryBlock(showVat){
+  var sub=parseFloat(_bill.subtotal)||0;
+  var disc=parseFloat(_bill.discount)||0;
+  var vat=parseFloat(_bill.vat_amount)||0;
+  var total=parseFloat(_bill.total)||0;
+  var vatRate=parseInt(_bill.vat_rate)||0;
+  return '<div class="doc-summary"><div class="doc-summary-box">'+
+    (disc>0?'<div class="doc-summary-row"><span>ส่วนลด</span><span>'+fmt(disc)+'</span></div>':'')+
+    (showVat&&vatRate>0?'<div class="doc-summary-row"><span>ภาษีมูลค่าเพิ่ม '+vatRate+'%</span><span>'+fmt(vat)+'</span></div>':'')+
+    '<div class="doc-summary-row doc-summary-total"><span>ยอดสุทธิ</span><span>'+fmt(total)+'</span></div>'+
+  '</div></div>';
+}
+
+function signBlock(cols){
+  var items=cols||['ผู้ส่งสินค้า/Delivered By','ผู้รับสินค้า/Received By','ผู้จัดทำ/Prepared By','ผู้มีอำนาจลงนาม/Authorized Signature'];
+  return '<div class="doc-sign-box" style="grid-template-columns:repeat('+items.length+',1fr);">'+
+    items.map(function(label){
+      return '<div class="doc-sign-item"><div class="doc-sign-line"></div><div>'+label+'</div><div>วันที่......./......./.......</div></div>';
+    }).join('')+
+  '</div>';
+}
+
+window.renderForm = function renderForm(f){
+  if(!_bill||!_store) return;
+  var page=document.getElementById('printPage');
+  var items=_bill.items||[];
+  var sub=parseFloat(_bill.subtotal)||0;
+  var total=parseFloat(_bill.total)||0;
+  var vat=parseFloat(_bill.vat_amount)||0;
+  var vatRate=parseInt(_bill.vat_rate)||0;
+  var sched=_bill.scheduled_at?fmtDateTime(_bill.scheduled_at):'';
+  var billNo=_bill.bill_no||_bill.id;
+  var invNo=_bill.inv_no||billNo;
+  var created=fmtDate(_bill.created_at);
+  var html='';
+
+  if(f==1||f==2||f==3){
+    // ใบกำกับภาษี/ใบแจ้งหนี้/ใบส่งของ
+    var titles={1:'ใบกำกับภาษี/ใบแจ้งหนี้/ใบส่งของ<br><small>Tax Invoice/Invoice/Delivery Order</small>',
+                2:'ใบแจ้งหนี้/ใบส่งของ<br><small>Invoice/Delivery Order</small>',
+                3:'ใบกำกับภาษีเต็มรูป<br><small>Tax Invoice</small>'};
+    html+=storeHeader()+
+      '<div class="doc-title">'+
+        '<div class="doc-title-main">'+titles[f]+'</div>'+
+        '<div>เลขอ้างอิง '+invNo+'</div>'+
+        '<div>เลขประจำตัวผู้เสียภาษีผู้ออก: '+(_store.tax_id||'')+'</div>'+
+      '</div></div>'+
+      '<hr class="doc-divider"/>'+
+      customerBlock()+
+      '<div style="font-size:11px;margin-bottom:8px;">'+
+        '<div>วันที่: '+created+'</div>'+
+        (sched?'<div>วันที่ส่ง: '+sched+'</div>':'')+
+        (f==1?'<div>วันครบกำหนด: '+(sched||'-')+'</div>':'')+
+      '</div>'+
+      itemsTable(false,true)+
+      summaryBlock(f==3)+
+      (f==1?'<div style="font-size:10px;margin-bottom:6px;">หมายเหตุ: '+(_bill.note||'แก้ไขใบส่งของกรุณาติดต่อภายใน 7 วัน')+'</div>':'')+
+      signBlock(f==1?['ผู้รับสินค้า/Received By','ผู้ส่งสินค้า/Delivered By','ผู้จัดทำ/Prepared By','ผู้มีอำนาจลงนาม/Authorized Signature']:null)+
+      '<div class="doc-footer">'+(_store.store_name||'')+
+        (_store.phone?' โทร: '+_store.phone:'')+
+        (_store.tax_id?' รหัสร้านค้า: '+_store.tax_id:'')+
+      '</div>';
+  }
+  else if(f==4||f==5){
+    var title4={4:'ใบเสร็จรับเงิน/ใบกำกับภาษี',5:'ใบส่งของชั่วคราว/ใบกำกับภาษี'};
+    var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
+    var logoUrl='';
+    if(_store.logo_url){
+      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
+    }
+    html+='<div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:12px;">'+title4[f]+'</div>'+
+      '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
+        (logoUrl?'<img src="'+logoUrl+'" style="width:60px;height:60px;object-fit:contain;"/>':'')+
+        '<div style="flex:1;font-size:11px;">'+
+          '<div style="font-weight:700;font-size:13px;">'+(_store.store_name||'')+'</div>'+
+          '<div>เลขประจำตัวผู้เสียภาษี '+(_store.tax_id||'')+'</div>'+
+          '<div>'+addr+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;font-size:11px;">'+
+          '<div>เลขที่</div><div style="font-size:14px;font-weight:700;">'+invNo+'</div>'+
+          '<div>วันที่ '+created+'</div>'+
+        '</div>'+
+      '</div>'+
+      customerBlock()+
+      itemsTable(true,true)+
+      '<div style="font-size:10px;margin-bottom:8px;">'+
+        '<div>หมายเหตุ:</div>'+
+        '<div>1.ได้รับสินค้าตามรายการถูกต้องแล้ว</div>'+
+        '<div>2.บริษัทฯ จะออกใบเสร็จชำระเงิน เมื่อมีการชำระเงินเรียบร้อยแล้ว</div>'+
+      '</div>'+
+      summaryBlock(true)+
+      signBlock(['ผู้ส่งสินค้า/ผู้รับเงิน','ผู้รับสินค้า']);
+  }
+  else if(f==6){
+    var logoUrl='';
+    if(_store.logo_url){
+      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
+    }
+    var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
+    html+=
+      '<div style="text-align:center;margin-bottom:12px;">'+
+        (logoUrl?'<img src="'+logoUrl+'" style="width:70px;height:70px;object-fit:contain;display:block;margin:0 auto 6px;"/>':'')+
+        '<div style="font-size:15px;font-weight:700;">'+(_store.store_name||'')+'</div>'+
+        '<div style="font-size:10px;">'+addr+'</div>'+
+        '<div style="font-size:10px;">No. '+invNo+'</div>'+
+        '<div style="font-size:10px;text-align:right;">วันที่ '+created+'</div>'+
+      '</div>'+
+      customerBlock()+
+      itemsTable(true,true)+
+      summaryBlock(false)+
+      '<div style="font-size:10px;margin-top:8px;">บันทึก/หมายเหตุ: '+(_bill.note||'')+'</div>'+
+      '<div class="doc-footer">ขอบคุณที่ใช้บริการ</div>';
+  }
+  else if(f==7){
+    var logoUrl='';
+    if(_store.logo_url){
+      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
+    }
+    var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
+    html+=
+      '<div style="text-align:center;margin-bottom:12px;">'+
+        (logoUrl?'<img src="'+logoUrl+'" style="width:70px;height:70px;object-fit:contain;display:block;margin:0 auto 6px;"/>':'')+
+        '<div style="font-size:14px;font-weight:700;">'+(_store.store_name||'')+'</div>'+
+        '<div style="font-size:10px;">'+addr+'</div>'+
+        '<div style="font-size:10px;">No. '+invNo+'</div>'+
+        '<div style="font-size:10px;text-align:right;">วันที่ '+created+'</div>'+
+      '</div>'+
+      customerBlock()+
+      '<table class="doc-table"><thead><tr>'+
+        '<th style="width:35px;">ลำดับ</th><th>รายการ</th><th style="width:70px;">จำนวน</th>'+
+      '</tr></thead><tbody>'+
+      (_bill.items||[]).map(function(it,i){
+        return '<tr><td class="ctr">'+(i+1)+'</td><td>'+it.name+'</td><td class="num">'+fmt(it.qty)+'</td></tr>';
+      }).join('')+
+      '</tbody></table>'+
+      '<div style="font-size:10px;margin-top:8px;">หมายเหตุ: '+(_bill.note||'')+'</div>';
+  }
+  else if(f==8){
+    // ใบปะหน้าจัดส่ง
+    var cd=_bill.customer_data?JSON.parse(typeof _bill.customer_data==='string'?_bill.customer_data:JSON.stringify(_bill.customer_data)):null;
+    var cusName=_bill.customer_name||'';
+    var cusPhone=cd?cd.phone||'':'';
+    var cusAddr=cd?cd.address||'':'';
+    var logoUrl='';
+    if(_store.logo_url){
+      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
+    }
+    var storeAddr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
+    html+=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">'+
+        '<div style="border:1px solid #000;padding:10px;font-size:11px;">'+
+          '<div style="font-size:10px;color:#6b7280;margin-bottom:4px;">ผู้ส่ง&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;เบอร์โทร '+(_store.phone||'')+'</div>'+
+          (logoUrl?'<img src="'+logoUrl+'" style="width:50px;float:left;margin-right:8px;"/>':'')+
+          '<div style="font-weight:700;">'+(_store.store_name||'')+'</div>'+
+          '<div>'+storeAddr+'</div>'+
+        '</div>'+
+        '<div style="border:1px solid #000;padding:10px;font-size:11px;">'+
+          '<div style="font-size:10px;color:#6b7280;margin-bottom:4px;">ผู้รับ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;เบอร์โทร '+cusPhone+'</div>'+
+          '<div style="font-weight:700;">'+cusName+'</div>'+
+          '<div>'+cusAddr+'</div>'+
+          '<div style="margin-top:6px;font-size:10px;">หมายเหตุคำสั่งซื้อ: '+invNo+'</div>'+
+          '<div style="font-size:10px;">ชำระเงิน: '+((_bill.pay_method==='cod'||!_bill.pay_method)?'เก็บเงินปลายทาง':'ชำระแล้ว')+'</div>'+
+          (sched?'<div style="font-size:10px;">จัดส่งโดย: '+sched+'</div>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:13px;font-weight:700;margin-bottom:8px;">รายการที่จัดส่ง</div>'+
+      '<div style="font-size:10px;color:#6b7280;margin-bottom:6px;">พิมพ์โดย '+(_store.store_name||'')+' &nbsp;&nbsp; เวลาพิมพ์ '+new Date().toLocaleString('th')+'</div>'+
+      '<table class="doc-table"><thead><tr>'+
+        '<th style="width:35px;">ลำดับ</th><th style="width:70px;">รหัส</th><th>ชื่อสินค้า</th><th style="width:60px;">จำนวน</th>'+
+      '</tr></thead><tbody>'+
+      (_bill.items||[]).map(function(it,i){
+        return '<tr><td class="ctr">'+(i+1)+'</td><td>'+it.sku+'</td><td>'+it.name+'</td><td class="num">'+fmt(it.qty)+'</td></tr>';
+      }).join('')+
+      '</tbody></table>'+
+      '<div style="display:flex;justify-content:flex-end;margin-top:10px;">'+
+        '<div style="width:200px;font-size:11px;">'+
+          '<div class="doc-summary-row"><span>หมายเหตุการจัดส่ง:</span></div>'+
+          '<div style="font-size:10px;">'+(_bill.note||'-')+'</div>'+
+          '<div class="doc-summary-row" style="margin-top:8px;"><span>ยอดรวม</span><span>'+fmt(total)+'</span></div>'+
+          '<div class="doc-summary-row doc-summary-total"><span>รวมทั้งสิ้น</span><span>'+fmt(total)+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="margin-top:12px;font-size:10px;">'+
+        'ผู้รับสินค้า ...........................<br>วันที่........./........./........'+
+      '</div>';
+  }
+
+  page.innerHTML=html;
+}
+
+window.addEventListener('viiv_token_ready',function(e){
+  if(e.detail&&e.detail.token) TOKEN=e.detail.token;
+  // หา bid จาก URL hash หรือ param
+  var params=new URLSearchParams(location.search);
+  var bid=params.get('bid');
+  if(!bid){
+    var hash=location.hash.replace('#','');
+    if(hash.startsWith('bid=')) bid=hash.slice(4);
+  }
+  if(bid){
+    loadData(bid);
+  } else {
+    document.getElementById('printPage').innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">ไม่พบเลขบิล กรุณาส่ง ?bid=BILL_ID</div>';
+  }
+  // auto init ถ้า token พร้อม
+  if(TOKEN){
+    var params2=new URLSearchParams(location.search);
+    var bid2=params2.get('bid');
+    if(bid2) loadData(bid2);
+  }
+  document.getElementById('formSelector').addEventListener('change',function(){
+    _form=parseInt(this.value);
+    renderForm(_form);
+  });
+  document.getElementById('printBtn').addEventListener('click',function(){ window.print(); });
+  document.getElementById('closeBtn').addEventListener('click',function(){
+    if(window.parent&&window.parent.closePrintPopup) window.parent.closePrintPopup();
+    else window.close();
+  });
+});
+})();
+setTimeout(function(){
+  var tok=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(!tok){ console.warn('no token'); return; }
+  TOKEN=tok;
+  var bid=new URLSearchParams(location.search).get('bid');
+  if(!bid){ console.warn('no bid'); return; }
+  loadData(bid);
+  var fs=document.getElementById('formSelector');
+  if(fs) fs.addEventListener('change',function(){ _form=parseInt(this.value); renderForm(_form); });
+  var pb=document.getElementById('printBtn');
+  if(pb) pb.addEventListener('click',function(){ window.print(); });
+  var cb=document.getElementById('closeBtn');
+  if(cb) cb.addEventListener('click',function(){ window.close(); });
+},300);
+</script>
+</body>
