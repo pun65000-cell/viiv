@@ -1,0 +1,9 @@
+nohup: ignoring input
+INFO:     Started server process [789317]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:59300 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/upload-logo HTTP/1.1" 200 OK

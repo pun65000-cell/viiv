@@ -5,7 +5,7 @@ import jwt, os, uuid
 
 router = APIRouter(prefix="/api/pos/store", tags=["pos-store"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
-UPLOAD_DIR = "/home/viivadmin/viiv/frontend/uploads/store"
+UPLOAD_DIR = "/home/viivadmin/viiv/uploads/store"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def get_tenant(authorization=""):
