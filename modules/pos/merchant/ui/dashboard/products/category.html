@@ -9,7 +9,7 @@
     </div>
     <div style="display:flex;gap:8px;">
       <button id="catSortBtn" class="cat-btn-sort" onclick="catToggleSort()">จัดอันดับ</button>
-      <button class="cat-btn-new" onclick="catOpenForm(null)">+ สร้างหมวดหมู่</button>
+      <button class="cat-btn-new" onclick="catNew()">+ สร้างหมวดหมู่</button>
     </div>
   </div>
 
@@ -31,7 +31,10 @@
       </div>
       <div class="cat-field">
         <label>ไอคอน (emoji)</label>
-        <input id="cfIcon" type="text" placeholder="🏷" maxlength="4" class="cat-input" style="font-size:20px;text-align:center;width:60px;"/>
+        <div id="cfIconPicker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+          <button type="button" onclick="cfPickIcon(this)" data-icon="🍱" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍱</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍜" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍜</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍚" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍚</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍛" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍛</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍝" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍝</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍲" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍲</button><button type="button" onclick="cfPickIcon(this)" data-icon="🥗" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🥗</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍖" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍖</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍗" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍗</button><button type="button" onclick="cfPickIcon(this)" data-icon="🥩" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🥩</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍔" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍔</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍕" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍕</button><button type="button" onclick="cfPickIcon(this)" data-icon="🌮" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🌮</button><button type="button" onclick="cfPickIcon(this)" data-icon="🥪" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🥪</button><button type="button" onclick="cfPickIcon(this)" data-icon="🍩" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🍩</button><button type="button" onclick="cfPickIcon(this)" data-icon="🎂" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🎂</button><button type="button" onclick="cfPickIcon(this)" data-icon="☕" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">☕</button><button type="button" onclick="cfPickIcon(this)" data-icon="🧃" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🧃</button><button type="button" onclick="cfPickIcon(this)" data-icon="🥤" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🥤</button><button type="button" onclick="cfPickIcon(this)" data-icon="🛒" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🛒</button><button type="button" onclick="cfPickIcon(this)" data-icon="📦" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">📦</button><button type="button" onclick="cfPickIcon(this)" data-icon="🏷" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🏷</button><button type="button" onclick="cfPickIcon(this)" data-icon="⭐" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">⭐</button><button type="button" onclick="cfPickIcon(this)" data-icon="🔥" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🔥</button><button type="button" onclick="cfPickIcon(this)" data-icon="💎" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">💎</button><button type="button" onclick="cfPickIcon(this)" data-icon="🎁" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🎁</button><button type="button" onclick="cfPickIcon(this)" data-icon="🌟" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">🌟</button><button type="button" onclick="cfPickIcon(this)" data-icon="✅" style="font-size:20px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">✅</button>
+          <input type="hidden" id="cfIcon" value="">
+        </div>
       </div>
       <div class="cat-field">
         <label>สถานะ</label>
@@ -117,213 +120,128 @@
 'use strict';
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
-var categories=JSON.parse(localStorage.getItem('viiv_categories')||'[]');
-var editingId=null;
-var isVis=true;
-var isSorting=false;
-var dragSrcIdx=null;
-var scheduleCount=0;
+var _cats=[];
+var _editId=null;
+
+function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
+
+function loadCats(){
+  fetch(API+'/api/pos/categories/list',{headers:authH()})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    _cats=d||[];
+    // migrate localStorage ถ้ามี
+    var old=JSON.parse(localStorage.getItem('viiv_categories')||'[]');
+    if(old.length&&!_cats.length){
+      Promise.all(old.map(function(cat){
+        return fetch(API+'/api/pos/categories/create',{method:'POST',headers:authH(),
+          body:JSON.stringify({name:cat.name,color:cat.color||'#e8b93e',is_visible:cat.visible!==false})});
+      })).then(function(){
+        localStorage.removeItem('viiv_categories');
+        loadCats();
+      });
+      return;
+    }
+    renderList();
+  }).catch(function(){renderList();});
+}
 
 function renderList(){
   var el=document.getElementById('catList');
   var count=document.getElementById('catCount');
-  count.textContent='ทั้งหมด '+categories.length+' หมวดหมู่';
-  if(!categories.length){
+  if(!el||!count) return;
+  count.textContent='ทั้งหมด '+_cats.length+' หมวดหมู่';
+  if(!_cats.length){
     el.innerHTML='<div style="color:#aaa;padding:30px;text-align:center;">ยังไม่มีหมวดหมู่</div>';
     return;
   }
-  el.innerHTML=categories.map(function(c,i){
-    var hidden=c.visible===false;
-    var schedText=c.schedules&&c.schedules.length?'⏰ '+c.schedules.length+' ช่วงเวลา':'ตลอดเวลา';
-    return '<div class="cat-row'+(hidden?' hidden-cat':'')+'" data-id="'+c.id+'" '+(isSorting?'draggable="true"':'')+'>'+
-      '<div class="cat-drag-handle'+(isSorting?' enabled':'')+'">⠿</div>'+
-      '<div class="cat-icon-box">'+(c.icon||'🏷')+'</div>'+
-      '<div class="cat-info">'+
-        '<div class="cat-name">'+c.name+
-          '<span class="cat-vis-tag '+(hidden?'hide':'show')+'">'+(hidden?'ซ่อน':'แสดง')+'</span>'+
-        '</div>'+
-        '<div class="cat-desc">'+(c.desc||'')+'</div>'+
-        '<div class="cat-meta">#'+(i+1)+' · '+schedText+'</div>'+
-      '</div>'+
-      '<div class="cat-actions">'+
-        '<button class="cat-btn-vis" onclick="catQuickVis(\''+c.id+'\')">'+(hidden?'👁':'🙈')+'</button>'+
-        '<button class="cat-btn-edit" onclick="catOpenForm(\''+c.id+'\')">แก้ไข</button>'+
-      '</div>'+
-    '</div>';
+  el.innerHTML=_cats.map(function(cat){
+    return '<div style="background:#fff;border:1px solid #ede8d8;border-left:4px solid '+(cat.color||'#e8b93e')+';border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">'
+      +'<div style="display:flex;align-items:center;gap:10px;">'
+        +(cat.icon?'<span style="font-size:22px;">'+cat.icon+'</span>':'<span style="width:32px;height:32px;border-radius:50%;background:'+(cat.color||'#e8b93e')+';display:inline-block;"></span>')
+        +'<div>'
+          +'<div style="font-size:14px;font-weight:600;color:#1a1a1a;">'+cat.name+'</div>'
+          +'<div style="font-size:11px;color:#888;margin-top:2px;">'+(cat.description||'')+(cat.is_visible?' · แสดง':' · ซ่อน')+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;">'
+        +'<button data-id="'+cat.id+'" onclick="catEdit(this.dataset.id)" style="padding:5px 12px;font-size:12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-family:Sarabun,sans-serif;">แก้ไข</button>'
+        +'<button data-id="'+cat.id+'" onclick="catDelete(this.dataset.id)" style="padding:5px 12px;font-size:12px;border:1px solid #fca5a5;border-radius:6px;background:#fee2e2;color:#991b1b;cursor:pointer;font-family:Sarabun,sans-serif;">ลบ</button>'
+      +'</div>'
+    +'</div>';
   }).join('');
-  if(isSorting) bindDrag();
 }
 
-function bindDrag(){
-  var items=document.querySelectorAll('.cat-row');
-  items.forEach(function(item,idx){
-    item.addEventListener('dragstart',function(e){
-      dragSrcIdx=idx;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
-    });
-    item.addEventListener('dragend',function(){
-      item.classList.remove('dragging');
-      document.querySelectorAll('.cat-row').forEach(function(i){i.classList.remove('drag-over');});
-    });
-    item.addEventListener('dragover',function(e){
-      e.preventDefault();
-      document.querySelectorAll('.cat-row').forEach(function(i){i.classList.remove('drag-over');});
-      item.classList.add('drag-over');
-    });
-    item.addEventListener('drop',function(e){
-      e.preventDefault();
-      if(dragSrcIdx===null||dragSrcIdx===idx) return;
-      var moved=categories.splice(dragSrcIdx,1)[0];
-      categories.splice(idx,0,moved);
-      renderList();
-    });
-  });
-}
-
-window.catToggleSort=function(){
-  isSorting=!isSorting;
-  var btn=document.getElementById('catSortBtn');
-  if(isSorting){
-    btn.textContent='💾 บันทึกลำดับ';
-    btn.classList.add('active');
-  } else {
-    btn.textContent='จัดอันดับ';
-    btn.classList.remove('active');
-    localStorage.setItem('viiv_categories',JSON.stringify(categories));
-    showToast('✅ บันทึกลำดับแล้ว');
-  }
-  renderList();
-};
-
-window.catQuickVis=function(id){
-  var c=categories.find(function(x){return x.id===id;});
-  if(!c) return;
-  c.visible=c.visible===false?true:false;
-  localStorage.setItem('viiv_categories',JSON.stringify(categories));
-  renderList();
-};
-
-window.catOpenForm=function(id){
-  editingId=id;
-  var c=id?categories.find(function(x){return x.id===id;}):null;
-  isVis=c?c.visible!==false:true;
-  document.getElementById('catFormTitle').textContent=id?'แก้ไขหมวดหมู่':'สร้างหมวดหมู่ใหม่';
-  document.getElementById('cfName').value=c?c.name:'';
-  document.getElementById('cfDesc').value=c?c.desc||'':'';
-  document.getElementById('cfIcon').value=c?c.icon||'🏷':'🏷';
-  document.getElementById('cfDeleteBtn').style.display=id?'block':'none';
-  catUpdateVisBtn();
-  // schedules
-  scheduleCount=0;
-  var sc=document.getElementById('cfSchedules');
-  sc.innerHTML='';
-  if(c&&c.schedules){
-    c.schedules.forEach(function(s){ catAddSchedule(s); });
-  }
+window.catEdit=function(id){
+  var cat=_cats.find(function(x){return x.id===id;});
+  if(!cat) return;
+  _editId=id;
+  document.getElementById('cfName').value=cat.name||'';
+  document.getElementById('cfIcon').value=cat.icon||'';
+  window._cfVisible=cat.is_visible!==false;var vb=document.getElementById('cfVisBtn');if(vb){vb.classList.toggle('active',window._cfVisible);};
+  document.getElementById('catFormTitle').textContent='แก้ไขหมวดหมู่';
   document.getElementById('catFormPanel').style.display='block';
-  document.getElementById('catFormPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
-window.catCloseForm=function(){
+window.catNew=function(){
+  _editId=null;
+  document.getElementById('cfName').value='';
+  document.getElementById('cfIcon').value='';
+  window._cfVisible=true;var vb=document.getElementById('cfVisBtn');if(vb)vb.classList.add('active');;
+  document.getElementById('catFormTitle').textContent='เพิ่มหมวดหมู่ใหม่';
+  document.getElementById('catFormPanel').style.display='block';
+};
+
+window.catCancel=function(){
   document.getElementById('catFormPanel').style.display='none';
-  editingId=null;
-};
-
-window.catToggleVis=function(){
-  isVis=!isVis;
-  catUpdateVisBtn();
-};
-
-function catUpdateVisBtn(){
-  var btn=document.getElementById('cfVisBtn');
-  if(isVis){ btn.textContent='👁 แสดง'; btn.classList.add('active'); }
-  else { btn.textContent='🙈 ซ่อน'; btn.classList.remove('active'); }
-}
-
-window.catAddSchedule=function(data){
-  scheduleCount++;
-  var i=scheduleCount;
-  var el=document.getElementById('cfSchedules');
-  var d=data||{};
-  var div=document.createElement('div');
-  div.className='cat-schedule-row';
-  div.id='sched-'+i;
-  div.innerHTML=
-    '<select id="sd-day-'+i+'" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;outline:none;">'+
-      ['ทุกวัน','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'].map(function(d){
-        return '<option value="'+d+'"'+(data&&data.day===d?' selected':'')+'>'+d+'</option>';
-      }).join('')+
-    '</select>'+
-    '<span style="font-size:12px;color:#6b7280;">เวลา</span>'+
-    '<input type="time" id="sd-from-'+i+'" value="'+(d.from||'08:00')+'" style="width:90px;">'+
-    '<span style="font-size:12px;color:#6b7280;">ถึง</span>'+
-    '<input type="time" id="sd-to-'+i+'" value="'+(d.to||'22:00')+'" style="width:90px;">'+
-    '<button onclick="document.getElementById(\'sched-'+i+'\').remove()" '+
-    'style="padding:3px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:5px;font-size:11px;cursor:pointer;">ลบ</button>';
-  el.appendChild(div);
+  _editId=null;
 };
 
 window.catSave=function(){
   var name=document.getElementById('cfName').value.trim();
-  if(!name){alert('กรุณาระบุชื่อหมวดหมู่');return;}
-  // collect schedules
-  var schedules=[];
-  document.querySelectorAll('.cat-schedule-row').forEach(function(row){
-    var id=row.id.replace('sched-','');
-    var days=[];
-    DAYS.forEach(function(day){
-      var btn=document.getElementById('sd-'+day.key+'-'+id);
-      if(btn&&(btn.style.background==='rgb(232, 185, 62)'||btn.style.background==='#e8b93e')){
-        days.push(day.key);
-      }
-    });
-    if(!days.length) days=['mon','tue','wed','thu','fri','sat','sun'];
-    schedules.push({
-      days: days,
-      from: document.getElementById('sd-from-'+id).value,
-      to: document.getElementById('sd-to-'+id).value,
-    });
-  });
-  var cat={
-    id: editingId||'CAT_'+Date.now(),
-    name: name,
-    desc: document.getElementById('cfDesc').value,
-    icon: document.getElementById('cfIcon').value||'🏷',
-    visible: isVis,
-    schedules: schedules,
-    updated_at: new Date().toISOString(),
+  if(!name){alert('กรุณากรอกชื่อหมวดหมู่');return;}
+  var payload={
+    name:name,
+    icon:document.getElementById('cfIcon').value||'',
+    is_visible:window._cfVisible!==false
   };
-  if(editingId){
-    var idx=categories.findIndex(function(x){return x.id===editingId;});
-    if(idx>=0) categories[idx]=cat;
-  } else {
-    cat.created_at=new Date().toISOString();
-    categories.push(cat);
-  }
-  localStorage.setItem('viiv_categories',JSON.stringify(categories));
-  catCloseForm();
-  renderList();
-  showToast('✅ บันทึกแล้ว');
+  var url=_editId?API+'/api/pos/categories/update/'+_editId:API+'/api/pos/categories/create';
+  var method=_editId?'PUT':'POST';
+  fetch(url,{method:method,headers:authH(),body:JSON.stringify(payload)})
+  .then(function(r){return r.json();})
+  .then(function(){
+    document.getElementById('catFormPanel').style.display='none';
+    _editId=null;
+    loadCats();
+  }).catch(function(){alert('บันทึกไม่สำเร็จ');});
 };
 
-window.catDelete=function(){
-  if(!confirm('ลบหมวดหมู่นี้?\nสินค้าในหมวดนี้จะไม่ถูกลบ แต่จะไม่มีหมวดหมู่')) return;
-  categories=categories.filter(function(x){return x.id!==editingId;});
-  localStorage.setItem('viiv_categories',JSON.stringify(categories));
-  catCloseForm();
-  renderList();
+window.catDelete=function(id){
+  if(!confirm('ลบหมวดหมู่นี้?')) return;
+  fetch(API+'/api/pos/categories/delete/'+id,{method:'DELETE',headers:authH()})
+  .then(function(){loadCats();});
 };
 
-function showToast(msg){
-  var t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:20px;right:20px;background:#e8b93e;color:#1a1200;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15);';
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(function(){t.remove();},2500);
-}
-
-renderList();
+window.catToggleSort=function(){alert('ฟีเจอร์จัดอันดับอยู่ระหว่างพัฒนา');};
+window.catToggleVis=function(){
+  window._cfVisible=!window._cfVisible;
+  var btn=document.getElementById('cfVisBtn');
+  if(btn){btn.classList.toggle('active',window._cfVisible);btn.textContent=window._cfVisible?'👁 แสดง':'🙈 ซ่อน';}
+};
+window._cfVisible=true;
+function _tok(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;loadCats();}
+window.removeEventListener('viiv_token_ready',window._tok_cat);
+window._tok_cat=_tok;
+window.addEventListener('viiv_token_ready',_tok);
+var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+if(_t){_tok({detail:{token:_t}});}
 })();
+window.cfPickIcon=function(btn){
+  document.querySelectorAll('#cfIconPicker button[data-icon]').forEach(function(b){
+    b.style.border='1px solid #d1d5db';b.style.background='#fff';
+  });
+  btn.style.border='2px solid #E8B93E';btn.style.background='#fef9c3';
+  document.getElementById('cfIcon').value=btn.dataset.icon;
+};
 </script>
 </body>

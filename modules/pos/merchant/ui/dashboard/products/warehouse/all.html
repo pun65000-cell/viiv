@@ -67,10 +67,14 @@
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var allProducts=[];
+var allCategories=[];
 var editingId=null;
 var _waTrackStock=true;
 
 function loadProducts(){
+  // โหลด categories จาก API พร้อมกัน
+  fetch(API+'/api/pos/categories/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();}).then(function(d){allCategories=d||[];}).catch(function(){});
   fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
   .then(function(r){return r.json();})
   .then(function(data){
@@ -304,12 +308,23 @@ window.waOpenPopup=function(id){
   catSel.style.cssText='padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;background:#fff;width:100%;box-sizing:border-box;';
   var emptyOpt=document.createElement('option');emptyOpt.value='';emptyOpt.textContent='ไม่มีหมวดหมู่';
   catSel.appendChild(emptyOpt);
-  cats.forEach(function(ct){
-    var opt=document.createElement('option');opt.value=ct;opt.textContent=ct;
-    if(p.category===ct)opt.selected=true;
-    catSel.appendChild(opt);
-  });
+  // ดึง categories ใหม่ทุกครั้งที่เปิดฟอร์ม
+  var _pCat=p.category||'';
   catDiv.appendChild(catLbl);catDiv.appendChild(catSel);grid.appendChild(catDiv);
+  fetch(API+'/api/pos/categories/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(cats){
+    allCategories=cats||[];
+    catSel.innerHTML='';
+    var emp=document.createElement('option');emp.value='';emp.textContent='ไม่มีหมวดหมู่';catSel.appendChild(emp);
+    cats.forEach(function(cat){
+      var opt=document.createElement('option');
+      opt.value=cat.name;
+      opt.textContent=(cat.icon?cat.icon+' ':'')+cat.name;
+      if(_pCat===cat.name)opt.selected=true;
+      catSel.appendChild(opt);
+    });
+  });
 
   // ราคา fields
   grid.appendChild(waField('ราคาขาย (P1) *','wa-price','number',p.price||0));

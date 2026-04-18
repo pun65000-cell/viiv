@@ -200,11 +200,11 @@ var uploadedImageUrl = '';
 // โหลด categories
 async function cpLoadCats(){
   try{
-    var res = await fetch(API_BASE+'/api/pos/products/categories',{headers:{'Authorization':'Bearer '+TOKEN}});
+    var res = await fetch(API_BASE+'/api/pos/categories/list',{headers:{'Authorization':'Bearer '+TOKEN}});
     if(!res.ok) return;
     var cats = await res.json();
     var dl = document.getElementById('cpCatList');
-    dl.innerHTML = cats.map(function(c){ return '<option value="'+c+'">'; }).join('');
+    dl.innerHTML = cats.map(function(c){ return '<option value="'+(c.icon?c.icon+' ':'')+c.name+'">'; }).join('');
   }catch(e){}
 }
 cpLoadCats();
