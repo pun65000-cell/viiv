@@ -5,7 +5,7 @@ from app.core.id_generator import generate_id
 import jwt, os, base64, uuid
 
 router = APIRouter(prefix="/api/pos/products", tags=["pos-products"])
-JWT_SECRET = os.getenv("JWT_SECRET", "viiv_super_secret_jwt_key_2026_prod")
+JWT_SECRET = os.getenv("JWT_SECRET", "")
 UPLOAD_DIR = "/home/viivadmin/viiv/frontend/uploads/products"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 

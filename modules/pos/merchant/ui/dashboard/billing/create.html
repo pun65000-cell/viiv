@@ -155,6 +155,35 @@ function reloadMembers(){
   .then(function(r){return r.json();})
   .then(function(d){allMembers=d.members||[];});
 }
+// autosave draft ทุก 30 วินาที
+var _draftId=null;
+var _autosaveTimer=null;
+function autosaveDraft(){
+  if(!TOKEN||!billItems.length) return;
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer=setTimeout(function(){
+    var payload={
+      draft_id:_draftId||undefined,
+      items:billItems,
+      customer:(_selectedMember&&_selectedMember.name)||document.getElementById('billCustomer').value||'',
+      customer_code:(_selectedMember&&_selectedMember.code)||'',
+      customer_data:_selectedMember||null,
+      doc_type:(document.getElementById('billDocType')||{}).value||'receipt',
+      discount:parseFloat((document.getElementById('billDiscount')||{}).value)||0,
+      discount_type:(document.getElementById('billDiscountType')||{}).value||'amount',
+      vat:parseInt((document.getElementById('billVat')||{}).value)||0,
+      pay_method:(document.getElementById('billPayMethod')||{}).value||'cash',
+      note:(document.getElementById('billNote')||{}).value||'',
+      scheduled_at:(document.getElementById('billScheduledAt')||{}).value||null,
+    };
+    fetch(API+'/api/pos/bills/save-draft',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body:JSON.stringify(payload)
+    }).then(function(r){return r.json();})
+    .then(function(d){if(d.draft_id)_draftId=d.draft_id;});
+  },30000);
+}
 function loadData(){
   fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
   .then(function(r){return r.json();})
@@ -199,7 +228,7 @@ function addProduct(id){
   if(qtyEl) qtyEl.value=1;
   renderItems();
 }
-function renderItems(){
+function renderItems(){autosaveDraft();
   var tbody=document.getElementById('billItems');
   var empty=document.getElementById('billEmpty');
   if(!billItems.length){if(tbody)tbody.innerHTML='';if(empty)empty.style.display='block';calc();return;}

@@ -164,6 +164,8 @@ function render(bills){
   window.removeEventListener('viiv_token_ready',window._tok_receipt);
   window._tok_receipt=_tok_receipt;
   window.addEventListener('viiv_token_ready',_tok_receipt);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_receipt({detail:{token:_t}}); }
 })();
 if(TOKEN) loadBills(); else rcFilter();
 })();

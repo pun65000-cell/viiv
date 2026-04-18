@@ -6,7 +6,7 @@ import jwt, os, json
 from datetime import datetime
 
 router = APIRouter(prefix="/api/pos/members", tags=["pos-members"])
-JWT_SECRET = os.getenv("JWT_SECRET", "viiv_super_secret_jwt_key_2026_prod")
+JWT_SECRET = os.getenv("JWT_SECRET", "")
 
 def get_tenant_user(authorization=""):
     try:

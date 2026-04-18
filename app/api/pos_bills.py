@@ -6,7 +6,7 @@ import jwt, os, json
 from datetime import datetime
 
 router = APIRouter(prefix="/api/pos/bills", tags=["pos-bills"])
-JWT_SECRET = os.getenv("JWT_SECRET", "viiv_super_secret_jwt_key_2026_prod")
+JWT_SECRET = os.getenv("JWT_SECRET", "")
 
 def get_tenant_user(authorization=""):
     try:
@@ -81,6 +81,48 @@ def create_bill(payload: dict, authorization: str = Header("")):
                         {"id":generate_id("slog"),"tid":tid,"pid":item["id"],"sku":item["sku"],"name":item["name"],"qb":qb,"qc":-item["qty"],"qa":qa,"bid":bid,"bno":bill_no,"uid":uid})
     return {"id":bid,"bill_no":bill_no,"inv_no":inv_no,"total":total,"status":status}
 
+
+@router.post("/save-draft")
+def save_draft(payload: dict, authorization: str = Header("")):
+    tid, uid = get_tenant_user(authorization)
+    items = payload.get("items", [])
+    bid = payload.get("draft_id") or generate_id("bill")
+    with engine.begin() as conn:
+        existing = conn.execute(text("SELECT id FROM bills WHERE id=:id AND tenant_id=:tid AND status='draft'"),{"id":bid,"tid":tid}).fetchone()
+        sub = sum(float(i.get("qty",1))*float(i.get("price",0)) for i in items)
+        dv = float(payload.get("discount",0))
+        dt = payload.get("discount_type","amount")
+        disc = sub*dv/100 if dt=="percent" else dv
+        after = max(0,sub-disc)
+        vr = int(payload.get("vat",0))
+        va = after*vr/100
+        total = after+va
+        sched = payload.get("scheduled_at")
+        if existing:
+            conn.execute(text("""UPDATE bills SET items=:items,customer_name=:cn,customer_code=:cc,
+                customer_data=:cd,subtotal=:sub,discount=:disc,discount_type=:dtype,
+                vat_rate=:vr,vat_amount=:va,total=:total,pay_method=:pm,note=:note,
+                scheduled_at=:sched,updated_at=NOW() WHERE id=:id AND tenant_id=:tid"""),
+                {"id":bid,"tid":tid,"items":json.dumps(items),
+                 "cn":payload.get("customer",""),"cc":payload.get("customer_code",""),
+                 "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
+                 "sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"total":total,
+                 "pm":payload.get("pay_method","cash"),"note":payload.get("note",""),
+                 "sched":sched})
+        else:
+            bill_no = f"DRAFT-{bid[-8:].upper()}"
+            conn.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,
+                customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,
+                vat_rate,vat_amount,total,pay_method,paid_amount,note,scheduled_at,created_by,created_at,updated_at)
+                VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:total,:pm,0,:note,:sched,:uid,NOW(),NOW())"""),
+                {"id":bid,"tid":tid,"bno":bill_no,"ino":"","dt":payload.get("doc_type","receipt"),
+                 "st":"draft","src":"billing","cn":payload.get("customer",""),
+                 "cc":payload.get("customer_code",""),
+                 "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
+                 "items":json.dumps(items),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"total":total,
+                 "pm":payload.get("pay_method","cash"),"note":payload.get("note",""),"sched":sched,"uid":uid})
+    return {"ok":True,"draft_id":bid}
+
 @router.get("/list")
 def list_bills(authorization: str = Header(""), status: str = "", doc_type: str = "", q: str = "", source: str = ""):
     tid, _ = get_tenant_user(authorization)
@@ -91,14 +133,14 @@ def list_bills(authorization: str = Header(""), status: str = "", doc_type: str 
     if q: filters += " AND (bill_no ILIKE :q OR customer_name ILIKE :q OR customer_code ILIKE :q)"; params["q"]=f"%{q}%"
     if source: filters += " AND source=:source"; params["source"]=source
     with engine.connect() as c:
-        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,ship_report,activity_log,customer_name,customer_code,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
+        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,ship_report,activity_log,customer_name,customer_code,customer_data,items,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
     return [dict(r._mapping) for r in rows]
 
 VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted'}
 VALID_SHIPPING = {
     'pending','scheduled','packing_in','packing_out',
     'shipped_no_recipient','shipped_cod','shipped_collect',
-    'chargeback','bill_check','overdue',
+    'chargeback','bill_check','overdue','delivery',
     'received_payment','pending_payment','cod'
 }
 

@@ -323,6 +323,8 @@ window.mlImportLocal=function(){
   window.removeEventListener('viiv_token_ready',window._tok_list);
   window._tok_list=_tok_list;
   window.addEventListener('viiv_token_ready',_tok_list);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_list({detail:{token:_t}}); }
 })();
 
 if(localStorage.getItem('viiv_members')){

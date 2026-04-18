@@ -113,6 +113,8 @@ function loadBills(){
         activity_log:b.activity_log||[],
         source:b.source||'billing',
         customer:b.customer_name||b.customer||'',
+        customer_code:b.customer_code||'',
+        customer_data:typeof b.customer_data==='string'?JSON.parse(b.customer_data||'{}'):b.customer_data||{},
         items:typeof b.items==='string'?JSON.parse(b.items):b.items||[],
         total:parseFloat(b.total)||0,
         pay_method:b.pay_method||'cash',
@@ -239,7 +241,7 @@ function render(bills){
     }
 
     var info=document.createElement('span');
-    info.textContent=(b.customer||'ไม่ระบุลูกค้า')+' · '+date+' · '+(b.items||[]).length+' รายการ · '+(payLabel[b.pay_method]||b.pay_method||'—');
+    info.textContent=(b.customer||'ไม่ระบุลูกค้า')+(b.customer_code?' ['+b.customer_code+']':'')+' · '+date+' · '+(Array.isArray(b.items)?b.items.length:0)+' รายการ · '+(payLabel[b.pay_method]||b.pay_method||'—');
     sub.appendChild(info);
 
     row.appendChild(top); row.appendChild(sub);
@@ -252,7 +254,11 @@ function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:
 var payLabel2={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
 
 function waPrintBill(b){
-  var rows=(b.items||[]).map(function(i){
+  var _items=b.items||[];
+  if(typeof _items==='string'){try{_items=JSON.parse(_items);}catch(e){_items=[];}}
+  var _cd=b.customer_data||{};
+  if(typeof _cd==='string'){try{_cd=JSON.parse(_cd);}catch(e){_cd={};}}
+  var rows=_items.map(function(i){
     return '<tr><td style="padding:4px 8px;border-bottom:1px solid #f0ede8;">'+i.sku+'</td>'+
       '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;">'+i.name+'</td>'+
       '<td style="padding:4px 8px;border-bottom:1px solid #f0ede8;text-align:center;">'+i.qty+'</td>'+
@@ -272,14 +278,18 @@ function waPrintBill(b){
 
 function showBillDetail(b){
   var isDraft=b.status==='draft';
-  var rows=(b.items||[]).map(function(i){
+  var _items=b.items||[];
+  if(typeof _items==='string'){try{_items=JSON.parse(_items);}catch(e){_items=[];}}
+  var _cd=b.customer_data||{};
+  if(typeof _cd==='string'){try{_cd=JSON.parse(_cd);}catch(e){_cd={};}}
+  var rows=_items.map(function(i){
     return '<tr><td style="padding:5px 8px;font-size:12px;">'+i.sku+'</td><td style="padding:5px 8px;font-size:12px;">'+i.name+'</td>'+
       '<td style="padding:5px 8px;font-size:12px;text-align:center;">'+i.qty+'</td>'+
       '<td style="padding:5px 8px;font-size:12px;text-align:right;">'+fmt(i.price)+'</td>'+
       '<td style="padding:5px 8px;font-size:12px;text-align:right;font-weight:600;">'+fmt(i.qty*i.price)+'</td></tr>';
   }).join('');
   var box=document.createElement('div');
-  box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(540px,95vw);position:relative;margin:auto;';
+  box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(680px,96vw);max-height:90vh;overflow-y:auto;position:relative;margin:auto;';
   box.innerHTML=
     '<button id="bsCloseBtn" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">✕</button>'+
     '<div style="font-size:14px;font-weight:700;margin-bottom:2px;">'+(typeMap[b.doc_type]||b.doc_type)+'</div>'+
@@ -289,12 +299,13 @@ function showBillDetail(b){
       '<th style="padding:5px 8px;text-align:center;font-size:11px;">จำนวน</th>'+
       '<th style="padding:5px 8px;text-align:right;font-size:11px;">ราคา/หน่วย</th>'+
       '<th style="padding:5px 8px;text-align:right;font-size:11px;">รวม</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<div style="display:flex;flex-direction:column;gap:4px;max-width:280px;margin-left:auto;font-size:12px;">'+
-      '<div style="display:flex;justify-content:space-between;"><span>ลูกค้า</span><span style="font-weight:600;">'+(b.customer||'ไม่ระบุ')+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid #f0ede8;font-size:14px;font-weight:700;"><span>ยอดสุทธิ</span><span style="color:#e8b93e;">'+fmt(b.total)+'</span></div>'+
-      '<div style="display:flex;justify-content:space-between;"><span>วิธีชำระ</span><span>'+(payLabel[b.pay_method]||b.pay_method||'—')+'</span></div>'+
-      (b.note?'<div style="color:#6b7280;margin-top:4px;">หมายเหตุ: '+b.note+'</div>':'')+
-    '</div>'+
+    '<div style="display:flex;flex-direction:column;gap:4px;font-size:12px;margin-bottom:10px;">'+ 
+      '<div style="display:flex;justify-content:space-between;"><span>ลูกค้า</span><span style="font-weight:600;">'+(b.customer||'ไม่ระบุ')+'</span></div>'+ 
+      (b.customer_code?'<div style="display:flex;justify-content:space-between;"><span>รหัสลูกค้า</span><span style="color:#e8b93e;font-weight:600;">'+b.customer_code+'</span></div>':'')+  
+      (_cd.phone?'<div style="display:flex;justify-content:space-between;"><span>เบอร์โทร</span><span>'+_cd.phone+'</span></div>':'<div style="display:flex;justify-content:space-between;"><span>เบอร์โทร</span><span style="color:#ccc;">—</span></div>')+  
+      '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid #f0ede8;font-size:14px;font-weight:700;"><span>ยอดสุทธิ</span><span style="color:#e8b93e;">'+fmt(b.total)+'</span></div>'+ 
+      '<div style="display:flex;justify-content:space-between;"><span>วิธีชำระ</span><span>'+(payLabel[b.pay_method]||b.pay_method||'—')+'</span></div>'+ 
+      (b.note?'<div style="color:#6b7280;margin-top:4px;">หมายเหตุ: '+b.note+'</div>':'')+  
     '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'+
       (isDraft?'<button id="bsReopenBtn" style="padding:7px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">เปิดแก้บิลต่อ</button>':'')+
       '<button id="bsPrintBtn" style="padding:7px 14px;background:#1f2937;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">พิมพ์ใบเสร็จ</button>'+
@@ -631,6 +642,8 @@ async function doSave(){
   window.removeEventListener('viiv_token_ready',window._tok_search);
   window._tok_search=_tok_search;
   window.addEventListener('viiv_token_ready',_tok_search);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_search({detail:{token:_t}}); }
 })();
 if(TOKEN) loadBills(); else bsFilter();
 })();

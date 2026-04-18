@@ -114,6 +114,8 @@ window.ssFilter=function(){
   window.removeEventListener('viiv_token_ready',window._tok_search);
   window._tok_search=_tok_search;
   window.addEventListener('viiv_token_ready',_tok_search);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_search({detail:{token:_t}}); }
 })();
 if(TOKEN)load();
 })();

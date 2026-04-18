@@ -126,7 +126,7 @@ function customerBlock(){
   var created=_bill.created_at?new Date(_bill.created_at).toLocaleDateString('th-TH'):'-';
   var staff=_bill.created_by||'-';
   var credit=cd?cd.credit||'-':'-';
-  var branch=cd?cd.branch||cd.code||'-':'-';
+  var branch=_store&&_store.branch_code?_store.branch_code:cd?cd.branch||'-':'-';
   var dueDate=_bill.scheduled_at?new Date(_bill.scheduled_at).toLocaleDateString('th-TH'):'-';
 
   function row(label,val,req){

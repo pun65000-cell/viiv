@@ -7,7 +7,7 @@ import json, jwt, os
 
 router = APIRouter(prefix="/api/staff", tags=["tenant-staff"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-JWT_SECRET = os.getenv("JWT_SECRET", "viiv_super_secret_jwt_key_2026_prod")
+JWT_SECRET = os.getenv("JWT_SECRET", "")
 
 def get_tenant_id(authorization: str = Header(...)):
     try:

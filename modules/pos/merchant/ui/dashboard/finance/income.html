@@ -105,6 +105,8 @@
   window.removeEventListener('viiv_token_ready',window._tok_income);
   window._tok_income=_tok_income;
   window.addEventListener('viiv_token_ready',_tok_income);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_income({detail:{token:_t}}); }
 })();
   function tl(t){return t==='cash'?'เงินสด':t==='transfer'?'โอน':'เช็ค';}
   function badge(t){return '<span class="bdg '+t+'">'+tl(t)+'</span>';}

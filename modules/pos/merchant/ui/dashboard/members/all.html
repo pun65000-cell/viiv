@@ -23,6 +23,8 @@ window.VIIV_TOKEN = window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var BASE = 'members/';
 
 window.memNav = function(page, btn){
+  var c=document.getElementById('memContent');
+  if(!c) return; // guard: element ไม่มีใน DOM แล้ว
   document.querySelectorAll('.mem-tab').forEach(function(b){
     b.classList.remove('active');
     b.style.background='#e8e8e8'; b.style.color='#555';

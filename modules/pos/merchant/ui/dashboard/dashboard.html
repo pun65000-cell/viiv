@@ -267,9 +267,9 @@ const PAGES = {
     { label:'จัดการสินค้า',file:'products/manage.html' },
   ]},
   orders:    { title:'คำสั่งซื้อ', tabs:[
-    { label:'ทั้งหมด',    file:'orders/all.html' },
-    { label:'รอดำเนินการ',file:'orders/pending.html' },
-    { label:'สำเร็จ',     file:'orders/done.html' },
+    { label:'ติดตามคำสั่งซื้อ',  file:'orders/all.html' },
+    { label:'ติดตามการชำระเงิน',file:'orders/payment.html' },
+    { label:'ติดตามการจัดส่ง',  file:'orders/shipping.html' },
   ]},
   members:   { title:'สมาชิกร้านค้า', tabs:[
     { label:'สมาชิกทั้งหมด', file:'members/all.html' },
@@ -299,10 +299,7 @@ const PAGES = {
     { label:'รายรับ',  file:'finance/income.html'   },
     { label:'รายจ่าย', file:'finance/expense.html'  },
   ]},
-  settings:  { title:'จัดการร้านค้า', tabs:[
-    { label:'ข้อมูลร้านค้า', file:'settings/store.html' },
-    { label:'การชำระเงิน',   file:'settings/payment.html' },
-  ]},
+  settings:  { title:'จัดการร้านค้า', tabs:[{ label:'จัดการร้านค้า', file:'settings/store.html' }]},
 };
 
 function renderDashboard(el) {
@@ -332,10 +329,24 @@ function loadSubPage(el, file) {
   fetch(file + '?v=' + Date.now())
     .then(function(r){ return r.text(); })
     .then(function(html){
-      var tmp = document.createElement('div');
-      tmp.innerHTML = html;
-      var body = tmp.querySelector('body');
+      // parse HTML ด้วย DOMParser เพื่อรักษา script tags
+      // cleanup named token handlers จากหน้าก่อน ก่อน inject HTML ใหม่
+      Object.keys(window).forEach(function(k){
+        if((k.startsWith('_tok_')||k.endsWith('TokenHandler'))&&typeof window[k]==='function'){
+          window.removeEventListener('viiv_token_ready',window[k]);
+          try{window[k]=undefined;}catch(e){}
+        }
+      });
+      var _parser = new DOMParser();
+      var _doc = _parser.parseFromString(html, 'text/html');
+      var _scripts_raw = Array.from(_doc.querySelectorAll('script'));
+      var body = _doc.querySelector('body');
       el.innerHTML = body ? body.innerHTML : html;
+      // inject <style> และ <link> จาก <head> ด้วย
+      _doc.querySelectorAll('head style, head link[rel="stylesheet"]').forEach(function(node){
+        var clone = node.cloneNode(true);
+        document.head.appendChild(clone);
+      });
       // inject VIIV_TOKEN ให้ sub-page script เห็นก่อนรัน
       window.VIIV_TOKEN = localStorage.getItem('viiv_token') || '';
       window._tokenReadyFired = false;
@@ -354,7 +365,7 @@ function loadSubPage(el, file) {
           }
         }).catch(function(){});
       }
-      var _scripts = Array.from(el.querySelectorAll('script'));
+      var _scripts = _scripts_raw;
       var _total = _scripts.length;
       var _done = 0;
       function _onScriptDone(){
@@ -369,7 +380,7 @@ function loadSubPage(el, file) {
               _tkKeys.forEach(function(k){
                 if(typeof window[k]==='function'){
                   window.removeEventListener('viiv_token_ready',window[k]);
-                  delete window[k];
+                  try{ delete window[k]; } catch(e){ window[k]=undefined; }
                 }
               });
               window.dispatchEvent(new CustomEvent('viiv_token_ready',{
@@ -483,6 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.goViiv   = goViiv;
 window.doLogout = doLogout;
+window.navigate  = navigate;
 </script>
 
 </body>

@@ -286,6 +286,8 @@ function renderHistory(){
   window.removeEventListener('viiv_token_ready',window._tok_receive);
   window._tok_receive=_tok_receive;
   window.addEventListener('viiv_token_ready',_tok_receive);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_receive({detail:{token:_t}}); }
 })();
 setDefaults();
 if(TOKEN) loadProducts();

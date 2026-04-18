@@ -77,16 +77,7 @@ app.add_middleware(
     secret_key=SESSION_SECRET
 )
 
-class DevAuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        request.state.user_id = "usr_" + str(uuid.uuid4())
-        request.state.tenant_id = "ten_" + str(uuid.uuid4())
-        request.state.event_id = "evn_" + str(uuid.uuid4())
-        request.state.role = "owner"
-        return await call_next(request)
-
-
-app.add_middleware(DevAuthMiddleware)
+# DevAuthMiddleware removed — was injecting fake auth on every request
 
 @app.middleware("http")
 async def inject_tenant(request: Request, call_next):
@@ -124,6 +115,28 @@ def ensure_default_shop():
             "slug": "shop",
             "domain": "shop.viiv.me",
         }
+
+
+from collections import defaultdict
+import time as _time
+
+_rate_store = defaultdict(list)
+_RATE_LIMIT = 100  # requests
+_RATE_WINDOW = 60  # seconds
+
+@app.middleware("http")
+async def rate_limiter(request: Request, call_next):
+    # ข้าม static files
+    if request.url.path.startswith('/merchant') or request.url.path.startswith('/uploads'):
+        return await call_next(request)
+    ip = request.client.host if request.client else 'unknown'
+    now = _time.time()
+    _rate_store[ip] = [t for t in _rate_store[ip] if now-t < _RATE_WINDOW]
+    if len(_rate_store[ip]) >= _RATE_LIMIT:
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"detail":"Too many requests"},status_code=429)
+    _rate_store[ip].append(now)
+    return await call_next(request)
 
 @app.get("/health")
 def health():

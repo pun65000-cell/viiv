@@ -48,30 +48,113 @@
 .od-tracking{font-size:11px;color:#0369a1;font-weight:600;margin-top:4px;background:#e0f2fe;padding:2px 8px;border-radius:12px;display:inline-block}
 </style>
 <div class="od-wrap">
-  <div class="od-summary" id="od-summary"></div>
-  <div class="od-toolbar">
-    <input class="od-input" id="od-q" placeholder="เลขบิล / ลูกค้า..." oninput="odFilter()">
-    <select class="od-sel" id="od-fin" onchange="odFilter()">
-      <option value="">สถานะจ่ายทั้งหมด</option>
-      <option value="paid">จ่ายแล้ว</option>
-      <option value="pending">รอชำระ</option>
-      <option value="credit">เครดิต</option>
-      <option value="partial">บางส่วน</option>
-    </select>
-    <select class="od-sel" id="od-ship" onchange="odFilter()">
-      <option value="">สถานะจัดส่งทั้งหมด</option>
-      <option value="scheduled">กำหนดส่ง</option>
-      <option value="shipped_no_recipient">ส่งไม่มีผู้รับ</option>
-      <option value="shipped_cod">ส่ง+วางบิล</option>
-      <option value="shipped_collect">ส่ง+เก็บเงิน</option>
-      <option value="bill_check">วางบิลเช็ค</option>
-      <option value="chargeback">ชะลอจ่าย</option>
-      <option value="received_payment">รับชำระแล้ว</option>
-      <option value="debt">หนี้ค้าง</option>
-    </select>
-    <span class="od-count" id="od-count"></span>
+  <!-- subtabs -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="od-btn-gold" id="sh-sub-track" onclick="shSubTab('track',this)" style="font-size:12px;padding:5px 12px">ติดตามจัดส่ง</button>
+    <button style="padding:5px 12px;font-size:12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-family:'Sarabun',sans-serif" id="sh-sub-claim" onclick="shSubTab('claim',this)">สินค้าเคลม/ไม่รับ</button>
+    <button style="padding:5px 12px;font-size:12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-family:'Sarabun',sans-serif" id="sh-sub-black" onclick="shSubTab('black',this)">แบล็กลิสต์</button>
   </div>
-  <div class="od-list" id="od-list"></div>
+
+  <!-- subtab: track -->
+  <div id="sh-panel-track">
+    <div class="od-toolbar">
+      <input class="od-input" id="sh-q" placeholder="เลขบิล / ลูกค้า..." oninput="shFilter()">
+      <select class="od-sel" id="sh-status" onchange="shFilter()">
+        <option value="">สถานะจัดส่งทั้งหมด</option>
+        <option value="scheduled">กำหนดส่ง</option>
+        <option value="shipped_no_recipient">ส่งไม่มีผู้รับ</option>
+        <option value="shipped_cod">ส่ง+วางบิล</option>
+        <option value="shipped_collect">ส่ง+เก็บเงิน</option>
+        <option value="bill_check">วางบิลเช็ค</option>
+        <option value="chargeback">ชะลอจ่าย</option>
+      <option value="delivery">จัดส่ง Delivery</option>
+        <option value="received_payment">รับชำระแล้ว</option>
+        <option value="debt">หนี้ค้าง</option>
+      </select>
+      <button class="od-btn-gold" style="font-size:12px;padding:7px 12px" onclick="shOpenTracking()">เช็คสถานะพัสดุ</button>
+      <span class="od-count" id="sh-count"></span>
+    </div>
+    <div class="od-list" id="sh-list"></div>
+  </div>
+
+  <!-- subtab: claim -->
+  <div id="sh-panel-claim" style="display:none">
+    <div class="od-toolbar">
+      <input class="od-input" id="cl-q" placeholder="เลขบิล / ลูกค้า..." oninput="clFilter()">
+    </div>
+    <div class="od-list" id="cl-list"></div>
+  </div>
+
+  <!-- subtab: blacklist -->
+  <div id="sh-panel-black" style="display:none">
+    <div class="od-toolbar">
+      <input class="od-input" id="bl-q" placeholder="ค้นหาสมาชิก..." oninput="blFilter()">
+      <button class="od-btn-gold" style="font-size:12px;padding:7px 12px" onclick="blAdd()">+ เพิ่มแบล็กลิสต์</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:8px 12px">
+        <div style="font-size:11px;color:#713f12;margin-bottom:2px">&#9888; เฝ้าระวัง</div>
+        <div id="bl-watch-list" style="font-size:12px;color:#374151"></div>
+      </div>
+      <div style="flex:1;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px">
+        <div style="font-size:11px;color:#991b1b;margin-bottom:2px">&#128683; ห้ามขายเด็ดขาด</div>
+        <div id="bl-block-list" style="font-size:12px;color:#374151"></div>
+      </div>
+    </div>
+    <div class="od-list" id="bl-list"></div>
+  </div>
+</div>
+
+<!-- tracking popup -->
+<div id="sh-track-popup" class="od-ov" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="od-modal">
+    <h3>เช็คสถานะพัสดุ</h3>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">กดลิ้งก์ผู้ให้บริการเพื่อตรวจสอบสถานะพัสดุ</p>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+      <a href="https://track.thailandpost.co.th" target="_blank" style="display:block;padding:10px;background:#faf9f7;border:1px solid #ede8d8;border-radius:8px;text-align:center;font-size:13px;color:#1a1a1a;text-decoration:none;font-family:'Sarabun',sans-serif">&#128230; ไปรษณีย์ไทย</a>
+      <a href="https://th.kerryexpress.com/th/track/" target="_blank" style="display:block;padding:10px;background:#faf9f7;border:1px solid #ede8d8;border-radius:8px;text-align:center;font-size:13px;color:#1a1a1a;text-decoration:none;font-family:'Sarabun',sans-serif">&#128230; Kerry Express</a>
+      <a href="https://www.flashexpress.co.th/tracking/" target="_blank" style="display:block;padding:10px;background:#faf9f7;border:1px solid #ede8d8;border-radius:8px;text-align:center;font-size:13px;color:#1a1a1a;text-decoration:none;font-family:'Sarabun',sans-serif">&#128230; Flash Express</a>
+      <a href="https://www.jdexpress.co.th/service/trackorder" target="_blank" style="display:block;padding:10px;background:#faf9f7;border:1px solid #ede8d8;border-radius:8px;text-align:center;font-size:13px;color:#1a1a1a;text-decoration:none;font-family:'Sarabun',sans-serif">&#128230; J&T Express</a>
+      <a href="https://www.best-inc.co.th/track" target="_blank" style="display:block;padding:10px;background:#faf9f7;border:1px solid #ede8d8;border-radius:8px;text-align:center;font-size:13px;color:#1a1a1a;text-decoration:none;font-family:'Sarabun',sans-serif">&#128230; BEST Express</a>
+      <a href="https://www.ninjavan.co/th-th/tracking" target="_blank" style="display:block;padding:10px;background:#faf9f7;border:1px solid #ede8d8;border-radius:8px;text-align:center;font-size:13px;color:#1a1a1a;text-decoration:none;font-family:'Sarabun',sans-serif">&#128230; Ninja Van</a>
+    </div>
+    <div class="od-actions"><button class="od-btn-cancel" onclick="document.getElementById('sh-track-popup').style.display='none'">ปิด</button></div>
+  </div>
+</div>
+
+<!-- delivery form popup -->
+<div id="od-delivery-popup" class="od-ov" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="od-modal">
+    <h3>อัพเดทสถานะจัดส่ง Delivery</h3>
+    <div class="od-toolbar" style="flex-direction:column;align-items:stretch">
+      <div style="margin-bottom:10px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">เลขพัสดุ</label>
+        <input id="dv-tracking" class="od-input" placeholder="เลขพัสดุ..." style="width:100%">
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">แพลตฟอร์ม / ขนส่ง</label>
+        <select id="dv-platform" class="od-sel" style="width:100%">
+          <option value="ไปรษณีย์ไทย">&#128230; ไปรษณีย์ไทย</option>
+          <option value="Kerry Express">&#128230; Kerry Express</option>
+          <option value="Flash Express">&#128230; Flash Express</option>
+          <option value="J&T Express">&#128230; J&T Express</option>
+          <option value="BEST Express">&#128230; BEST Express</option>
+          <option value="Ninja Van">&#128230; Ninja Van</option>
+          <option value="รถห้องเย็นบริษัท">&#10052; รถห้องเย็นบริษัท</option>
+          <option value="รถคอกบริษัท">&#128666; รถคอกบริษัท</option>
+          <option value="รถคอก-เอกชน">&#128666; รถคอก-เอกชน</option>
+        </select>
+      </div>
+      <div id="dv-note-wrap" style="display:none;margin-bottom:10px">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">หมายเหตุ</label>
+        <input id="dv-note" class="od-input" placeholder="หมายเหตุเพิ่มเติม..." style="width:100%">
+      </div>
+    </div>
+    <div class="od-actions">
+      <button class="od-btn-cancel" onclick="document.getElementById('od-delivery-popup').style.display='none'">ยกเลิก</button>
+      <button class="od-btn-gold" onclick="dvSave()">บันทึก</button>
+    </div>
+  </div>
 </div>
 <div id="od-overlay" class="od-ov" style="display:none" onclick="if(event.target===this)odCloseModal()"></div>
 <script>
@@ -112,7 +195,7 @@ function renderCards(bills,containerId){
         +'<div class="od-price">'+fm(b.total)+'</div>'
       +'</div>'
       +'<div class="od-card-meta">'+( b.customer_name||'ไม่ระบุ')+' · '+fd(b.created_at)+' · '+( b.items_count||0)+' รายการ · '+( b.pay_method||'')+( b.source==='pos'?' · POS':'')+' </div>'
-      +'<div class="od-badges">'+finBadge(b.status)+shipBadge(b.shipping_status)+(b.scheduled_at?'<span class="od-badge" style="background:#fef9c3;color:#713f12">กำหนดส่ง '+fd(b.scheduled_at)+'</span>':'')+'</div>'
+      +'<div class="od-badges">'+shipBadge(b.shipping_status)+(b.ship_note?'<span class="od-tracking">&#128230; '+b.ship_note+'</span>':'')+(b.scheduled_at?'<span class="od-badge" style="background:#fef9c3;color:#713f12">กำหนดส่ง '+fd(b.scheduled_at)+'</span>':'')+'</div>'
     +'</div>';
   }).join('');
 }
@@ -170,39 +253,129 @@ function odSaveStatus(){
   .then(function(){odCloseModal();if(typeof odReload==='function')odReload();})
   .catch(function(){alert('บันทึกไม่สำเร็จ');});
 }
-var _all=[];
+var _all=[];var _blacklist=JSON.parse(localStorage.getItem('viiv_blacklist')||'[]');
+
 window.odReload=function(){
   loadBills('',function(bills){
     _all=bills;
-    odFilter();
-    // summary
-    var el=document.getElementById('od-summary');
-    if(el){
-      var total=bills.length;
-      var pending=bills.filter(function(b){return b.status==='pending'||b.status==='credit';}).length;
-      var shipping=bills.filter(function(b){return b.shipping_status&&b.shipping_status!=='received_payment';}).length;
-      el.innerHTML=[
-        {bg:'#fef9c3',bc:'#fde68a',tc:'#713f12',label:'คำสั่งซื้อทั้งหมด',val:total},
-        {bg:'#fee2e2',bc:'#fca5a5',tc:'#991b1b',label:'รอชำระ/เครดิต',val:pending},
-        {bg:'#dbeafe',bc:'#93c5fd',tc:'#1e40af',label:'กำลังจัดส่ง',val:shipping},
-      ].map(function(s){return '<div class="od-sum-card" style="background:'+s.bg+';border:1px solid '+s.bc+'"><div style="font-size:11px;color:'+s.tc+'">'+s.label+'</div><div style="font-size:20px;font-weight:700;color:'+s.tc+'">'+s.val+'</div></div>';}).join('');
-    }
+    shFilter();
+    clFilter();
+    blRender();
   });
 };
-window.odFilter=function(){
-  var q=(document.getElementById('od-q').value||'').toLowerCase();
-  var fin=document.getElementById('od-fin').value;
-  var ship=document.getElementById('od-ship').value;
+
+window.shSubTab=function(tab,btn){
+  ['track','claim','black'].forEach(function(t){
+    var p=document.getElementById('sh-panel-'+t);
+    if(p)p.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('[id^="sh-sub-"]').forEach(function(b){
+    b.style.background=b.id==='sh-sub-'+tab?'#E8B93E':'#fff';
+    b.style.color=b.id==='sh-sub-'+tab?'#1a1200':'#374151';
+    b.style.border=b.id==='sh-sub-'+tab?'none':'1px solid #d1d5db';
+  });
+};
+
+window.shFilter=function(){
+  var q=(document.getElementById('sh-q').value||'').toLowerCase();
+  var st=document.getElementById('sh-status').value;
   var filtered=_all.filter(function(b){
+    if(b.source==='pos')return false;
     var mq=!q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);
-    var mf=!fin||b.status===fin;
-    var ms=!ship||b.shipping_status===ship;
-    return mq&&mf&&ms;
+    var ms=!st||b.shipping_status===st;
+    return mq&&ms;
   });
-  var cnt=document.getElementById('od-count');
+  var cnt=document.getElementById('sh-count');
   if(cnt)cnt.textContent='พบ '+filtered.length+' รายการ';
-  renderCards(filtered,'od-list');
+  renderCards(filtered,'sh-list');
 };
+
+window.clFilter=function(){
+  var q=(document.getElementById('cl-q').value||'').toLowerCase();
+  var filtered=_all.filter(function(b){
+    return b.shipping_status==='chargeback'||b.shipping_status==='shipped_no_recipient';
+  }).filter(function(b){
+    return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);
+  });
+  renderCards(filtered,'cl-list');
+};
+
+window.shOpenTracking=function(){
+  document.getElementById('sh-track-popup').style.display='flex';
+};
+
+window.blFilter=function(){
+  var q=(document.getElementById('bl-q').value||'').toLowerCase();
+  blRender(q);
+};
+
+function blRender(q){
+  q=q||'';
+  var watch=_blacklist.filter(function(b){return b.level==='watch'&&(!q||b.name.toLowerCase().includes(q));});
+  var block=_blacklist.filter(function(b){return b.level==='block'&&(!q||b.name.toLowerCase().includes(q));});
+  var wEl=document.getElementById('bl-watch-list');
+  var bEl=document.getElementById('bl-block-list');
+  if(wEl)wEl.textContent=watch.length?watch.map(function(b){return b.name;}).join(', '):'ไม่มี';
+  if(bEl)bEl.textContent=block.length?block.map(function(b){return b.name;}).join(', '):'ไม่มี';
+  var list=_blacklist.filter(function(b){return !q||b.name.toLowerCase().includes(q);});
+  var el=document.getElementById('bl-list');
+  if(!el)return;
+  if(!list.length){el.innerHTML='<div class="od-empty">ไม่มีรายการแบล็กลิสต์</div>';return;}
+  el.innerHTML=list.map(function(b,i){
+    return '<div class="od-card" style="border-left:3px solid '+(b.level==='block'?'#ef4444':'#f59e0b')+'">'
+      +'<div class="od-card-head"><div><span class="od-bill-no">'+b.name+'</span> <span style="font-size:11px;color:#888">'+b.phone+'</span></div>'
+      +'<span class="od-badge '+(b.level==='block'?'ob-voided':'ob-pending')+'">'+(b.level==='block'?'ห้ามขาย':'เฝ้าระวัง')+'</span></div>'
+      +'<div class="od-card-meta">'+( b.reason||'ไม่ระบุเหตุผล')+'</div>'
+      +'<div style="margin-top:6px"><button onclick="blRemove('+i+')" style="font-size:11px;padding:3px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;font-family:Sarabun,sans-serif">ลบออก</button></div>'
+    +'</div>';
+  }).join('');
+}
+
+window.blAdd=function(){
+  var name=prompt('ชื่อสมาชิก:');if(!name)return;
+  var phone=prompt('เบอร์โทร (ถ้ามี):');
+  var reason=prompt('เหตุผล:');
+  var level=confirm('กดตกลง = ห้ามขายเด็ดขาด | กดยกเลิก = แค่เฝ้าระวัง')?'block':'watch';
+  _blacklist.push({name:name,phone:phone||'',reason:reason||'',level:level,at:new Date().toISOString()});
+  localStorage.setItem('viiv_blacklist',JSON.stringify(_blacklist));
+  blRender();
+};
+
+window.blRemove=function(i){
+  if(!confirm('ลบออกจากแบล็กลิสต์?'))return;
+  _blacklist.splice(i,1);
+  localStorage.setItem('viiv_blacklist',JSON.stringify(_blacklist));
+  blRender();
+};
+
+var _dvBid=null;
+window.odOpenDelivery=function(bid){
+  _dvBid=bid;
+  var b=_bills.find(function(x){return x.id===bid;});
+  document.getElementById('dv-tracking').value=b&&b.ship_note?b.ship_note:'';
+  document.getElementById('dv-platform').value='ไปรษณีย์ไทย';
+  document.getElementById('dv-note-wrap').style.display='none';
+  document.getElementById('od-delivery-popup').style.display='flex';
+};
+document.getElementById('dv-platform').addEventListener('change',function(){
+  var noteWrap=document.getElementById('dv-note-wrap');
+  noteWrap.style.display=this.value.includes('เอกชน')?'block':'none';
+});
+function dvSave(){
+  if(!_dvBid)return;
+  var tracking=document.getElementById('dv-tracking').value.trim();
+  var platform=document.getElementById('dv-platform').value;
+  var note=document.getElementById('dv-note').value.trim();
+  var ship_note=platform+(tracking?' #'+tracking:'')+(note?' ('+note+')':'');
+  fetch(API+'/api/pos/bills/update-status/'+_dvBid,{
+    method:'POST',headers:authH(),
+    body:JSON.stringify({shipping_status:'delivery',ship_note:ship_note})
+  }).then(function(r){return r.json();})
+  .then(function(){
+    document.getElementById('od-delivery-popup').style.display='none';
+    if(typeof odReload==='function')odReload();
+  }).catch(function(){alert('บันทึกไม่สำเร็จ');});
+}
 
 
 window.odOpenModal=odOpenModal;
@@ -299,8 +472,8 @@ window.odSaveQuick=function(bid){
   .catch(function(){alert('บันทึกไม่สำเร็จ');});
 };
 function _tok(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;odReload();}
-window.removeEventListener('viiv_token_ready',window._tok_odall);
-window._tok_odall=_tok;
+window.removeEventListener('viiv_token_ready',window._tok_odship);
+window._tok_odship=_tok;
 window.addEventListener('viiv_token_ready',_tok);
 var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 if(_t){_tok({detail:{token:_t}});}

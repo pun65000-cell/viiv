@@ -85,6 +85,8 @@ window.saFilter=function(){
   window.removeEventListener('viiv_token_ready',window._tok_advance);
   window._tok_advance=_tok_advance;
   window.addEventListener('viiv_token_ready',_tok_advance);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_advance({detail:{token:_t}}); }
 })();
 if(TOKEN)load();
 })();

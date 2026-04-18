@@ -222,7 +222,7 @@ function showMsg(msg,color){
   el.textContent=msg;el.style.color=color;el.style.display='block';
   clearTimeout(showMsg._t);showMsg._t=setTimeout(function(){el.style.display='none';},3000);
 }
-(function(){
+
   function _tok_pos(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   loadData();
@@ -230,7 +230,8 @@ function showMsg(msg,color){
   window.removeEventListener('viiv_token_ready',window._tok_pos);
   window._tok_pos=_tok_pos;
   window.addEventListener('viiv_token_ready',_tok_pos);
-})();
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_pos({detail:{token:_t}}); }
 })();
 </script>
 </body>

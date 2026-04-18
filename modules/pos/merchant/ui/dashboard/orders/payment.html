@@ -48,30 +48,33 @@
 .od-tracking{font-size:11px;color:#0369a1;font-weight:600;margin-top:4px;background:#e0f2fe;padding:2px 8px;border-radius:12px;display:inline-block}
 </style>
 <div class="od-wrap">
-  <div class="od-summary" id="od-summary"></div>
   <div class="od-toolbar">
-    <input class="od-input" id="od-q" placeholder="เลขบิล / ลูกค้า..." oninput="odFilter()">
-    <select class="od-sel" id="od-fin" onchange="odFilter()">
-      <option value="">สถานะจ่ายทั้งหมด</option>
-      <option value="paid">จ่ายแล้ว</option>
+    <input class="od-input" id="pv-q" placeholder="เลขบิล / ลูกค้า..." oninput="pvFilter()">
+    <select class="od-sel" id="pv-status" onchange="pvFilter()">
+      <option value="">สถานะทั้งหมด</option>
       <option value="pending">รอชำระ</option>
       <option value="credit">เครดิต</option>
       <option value="partial">บางส่วน</option>
+      <option value="paid">จ่ายแล้ว</option>
     </select>
-    <select class="od-sel" id="od-ship" onchange="odFilter()">
-      <option value="">สถานะจัดส่งทั้งหมด</option>
-      <option value="scheduled">กำหนดส่ง</option>
-      <option value="shipped_no_recipient">ส่งไม่มีผู้รับ</option>
-      <option value="shipped_cod">ส่ง+วางบิล</option>
-      <option value="shipped_collect">ส่ง+เก็บเงิน</option>
-      <option value="bill_check">วางบิลเช็ค</option>
-      <option value="chargeback">ชะลอจ่าย</option>
-      <option value="received_payment">รับชำระแล้ว</option>
-      <option value="debt">หนี้ค้าง</option>
-    </select>
-    <span class="od-count" id="od-count"></span>
+    <span class="od-count" id="pv-count"></span>
   </div>
-  <div class="od-list" id="od-list"></div>
+  <!-- summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px">
+    <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:11px;color:#713f12">รอชำระ</div>
+      <div style="font-size:18px;font-weight:700;color:#713f12" id="pv-cnt-pending">0</div>
+    </div>
+    <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:11px;color:#1e40af">เครดิต</div>
+      <div style="font-size:18px;font-weight:700;color:#1e40af" id="pv-cnt-credit">0</div>
+    </div>
+    <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:11px;color:#065f46">จ่ายแล้ว (วันนี้)</div>
+      <div style="font-size:18px;font-weight:700;color:#065f46" id="pv-cnt-paid">0</div>
+    </div>
+  </div>
+  <div class="od-list" id="pv-list"></div>
 </div>
 <div id="od-overlay" class="od-ov" style="display:none" onclick="if(event.target===this)odCloseModal()"></div>
 <script>
@@ -112,7 +115,7 @@ function renderCards(bills,containerId){
         +'<div class="od-price">'+fm(b.total)+'</div>'
       +'</div>'
       +'<div class="od-card-meta">'+( b.customer_name||'ไม่ระบุ')+' · '+fd(b.created_at)+' · '+( b.items_count||0)+' รายการ · '+( b.pay_method||'')+( b.source==='pos'?' · POS':'')+' </div>'
-      +'<div class="od-badges">'+finBadge(b.status)+shipBadge(b.shipping_status)+(b.scheduled_at?'<span class="od-badge" style="background:#fef9c3;color:#713f12">กำหนดส่ง '+fd(b.scheduled_at)+'</span>':'')+'</div>'
+      +'<div class="od-badges">'+finBadge(b.status)+(b.scheduled_at?'<span class="od-badge" style="background:#fef9c3;color:#713f12">กำหนดส่ง '+fd(b.scheduled_at)+'</span>':'')+'</div>'
     +'</div>';
   }).join('');
 }
@@ -174,34 +177,26 @@ var _all=[];
 window.odReload=function(){
   loadBills('',function(bills){
     _all=bills;
-    odFilter();
-    // summary
-    var el=document.getElementById('od-summary');
-    if(el){
-      var total=bills.length;
-      var pending=bills.filter(function(b){return b.status==='pending'||b.status==='credit';}).length;
-      var shipping=bills.filter(function(b){return b.shipping_status&&b.shipping_status!=='received_payment';}).length;
-      el.innerHTML=[
-        {bg:'#fef9c3',bc:'#fde68a',tc:'#713f12',label:'คำสั่งซื้อทั้งหมด',val:total},
-        {bg:'#fee2e2',bc:'#fca5a5',tc:'#991b1b',label:'รอชำระ/เครดิต',val:pending},
-        {bg:'#dbeafe',bc:'#93c5fd',tc:'#1e40af',label:'กำลังจัดส่ง',val:shipping},
-      ].map(function(s){return '<div class="od-sum-card" style="background:'+s.bg+';border:1px solid '+s.bc+'"><div style="font-size:11px;color:'+s.tc+'">'+s.label+'</div><div style="font-size:20px;font-weight:700;color:'+s.tc+'">'+s.val+'</div></div>';}).join('');
-    }
+    pvFilter();
+    var today=new Date().toDateString();
+    var pend=bills.filter(function(b){return b.status==='pending';}).length;
+    var cred=bills.filter(function(b){return b.status==='credit';}).length;
+    var paid=bills.filter(function(b){return b.status==='paid'&&new Date(b.created_at).toDateString()===today;}).length;
+    var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+    s('pv-cnt-pending',pend);s('pv-cnt-credit',cred);s('pv-cnt-paid',paid);
   });
 };
-window.odFilter=function(){
-  var q=(document.getElementById('od-q').value||'').toLowerCase();
-  var fin=document.getElementById('od-fin').value;
-  var ship=document.getElementById('od-ship').value;
+window.pvFilter=function(){
+  var q=(document.getElementById('pv-q').value||'').toLowerCase();
+  var st=document.getElementById('pv-status').value;
   var filtered=_all.filter(function(b){
     var mq=!q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);
-    var mf=!fin||b.status===fin;
-    var ms=!ship||b.shipping_status===ship;
-    return mq&&mf&&ms;
+    var ms=!st||b.status===st;
+    return mq&&ms;
   });
-  var cnt=document.getElementById('od-count');
+  var cnt=document.getElementById('pv-count');
   if(cnt)cnt.textContent='พบ '+filtered.length+' รายการ';
-  renderCards(filtered,'od-list');
+  renderCards(filtered,'pv-list');
 };
 
 
@@ -299,8 +294,8 @@ window.odSaveQuick=function(bid){
   .catch(function(){alert('บันทึกไม่สำเร็จ');});
 };
 function _tok(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;odReload();}
-window.removeEventListener('viiv_token_ready',window._tok_odall);
-window._tok_odall=_tok;
+window.removeEventListener('viiv_token_ready',window._tok_odpay);
+window._tok_odpay=_tok;
 window.addEventListener('viiv_token_ready',_tok);
 var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 if(_t){_tok({detail:{token:_t}});}

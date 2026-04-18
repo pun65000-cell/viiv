@@ -481,6 +481,8 @@ window.waSave=function(){
   window.removeEventListener('viiv_token_ready',window._tok_all);
   window._tok_all=_tok_all;
   window.addEventListener('viiv_token_ready',_tok_all);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_all({detail:{token:_t}}); }
 })();
 if(TOKEN)loadProducts();
 })();

@@ -365,15 +365,14 @@ function loadProducts(cb){
   .catch(function(){_products=[];if(cb)cb();});
 }
 
-(function(){
   function _tok_all(e){
-  if(e.detail&&e.detail.token) TOKEN=e.detail.token;
-  renderShell();renderAll();
-}
+    if(e.detail&&e.detail.token) TOKEN=e.detail.token;
+    renderShell();renderAll();
+  }
   window.removeEventListener('viiv_token_ready',window._tok_all);
   window._tok_all=_tok_all;
   window.addEventListener('viiv_token_ready',_tok_all);
-})();
-})();
-</script>
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t){ _tok_all({detail:{token:_t}}); }
+})();</script>
 </body>
