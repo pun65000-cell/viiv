@@ -14,6 +14,13 @@ var _tab='all';
 
 function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
 
+function affUpdIncome(val){
+  var r=parseFloat(val)||0;
+  localStorage.setItem('viiv_aff_comm',r);
+  var inc=(window._affTotalClicks||0)*r;
+  var iv=document.getElementById('affIncomeVal');
+  if(iv) iv.textContent='฿'+inc.toLocaleString('th',{minimumFractionDigits:2});
+}
 function renderShell(){
   var wrap=document.getElementById('affWrap');
   if(!wrap) return;
@@ -46,14 +53,32 @@ function renderAll(){
     el.innerHTML='';
     var active=_products.filter(function(p){return p.status==='active';}).length;
     var totalClicks=_products.reduce(function(s,p){return s+(p.click_count||0);},0);
+    var totalIncome=_products.reduce(function(s,p){
+      var rate=parseFloat(p.commission||p.commission_rate||p.comm||0);
+      return s+(p.click_count||0)*rate;
+    },0);
+    var hasComm=_products.some(function(p){return parseFloat(p.commission||p.commission_rate||p.comm||0)>0;});
+
     var stats=document.createElement('div');
-    stats.style.cssText='display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;';
+    stats.style.cssText='display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;';
     [{l:'สินค้าทั้งหมด',v:_products.length},{l:'จำหน่ายอยู่',v:active},{l:'คลิกรวม',v:totalClicks.toLocaleString()}].forEach(function(s){
       var card=document.createElement('div');
-      card.style.cssText='flex:1;min-width:100px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:12px 16px;text-align:center;';
-      card.innerHTML='<div style="font-size:22px;font-weight:700;color:#e8b93e;">'+s.v+'</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">'+s.l+'</div>';
+      card.style.cssText='flex:1;min-width:90px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:10px 14px;text-align:center;';
+      card.innerHTML='<div style="font-size:20px;font-weight:700;color:#e8b93e;">'+s.v+'</div><div style="font-size:11px;color:#6b7280;margin-top:2px;">'+s.l+'</div>';
       stats.appendChild(card);
     });
+
+    window._affTotalClicks=totalClicks;
+    var incCard=document.createElement('div');
+    incCard.style.cssText='flex:1;min-width:200px;background:linear-gradient(135deg,#fdf6e3,#fef9ee);border:1.5px solid #d4b866;border-radius:10px;padding:12px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+    incCard.innerHTML=''
+      +'<div style="font-size:11px;color:#888;font-weight:600;margin-bottom:6px;">รายได้โดยประมาณ</div>'
+      +'<div style="font-size:26px;font-weight:700;color:#38a169;line-height:1.2;">฿'+totalIncome.toLocaleString('th',{minimumFractionDigits:2})+'</div>'
+      +(hasComm
+        ?'<div style="font-size:10.5px;color:#aaa;margin-top:5px;">คลิก × ค่าคอมแต่ละรายการ</div>'
+        :'<div style="font-size:10.5px;color:#bbb;margin-top:5px;">ใส่ค่าคอมมิสชั่นที่สินค้า</div>'
+      );
+    stats.appendChild(incCard);
     el.appendChild(stats);
     var toolbar=document.createElement('div');
     toolbar.style.cssText='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;';
