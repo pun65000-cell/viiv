@@ -1,8 +1,7 @@
 <body>
 <div class="mem-wrap">
   <div class="mem-tabbar">
-    <button class="mem-tab active" onclick="memNav('overview',this)">สมาชิกทั้งหมด</button>
-    <button class="mem-tab" onclick="memNav('members',this)">สมาชิกร้านค้า</button>
+    <button class="mem-tab active" onclick="memNav('members',this)">สมาชิกร้านค้า</button>
     <button class="mem-tab" onclick="memNav('partners',this)">บริษัทคู่ค้า</button>
   </div>
   <div id="memContent"></div>
@@ -80,7 +79,7 @@ window.memLoadPage = function(file){
     .catch(function(){ c.innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
 };
 
-memNav('members', document.querySelectorAll('.mem-tab')[1]);
+memNav('members', document.querySelectorAll('.mem-tab')[0]);
 })();
 </script>
 </body>

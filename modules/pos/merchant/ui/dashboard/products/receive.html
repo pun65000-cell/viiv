@@ -278,10 +278,15 @@ function renderHistory(){
 }
 
 // init
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_receive(e){
   if(e.detail&&e.detail.token) TOKEN=e.detail.token;
   loadProducts();
-});
+}
+  window.removeEventListener('viiv_token_ready',window._tok_receive);
+  window._tok_receive=_tok_receive;
+  window.addEventListener('viiv_token_ready',_tok_receive);
+})();
 setDefaults();
 if(TOKEN) loadProducts();
 })();

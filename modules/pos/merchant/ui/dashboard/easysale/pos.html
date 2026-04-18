@@ -222,10 +222,15 @@ function showMsg(msg,color){
   el.textContent=msg;el.style.color=color;el.style.display='block';
   clearTimeout(showMsg._t);showMsg._t=setTimeout(function(){el.style.display='none';},3000);
 }
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_pos(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   loadData();
-});
+}
+  window.removeEventListener('viiv_token_ready',window._tok_pos);
+  window._tok_pos=_tok_pos;
+  window.addEventListener('viiv_token_ready',_tok_pos);
+})();
 })();
 </script>
 </body>

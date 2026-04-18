@@ -90,7 +90,12 @@
 (function(){
   var TOKEN='';
   var _ch=null;
-  window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;ovLoad();});
+  (function(){
+  function _onToken(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;ovLoad();}
+  window.removeEventListener('viiv_token_ready',window._finOvTokenHandler);
+  window._finOvTokenHandler=_onToken;
+  window.addEventListener('viiv_token_ready',_onToken);
+})();
   var TM=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   function fm(n){return '฿'+Math.round(n).toLocaleString('th-TH');}
   window.ovLoad=function(){

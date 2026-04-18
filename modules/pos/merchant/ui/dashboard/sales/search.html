@@ -106,10 +106,15 @@ window.ssFilter=function(){
   }).join('');
 };
 
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_search(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   load();
-});
+}
+  window.removeEventListener('viiv_token_ready',window._tok_search);
+  window._tok_search=_tok_search;
+  window.addEventListener('viiv_token_ready',_tok_search);
+})();
 if(TOKEN)load();
 })();
 </script>

@@ -1,6 +1,5 @@
 <body>
 <div class="ml-wrap">
-
   <div class="ml-header">
     <div class="ml-search-row">
       <input id="mlSearch" class="ml-input" placeholder="ค้นหาชื่อ / รหัส / เบอร์โทร..." oninput="mlFilter()"/>
@@ -14,20 +13,17 @@
         <option value="manual">Manual</option>
       </select>
     </div>
-    <button class="ml-btn-new" onclick="mlOpenForm(null)">+ สร้างสมาชิก</button>
-    <button id="ml-import-btn" onclick="mlImportLocal()" style="padding:8px 12px;background:#f0ede8;color:#7a5a10;border:1px solid #e8b93e;border-radius:8px;font-size:12px;cursor:pointer;display:none">📥 import ข้อมูลเก่า</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="ml-import-btn" onclick="mlImportLocal()" style="display:none;padding:8px 12px;background:#f0ede8;color:#7a5a10;border:1px solid #e8b93e;border-radius:8px;font-size:12px;cursor:pointer;">&#128229; import ข้อมูลเก่า</button>
+      <button class="ml-btn-new" onclick="mlOpenForm(null)">+ สร้างสมาชิก</button>
+    </div>
   </div>
-
   <div class="ml-stats-row" id="mlStats"></div>
   <div id="mlList" class="ml-list"></div>
   <div id="mlPager"></div>
-
-  <!-- overlay + form -->
   <div id="mlOverlay" class="ml-overlay" style="display:none;" onclick="mlCloseForm()"></div>
   <div id="mlFormWrap" class="ml-form-wrap" style="display:none;"></div>
-
 </div>
-
 <style>
 .ml-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
 .ml-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
@@ -60,11 +56,9 @@
 .ml-pv{font-size:12px;font-weight:700;color:#e8b93e;}
 .ml-credit{font-size:11px;color:#6b7280;}
 .ml-pager{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
-/* overlay */
 .ml-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;}
 .ml-form-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,95vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px;z-index:201;box-shadow:0 8px 32px rgba(0,0,0,.18);}
 </style>
-
 <script>
 (function(){
 'use strict';
@@ -72,50 +66,50 @@ var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var PAGE_SIZE=20;
 var currentPage=1;
+var _totalPages=1;
+var _totalCount=0;
 var allMembers=[];
-var filteredCache=[];
+
+function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
 
 function loadMembers(){
-  var headers={'Authorization':'Bearer '+TOKEN};
-  fetch(API+'/api/pos/members/list?limit=20&page='+currentPage,{headers:headers})
+  fetch(API+'/api/pos/members/list?limit='+PAGE_SIZE+'&page='+currentPage,{headers:authH()})
   .then(function(r){return r.json();})
   .then(function(data){
     allMembers=data.members||[];
     _totalPages=data.pages||1;
     _totalCount=data.total||0;
     renderStats();
-  mlFilter();
+    renderList();
+  })
+  .catch(function(){document.getElementById('mlList').innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">โหลดข้อมูลไม่ได้</div>';});
 }
 
 function renderStats(){
   var el=document.getElementById('mlStats');
-  var total=_totalCount||allMembers.length;
+  if(!el)return;
   var totalPV=allMembers.reduce(function(s,m){return s+(parseFloat(m.pv_total)||0);},0);
   var totalCredit=allMembers.reduce(function(s,m){return s+(parseFloat(m.credit)||0);},0);
   el.innerHTML=[
-    {val:total.toLocaleString(),label:'สมาชิกทั้งหมด'},
+    {val:_totalCount.toLocaleString(),label:'สมาชิกทั้งหมด'},
     {val:totalPV.toLocaleString(),label:'PV รวม'},
-    {val:'฿'+totalCredit.toLocaleString(),label:'Credit รวม'},
-  ].map(function(s){
-    return '<div class="ml-stat"><div class="ml-stat-val">'+s.val+'</div><div class="ml-stat-label">'+s.label+'</div></div>';
-  }).join('');
+    {val:'&#3647;'+totalCredit.toLocaleString(),label:'Credit รวม'},
+  ].map(function(s){return '<div class="ml-stat"><div class="ml-stat-val">'+s.val+'</div><div class="ml-stat-label">'+s.label+'</div></div>';}).join('');
 }
 
-window.mlFilter=function(reset){
-  if(reset!==false) currentPage=1;
+window.mlFilter=function(){
+  currentPage=1;
   var q=document.getElementById('mlSearch').value;
   var pf=document.getElementById('mlPlatform').value;
-  var params='?limit=20&page='+currentPage;
-  if(q) params+='&q='+encodeURIComponent(q);
-  if(pf) params+='&platform='+encodeURIComponent(pf);
-  var headers={'Authorization':'Bearer '+TOKEN};
-  fetch(API+'/api/pos/members/list'+params,{headers:headers})
+  var p='?limit='+PAGE_SIZE+'&page=1';
+  if(q)p+='&q='+encodeURIComponent(q);
+  if(pf)p+='&platform='+encodeURIComponent(pf);
+  fetch(API+'/api/pos/members/list'+p,{headers:authH()})
   .then(function(r){return r.json();})
   .then(function(data){
     allMembers=data.members||[];
     _totalPages=data.pages||1;
     _totalCount=data.total||0;
-    filteredCache=allMembers;
     renderStats();
     renderList();
   });
@@ -123,44 +117,41 @@ window.mlFilter=function(reset){
 
 function renderList(){
   var el=document.getElementById('mlList');
-  var total=filteredCache.length;
-  if(!total){el.innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">ไม่พบสมาชิก</div>';document.getElementById('mlPager').innerHTML='';return;}
-  var totalPages=_totalPages||1;
-  var page=filteredCache;
-  el.innerHTML=page.map(function(m){
+  if(!allMembers.length){el.innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">ไม่พบสมาชิก</div>';document.getElementById('mlPager').innerHTML='';return;}
+  el.innerHTML=allMembers.map(function(m){
     var avatar=m.avatar_url
       ?'<div class="ml-avatar"><img src="'+m.avatar_url+'"></div>'
       :'<div class="ml-avatar">'+(m.name||'?').charAt(0).toUpperCase()+'</div>';
     var platforms=(m.platforms||[]).map(function(p){
       return '<span class="ml-platform-badge '+p+'">'+p+'</span>';
     }).join('');
-    return '<div class="ml-row" data-mid="'+m.id+'" onclick="mlOpenForm(this.dataset.mid)">'+ 
-      avatar+
-      '<div class="ml-info">'+
-        '<div class="ml-name">'+(m.name||'ไม่ระบุชื่อ')+'</div>'+
-        '<div class="ml-meta">รหัส: '+(m.code||'—')+' | '+(m.phone||'ไม่มีเบอร์')+'</div>'+
-        '<div class="ml-platforms">'+platforms+'</div>'+
-      '</div>'+
-      '<div class="ml-stats">'+
-        '<div class="ml-pv">PV: '+(m.pv_total||0)+'</div>'+
-        '<div class="ml-credit">Credit: ฿'+(m.credit||0)+'</div>'+
-      '</div>'+
-    '</div>';
+    return '<div class="ml-row" data-mid="'+m.id+'" onclick="mlOpenForm(this.dataset.mid)">'
+      +avatar
+      +'<div class="ml-info">'
+        +'<div class="ml-name">'+(m.name||'')+'</div>'
+        +'<div class="ml-meta">รหัส: '+(m.code||'&#8212;')+' | '+(m.phone||'ไม่มีเบอร์')+'</div>'
+        +'<div class="ml-platforms">'+platforms+'</div>'
+      +'</div>'
+      +'<div class="ml-stats">'
+        +'<div class="ml-pv">PV: '+(m.pv_total||0)+'</div>'
+        +'<div class="ml-credit">Credit: &#3647;'+(m.credit||0)+'</div>'
+      +'</div>'
+    +'</div>';
   }).join('');
-  // pager
   var pager=document.getElementById('mlPager');
-  if(totalPages>1){
-    pager.innerHTML='<button data-p="'+(currentPage-1)+'"'+ ' onclick="mlPage(parseInt(this.dataset.p))" '+(currentPage<=1?'disabled':'')+
-      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">◀</button>'+
-      '<span style="font-size:12px;color:#6b7280;align-self:center;">'+currentPage+'/'+totalPages+' ('+total+' คน)</span>'+
-      '<button data-p="'+(currentPage+1)+'"'+ ' onclick="mlPage(parseInt(this.dataset.p))" '+(currentPage>=totalPages?'disabled':'')+
-      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">▶</button>';
-  } else { pager.innerHTML=''; }
+  if(_totalPages>1){
+    pager.innerHTML=''
+      +'<button data-p="'+(currentPage-1)+'" onclick="mlPage(parseInt(this.dataset.p))" '+(currentPage<=1?'disabled':'')
+      +' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">&#9664;</button>'
+      +'<span style="font-size:12px;color:#6b7280;align-self:center;">'+currentPage+'/'+_totalPages+' ('+_totalCount+' คน)</span>'
+      +'<button data-p="'+(currentPage+1)+'" onclick="mlPage(parseInt(this.dataset.p))" '+(currentPage>=_totalPages?'disabled':'')
+      +' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">&#9654;</button>';
+  } else {pager.innerHTML='';}
 }
 
 window.mlPage=function(p){
-  if(p<1||p>Math.ceil(filteredCache.length/PAGE_SIZE))return;
-  currentPage=p; renderList();
+  if(p<1||p>_totalPages)return;
+  currentPage=p;loadMembers();
 };
 
 window.mlOpenForm=function(id){
@@ -171,13 +162,21 @@ window.mlOpenForm=function(id){
   fw.style.display='block';
   fw.innerHTML=buildForm(m,isEdit);
   var ab=document.getElementById('mfAvatarBtn');
-  if(ab) ab.addEventListener('click',function(){document.getElementById('mfAvatarInput').click();});
+  if(ab)ab.addEventListener('click',function(){document.getElementById('mfAvatarInput').click();});
 };
 
 window.mlCloseForm=function(){
   document.getElementById('mlOverlay').style.display='none';
   document.getElementById('mlFormWrap').style.display='none';
 };
+
+function mfField(label,id,type,val,ph){
+  return '<div>'
+    +'<label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">'+label+'</label>'
+    +'<input id="'+id+'" type="'+type+'" value="'+val+'" placeholder="'+(ph||'')+'" '
+    +'style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;"/>'
+    +'</div>';
+}
 
 function buildForm(m,isEdit){
   m=m||{};
@@ -186,24 +185,29 @@ function buildForm(m,isEdit){
   var selPF=m.platforms||[];
   var pfHTML=platforms.map(function(p){
     var chk=selPF.includes(p);
-    return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;background:'+(chk?'#e8b93e':'#f0ede8')+';border-radius:20px;cursor:pointer;color:'+(chk?'#1a1200':'#374151')+';">'
-      +'<input type="checkbox" name="mf-platform" value="'+p+'" '+(chk?'checked':'')+' style="display:none;" onchange="mlTogglePlatform(this,this.parentNode)"/>'+p+'</label>';
+    return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;'
+      +'background:'+(chk?'#e8b93e':'#f0ede8')+';border-radius:20px;cursor:pointer;'
+      +'color:'+(chk?'#1a1200':'#374151')+';"><input type="checkbox" name="mf-platform" value="'+p+'" '
+      +(chk?'checked':'')+' style="display:none;" onchange="mlTogglePlatform(this,this.parentNode)"/>'+p+'</label>';
   }).join('');
   var chatHTML=['Facebook DM','LINE OA','Instagram DM','TikTok DM'].map(function(s){
-    return '<button data-src="'+s+'" onclick="mlAutoCreate(this.dataset.src)" style="padding:5px 12px;background:#fff;border:1px solid #d1d5db;border-radius:6px;font-size:11px;cursor:pointer;">'+s+'</button>';
+    return '<button data-src="'+s+'" onclick="mlAutoCreate(this.dataset.src)" '
+      +'style="padding:5px 12px;background:#fff;border:1px solid #d1d5db;border-radius:6px;font-size:11px;cursor:pointer;">'+s+'</button>';
   }).join('');
   var delBtn=isEdit
-    ?'<button data-mid="'+mid+'" onclick="mlDelete(this.dataset.mid)" style="padding:8px 14px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">🗑 ลบสมาชิก</button>'
+    ?'<button data-mid="'+mid+'" onclick="mlDelete(this.dataset.mid)" '
+      +'style="padding:8px 14px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">&#128465; ลบสมาชิก</button>'
     :'<div></div>';
-  var html=''
-    +'<div style="padding:20px;">'
-    +'<div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:16px;">'+(isEdit?'✏️ จัดการสมาชิก':'➕ สร้างสมาชิกใหม่')+'</div>'
+  return '<div style="padding:20px;">'
+    +'<div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:16px;">'+(isEdit?'&#9999; จัดการสมาชิก':'&#10133; สร้างสมาชิกใหม่')+'</div>'
     +'<div style="display:flex;justify-content:center;margin-bottom:16px;">'
       +'<div style="position:relative;width:72px;height:72px;">'
-        +'<div id="mfAvatarPreview" style="width:72px;height:72px;border-radius:50%;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;border:2px solid #e8b93e;">'
-          +(m.avatar_url?'<img src="'+m.avatar_url+'" style="width:100%;height:100%;object-fit:cover;">':'👤')
+        +'<div id="mfAvatarPreview" style="width:72px;height:72px;border-radius:50%;background:#f0ede8;'
+          +'display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;border:2px solid #e8b93e;">'
+          +(m.avatar_url?'<img src="'+m.avatar_url+'" style="width:100%;height:100%;object-fit:cover;">':'&#128100;')
         +'</div>'
-        +'<button id="mfAvatarBtn" style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:#e8b93e;border:none;cursor:pointer;font-size:12px;">✎</button>'
+        +'<button id="mfAvatarBtn" style="position:absolute;bottom:0;right:0;width:22px;height:22px;'
+          +'border-radius:50%;background:#e8b93e;border:none;cursor:pointer;font-size:12px;">&#9998;</button>'
         +'<input type="file" id="mfAvatarInput" accept="image/*" style="display:none;" onchange="mlPreviewAvatar(this)"/>'
       +'</div>'
     +'</div>'
@@ -234,11 +238,11 @@ function buildForm(m,isEdit){
       +delBtn
       +'<div style="display:flex;gap:8px;">'
         +'<button onclick="mlCloseForm()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">ยกเลิก</button>'
-        +'<button data-mid="'+mid+'" data-edit="'+isEdit+'" onclick="mlSave(this.dataset.mid,this.dataset.edit)" style="padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึก</button>'
+        +'<button data-mid="'+mid+'" data-edit="'+isEdit+'" onclick="mlSave(this.dataset.mid,this.dataset.edit)" '
+          +'style="padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึก</button>'
       +'</div>'
     +'</div>'
-    +'</div>';
-  return html;
+  +'</div>';
 }
 
 window.mlTogglePlatform=function(cb,label){
@@ -246,17 +250,19 @@ window.mlTogglePlatform=function(cb,label){
   label.style.color=cb.checked?'#1a1200':'#374151';
 };
 
-window.mlPreviewAvatar=function(input){
-  if(!input.files||!input.files[0])return;
-  var r=new FileReader();
-  r.onload=function(e){
-    document.getElementById('mfAvatarPreview').innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;">';
-  };
-  r.readAsDataURL(input.files[0]);
-};
-
 window.mlAutoCreate=function(platform){
   alert('ฟีเจอร์ดึงข้อมูลจาก '+platform+' จะพร้อมใช้งานเมื่อเชื่อมต่อแชท');
+};
+
+window.mlPreviewAvatar=function(input){
+  var f=input.files[0];
+  if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var p=document.getElementById('mfAvatarPreview');
+    if(p)p.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;">';
+  };
+  r.readAsDataURL(f);
 };
 
 window.mlSave=function(id,isEdit){
@@ -265,44 +271,38 @@ window.mlSave=function(id,isEdit){
   var platforms=Array.from(document.querySelectorAll('input[name="mf-platform"]:checked')).map(function(cb){return cb.value;});
   var avatarEl=document.getElementById('mfAvatarPreview').querySelector('img');
   var member={
-    code: document.getElementById('mf-code').value,
-    name: name,
-    phone: document.getElementById('mf-phone').value,
-    tax_id: document.getElementById('mf-taxid').value,
-    email: document.getElementById('mf-email').value,
-    birthday: document.getElementById('mf-birthday').value,
-    address: document.getElementById('mf-address').value,
-    geo: document.getElementById('mf-geo').value,
-    pv_total: parseFloat(document.getElementById('mf-pv').value)||0,
-    cash: parseFloat(document.getElementById('mf-cash').value)||0,
-    credit: parseFloat(document.getElementById('mf-credit').value)||0,
-    credit_limit: parseFloat(document.getElementById('mf-credit-limit').value)||0,
-    note: document.getElementById('mf-note').value,
-    platforms: platforms,
-    avatar_url: avatarEl?avatarEl.src:'',
+    code:document.getElementById('mf-code').value,
+    name:name,
+    phone:document.getElementById('mf-phone').value,
+    tax_id:document.getElementById('mf-taxid').value,
+    email:document.getElementById('mf-email').value,
+    birthday:document.getElementById('mf-birthday').value,
+    address:document.getElementById('mf-address').value,
+    geo:document.getElementById('mf-geo').value,
+    pv_total:parseFloat(document.getElementById('mf-pv').value)||0,
+    cash:parseFloat(document.getElementById('mf-cash').value)||0,
+    credit:parseFloat(document.getElementById('mf-credit').value)||0,
+    credit_limit:parseFloat(document.getElementById('mf-credit-limit').value)||0,
+    note:document.getElementById('mf-note').value,
+    platforms:platforms,
+    avatar_url:avatarEl?avatarEl.src:'',
   };
-  var headers={'Content-Type':'application/json','Authorization':'Bearer '+TOKEN};
-  if(isEdit==='true'){
-    fetch(API+'/api/pos/members/update/'+id,{method:'PUT',headers:headers,body:JSON.stringify(member)})
-    .then(function(r){return r.json();})
-    .then(function(){mlCloseForm();if(localStorage.getItem('viiv_members')){
-  var btn=document.getElementById('ml-import-btn');
-  if(btn)btn.style.display='inline-block';
-}
-loadMembers();})
-    .catch(function(){alert('บันทึกไม่สำเร็จ');});
-  } else {
-    fetch(API+'/api/pos/members/create',{method:'POST',headers:headers,body:JSON.stringify(member)})
-    .then(function(r){return r.json();})
-    .then(function(){mlCloseForm();loadMembers();})
-    .catch(function(){alert('บันทึกไม่สำเร็จ');});
-  }
+  var headers=authH();
+  var isE=(isEdit==='true'||isEdit===true);
+  var url=isE?API+'/api/pos/members/update/'+id:API+'/api/pos/members/create';
+  var method=isE?'PUT':'POST';
+  fetch(url,{method:method,headers:headers,body:JSON.stringify(member)})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok||d.id){mlCloseForm();currentPage=1;loadMembers();}
+    else alert('บันทึกไม่สำเร็จ: '+(d.detail||JSON.stringify(d)));
+  })
+  .catch(function(){alert('บันทึกไม่สำเร็จ');});
 };
 
 window.mlDelete=function(id){
   if(!confirm('ลบสมาชิกนี้?'))return;
-  var headers={'Authorization':'Bearer '+TOKEN};
-  fetch(API+'/api/pos/members/delete/'+id,{method:'DELETE',headers:headers})
+  fetch(API+'/api/pos/members/delete/'+id,{method:'DELETE',headers:authH()})
   .then(function(){mlCloseForm();loadMembers();})
   .catch(function(){alert('ลบไม่สำเร็จ');});
 };
@@ -310,15 +310,25 @@ window.mlDelete=function(id){
 window.mlImportLocal=function(){
   var old=JSON.parse(localStorage.getItem('viiv_members')||'[]');
   if(!old.length){alert('ไม่มีข้อมูลเก่า');return;}
-  if(!confirm('import '+old.length+' รายการจาก localStorage?'))return;
-  var headers={'Content-Type':'application/json','Authorization':'Bearer '+TOKEN};
-  var done=0;
+  if(!confirm('import '+old.length+' รายการ?'))return;
+  var done=0;var h=authH();
   old.forEach(function(m){
-    fetch(API+'/api/pos/members/create',{method:'POST',headers:headers,body:JSON.stringify(m)})
-    .then(function(){done++;if(done===old.length){localStorage.removeItem('viiv_members');document.getElementById('ml-import-btn').style.display='none';loadMembers();alert('✅ import '+done+' รายการสำเร็จ');}});
+    fetch(API+'/api/pos/members/create',{method:'POST',headers:h,body:JSON.stringify(m)})
+    .then(function(){done++;if(done===old.length){localStorage.removeItem('viiv_members');document.getElementById('ml-import-btn').style.display='none';loadMembers();alert('import '+done+' รายการสำเร็จ');}});
   });
 };
-window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;});
+
+(function(){
+  function _tok_list(e){if(e.detail&&e.detail.token){TOKEN=e.detail.token;}}
+  window.removeEventListener('viiv_token_ready',window._tok_list);
+  window._tok_list=_tok_list;
+  window.addEventListener('viiv_token_ready',_tok_list);
+})();
+
+if(localStorage.getItem('viiv_members')){
+  var btn=document.getElementById('ml-import-btn');
+  if(btn)btn.style.display='inline-block';
+}
 loadMembers();
 })();
 </script>

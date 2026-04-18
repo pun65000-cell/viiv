@@ -336,7 +336,12 @@ window.adjRenderHistory = function(){
   }).join('');
 };
 
-window.addEventListener('viiv_token_ready',function(e){ if(e.detail&&e.detail.token) TOKEN=e.detail.token; loadProducts(); });
+(function(){
+  function _tok_adjust(e){ if(e.detail&&e.detail.token) TOKEN=e.detail.token; loadProducts(); }
+  window.removeEventListener('viiv_token_ready',window._tok_adjust);
+  window._tok_adjust=_tok_adjust;
+  window.addEventListener('viiv_token_ready',_tok_adjust);
+})();
 if(TOKEN) loadProducts();
 })();
 </script>

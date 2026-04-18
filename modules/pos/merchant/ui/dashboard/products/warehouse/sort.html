@@ -147,7 +147,12 @@ window.sortToggleEdit=function(){
   }
 };
 
-window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;loadProducts();});
+(function(){
+  function _tok_sort(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;loadProducts();}
+  window.removeEventListener('viiv_token_ready',window._tok_sort);
+  window._tok_sort=_tok_sort;
+  window.addEventListener('viiv_token_ready',_tok_sort);
+})();
 if(TOKEN)loadProducts();
 })();
 </script>

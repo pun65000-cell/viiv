@@ -156,10 +156,15 @@ function render(bills){
   });
 }
 
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_receipt(e){
   if(e.detail&&e.detail.token) TOKEN=e.detail.token;
   loadBills();
-});
+}
+  window.removeEventListener('viiv_token_ready',window._tok_receipt);
+  window._tok_receipt=_tok_receipt;
+  window.addEventListener('viiv_token_ready',_tok_receipt);
+})();
 if(TOKEN) loadBills(); else rcFilter();
 })();
 </script>

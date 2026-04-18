@@ -149,10 +149,16 @@ function renderBills(bills){
   }).join('');
 }
 
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _salesTodayTokenHandler(e){
+
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   load();
-});
+  }
+  window.removeEventListener('viiv_token_ready', window._salesTodayTokenHandler);
+  window._salesTodayTokenHandler = _salesTodayTokenHandler;
+  window.addEventListener('viiv_token_ready', _salesTodayTokenHandler);
+})();
 if(TOKEN)load();
 })();
 </script>

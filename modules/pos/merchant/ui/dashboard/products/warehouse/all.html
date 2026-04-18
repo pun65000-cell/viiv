@@ -476,7 +476,12 @@ window.waSave=function(){
   } else {doSave('');}
 };
 
-window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;loadProducts();});
+(function(){
+  function _tok_all(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;loadProducts();}
+  window.removeEventListener('viiv_token_ready',window._tok_all);
+  window._tok_all=_tok_all;
+  window.addEventListener('viiv_token_ready',_tok_all);
+})();
 if(TOKEN)loadProducts();
 })();
 </script>

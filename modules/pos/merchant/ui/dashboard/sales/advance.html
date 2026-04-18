@@ -77,10 +77,15 @@ window.saFilter=function(){
   }).join('');
 };
 
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_advance(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   load();
-});
+}
+  window.removeEventListener('viiv_token_ready',window._tok_advance);
+  window._tok_advance=_tok_advance;
+  window.addEventListener('viiv_token_ready',_tok_advance);
+})();
 if(TOKEN)load();
 })();
 </script>

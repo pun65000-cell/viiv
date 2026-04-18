@@ -364,6 +364,14 @@ function loadSubPage(el, file) {
           setTimeout(function(){
             if(!window._tokenReadyFired){
               window._tokenReadyFired=true;
+              // cleanup named handlers จากหน้าก่อน
+              var _tkKeys=Object.keys(window).filter(function(k){return k.startsWith('_tok_')||k.endsWith('TokenHandler');});
+              _tkKeys.forEach(function(k){
+                if(typeof window[k]==='function'){
+                  window.removeEventListener('viiv_token_ready',window[k]);
+                  delete window[k];
+                }
+              });
               window.dispatchEvent(new CustomEvent('viiv_token_ready',{
                 detail:{token: window.VIIV_TOKEN}
               }));

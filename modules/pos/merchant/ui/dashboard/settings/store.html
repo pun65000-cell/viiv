@@ -364,7 +364,8 @@ function saveReceipt(){
   .finally(function(){btn.textContent='บันทึก';btn.disabled=false;});
 }
 
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_store(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   loadSettings();
   // tabs
@@ -406,7 +407,10 @@ window.addEventListener('viiv_token_ready',function(e){
       }
     });
   });
-
+  }
+  window.removeEventListener('viiv_token_ready',window._tok_store);
+  window._tok_store=_tok_store;
+  window.addEventListener('viiv_token_ready',_tok_store);
   // === PAYMENT / BANK ACCOUNTS ===
   var _banks=JSON.parse(localStorage.getItem('viiv_bank_accounts')||'[]');
   var _editBankIdx=-1;

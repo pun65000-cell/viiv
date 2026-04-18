@@ -149,7 +149,12 @@ var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var allProducts=[],allMembers=[],billItems=[],_total=0,_selectedMember=null;
 
 function fmt(n){ return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2}); }
-function reloadMembers(){ allMembers=JSON.parse(localStorage.getItem('viiv_members')||'[]'); }
+function reloadMembers(){
+  if(!TOKEN) return;
+  fetch(API+'/api/pos/members/list?limit=100',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(d){allMembers=d.members||[];});
+}
 function loadData(){
   fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
   .then(function(r){return r.json();})
@@ -450,9 +455,11 @@ window.addEventListener('viiv_load_draft',function(e){
   }
 })();
 
-window.addEventListener('viiv_token_ready',function(e){
+(function(){
+  function _tok_create(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
   loadData();
+  reloadMembers();;
   // INIT - DOM พร้อมแล้ว (guard ทุก element)
   uiDocType();
   calc();
@@ -565,6 +572,10 @@ window.addEventListener('viiv_token_ready',function(e){
     if(sd&&!e.target.closest('.bill-search-wrap'))sd.style.display='none';
     if(md&&!e.target.closest('.bill-meta-row'))md.style.display='none';
   });
+  }
+  window.removeEventListener('viiv_token_ready',window._tok_create);
+  window._tok_create=_tok_create;
+  window.addEventListener('viiv_token_ready',_tok_create);
 });
 })();
 </script>

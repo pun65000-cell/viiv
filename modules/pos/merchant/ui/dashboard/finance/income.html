@@ -100,7 +100,12 @@
     {id:3,src:'มัดจำสินค้า',type:'check',rcv:'สมหญิง รักงาน',amt:5000,dt:'2026-04-16T14:30',log:[]},
   ];
   var EID=null;
-  window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;incRender(REC);});
+  (function(){
+  function _tok_income(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;incRender(REC);}
+  window.removeEventListener('viiv_token_ready',window._tok_income);
+  window._tok_income=_tok_income;
+  window.addEventListener('viiv_token_ready',_tok_income);
+})();
   function tl(t){return t==='cash'?'เงินสด':t==='transfer'?'โอน':'เช็ค';}
   function badge(t){return '<span class="bdg '+t+'">'+tl(t)+'</span>';}
   function fd(s){if(!s)return'-';var d=new Date(s);return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});}

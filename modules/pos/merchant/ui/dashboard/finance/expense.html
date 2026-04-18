@@ -135,7 +135,12 @@
   ];
   var PARTNERS=['บ.ซัพพลาย จำกัด','ร้านวัสดุก่อสร้าง','บ.อาหารดี จำกัด','ร้านไฟฟ้าพัฒนา'];
   var EID=null;
-  window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;expRender(REC);});
+  (function(){
+  function _tok_expense(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;expRender(REC);}
+  window.removeEventListener('viiv_token_ready',window._tok_expense);
+  window._tok_expense=_tok_expense;
+  window.addEventListener('viiv_token_ready',_tok_expense);
+})();
   function tl(t){return t==='cash'?'เงินสด':t==='transfer'?'โอน':'เช็ค';}
   function badge(t){return '<span class="bdg '+t+'">'+tl(t)+'</span>';}
   function fd(s){if(!s)return'-';var d=new Date(s);return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});}

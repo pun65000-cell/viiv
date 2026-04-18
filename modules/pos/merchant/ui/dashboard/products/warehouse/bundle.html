@@ -256,7 +256,12 @@ window.bnDelete = function(i){
   renderBundles();
 };
 
-window.addEventListener('viiv_token_ready',function(e){ if(e.detail&&e.detail.token) TOKEN=e.detail.token; loadProducts(); });
+(function(){
+  function _tok_bundle(e){ if(e.detail&&e.detail.token) TOKEN=e.detail.token; loadProducts(); }
+  window.removeEventListener('viiv_token_ready',window._tok_bundle);
+  window._tok_bundle=_tok_bundle;
+  window.addEventListener('viiv_token_ready',_tok_bundle);
+})();
 if(TOKEN) loadProducts(); else renderBundles();
 })();
 </script>
