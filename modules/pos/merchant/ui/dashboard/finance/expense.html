@@ -1,7 +1,232 @@
-<body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">💸</div>
-  <div style="font-size:14px;">รายจ่าย</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+
+<style>
+*{box-sizing:border-box}
+.fw{padding:0;font-family:'Sarabun',sans-serif}
+.row-top{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.row-top input{flex:1;padding:7px 10px;font-size:13px;font-family:'Sarabun',sans-serif;border:0.5px solid var(--viiv-border,#d4b866);border-radius:6px;background:var(--viiv-bg,#fff);color:var(--viiv-text,#1a1a1a)}
+.row-top input:focus{outline:none;border-color:#E8B93E;box-shadow:0 0 0 2px rgba(232,185,62,.15)}
+.btn-gold{padding:7px 14px;font-size:13px;font-family:'Sarabun',sans-serif;background:#E8B93E;color:#1a1a1a;border:none;border-radius:6px;cursor:pointer;font-weight:600}
+.btn-gold:hover{background:#d4a82e}
+.btn-ai{display:flex;align-items:center;gap:5px;padding:7px 12px;font-size:12px;font-family:'Sarabun',sans-serif;border:1.5px solid #E8B93E;border-radius:6px;background:var(--viiv-bg,#fff);color:#7a5a10;cursor:pointer;white-space:nowrap;font-weight:600}
+.btn-ai:hover{background:rgba(232,185,62,.1)}
+.ai-box{background:rgba(232,185,62,.07);border:1px solid #E8B93E;border-radius:8px;padding:24px 20px;text-align:center;margin-bottom:14px}
+.ai-box h3{font-size:15px;font-weight:600;color:var(--viiv-text,#1a1a1a);margin-bottom:6px}
+.ai-box p{font-size:12px;color:var(--viiv-text-muted,#888);line-height:1.6;margin-bottom:14px}
+.tbl-wrap{border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:8px;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;font-family:'Sarabun',sans-serif}
+.tbl th{background:var(--viiv-card-bg,#fafaf8);padding:8px 10px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.04em;color:var(--viiv-text-muted,#888);border-bottom:0.5px solid var(--viiv-border-light,#ede8d8)}
+.tbl td{padding:9px 10px;border-bottom:0.5px solid var(--viiv-border-light,#ede8d8);color:var(--viiv-text,#1a1a1a)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.row{cursor:pointer}.tbl tr.row:hover{background:rgba(232,185,62,.06)}
+.bdg{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bdg.cash{background:rgba(42,157,110,.1);color:#1a6b48}
+.bdg.transfer{background:rgba(30,100,200,.1);color:#0c447c}
+.bdg.check{background:rgba(232,185,62,.15);color:#7a5a10}
+.amt-p{font-weight:600;color:#1a6b48}.amt-n{font-weight:600;color:#8b2020}
+.empty{text-align:center;padding:32px 0;color:var(--viiv-text-muted,#aaa);font-size:13px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200}
+.mdl{background:var(--viiv-bg,#fff);border-radius:10px;border:1px solid #E8B93E;padding:20px 22px;width:min(500px,96vw);max-height:88vh;overflow-y:auto;font-family:'Sarabun',sans-serif}
+.mdl h3{font-size:15px;font-weight:600;color:var(--viiv-text,#1a1a1a);margin-bottom:16px}
+.fg{margin-bottom:12px}.fg label{display:block;font-size:12px;color:var(--viiv-text-muted,#888);margin-bottom:4px}
+.fg input,.fg select{width:100%;padding:7px 10px;font-size:13px;font-family:'Sarabun',sans-serif;border:0.5px solid var(--viiv-border,#d4b866);border-radius:6px;background:var(--viiv-bg,#fff);color:var(--viiv-text,#1a1a1a);box-sizing:border-box}
+.fg input:focus,.fg select:focus{outline:none;border-color:#E8B93E;box-shadow:0 0 0 2px rgba(232,185,62,.15)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tc-row{display:flex;gap:7px;flex-wrap:wrap}
+.tc{padding:5px 12px;font-size:12px;font-family:'Sarabun',sans-serif;border:1px solid var(--viiv-border,#d4b866);border-radius:6px;cursor:pointer;background:var(--viiv-bg,#fff);color:var(--viiv-text-muted,#888)}
+.tc.on{background:#E8B93E;color:#1a1a1a;border-color:#E8B93E;font-weight:600}
+.sf{display:none;margin-top:6px}.sf.show{display:block}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:0.5px solid var(--viiv-border-light,#ede8d8)}
+.btn-cancel{padding:7px 14px;font-size:13px;font-family:'Sarabun',sans-serif;background:transparent;color:var(--viiv-text-muted,#888);border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:6px;cursor:pointer}
+.btn-del{padding:7px 14px;font-size:13px;font-family:'Sarabun',sans-serif;background:rgba(201,64,64,.08);color:#8b2020;border:0.5px solid rgba(201,64,64,.3);border-radius:6px;cursor:pointer}
+.fin-req{color:#c94040;font-size:11px;margin-left:3px}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+.pw{position:relative}.prow{display:flex;gap:6px}.prow input{flex:1}
+.pdd{position:absolute;top:100%;left:0;right:0;z-index:10;background:var(--viiv-bg,#fff);border:0.5px solid #E8B93E;border-radius:6px;overflow:hidden;display:none;margin-top:2px}
+.pitem{padding:8px 10px;font-size:13px;cursor:pointer;color:var(--viiv-text,#1a1a1a)}.pitem:hover{background:rgba(232,185,62,.1)}
+.pitem+.pitem{border-top:0.5px solid var(--viiv-border-light,#ede8d8)}
+.pform{background:var(--viiv-card-bg,#fafaf8);border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:6px;padding:12px;margin-top:8px;display:none}
+.pform-hd{font-size:12px;font-weight:600;color:var(--viiv-text-muted,#888);margin-bottom:8px}
+.pform-ac{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+</style>
+<div class="fw">
+  <div class="row-top">
+    <input type="text" id="exp-q" placeholder="ค้นหารายจ่าย..." oninput="expFilter()">
+    <button class="btn-ai" onclick="expToggleAi()">✦ AI-สแกนรายจ่าย</button>
+    <button class="btn-gold" onclick="expOpenModal(null)">+ เพิ่ม</button>
+  </div>
+  <div id="exp-ai" style="display:none">
+    <div class="ai-box">
+      <h3>✦ AI สแกนรายจ่ายอัตโนมัติ</h3>
+      <p>อัพโหลดบิล/ใบเสร็จจากคู่ค้า ให้ AI อ่านและบันทึกข้อมูลรายจ่ายโดยอัตโนมัติ รองรับ PNG, JPG, PDF</p>
+      <p style="font-size:11px;color:#7a5a10;margin-bottom:14px">ใช้ได้เฉพาะแพ็คเกจ Pro ขึ้นไป</p>
+      <button class="btn-gold">อัพเกรดเป็น Pro — ตั้งแต่ ฿299/เดือน</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>วัน/เวลา</th><th>คู่ค้า</th><th>ชนิด</th><th>ผู้สั่งจ่าย</th><th style="text-align:right">จำนวน</th></tr></thead>
+      <tbody id="exp-tb"><tr><td colspan="5" class="empty">กำลังโหลด...</td></tr></tbody>
+    </table>
+  </div>
 </div>
-</body>
+<div id="exp-modal" class="ov" style="display:none" onclick="if(event.target===this)expCloseModal()">
+  <div class="mdl">
+    <h3 id="exp-title">เพิ่มรายจ่าย</h3>
+    <div class="fg">
+      <label>คู่ค้า / แหล่งรายจ่าย <span class="fin-req">* บังคับ</span></label>
+      <div class="pw">
+        <div class="prow">
+          <input type="text" id="exp-pt" placeholder="ค้นหาชื่อคู่ค้า..." autocomplete="off" oninput="expPSearch()" onfocus="expPSearch()">
+          <button class="btn-ai" onclick="expTogglePF()">+ สร้างคู่ค้า</button>
+        </div>
+        <div class="pdd" id="exp-pdd"></div>
+      </div>
+      <div class="pform" id="exp-pform">
+        <div class="pform-hd">สร้างคู่ค้าใหม่</div>
+        <div class="fg"><label>ชื่อ / บริษัท</label><input type="text" id="pf-name" placeholder="ชื่อคู่ค้า..."></div>
+        <div class="fr">
+          <div class="fg"><label>เบอร์โทร</label><input type="tel" id="pf-phone" placeholder="0X-XXXX-XXXX"></div>
+          <div class="fg"><label>อีเมล</label><input type="email" id="pf-email" placeholder="email@..."></div>
+        </div>
+        <div class="pform-ac">
+          <button class="btn-cancel" onclick="expTogglePF()">ยกเลิก</button>
+          <button class="btn-gold" onclick="expSavePF()">บันทึกคู่ค้า</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>ชนิดรายจ่าย</label>
+      <div class="tc-row" id="exp-tc">
+        <span class="tc on" data-t="cash" onclick="expSetType(this)">เงินสด</span>
+        <span class="tc" data-t="transfer" onclick="expSetType(this)">โอน</span>
+        <span class="tc" data-t="check" onclick="expSetType(this)">เช็ค</span>
+      </div>
+      <div class="sf" id="exp-sf-tr"><input type="text" placeholder="ธนาคาร / เลขอ้างอิง..."></div>
+      <div class="sf" id="exp-sf-ch"><input type="text" placeholder="เลขเช็ค / ธนาคาร / วันครบกำหนด..."></div>
+    </div>
+    <div class="fg">
+      <label>รูปภาพบิล <span class="fin-req">* บังคับ</span></label>
+      <input type="file" id="exp-img" accept="image/*,application/pdf">
+      <div id="exp-prev" style="display:none;margin-top:6px"><img id="exp-thumb" src="" style="max-height:80px;border-radius:4px;border:0.5px solid var(--viiv-border-light,#ede8d8)"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>จำนวนเงิน (฿)</label><input type="number" id="exp-amt" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="fg"><label>วันและเวลา</label><input type="datetime-local" id="exp-dt"></div>
+    </div>
+    <div class="fg"><label>ผู้สั่งจ่าย</label>
+      <select id="exp-pyr"><option value="">— ตามชื่อผู้ใช้งาน —</option><option>สมหญิง รักงาน</option><option>วิชัย ทำดี</option></select>
+    </div>
+    <div class="ma">
+      <button class="btn-del" id="exp-del" style="display:none" onclick="expDelete()">ลบรายการ</button>
+      <button class="btn-cancel" onclick="expCloseModal()">ยกเลิก</button>
+      <button class="btn-gold" onclick="expSave()">บันทึก</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var TOKEN='';
+  var REC=[
+    {id:1,pt:'บ.ซัพพลาย จำกัด',type:'transfer',pyr:'สมชาย ใจดี',amt:8200,dt:'2026-04-17T08:00',log:[]},
+    {id:2,pt:'ร้านวัสดุก่อสร้าง',type:'cash',pyr:'วิชัย ทำดี',amt:1400,dt:'2026-04-17T10:30',log:[]},
+    {id:3,pt:'บ.ซัพพลาย จำกัด',type:'check',pyr:'สมชาย ใจดี',amt:32000,dt:'2026-04-15T09:00',log:[]},
+  ];
+  var PARTNERS=['บ.ซัพพลาย จำกัด','ร้านวัสดุก่อสร้าง','บ.อาหารดี จำกัด','ร้านไฟฟ้าพัฒนา'];
+  var EID=null;
+  window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;expRender(REC);});
+  function tl(t){return t==='cash'?'เงินสด':t==='transfer'?'โอน':'เช็ค';}
+  function badge(t){return '<span class="bdg '+t+'">'+tl(t)+'</span>';}
+  function fd(s){if(!s)return'-';var d=new Date(s);return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});}
+  function expRender(data){
+    var tbody=document.getElementById('exp-tb');
+    if(!tbody)return;
+    if(!data.length){tbody.innerHTML='<tr><td colspan="5" class="empty">ไม่มีรายการ</td></tr>';return;}
+    tbody.innerHTML=data.map(function(r){
+      return '<tr class="row" onclick="expOpenModal('+r.id+')"><td>'+fd(r.dt)+'</td><td>'+r.pt+'</td><td>'+badge(r.type)+'</td><td>'+r.pyr+'</td><td style="text-align:right"><span class="amt-n">-฿'+r.amt.toLocaleString('th-TH')+'</span></td></tr>';
+    }).join('');
+  }
+  window.expFilter=function(){
+    var q=document.getElementById('exp-q').value.toLowerCase();
+    expRender(REC.filter(function(r){return r.pt.toLowerCase().includes(q)||r.pyr.toLowerCase().includes(q)||String(r.amt).includes(q);}));
+  };
+  window.expToggleAi=function(){var p=document.getElementById('exp-ai');p.style.display=p.style.display==='none'?'block':'none';};
+  window.expOpenModal=function(id){
+    EID=id;
+    var now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+    if(id){
+      var r=REC.find(function(x){return x.id===id;});
+      document.getElementById('exp-title').textContent='แก้ไขรายจ่าย';
+      document.getElementById('exp-pt').value=r.pt;
+      document.getElementById('exp-amt').value=r.amt;
+      document.getElementById('exp-dt').value=r.dt;
+      document.getElementById('exp-del').style.display='inline-block';
+      setTC('exp-tc','exp-sf-tr','exp-sf-ch',r.type);
+    } else {
+      document.getElementById('exp-title').textContent='เพิ่มรายจ่าย';
+      document.getElementById('exp-pt').value='';
+      document.getElementById('exp-amt').value='';
+      document.getElementById('exp-dt').value=now.toISOString().slice(0,16);
+      document.getElementById('exp-del').style.display='none';
+      setTC('exp-tc','exp-sf-tr','exp-sf-ch','cash');
+    }
+    document.getElementById('exp-pform').style.display='none';
+    document.getElementById('exp-pdd').style.display='none';
+    document.getElementById('exp-modal').style.display='flex';
+  };
+  window.expCloseModal=function(){document.getElementById('exp-modal').style.display='none';};
+  window.expPSearch=function(){
+    var q=document.getElementById('exp-pt').value.toLowerCase();
+    var dd=document.getElementById('exp-pdd');
+    var m=PARTNERS.filter(function(p){return p.toLowerCase().includes(q);});
+    if(!m.length||!q){dd.style.display='none';return;}
+    dd.innerHTML=m.map(function(p){return'<div class="pitem" onmousedown="expPickP(&quot;'+p+'&quot;)">'+p+'</div>';}).join('');
+    dd.style.display='block';
+  };
+  document.addEventListener('click',function(e){if(!e.target.closest('.pw'))document.getElementById('exp-pdd').style.display='none';});
+  window.expPickP=function(name){document.getElementById('exp-pt').value=name;document.getElementById('exp-pdd').style.display='none';};
+  window.expTogglePF=function(){var pf=document.getElementById('exp-pform');pf.style.display=pf.style.display==='none'?'block':'none';};
+  window.expSavePF=function(){
+    var n=document.getElementById('pf-name').value.trim();
+    if(!n){alert('กรุณากรอกชื่อคู่ค้า');return;}
+    if(!PARTNERS.includes(n))PARTNERS.push(n);
+    document.getElementById('exp-pt').value=n;
+    document.getElementById('exp-pform').style.display='none';
+    document.getElementById('pf-name').value='';
+    document.getElementById('pf-phone').value='';
+    document.getElementById('pf-email').value='';
+  };
+  window.expSetType=function(el){
+    document.querySelectorAll('#exp-tc .tc').forEach(function(c){c.classList.remove('on');});
+    el.classList.add('on');
+    var t=el.dataset.t;
+    document.getElementById('exp-sf-tr').classList.toggle('show',t==='transfer');
+    document.getElementById('exp-sf-ch').classList.toggle('show',t==='check');
+  };
+  function setTC(rowId,trId,chId,val){
+    document.querySelectorAll('#'+rowId+' .tc').forEach(function(c){c.classList.toggle('on',c.dataset.t===val);});
+    document.getElementById(trId).classList.toggle('show',val==='transfer');
+    document.getElementById(chId).classList.toggle('show',val==='check');
+  }
+  document.getElementById('exp-img').addEventListener('change',function(){
+    var f=this.files[0];
+    if(f&&f.type.startsWith('image/')){document.getElementById('exp-thumb').src=URL.createObjectURL(f);document.getElementById('exp-prev').style.display='block';}
+  });
+  window.expSave=function(){
+    var pt=document.getElementById('exp-pt').value.trim();
+    if(!pt){alert('กรุณาเลือกคู่ค้า');return;}
+    if(!EID&&!document.getElementById('exp-img').files.length){alert('กรุณาอัพโหลดรูปภาพบิล (บังคับ)');return;}
+    var amt=parseFloat(document.getElementById('exp-amt').value)||0;
+    var pyr=document.getElementById('exp-pyr').value||'ผู้ใช้งาน';
+    var typ=document.querySelector('#exp-tc .tc.on').dataset.t;
+    var dt=document.getElementById('exp-dt').value;
+    var log={at:new Date().toISOString(),action:EID?'แก้ไข':'สร้าง',by:pyr};
+    if(EID){var r=REC.find(function(x){return x.id===EID;});r.pt=pt;r.amt=amt;r.type=typ;r.pyr=pyr;r.dt=dt;r.log.push(log);}
+    else{REC.unshift({id:Date.now(),pt:pt,type:typ,pyr:pyr,amt:amt,dt:dt,log:[log]});}
+    expCloseModal();expRender(REC);
+  };
+  window.expDelete=function(){if(!confirm('ลบรายการนี้?'))return;REC=REC.filter(function(x){return x.id!==EID;});expCloseModal();expRender(REC);};
+  expRender(REC);
+})();
+</script>

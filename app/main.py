@@ -157,7 +157,9 @@ app.include_router(tenant_staff_router)
 app.include_router(pos_products_router)
 app.include_router(customers_router, prefix="/api/customers")
 from app.api.pos_bills import router as pos_bills_router
+from app.api.pos_members import router as pos_members_router
 app.include_router(pos_bills_router)
+app.include_router(pos_members_router)
 from app.api.pos_store import router as pos_store_router
 app.include_router(pos_store_router)
 from app.api.pos_affiliate import router as pos_affiliate_router

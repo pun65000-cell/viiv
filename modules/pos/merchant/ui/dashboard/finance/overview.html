@@ -1,7 +1,131 @@
-<body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">◉</div>
-  <div style="font-size:14px;">ภาพรวมการเงิน</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+
+<style>
+*{box-sizing:border-box}
+.fw{padding:0;font-family:'Sarabun',sans-serif}
+.row-top{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.row-top input{flex:1;padding:7px 10px;font-size:13px;font-family:'Sarabun',sans-serif;border:0.5px solid var(--viiv-border,#d4b866);border-radius:6px;background:var(--viiv-bg,#fff);color:var(--viiv-text,#1a1a1a)}
+.row-top input:focus{outline:none;border-color:#E8B93E;box-shadow:0 0 0 2px rgba(232,185,62,.15)}
+.btn-gold{padding:7px 14px;font-size:13px;font-family:'Sarabun',sans-serif;background:#E8B93E;color:#1a1a1a;border:none;border-radius:6px;cursor:pointer;font-weight:600}
+.btn-gold:hover{background:#d4a82e}
+.btn-ai{display:flex;align-items:center;gap:5px;padding:7px 12px;font-size:12px;font-family:'Sarabun',sans-serif;border:1.5px solid #E8B93E;border-radius:6px;background:var(--viiv-bg,#fff);color:#7a5a10;cursor:pointer;white-space:nowrap;font-weight:600}
+.btn-ai:hover{background:rgba(232,185,62,.1)}
+.ai-box{background:rgba(232,185,62,.07);border:1px solid #E8B93E;border-radius:8px;padding:24px 20px;text-align:center;margin-bottom:14px}
+.ai-box h3{font-size:15px;font-weight:600;color:var(--viiv-text,#1a1a1a);margin-bottom:6px}
+.ai-box p{font-size:12px;color:var(--viiv-text-muted,#888);line-height:1.6;margin-bottom:14px}
+.tbl-wrap{border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:8px;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;font-family:'Sarabun',sans-serif}
+.tbl th{background:var(--viiv-card-bg,#fafaf8);padding:8px 10px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.04em;color:var(--viiv-text-muted,#888);border-bottom:0.5px solid var(--viiv-border-light,#ede8d8)}
+.tbl td{padding:9px 10px;border-bottom:0.5px solid var(--viiv-border-light,#ede8d8);color:var(--viiv-text,#1a1a1a)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.row{cursor:pointer}.tbl tr.row:hover{background:rgba(232,185,62,.06)}
+.bdg{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bdg.cash{background:rgba(42,157,110,.1);color:#1a6b48}
+.bdg.transfer{background:rgba(30,100,200,.1);color:#0c447c}
+.bdg.check{background:rgba(232,185,62,.15);color:#7a5a10}
+.amt-p{font-weight:600;color:#1a6b48}.amt-n{font-weight:600;color:#8b2020}
+.empty{text-align:center;padding:32px 0;color:var(--viiv-text-muted,#aaa);font-size:13px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200}
+.mdl{background:var(--viiv-bg,#fff);border-radius:10px;border:1px solid #E8B93E;padding:20px 22px;width:min(500px,96vw);max-height:88vh;overflow-y:auto;font-family:'Sarabun',sans-serif}
+.mdl h3{font-size:15px;font-weight:600;color:var(--viiv-text,#1a1a1a);margin-bottom:16px}
+.fg{margin-bottom:12px}.fg label{display:block;font-size:12px;color:var(--viiv-text-muted,#888);margin-bottom:4px}
+.fg input,.fg select{width:100%;padding:7px 10px;font-size:13px;font-family:'Sarabun',sans-serif;border:0.5px solid var(--viiv-border,#d4b866);border-radius:6px;background:var(--viiv-bg,#fff);color:var(--viiv-text,#1a1a1a);box-sizing:border-box}
+.fg input:focus,.fg select:focus{outline:none;border-color:#E8B93E;box-shadow:0 0 0 2px rgba(232,185,62,.15)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tc-row{display:flex;gap:7px;flex-wrap:wrap}
+.tc{padding:5px 12px;font-size:12px;font-family:'Sarabun',sans-serif;border:1px solid var(--viiv-border,#d4b866);border-radius:6px;cursor:pointer;background:var(--viiv-bg,#fff);color:var(--viiv-text-muted,#888)}
+.tc.on{background:#E8B93E;color:#1a1a1a;border-color:#E8B93E;font-weight:600}
+.sf{display:none;margin-top:6px}.sf.show{display:block}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:0.5px solid var(--viiv-border-light,#ede8d8)}
+.btn-cancel{padding:7px 14px;font-size:13px;font-family:'Sarabun',sans-serif;background:transparent;color:var(--viiv-text-muted,#888);border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:6px;cursor:pointer}
+.btn-del{padding:7px 14px;font-size:13px;font-family:'Sarabun',sans-serif;background:rgba(201,64,64,.08);color:#8b2020;border:0.5px solid rgba(201,64,64,.3);border-radius:6px;cursor:pointer}
+.fin-req{color:#c94040;font-size:11px;margin-left:3px}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+.sc{background:var(--viiv-card-bg,#fafaf8);border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:8px;padding:12px 14px}
+.sc .lb{font-size:11px;color:var(--viiv-text-muted,#888);margin-bottom:4px}
+.sc .vl{font-size:20px;font-weight:600;color:var(--viiv-text,#1a1a1a)}
+.sc .sb{font-size:11px;color:var(--viiv-text-muted,#aaa);margin-top:3px}
+.sc.gold{border-left:3px solid #E8B93E}.sc.gold .vl{color:#7a5a10}
+.sc.grn{border-left:3px solid #2a9d6e}.sc.grn .vl{color:#1a6b48}
+.sc.red{border-left:3px solid #c94040}.sc.red .vl{color:#8b2020}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.sec{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--viiv-text-muted,#aaa);margin:16px 0 8px;padding-bottom:6px;border-bottom:0.5px solid var(--viiv-border-light,#ede8d8)}
+.cb{background:var(--viiv-card-bg,#fafaf8);border:0.5px solid var(--viiv-border-light,#ede8d8);border-radius:8px;padding:14px;margin-bottom:14px}
+.lg{display:flex;gap:14px;margin-bottom:8px}
+.lg span{font-size:11px;color:var(--viiv-text-muted,#888);display:flex;align-items:center;gap:4px}
+.lg span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:2px}
+.lg .i::before{background:#2a9d6e}.lg .e::before{background:#c94040}
+</style>
+<div class="fw">
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+    <select id="ov-m" onchange="ovLoad()" style="padding:6px 10px;font-size:12px;font-family:'Sarabun',sans-serif;border:0.5px solid var(--viiv-border,#d4b866);border-radius:6px;background:var(--viiv-bg,#fff);color:var(--viiv-text,#1a1a1a)">
+      <option value="04-2026">เมษายน 2569</option><option value="03-2026">มีนาคม 2569</option><option value="02-2026">กุมภาพันธ์ 2569</option>
+    </select>
+    <span style="font-size:12px;color:var(--viiv-text-muted,#888)">| วันนี้ <span id="ov-td"></span></span>
+  </div>
+  <div class="g3">
+    <div class="sc gold"><div class="lb">ยอดขายรวม (เดือน)</div><div class="vl" id="ov-s">—</div><div class="sb" id="ov-sv"></div></div>
+    <div class="sc"><div class="lb">ต้นทุนรวม</div><div class="vl" id="ov-c">—</div><div class="sb" id="ov-cp"></div></div>
+    <div class="sc grn"><div class="lb">กำไรสุทธิ</div><div class="vl" id="ov-p">—</div><div class="sb" id="ov-pv"></div></div>
+  </div>
+  <div class="g2">
+    <div class="sc grn"><div class="lb">รายรับรวม (เดือน)</div><div class="vl" id="ov-i">—</div><div class="sb" id="ov-ic"></div></div>
+    <div class="sc red"><div class="lb">รายจ่ายรวม (เดือน)</div><div class="vl" id="ov-e">—</div><div class="sb" id="ov-ec"></div></div>
+  </div>
+  <div class="sec">กราฟยอดรายวัน</div>
+  <div class="cb">
+    <div class="lg"><span class="i">รายรับ</span><span class="e">รายจ่าย</span></div>
+    <canvas id="ov-chart" height="140"></canvas>
+  </div>
+  <div class="sec">สรุปวันนี้</div>
+  <div class="g3">
+    <div class="sc grn"><div class="lb">รายรับวันนี้</div><div class="vl" id="ov-ti">—</div><div class="sb" id="ov-tic"></div></div>
+    <div class="sc red"><div class="lb">รายจ่ายวันนี้</div><div class="vl" id="ov-te">—</div><div class="sb" id="ov-tec"></div></div>
+    <div class="sc"><div class="lb">คงเหลือสุทธิวันนี้</div><div class="vl" id="ov-tn">—</div><div class="sb" id="ov-tnl"></div></div>
+  </div>
 </div>
-</body>
+<script>
+(function(){
+  var TOKEN='';
+  var _ch=null;
+  window.addEventListener('viiv_token_ready',function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;ovLoad();});
+  var TM=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  function fm(n){return '฿'+Math.round(n).toLocaleString('th-TH');}
+  window.ovLoad=function(){
+    var now=new Date();
+    var el=document.getElementById('ov-td');
+    if(el)el.textContent=now.getDate()+' '+TM[now.getMonth()]+' '+(now.getFullYear()+543);
+    var d={s:284500,c:112300,p:172200,sv:'+12%',pv:'+฿18,400',i:296800,ic:128,e:124600,ec:54,ti:18400,tic:7,te:4200,tec:3,
+           lb:['1','3','5','7','9','11','13','15','17'],
+           ci:[12000,18500,9200,22000,15600,28000,11000,19800,18400],
+           ce:[4200,7800,3100,9500,6200,12000,4800,8100,4200]};
+    function set(id,v){var x=document.getElementById(id);if(x)x.textContent=v;}
+    set('ov-s',fm(d.s));set('ov-sv',d.sv+' vs เดือนก่อน');
+    set('ov-c',fm(d.c));set('ov-cp',Math.round(d.c/d.s*100)+'% ของยอดขาย');
+    set('ov-p',fm(d.p));set('ov-pv',d.pv+' vs เดือนก่อน');
+    set('ov-i',fm(d.i));set('ov-ic',d.ic+' รายการ');
+    set('ov-e',fm(d.e));set('ov-ec',d.ec+' รายการ');
+    set('ov-ti',fm(d.ti));set('ov-tic',d.tic+' รายการ');
+    set('ov-te',fm(d.te));set('ov-tec',d.tec+' รายการ');
+    var net=d.ti-d.te;
+    set('ov-tn',(net>=0?'+':'')+fm(net));set('ov-tnl',net>=0?'กำไรวันนี้':'ขาดทุนวันนี้');
+    var ctx=document.getElementById('ov-chart');
+    if(!ctx)return;
+    function doChart(){
+      if(typeof Chart==='undefined'){setTimeout(doChart,200);return;}
+      if(_ch){_ch.destroy();}
+      _ch=new Chart(ctx,{type:'bar',data:{labels:d.lb,datasets:[
+        {label:'รายรับ',data:d.ci,backgroundColor:'rgba(42,157,110,.75)',borderRadius:4,borderSkipped:false},
+        {label:'รายจ่าย',data:d.ce,backgroundColor:'rgba(201,64,64,.6)',borderRadius:4,borderSkipped:false}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:11,family:'Sarabun'}}},
+                y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11,family:'Sarabun'},callback:function(v){return v>=1000?'฿'+(v/1000).toFixed(0)+'K':'฿'+v;}}}}}});
+    }
+    doChart();
+  };
+  if(TOKEN)ovLoad();
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onload="if(typeof ovLoad==='function')ovLoad()"></script>
