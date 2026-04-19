@@ -34,7 +34,7 @@ body{margin:0;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
 #printPage{font-family:'Sarabun',sans-serif!important;font-size:13px;}
 .doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-.doc-logo{width:70px;height:70px;object-fit:contain;}
+.doc-logo{width:70px;height:70px;object-fit:contain;border-radius:10px;}
 .doc-store-info{font-size:11px;line-height:1.5;}
 .doc-store-name{font-size:15px;font-weight:700;color:#e8b93e;}
 .doc-title{text-align:right;font-size:12px;line-height:1.6;}
@@ -54,8 +54,8 @@ body{margin:0;padding:0;}
 .doc-summary-row{display:flex;justify-content:space-between;padding:2px 0;}
 .doc-summary-total{font-size:16px;font-weight:700;color:#e8b93e;border-top:2px solid #000;padding-top:4px;}
 .doc-sign-box{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;border:1px solid #000;padding:10px;font-size:10px;margin-top:8px;}
-.doc-sign-item{text-align:center;}
-.doc-sign-line{border-bottom:1px dotted #000;margin:16px 4px 2px;}
+.doc-sign-item{text-align:center;display:flex;flex-direction:column;justify-content:flex-end;}
+.doc-sign-line{border-bottom:1px dotted #000;margin:33px 4px 2px;}
 .doc-footer{text-align:center;font-size:10px;color:#6b7280;margin-top:10px;}
 .doc-customer{font-size:11px;margin-bottom:8px;line-height:1.6;}
 .doc-label{font-weight:700;}
@@ -69,6 +69,26 @@ if(!TOKEN){ setTimeout(function(){ TOKEN=localStorage.getItem('viiv_token')||'';
 var _bill=null, _store=null, _form=1;
 
 function fmt(n){ return (parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2}); }
+function buildBankBlock(store){
+  if(!store.show_bank_in_receipt) return '';
+  var banks=[];
+  try{ banks=JSON.parse(localStorage.getItem('viiv_bank_accounts')||'[]'); }catch(e){}
+  if(!banks.length) return '';
+  var def=banks.find(function(b){return b.is_default;})||banks[0];
+  if(!def) return '';
+  var html='<div style="display:flex;align-items:center;gap:12px;margin-top:8px;padding:8px 12px;border:1px solid #e5e5e5;border-radius:8px;font-size:10px;">';
+  if(def.qr_url){
+    html+='<img src="'+def.qr_url+'" style="width:52px;height:52px;object-fit:contain;flex-shrink:0;">';
+  }
+  html+='<div>';
+  html+='<div style="font-weight:700;font-size:11px;">'+def.bank_name+'</div>';
+  html+='<div>'+def.acc_name+' | '+def.acc_no+(def.branch?' สาขา '+def.branch:'')+'</div>';
+  if(def.bank_shop_name||def.bank_shop_id){
+    html+='<div style="color:#6b7280;">'+[def.bank_shop_name,def.bank_shop_id].filter(Boolean).join(' | ')+'</div>';
+  }
+  html+='</div></div>';
+  return html;
+}
 function fmtDate(d){ return d?new Date(d).toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'}):''; }
 function fmtDateTime(d){ return d?new Date(d).toLocaleString('th-TH'):''; }
 
@@ -124,7 +144,7 @@ function customerBlock(){
   var fullAddr=[addr,road,sub,dist,prov,zip].filter(Boolean).join(' ');
   var sched=_bill.scheduled_at?new Date(_bill.scheduled_at).toLocaleString('th-TH'):'-';
   var created=_bill.created_at?new Date(_bill.created_at).toLocaleDateString('th-TH'):'-';
-  var staff=_bill.created_by||'-';
+  var staff=_bill.staff_name||_bill.created_by||'-';
   var credit=cd?cd.credit||'-':'-';
   var branch=_store&&_store.branch_code?_store.branch_code:cd?cd.branch||'-':'-';
   var dueDate=_bill.scheduled_at?new Date(_bill.scheduled_at).toLocaleDateString('th-TH'):'-';
@@ -222,7 +242,7 @@ function summaryBlock(showVat){
 }
 
 function signBlock(cols){
-  var items=cols||['ผู้ส่งสินค้า/Delivered By','ผู้รับสินค้า/Received By','ผู้จัดทำ/Prepared By','ผู้มีอำนาจลงนาม/Authorized Signature'];
+  var items=cols||['ผู้ส่งสินค้า/Delivered By','ผู้รับสินค้า/Received By','ผู้จัดทำ/Prepared By','ผู้อนุมัติ/Authorized'];
   return '<div class="doc-sign-box" style="grid-template-columns:repeat('+items.length+',1fr);">'+
     items.map(function(label){
       return '<div class="doc-sign-item"><div class="doc-sign-line"></div><div>'+label+'</div><div>วันที่......./......./.......</div></div>';
@@ -261,11 +281,10 @@ window.renderForm = function renderForm(f){
       itemsTable(false,true)+
       summaryBlock(f==3)+
       (f==1?'<div style="font-size:10px;margin-bottom:6px;">หมายเหตุ: '+(_bill.note||'แก้ไขใบส่งของกรุณาติดต่อภายใน 7 วัน')+'</div>':'')+
-      signBlock(f==1?['ผู้รับสินค้า/Received By','ผู้ส่งสินค้า/Delivered By','ผู้จัดทำ/Prepared By','ผู้มีอำนาจลงนาม/Authorized Signature']:null)+
-      '<div class="doc-footer">'+(_store.store_name||'')+
-        (_store.phone?' โทร: '+_store.phone:'')+
-        (_store.tax_id?' รหัสร้านค้า: '+_store.tax_id:'')+
-      '</div>';
+      signBlock(f==1?['ผู้รับสินค้า/Received By','ผู้ส่งสินค้า/Delivered By','ผู้จัดทำ/Prepared By','ผู้อนุมัติ/Authorized']:null)+
+      
+      (_store.show_footer_text&&_store.footer_text?'<div style="text-align:center;font-size:10px;color:#374151;margin-top:4px;padding-top:4px;border-top:1px dashed #e5e5e5;">'+_store.footer_text+'</div>':'')+
+      buildBankBlock(_store);
   }
   else if(f==4||f==5){
     var title4={4:'ใบเสร็จรับเงิน/ใบกำกับภาษี',5:'ใบส่งของชั่วคราว/ใบกำกับภาษี'};

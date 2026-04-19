@@ -103,6 +103,17 @@
           <input type="checkbox" id="stShowAddress" style="width:16px;height:16px;accent-color:#e8b93e;"/>
           แสดงที่อยู่ในใบเสร็จ
         </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="stShowBankInReceipt" style="width:16px;height:16px;accent-color:#e8b93e;"/>
+          แสดงบัญชีธนาคาร / QR ในใบเสร็จ
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="stShowFooterText" style="width:16px;height:16px;accent-color:#e8b93e;"/>
+          แสดงข้อความท้ายใบเสร็จ
+        </label>
+        <div id="stFooterTextWrap" style="display:none;margin-top:4px;">
+          <textarea id="stFooterText" rows="2" placeholder="เช่น ขอบคุณที่ใช้บริการ / เงื่อนไขการคืนสินค้า" style="width:100%;padding:8px 10px;border:1px solid #d4b866;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:13px;resize:vertical;outline:none;"></textarea>
+        </div>
       </div>
       <div class="st-actions">
         <button class="st-btn-cancel" id="stReceiptCancelBtn">ยกเลิก</button>
@@ -168,6 +179,19 @@
               <input type="checkbox" id="stBankDefault" style="accent-color:#e8b93e;margin-right:6px;"/>
               ตั้งเป็นค่าเริ่มต้น
             </label>
+          </div>
+          <div class="st-field" style="background:#fdf6e3;border:1px solid #ede8d8;border-radius:8px;padding:10px;grid-column:1/-1;">
+            <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:block;">My Bank Shop (ไม่บังคับ)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div>
+                <label style="font-size:11px;color:#888;">ชื่อร้าน</label>
+                <input type="text" id="stBankShopName" class="st-input" placeholder="เช่น iAM-Food Shop" style="margin-top:3px;">
+              </div>
+              <div>
+                <label style="font-size:11px;color:#888;">รหัสร้านค้า</label>
+                <input type="text" id="stBankShopId" class="st-input" placeholder="เช่น 01400007725997" style="margin-top:3px;">
+              </div>
+            </div>
           </div>
           <div class="st-field full">
             <label>QR รับเงิน (ไม่บังคับ)</label>
@@ -272,11 +296,33 @@ function loadSettings(){
     document.getElementById('stBillStartSeq').value=d.bill_start_seq||1;
     document.getElementById('stShowTaxId').checked=d.show_tax_id!==false;
     document.getElementById('stShowAddress').checked=d.show_address!==false;
+    var sbi=document.getElementById('stShowBankInReceipt');
+    if(sbi)sbi.checked=d.show_bank_in_receipt===true;
+    var sft=document.getElementById('stShowFooterText');
+    if(sft){sft.checked=d.show_footer_text===true;document.getElementById('stFooterTextWrap').style.display=d.show_footer_text?'block':'none';}
+    var ftxt=document.getElementById('stFooterText');
+    if(ftxt)ftxt.value=d.footer_text||'';
+    var bsn=document.getElementById('stBankShopName');
+    if(bsn)bsn.value=d.bank_shop_name||'';
+    var bsi=document.getElementById('stBankShopId');
+    if(bsi)bsi.value=d.bank_shop_id||'';
     updatePreview();
   })
   .catch(function(){});
 }
 
+document.addEventListener('change',function(e){
+  if(e.target.id==='stShowFooterText'){
+    document.getElementById('stFooterTextWrap').style.display=e.target.checked?'block':'none';
+  }
+});
+function saveBankShop(){
+  var name=document.getElementById('stBankShopName').value.trim();
+  var id=document.getElementById('stBankShopId').value.trim();
+  localStorage.setItem('viiv_bank_shop',JSON.stringify({name:name,id:id}));
+  var btn=event.target;btn.textContent='✓ บันทึก';
+  setTimeout(function(){btn.textContent='บันทึก';},1500);
+}
 function resetStore(){
   var d=_origData;
   document.getElementById('stStoreName').value=d.store_name||'';
@@ -317,6 +363,7 @@ function saveStore(){
       district:document.getElementById('stDistrict').value.trim(),
       province:document.getElementById('stProvince').value.trim(),
       postal_code:document.getElementById('stPostal').value.trim(),
+      branch_code:(document.getElementById('stBranchCode')||{value:''}).value.trim(),
       bill_prefix:_origData.bill_prefix||'BILL',
       inv_prefix:_origData.inv_prefix||'INV',
       bill_start_seq:_origData.bill_start_seq||1,
@@ -353,7 +400,10 @@ function saveReceipt(){
     inv_prefix:document.getElementById('stInvPrefix').value||'INV',
     bill_start_seq:parseInt(document.getElementById('stBillStartSeq').value)||1,
     show_tax_id:document.getElementById('stShowTaxId').checked,
-    show_address:document.getElementById('stShowAddress').checked
+    show_address:document.getElementById('stShowAddress').checked,
+    show_bank_in_receipt:(document.getElementById('stShowBankInReceipt')||{}).checked||false,
+    show_footer_text:(document.getElementById('stShowFooterText')||{}).checked||false,
+    footer_text:(document.getElementById('stFooterText')||{value:''}).value.trim()
   });
   if(!payload.store_name){payload.store_name='ร้านค้า';}
   if(!payload.phone){payload.phone='-';}
@@ -398,7 +448,7 @@ function saveReceipt(){
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-size:13px;font-weight:700;">'+b.bank_name+'</div>'+
           '<div style="font-size:12px;color:#6b7280;">'+b.acc_name+' | '+b.acc_no+(b.branch?' | '+b.branch:'')+'</div>'+
-          '<div style="font-size:11px;color:#9ca3af;">'+b.acc_type+(b.is_default?' &nbsp;<span style="background:#e8b93e;color:#1a1200;padding:1px 7px;border-radius:10px;font-size:10px;">ค่าเริ่มต้น</span>':'')+'</div>'+
+          '<div style="font-size:11px;color:#9ca3af;">'+b.acc_type+(b.is_default?' &nbsp;<span style="background:#e8b93e;color:#1a1200;padding:1px 7px;border-radius:10px;font-size:10px;">ค่าเริ่มต้น</span>':'')+(b.bank_shop_name?' &nbsp;<span style="background:#ebf8ff;color:#2b6cb0;padding:1px 7px;border-radius:10px;font-size:10px;">&#x1F3EA; '+b.bank_shop_name+'</span>':'')+'</div>'+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-shrink:0;">'+
           '<button data-idx="'+i+'" class="stBankEditBtn" style="padding:5px 10px;background:#f0ede8;border:1px solid #d1d5db;border-radius:7px;font-size:11px;cursor:pointer;">แก้ไข</button>'+
@@ -430,6 +480,8 @@ function saveReceipt(){
     document.getElementById('stBankAccName').value=b.acc_name||'';
     document.getElementById('stBankAccNo').value=b.acc_no||'';
     document.getElementById('stBankBranch').value=b.branch||'';
+      var bsn=document.getElementById('stBankShopName');if(bsn)bsn.value=b.bank_shop_name||'';
+      var bsi=document.getElementById('stBankShopId');if(bsi)bsi.value=b.bank_shop_id||'';
     document.getElementById('stBankDefault').checked=b.is_default||false;
     document.getElementById('stQrName').textContent='';
     var qrPrev=document.getElementById('stQrPreview');
@@ -456,6 +508,8 @@ function saveReceipt(){
         acc_name:accName,
         acc_no:accNo,
         branch:document.getElementById('stBankBranch').value.trim(),
+        bank_shop_name:(document.getElementById('stBankShopName')||{value:''}).value.trim(),
+        bank_shop_id:(document.getElementById('stBankShopId')||{value:''}).value.trim(),
         is_default:document.getElementById('stBankDefault').checked,
         qr_url:qrUrl||(_editBankIdx>=0?_banks[_editBankIdx].qr_url:'')
       };
@@ -469,7 +523,7 @@ function saveReceipt(){
     }
     if(_qrFile){
       var fd=new FormData();fd.append('file',_qrFile);
-      fetch(API+'/api/pos/store/upload-logo',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+      fetch(API+'/api/pos/store/upload-qr',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
       .then(function(r){return r.json();})
       .then(function(d){doSave(d.url||'');})
       .catch(function(){doSave('');});

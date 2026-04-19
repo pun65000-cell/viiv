@@ -206,7 +206,20 @@ def get_bill(bid: str, authorization: str = Header("")):
     with engine.connect() as c:
         r = c.execute(text("SELECT * FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
         if not r: raise HTTPException(404,"ไม่พบบิล")
-    return dict(r._mapping)
+        d = dict(r._mapping)
+        if d.get("created_by"):
+            cb=d["created_by"]
+            s=c.execute(text("SELECT first_name,last_name FROM tenant_staff WHERE id=:id AND tenant_id=:tid"),{"id":cb,"tid":tid}).fetchone()
+            if s:
+                d["staff_name"]=((s.first_name or "")+" "+(s.last_name or "")).strip()
+            else:
+                u=c.execute(text("SELECT full_name,email FROM users WHERE id=:id"),{"id":cb}).fetchone()
+                if u and u.full_name: d["staff_name"]=u.full_name
+                elif u and u.email: d["staff_name"]=u.email.split("@")[0]
+                else: d["staff_name"]=cb
+        else:
+            d["staff_name"]="-"
+    return d
 
 @router.post("/void/{bid}")
 def void_bill(bid: str, payload: dict, authorization: str = Header("")):
