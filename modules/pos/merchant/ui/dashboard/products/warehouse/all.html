@@ -139,7 +139,8 @@ function renderList(products){
           '<div style="font-size:11px;font-weight:700;" class="wa-card-margin '+mClass+'">Margin: '+margin+'%</div>'+
         '</div>'+
         '<div style="text-align:right;flex-shrink:0;">'+
-          '<div class="wa-card-stock">สต็อก: '+(p.stock_qty!=null?p.stock_qty:'—')+'</div>'+
+          '<div class="wa-card-stock">หน้าร้าน: '+(p.stock_qty!=null?p.stock_qty:'—')+'</div>'+
+          '<div style="font-size:11px;color:#6b7280;">หลังร้าน: <b>'+(p.stock_back!=null?p.stock_back:0)+'</b></div>'+
           badge+
         '</div>'+
       '</div>';
@@ -350,8 +351,61 @@ window.waOpenPopup=function(id){
   var stockFields=document.createElement('div');stockFields.id='waStockFields';
   stockFields.style.cssText='display:'+(_waTrackStock?'grid':'none')+';grid-template-columns:1fr 1fr;gap:10px;';
   stockFields.appendChild(waField('จำนวนสต็อก','wa-stock','number',p.stock_qty||0));
+  stockFields.appendChild(waField('จำนวน(หลังร้าน) คลังสำรอง','wa-back','number',p.stock_back||0));
   stockFields.appendChild(waField('สต็อกขั้นต่ำ','wa-floor','number',p.stock_floor||0));
-  stockDiv.appendChild(toggleRow);stockDiv.appendChild(stockFields);
+  // Transfer widget หน้าร้าน <-> หลังร้าน
+  var xferDiv=document.createElement('div');
+  xferDiv.id='waXferDiv';
+  xferDiv.style.cssText='display:'+(_waTrackStock?'block':'none')+';margin-top:10px;background:#fdf6e3;border:1px solid #ede8d8;border-radius:8px;padding:10px 12px;';
+  xferDiv.innerHTML=
+    "<div style='font-size:11px;font-weight:700;color:#e8b93e;margin-bottom:8px;'>ย้ายสินค้าระหว่างคลัง</div>"
+    +"<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;'>"
+      +"<select id='waXferDir' style='height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-family:Sarabun,sans-serif;font-size:12px;background:#fff;outline:none;'>"
+        +"<option value='to_back'>หน้าร้าน → หลังร้าน</option>"
+        +"<option value='to_front'>หลังร้าน → หน้าร้าน</option>"
+      +"</select>"
+      +"<div style='display:flex;align-items:center;gap:4px;'>"
+        +"<button id='waXferMinus' style='width:26px;height:26px;border:1px solid #d1d5db;border-radius:6px;background:#fff;font-size:14px;cursor:pointer;font-weight:700;'>-</button>"
+        +"<input id='waXferQty' type='number' min='1' value='1' style='width:60px;height:26px;text-align:center;border:1px solid #d1d5db;border-radius:6px;font-size:13px;outline:none;'>"
+        +"<button id='waXferPlus' style='width:26px;height:26px;border:1px solid #d1d5db;border-radius:6px;background:#fff;font-size:14px;cursor:pointer;font-weight:700;'>+</button>"
+      +"</div>"
+      +"<button id='waXferBtn' style='height:30px;padding:0 14px;border:none;border-radius:6px;background:#e8b93e;color:#1a1200;font-weight:700;font-size:12px;cursor:pointer;font-family:Sarabun,sans-serif;'>ย้าย</button>"
+      +"<span id='waXferMsg' style='font-size:11px;'></span>"
+    +"</div>";
+  // bind transfer events
+  xferDiv.querySelector('#waXferMinus').addEventListener('click',function(){
+    var el=document.getElementById('waXferQty');
+    var v=parseInt(el.value)||1;
+    if(v>1)el.value=v-1;
+  });
+  xferDiv.querySelector('#waXferPlus').addEventListener('click',function(){
+    var el=document.getElementById('waXferQty');
+    el.value=(parseInt(el.value)||1)+1;
+  });
+  xferDiv.querySelector('#waXferBtn').addEventListener('click',function(){
+    var dir=document.getElementById('waXferDir').value;
+    var qty=parseInt(document.getElementById('waXferQty').value)||0;
+    var msg=document.getElementById('waXferMsg');
+    if(qty<=0){msg.textContent='กรุณาระบุจำนวน';msg.style.color='#ef4444';return;}
+    var frontEl=document.getElementById('wa-stock');
+    var backEl=document.getElementById('wa-back');
+    var front=parseFloat(frontEl.value)||0;
+    var back=parseFloat(backEl.value)||0;
+    if(dir==='to_back'){
+      if(qty>front){msg.textContent='หน้าร้านไม่พอ (มี '+front+')';msg.style.color='#ef4444';return;}
+      frontEl.value=front-qty;
+      backEl.value=back+qty;
+      msg.textContent='ย้าย '+qty+' ชิ้น → หลังร้านแล้ว';
+    } else {
+      if(qty>back){msg.textContent='หลังร้านไม่พอ (มี '+back+')';msg.style.color='#ef4444';return;}
+      frontEl.value=back-qty;
+      backEl.value=front+qty;
+      msg.textContent='ย้าย '+qty+' ชิ้น → หน้าร้านแล้ว';
+    }
+    msg.style.color='#38a169';
+    setTimeout(function(){if(msg)msg.textContent='';},3000);
+  });
+  stockDiv.appendChild(toggleRow);stockDiv.appendChild(stockFields);stockDiv.appendChild(xferDiv);
   grid.appendChild(stockDiv);
 
   // สถานะ
@@ -421,6 +475,7 @@ window.waToggleTrack=function(){
   if(th)th.style.left=_waTrackStock?'19px':'3px';
   if(lb)lb.textContent=_waTrackStock?'นับจำนวนสต็อก':'ไม่นับจำนวน';
   if(sf)sf.style.display=_waTrackStock?'grid':'none';
+  var xd=document.getElementById('waXferDiv');if(xd)xd.style.display=_waTrackStock?'block':'none';
 };
 
 window.waDelete=function(){
@@ -465,6 +520,7 @@ window.waSave=function(){
       pv:parseFloat((document.getElementById('wa-pv')||{}).value)||0,
       track_stock:_waTrackStock,
       stock_qty:_waTrackStock?parseInt((document.getElementById('wa-stock')||{}).value)||0:p.stock_qty||0,
+      stock_back:_waTrackStock?parseInt((document.getElementById('wa-back')||{}).value)||0:p.stock_back||0,
       stock_floor:_waTrackStock?parseInt((document.getElementById('wa-floor')||{}).value)||0:p.stock_floor||0,
       status:statusEl?statusEl.value:(p.status||'active'),
       description:(document.getElementById('wa-desc')||{}).value||'',

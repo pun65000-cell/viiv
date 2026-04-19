@@ -119,16 +119,16 @@
     <div id="cpStockFields">
       <div class="cp-grid2">
         <div class="cp-field">
-          <label class="cp-label">จำนวน(สต็อก) <span class="cp-req" id="cpStockReq">*</span></label>
+          <label class="cp-label">จำนวน(หน้าร้าน) <span class="cp-req" id="cpStockReq">*</span></label>
           <div style="position:relative;">
             <input class="cp-input" type="number" id="cpStock" placeholder="0" min="0" step="0.01" oninput="cpCheck()" style="padding-right:28px;"/>
             <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">ชิ้น</span>
           </div>
         </div>
         <div class="cp-field">
-          <label class="cp-label">จำนวน(หน้าร้าน)</label>
+          <label class="cp-label">จำนวน(หลังร้าน) <span style="font-size:10px;color:#9ca3af;">คลังสำรอง</span></label>
           <div style="position:relative;">
-            <input class="cp-input" type="number" id="cpFloor" placeholder="0" min="0" step="0.01" style="padding-right:28px;"/>
+            <input class="cp-input" type="number" id="cpBack" placeholder="0" min="0" step="0.01" style="padding-right:28px;"/>
             <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9ca3af;">ชิ้น</span>
           </div>
         </div>
@@ -290,7 +290,7 @@ window.cpSave = async function(){
       vat:         document.getElementById('cpVat').value,
       track_stock: track,
       stock_qty:   track ? parseFloat(document.getElementById('cpStock').value)||0 : 0,
-      stock_floor: track ? parseFloat(document.getElementById('cpFloor').value)||0 : 0,
+      stock_back:  track ? parseFloat(document.getElementById('cpBack').value)||0 : 0,
       min_alert:   track ? parseInt(document.getElementById('cpAlert').value)||0 : 0,
       image_url:   imgUrl,
       status:      status

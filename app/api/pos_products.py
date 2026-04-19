@@ -34,7 +34,7 @@ def list_products(authorization: str = Header("")):
     with engine.connect() as c:
         rows = c.execute(text("""
             SELECT id,sku,name,description,image_url,price,cost_price,price_min,
-                   pv,vat,category,track_stock,stock_qty,stock_floor,min_alert,
+                   pv,vat,category,track_stock,stock_qty,stock_floor,stock_back,min_alert,
                    qr_url,status,created_at
             FROM products WHERE tenant_id=:tid ORDER BY created_at DESC
         """),{"tid":tid}).fetchall()
@@ -71,11 +71,11 @@ def create_product(payload: dict, authorization: str = Header("")):
         c.execute(text("""
             INSERT INTO products
               (id,tenant_id,sku,name,description,image_url,price,cost_price,
-               price_min,pv,vat,category,track_stock,stock_qty,stock_floor,
+               price_min,pv,vat,category,track_stock,stock_qty,stock_back,
                min_alert,qr_url,status,updated_at)
             VALUES
               (:id,:tid,:sku,:name,:desc,:img,:price,:cost,
-               :pmin,:pv,:vat,:cat,:track,:stock,:floor,
+               :pmin,:pv,:vat,:cat,:track,:stock,:back,
                :alert,:qr,:status,NOW())
         """),{
             "id":pid,"tid":tid,
@@ -90,7 +90,7 @@ def create_product(payload: dict, authorization: str = Header("")):
             "cat":payload.get("category",""),
             "track":bool(track),
             "stock":float(payload.get("stock_qty",0)),
-            "floor":float(payload.get("stock_floor",0)),
+            "back":float(payload.get("stock_back",0)),
             "alert":int(payload.get("min_alert",0)),
             "qr":payload.get("qr_url",""),
             "status":payload.get("status","active")
@@ -121,7 +121,7 @@ def update_product(pid: str, payload: dict, authorization: str = Header("")):
               name=:name, description=:desc, image_url=:img,
               price=:price, cost_price=:cost, price_min=:pmin,
               pv=:pv, vat=:vat, category=:cat,
-              track_stock=:track, stock_qty=:stock, stock_floor=:floor,
+              track_stock=:track, stock_qty=:stock, stock_back=:back,
               min_alert=:alert, qr_url=:qr, status=:status, updated_at=NOW()
             WHERE id=:id AND tenant_id=:tid
         """),{
@@ -136,7 +136,7 @@ def update_product(pid: str, payload: dict, authorization: str = Header("")):
             "cat":payload.get("category",""),
             "track":bool(payload.get("track_stock",True)),
             "stock":float(payload.get("stock_qty",0)),
-            "floor":float(payload.get("stock_floor",0)),
+            "back":float(payload.get("stock_back",0)),
             "alert":int(payload.get("min_alert",0)),
             "qr":payload.get("qr_url",""),
             "status":payload.get("status","active")

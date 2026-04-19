@@ -84,7 +84,7 @@ def create_partner(payload: dict, authorization: str = Header("")):
              "dc":float(payload.get("discount",0)),"bk":payload.get("bank",""),
              "ba":payload.get("bank_account",""),"bn":payload.get("bank_account_name",""),
              "nt":payload.get("note",""),"av":payload.get("avatar_url","")})
-    return {"id":pid,"message":"success"}
+    return {"id":pid,"company_name":payload.get("company_name",""),"partner_code":payload.get("partner_code","") or gen_partner_code(tid,engine),"phone":payload.get("phone",""),"message":"success"}
 
 @router.put("/update/{pid}")
 def update_partner(pid: str, payload: dict, authorization: str = Header("")):
