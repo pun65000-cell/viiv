@@ -197,3 +197,35 @@ INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     91.196.152.190:50473 - "GET / HTTP/1.1" 404 Not Found
+INFO:     91.196.152.187:36335 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
