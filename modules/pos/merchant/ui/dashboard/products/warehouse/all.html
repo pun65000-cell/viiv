@@ -47,13 +47,14 @@
 .wa-card-badge.inactive{background:#fee2e2;color:#991b1b;}
 /* popup */
 .wa-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;}
-.wa-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(520px,94vw);max-height:85vh;overflow-y:auto;background:#fff;border-radius:14px;padding:20px;z-index:101;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.wa-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(520px,94vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px;padding:14px 16px;z-index:101;box-shadow:0 8px 32px rgba(0,0,0,.18);font-size:12.5px;}
 .wa-popup-title{font-size:15px;font-weight:700;margin-bottom:14px;color:#1f2937;}
 .wa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .wa-field{display:flex;flex-direction:column;gap:4px;}
 .wa-field.full{grid-column:1/-1;}
 .wa-field label{font-size:12px;font-weight:600;color:#374151;}
-.wa-field input,.wa-field select,.wa-field textarea{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;}
+.wa-field input:not([type=radio]):not([type=checkbox]),.wa-field select,.wa-field textarea{padding:5px 8px;height:30px;border:1px solid #d1d5db;border-radius:6px;font-size:12.5px;outline:none;width:100%;box-sizing:border-box;}
+.wa-field textarea{height:auto;min-height:60px;}
 .wa-field input:focus,.wa-field select:focus,.wa-field textarea:focus{border-color:#e8b93e;}
 .wa-popup-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
 .wa-btn-cancel{padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
@@ -182,10 +183,10 @@ window.waClosePopup=function(){
 function waField(label,id,type,val,cls){
   var div=document.createElement('div');
   div.className='wa-field'+(cls?' '+cls:'');
-  var lbl=document.createElement('label');lbl.textContent=label;
+  var lbl=document.createElement('label');lbl.textContent=label;lbl.style.cssText='font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:2px;';
   var inp=document.createElement('input');
   inp.id=id;inp.type=type;inp.value=val||'';
-  inp.style.cssText='padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;';
+  inp.style.cssText='padding:5px 8px;height:30px;border:1px solid #d1d5db;border-radius:6px;font-size:12.5px;outline:none;width:100%;box-sizing:border-box;';
   div.appendChild(lbl);div.appendChild(inp);
   return div;
 }
@@ -202,16 +203,16 @@ window.waOpenPopup=function(id){
 
   // title
   var title=document.createElement('div');
-  title.style.cssText='font-size:15px;font-weight:700;margin-bottom:14px;color:#1f2937;';
+  title.style.cssText='font-size:13px;font-weight:700;margin-bottom:10px;color:#1f2937;';
   title.textContent='แก้ไขสินค้า';
   popup.appendChild(title);
 
   // รูปภาพ
   var imgSection=document.createElement('div');
-  imgSection.style.cssText='display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f0ede8;';
+  imgSection.style.cssText='display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f0ede8;';
   var imgPreview=document.createElement('div');
   imgPreview.id='waImgPreview';
-  imgPreview.style.cssText='width:80px;height:80px;border:2px dashed #d1d5db;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;background:#faf9f7;';
+  imgPreview.style.cssText='width:60px;height:60px;border:2px dashed #d1d5db;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;background:#faf9f7;';
   if(p.image_url){
     var imgEl=document.createElement('img');
     imgEl.src=API+p.image_url;imgEl.style.cssText='width:80px;height:80px;object-fit:cover;border-radius:8px;';
@@ -356,7 +357,7 @@ window.waOpenPopup=function(id){
   // Transfer widget หน้าร้าน <-> หลังร้าน
   var xferDiv=document.createElement('div');
   xferDiv.id='waXferDiv';
-  xferDiv.style.cssText='display:'+(_waTrackStock?'block':'none')+';margin-top:10px;background:#fdf6e3;border:1px solid #ede8d8;border-radius:8px;padding:10px 12px;';
+  xferDiv.style.cssText='display:'+(_waTrackStock?'block':'none')+';margin-top:8px;background:#fdf6e3;border:1px solid #ede8d8;border-radius:7px;padding:8px 10px;';
   xferDiv.innerHTML=
     "<div style='font-size:11px;font-weight:700;color:#e8b93e;margin-bottom:8px;'>ย้ายสินค้าระหว่างคลัง</div>"
     +"<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;'>"
@@ -418,9 +419,9 @@ window.waOpenPopup=function(id){
     lbl.id='waStatusLbl_'+val;
     lbl.style.cssText='display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid '+(val==='active'?isActive?'#e8b93e':'#e5e7eb':!isActive?'#e8b93e':'#e5e7eb')+';border-radius:8px;background:'+(val==='active'?isActive?'rgba(232,185,62,.08)':'#fff':!isActive?'rgba(232,185,62,.08)':'#fff')+';';
     var radio=document.createElement('input');radio.type='radio';radio.name='waStatus';radio.value=val;
-    radio.style.cssText='accent-color:#e8b93e;';
+    radio.style.cssText='accent-color:'+(val==='active'?'#e8b93e':'#ef4444')+';';
     if((val==='active'&&isActive)||(val==='inactive'&&!isActive))radio.checked=true;
-    var span=document.createElement('span');span.style.cssText='font-size:13px;font-weight:600;color:'+(val==='active'?'#e8b93e':'#6b7280')+';';
+    var span=document.createElement('span');span.style.cssText='font-size:13px;font-weight:600;color:'+(val==='active'?'#e8b93e':'#ef4444')+';';
     span.textContent=val==='active'?'จำหน่าย':'หยุดขาย';
     lbl.appendChild(radio);lbl.appendChild(span);
     radio.addEventListener('change',function(){
