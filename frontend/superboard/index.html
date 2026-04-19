@@ -399,7 +399,6 @@ function openProfileModal(){
   document.getElementById('pmLastName').value=p.last_name||'';
   document.getElementById('pmPhone').value=p.phone||'';
   document.getElementById('pmEmail').value=p.email||'';
-  document.getElementById('pmRole').value=p.role||'';
   document.getElementById('pmRole').textContent=p.role||'—';
   var sd=document.getElementById('pmStatusDisplay');
   if(sd){
@@ -417,9 +416,7 @@ function openProfileModal(){
     av.textContent=name.charAt(0).toUpperCase();
   }
   // status
-  var st=p.status||'online';
-  document.querySelector('input[name="pmStatus"][value="'+st+'"]').checked=true;
-  updStatusBadge(st);
+
   document.getElementById('profileModal').style.display='flex';
 }
 function closeProfileModal(){

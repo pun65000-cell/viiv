@@ -1,6 +1,5 @@
 <body>
 <div class="pt-wrap">
-
   <div class="pt-header">
     <div class="pt-search-row">
       <input id="ptSearch" class="pt-input" placeholder="ค้นหาชื่อ / เลขผู้เสียภาษี / เบอร์..." oninput="ptFilter()"/>
@@ -15,245 +14,320 @@
     </div>
     <button class="pt-btn-new" onclick="ptOpenForm(null)">+ สร้างคู่ค้า</button>
   </div>
-
   <div id="ptList" class="pt-list"></div>
   <div id="ptPager"></div>
-
   <div id="ptOverlay" class="pt-overlay" style="display:none;" onclick="ptCloseForm()"></div>
   <div id="ptFormWrap" class="pt-form-wrap" style="display:none;"></div>
-
+  <div id="ptDelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:24px;width:360px;max-width:94vw;font-family:Sarabun,sans-serif;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:10px;">ยืนยันการลบ</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:20px;">คุณต้องการลบคู่ค้ารายนี้ใช่หรือไม่? ไม่สามารถกู้คืนได้</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="document.getElementById('ptDelModal').style.display='none'" style="height:34px;padding:0 16px;border:1px solid #d1d5db;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;">ยกเลิก</button>
+        <button id="ptDelBtn" style="height:34px;padding:0 16px;border:none;border-radius:7px;background:#ef4444;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">ลบ</button>
+      </div>
+    </div>
+  </div>
 </div>
-
 <style>
-.pt-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+:root{--g:#E8B93E;--gt:#1a1200;--bd:#d4b866;--bl:#ede8d8;--gl:#fdf6e3;}
+*{box-sizing:border-box;}
+body{font-family:"Sarabun",sans-serif;font-size:13px;color:#1a1a1a;}
+.pt-wrap{padding:4px 0;}
 .pt-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .pt-search-row{display:flex;gap:8px;flex:1;flex-wrap:wrap;}
-.pt-input{flex:1;min-width:160px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;}
-.pt-input:focus{border-color:#e8b93e;}
-.pt-select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;}
-.pt-select:focus{border-color:#e8b93e;}
-.pt-btn-new{padding:8px 16px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
-.pt-btn-new:hover{opacity:.85;}
+.pt-input{flex:1;min-width:160px;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;font-family:"Sarabun",sans-serif;}
+.pt-input:focus{border-color:var(--g);}
+.pt-select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;outline:none;font-family:"Sarabun",sans-serif;}
+.pt-btn-new{padding:8px 16px;background:var(--g);color:var(--gt);border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
 .pt-list{display:flex;flex-direction:column;gap:6px;}
 .pt-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;cursor:pointer;transition:.15s;}
-.pt-row:hover{border-color:#e8b93e;background:#fffbf0;}
-.pt-icon{width:40px;height:40px;border-radius:9px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pt-row:hover{border-color:var(--g);background:var(--gl);}
+.pt-avatar{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;}
 .pt-info{flex:1;min-width:0;}
 .pt-name{font-size:13px;font-weight:700;color:#1f2937;}
 .pt-meta{font-size:11px;color:#6b7280;margin-top:2px;}
-.pt-type-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:#f0ede8;color:#374151;margin-top:3px;}
-.pt-type-badge.supplier{background:#e7f0fd;color:#1d4ed8;}
-.pt-type-badge.distributor{background:#fef3c7;color:#92400e;}
-.pt-type-badge.manufacturer{background:#f0fdf4;color:#166534;}
+.pt-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:#f0ede8;color:#374151;margin-top:3px;}
+.pt-badge.supplier{background:#e7f0fd;color:#1d4ed8;}
+.pt-badge.distributor{background:#fef3c7;color:#92400e;}
+.pt-badge.manufacturer{background:#f0fdf4;color:#166534;}
+.pt-badge.person{background:#fdf4ff;color:#7e22ce;}
 .pt-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;}
-.pt-form-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(600px,95vw);max-height:90vh;overflow-y:auto;background:#fff;border-radius:14px;z-index:201;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.pt-form-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(660px,96vw);max-height:92vh;overflow-y:auto;background:#fff;border-radius:14px;z-index:201;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.pt-form-wrap::-webkit-scrollbar{width:4px;}
+.pt-form-wrap::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
+.pf{padding:22px 24px;}
+.pf-title{font-size:15px;font-weight:700;margin-bottom:16px;}
+.pf-sec{font-size:11px;font-weight:700;color:var(--g);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--bl);text-transform:uppercase;letter-spacing:.5px;}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.pf-full{grid-column:1/-1;}
+.pf-lbl{font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:3px;}
+.pf-inp{width:100%;height:34px;padding:0 10px;border:1px solid #d1d5db;border-radius:7px;font-family:"Sarabun",sans-serif;font-size:13px;outline:none;background:#fff;transition:border-color .15s;color:#1a1a1a;}
+.pf-inp:hover{border-color:#9ca3af;}.pf-inp:focus{border-color:var(--g);box-shadow:0 0 0 2px rgba(232,185,62,.15);}
+.pf-sel{width:100%;height:34px;padding:0 8px;border:1px solid #d1d5db;border-radius:7px;font-family:"Sarabun",sans-serif;font-size:13px;outline:none;background:#fff;transition:border-color .15s;}
+.pf-ta{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:"Sarabun",sans-serif;font-size:13px;outline:none;resize:vertical;min-height:70px;transition:border-color .15s;}
+.pf-ta:hover,.pf-sel:hover{border-color:#9ca3af;}.pf-ta:focus,.pf-sel:focus{border-color:var(--g);box-shadow:0 0 0 2px rgba(232,185,62,.15);}
+.et-row{display:flex;gap:6px;margin-bottom:14px;}
+.et-btn{flex:1;height:32px;border:1.5px solid var(--bd);border-radius:7px;background:#fff;font-family:"Sarabun",sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;color:#6b7280;}
+.et-btn.active{background:var(--g);color:var(--gt);border-color:var(--g);}
+.av-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;cursor:pointer;border:3px solid var(--g);}
+.pf-actions{display:flex;align-items:center;gap:10px;padding-top:14px;border-top:1px solid var(--bl);margin-top:4px;}
+.btn-del{height:34px;padding:0 14px;border:1px solid #fca5a5;border-radius:7px;background:#fff;color:#ef4444;font-family:"Sarabun",sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;}
+.btn-cancel{height:34px;padding:0 16px;border:1px solid var(--bd);border-radius:7px;background:#fff;font-family:"Sarabun",sans-serif;font-size:13px;cursor:pointer;}
+.btn-save{height:34px;padding:0 20px;border:none;border-radius:7px;background:var(--g);color:var(--gt);font-family:"Sarabun",sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-save:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed;}
+.doc-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.doc-chip{display:flex;align-items:center;gap:5px;padding:3px 8px;background:#f3f4f6;border-radius:6px;font-size:11px;}
 </style>
-
 <script>
 (function(){
-'use strict';
-var PAGE_SIZE=20;
-var currentPage=1;
-var allPartners=[];
-var filteredCache=[];
+"use strict";
+var API=window.API_BASE||"";
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem("viiv_token")||"";
+var PAGE=20,page=1,all=[],filtered=[],editId=null,pendingDocs=[];
+var COLORS=["#e8b93e","#38a169","#3b82f6","#8b5cf6","#ef4444","#f97316"];
 
-function loadPartners(){
-  allPartners=JSON.parse(localStorage.getItem('viiv_partners')||'[]');
-  ptFilter();
+function tok(e){if(e&&e.detail&&e.detail.token)TOKEN=e.detail.token;load();}
+window.removeEventListener("viiv_token_ready",window._tok_pt);
+window._tok_pt=tok;
+window.addEventListener("viiv_token_ready",tok);
+var _t=window.VIIV_TOKEN||localStorage.getItem("viiv_token")||"";
+if(_t)tok({detail:{token:_t}});
+
+function load(){
+  fetch(API+"/api/pos/partners/list",{headers:{"Authorization":"Bearer "+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(d){all=d||[];ptFilter();})
+  .catch(function(){all=[];ptFilter();});
 }
 
 window.ptFilter=function(reset){
-  if(reset!==false) currentPage=1;
-  var q=document.getElementById('ptSearch').value.toLowerCase();
-  var t=document.getElementById('ptType').value;
-  filteredCache=allPartners.filter(function(p){
-    var matchQ=!q||(p.company_name||'').toLowerCase().includes(q)||(p.tax_id||'').includes(q)||(p.phone||'').includes(q);
-    var matchT=!t||p.type===t;
-    return matchQ&&matchT;
+  if(reset!==false)page=1;
+  var q=document.getElementById("ptSearch").value.toLowerCase();
+  var t=document.getElementById("ptType").value;
+  filtered=all.filter(function(p){
+    var mq=!q||(p.company_name||"").toLowerCase().includes(q)||(p.tax_id||"").includes(q)||(p.contact_phone||p.phone||"").includes(q);
+    var mt=!t||p.partner_type===t;
+    return mq&&mt;
   });
-  renderList();
+  render();
 };
 
-function renderList(){
-  var el=document.getElementById('ptList');
-  var total=filteredCache.length;
-  if(!total){el.innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">ไม่พบบริษัทคู่ค้า</div>';document.getElementById('ptPager').innerHTML='';return;}
-  var totalPages=Math.ceil(total/PAGE_SIZE);
-  var page=filteredCache.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE);
-  var typeMap={supplier:'ซัพพลายเออร์',distributor:'ตัวแทนจำหน่าย',manufacturer:'ผู้ผลิต',service:'บริการ',other:'อื่นๆ'};
-  el.innerHTML=page.map(function(p){
-    return '<div class="pt-row" onclick="ptOpenForm(\''+p.id+'\')">'+
-      '<div class="pt-icon">🏢</div>'+
-      '<div class="pt-info">'+
-        '<div class="pt-name">'+(p.company_name||'ไม่ระบุชื่อ')+'</div>'+
-        '<div class="pt-meta">เลขผู้เสียภาษี: '+(p.tax_id||'—')+' | '+(p.phone||'ไม่มีเบอร์')+'</div>'+
-        '<div class="pt-meta">'+(p.contact_name?'ผู้ติดต่อ: '+p.contact_name+' | ':'')+(p.email||'')+'</div>'+
-        '<span class="pt-type-badge '+(p.type||'other')+'">'+(typeMap[p.type]||'อื่นๆ')+'</span>'+
-      '</div>'+
-      '<div style="text-align:right;flex-shrink:0;">'+
-        '<div style="font-size:12px;font-weight:700;color:#e8b93e;">฿'+(p.credit_limit||0).toLocaleString()+'</div>'+
-        '<div style="font-size:10px;color:#6b7280;">วงเงิน</div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-  var pager=document.getElementById('ptPager');
-  if(totalPages>1){
-    pager.innerHTML='<div style="display:flex;justify-content:center;gap:8px;margin-top:12px;">'+
-      '<button onclick="ptPage('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+
-      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">◀</button>'+
-      '<span style="font-size:12px;color:#6b7280;align-self:center;">'+currentPage+'/'+totalPages+' ('+total+' บริษัท)</span>'+
-      '<button onclick="ptPage('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+
-      ' style="padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;">▶</button>'+
-    '</div>';
-  } else { pager.innerHTML=''; }
+function aColor(n){return COLORS[(n||"").charCodeAt(0)%COLORS.length];}
+
+function render(){
+  var el=document.getElementById("ptList");
+  var n=filtered.length;
+  if(!n){
+    el.innerHTML="<div style=\"color:#aaa;padding:40px;text-align:center;\">\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e1a\u0e23\u0e34\u0e29\u0e31\u0e17\u0e04\u0e39\u0e48\u0e04\u0e49\u0e32</div>";
+    document.getElementById("ptPager").innerHTML="";
+    return;
+  }
+  var tp=Math.ceil(n/PAGE);
+  var pg=filtered.slice((page-1)*PAGE,page*PAGE);
+  var tmap={supplier:"\u0e0b\u0e31\u0e1e\u0e1e\u0e25\u0e32\u0e22\u0e40\u0e2d\u0e2d\u0e23\u0e4c",distributor:"\u0e15\u0e31\u0e27\u0e41\u0e17\u0e19",manufacturer:"\u0e1c\u0e39\u0e49\u0e1c\u0e25\u0e34\u0e15",service:"\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23",other:"\u0e2d\u0e37\u0e48\u0e19\u0e46"};
+  var rows=pg.map(function(p){
+    var init=(p.company_name||"?").charAt(0).toUpperCase();
+    var av=p.avatar_url?"<img src=\""+p.avatar_url+"\" style=\"width:100%;height:100%;object-fit:cover;\">":"<span>"+init+"</span>";
+    var eB=p.entity_type==="person"?"<span class=\"pt-badge person\">\u0e1a\u0e38\u0e04\u0e04\u0e25</span>":"<span class=\"pt-badge\">\u0e19\u0e34\u0e15\u0e34\u0e1a\u0e38\u0e04\u0e04\u0e25</span>";
+    return "<div class=\"pt-row\" onclick=\"ptOpenForm('"+p.id+"')\">"+
+      "<div class=\"pt-avatar\" style=\"background:"+aColor(p.company_name)+"\">"+av+"</div>"+
+      "<div class=\"pt-info\">"+
+        "<div class=\"pt-name\">"+(p.company_name||"?")+"</div>"+
+        "<div class=\"pt-meta\">"+(p.tax_id?"\u0e40\u0e25\u0e02: "+p.tax_id+" | ":"")+(p.contact_phone||p.phone||"-")+"</div>"+
+        eB+" <span class=\"pt-badge "+(p.partner_type||"other")+"\">"+( tmap[p.partner_type]||"\u0e2d\u0e37\u0e48\u0e19\u0e46")+"</span>"+
+      "</div>"+
+      "<div style=\"text-align:right;flex-shrink:0;\">"+
+        "<div style=\"font-size:12px;font-weight:700;color:var(--g);\">\u0e3f"+(p.credit_limit||0).toLocaleString()+"</div>"+
+        "<div style=\"font-size:10px;color:#6b7280;\">\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19</div>"+
+      "</div>"+
+    "</div>";
+  }).join("");
+  el.innerHTML=rows;
+  var pager=document.getElementById("ptPager");
+  if(tp>1){
+    pager.innerHTML="<div style=\"display:flex;justify-content:center;gap:8px;margin-top:12px;\">"+
+      "<button onclick=\"ptPage("+(page-1)+")\""+(page<=1?" disabled":"")+
+      " style=\"padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;\">&#9664;</button>"+
+      "<span style=\"font-size:12px;color:#6b7280;align-self:center;\">"+page+"/"+tp+" ("+n+" \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23)</span>"+
+      "<button onclick=\"ptPage("+(page+1)+")\""+(page>=tp?" disabled":"")+
+      " style=\"padding:5px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;\">&#9654;</button>"+
+    "</div>";
+  } else {pager.innerHTML="";}
 }
 
-window.ptPage=function(p){
-  if(p<1||p>Math.ceil(filteredCache.length/PAGE_SIZE))return;
-  currentPage=p; renderList();
-};
+window.ptPage=function(p){if(p<1||p>Math.ceil(filtered.length/PAGE))return;page=p;render();};
 
 window.ptOpenForm=function(id){
-  var p=id?allPartners.find(function(x){return x.id===id;}):null;
-  var isEdit=!!p;
-  document.getElementById('ptOverlay').style.display='block';
-  var fw=document.getElementById('ptFormWrap');
-  fw.style.display='block';
-  fw.innerHTML=buildForm(p,isEdit);
+  editId=id;pendingDocs=[];
+  var p=id?all.find(function(x){return x.id===id;}):null;
+  p=p||{};
+  document.getElementById("ptOverlay").style.display="block";
+  var fw=document.getElementById("ptFormWrap");
+  fw.style.display="block";
+  fw.innerHTML=buildForm(p,!!id);
+  setTimeout(chkReq,50);
 };
 
 window.ptCloseForm=function(){
-  document.getElementById('ptOverlay').style.display='none';
-  document.getElementById('ptFormWrap').style.display='none';
+  document.getElementById("ptOverlay").style.display="none";
+  document.getElementById("ptFormWrap").style.display="none";
+  editId=null;pendingDocs=[];
 };
+
+function fi(id,def){var e=document.getElementById(id);return e?e.value.trim():def||"";}
 
 function buildForm(p,isEdit){
-  p=p||{};
-  return '<div style="padding:20px;">'+
-    '<div style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:16px;">'+(isEdit?'✏️ จัดการคู่ค้า':'➕ สร้างคู่ค้าใหม่')+'</div>'+
+  var et=p.entity_type||"company";
+  var init=(p.company_name||"A").charAt(0).toUpperCase();
+  var avC=aColor(p.company_name||"A");
+  var avHtml=p.avatar_url?"<img id=\"pfAI\" src=\""+p.avatar_url+"\" style=\"width:100%;height:100%;object-fit:cover;\">"
+    :"<span id=\"pfAT\">"+init+"</span>";
 
-    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">ข้อมูลบริษัท</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
-      ptField('ชื่อบริษัท / ร้านค้า *','pt-company','text',p.company_name||'')+
-      ptField('เลขประจำตัวผู้เสียภาษี *','pt-taxid','text',p.tax_id||'')+
-      ptField('ประเภทคู่ค้า','pt-type-sel','select',p.type||'supplier')+
-      ptField('เว็บไซต์','pt-website','url',p.website||'')+
-      '<div style="grid-column:1/-1;">'+ptField('ที่อยู่บริษัท','pt-address','text',p.address||'')+'</div>'+
-      ptField('จังหวัด','pt-province','text',p.province||'')+
-      ptField('รหัสไปรษณีย์','pt-zipcode','text',p.zipcode||'')+
-      ptField('ประเทศ','pt-country','text',p.country||'ไทย')+
-    '</div>'+
+  var tOpts=["supplier:ซัพพลายเออร์","distributor:ตัวแทนจำหน่าย","manufacturer:ผู้ผลิต","service:บริการ","other:อื่นๆ"];
+  var tSel=tOpts.map(function(o){var s=o.split(":");return "<option value=\""+s[0]+"\">"+(s[1])+"</option>";}).join("");
 
-    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">ผู้ติดต่อหลัก</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
-      ptField('ชื่อผู้ติดต่อ','pt-contact','text',p.contact_name||'')+
-      ptField('ตำแหน่ง','pt-position','text',p.position||'')+
-      ptField('เบอร์โทรศัพท์','pt-phone','tel',p.phone||'')+
-      ptField('เบอร์แฟกซ์','pt-fax','tel',p.fax||'')+
-      ptField('อีเมล','pt-email','email',p.email||'')+
-      ptField('LINE ID','pt-line','text',p.line_id||'')+
-    '</div>'+
-
-    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">ข้อมูลทางการเงิน</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
-      ptField('วงเงินสินเชื่อ (บาท)','pt-credit-limit','number',p.credit_limit||0)+
-      ptField('เครดิตเทอม (วัน)','pt-credit-term','number',p.credit_term||30)+
-      ptField('ส่วนลด (%)','pt-discount','number',p.discount||0)+
-      ptField('ธนาคาร','pt-bank','text',p.bank||'')+
-      ptField('เลขบัญชี','pt-bank-acc','text',p.bank_account||'')+
-      ptField('ชื่อบัญชี','pt-bank-name','text',p.bank_account_name||'')+
-    '</div>'+
-
-    '<div style="font-size:12px;font-weight:700;color:#e8b93e;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0ede8;">หมายเหตุ</div>'+
-    '<div style="margin-bottom:16px;">'+
-      '<textarea id="pt-note" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;" rows="3" placeholder="หมายเหตุเพิ่มเติม...">'+(p.note||'')+'</textarea>'+
-    '</div>'+
-
-    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
-      (isEdit?
-        '<button onclick="ptDelete(\''+p.id+'\')" style="padding:8px 14px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">🗑 ลบคู่ค้า</button>'
-        :'<div></div>')+
-      '<div style="display:flex;gap:8px;">'+
-        '<button onclick="ptCloseForm()" style="padding:8px 16px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">ยกเลิก</button>'+
-        '<button onclick="ptSave(\''+( p.id||'')+'\',\''+isEdit+'\')" style="padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึก</button>'+
-      '</div>'+
-    '</div>'+
-  '</div>';
-}
-
-function ptField(label,id,type,val){
-  if(type==='select'){
-    var opts=[
-      {v:'supplier',l:'ซัพพลายเออร์'},
-      {v:'distributor',l:'ตัวแทนจำหน่าย'},
-      {v:'manufacturer',l:'ผู้ผลิต'},
-      {v:'service',l:'บริการ'},
-      {v:'other',l:'อื่นๆ'},
-    ];
-    return '<div style="display:flex;flex-direction:column;gap:4px;">'+
-      '<label style="font-size:12px;font-weight:600;color:#374151;">'+label+'</label>'+
-      '<select id="'+id+'" style="padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;background:#fff;width:100%;">'+
-        opts.map(function(o){return '<option value="'+o.v+'"'+(val===o.v?' selected':'')+'>'+o.l+'</option>';}).join('')+
-      '</select></div>';
+  function row(lbl,id,type,val,ph){
+    if(type==="select") return "<div><label class=\"pf-lbl\">"+lbl+"</label><select class=\"pf-sel\" id=\""+id+"\" onchange=\"chkReq()\">"+tSel+"</select></div>";
+    if(type==="ta") return "<div class=\"pf-full\"><label class=\"pf-lbl\">"+lbl+"</label><textarea class=\"pf-ta\" id=\""+id+"\">"+val+"</textarea></div>";
+    return "<div><label class=\"pf-lbl\">"+lbl+"</label><input class=\"pf-inp\" id=\""+id+"\" type=\""+type+"\" value=\""+val+"\""+
+      (ph?" placeholder=\""+ph+"\"":"")+
+      (type==="number"?" min=\"0\"":"")+
+      " oninput=\"chkReq()\"></div>";
   }
-  return '<div style="display:flex;flex-direction:column;gap:4px;">'+
-    '<label style="font-size:12px;font-weight:600;color:#374151;">'+label+'</label>'+
-    '<input id="'+id+'" type="'+type+'" value="'+(val||'')+'" '+
-    'style="padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;"/>'+
-  '</div>';
+
+  var h="<div class=\"pf\">"+
+    "<div class=\"pf-title\">"+(isEdit?"\u2702\ufe0f \u0e08\u0e31\u0e14\u0e01\u0e32\u0e23\u0e04\u0e39\u0e48\u0e04\u0e49\u0e32":"\u2795 \u0e2a\u0e23\u0e49\u0e32\u0e07\u0e04\u0e39\u0e48\u0e04\u0e49\u0e32\u0e43\u0e2b\u0e21\u0e48")+"</div>"+
+    "<div class=\"et-row\">"+
+      "<button class=\"et-btn"+(et==="company"?" active":"")+"\" onclick=\"setEt('company')\">\u{1F3E2} \u0e19\u0e34\u0e15\u0e34\u0e1a\u0e38\u0e04\u0e04\u0e25</button>"+
+      "<button class=\"et-btn"+(et==="person"?" active":"")+"\" onclick=\"setEt('person')\">\u{1F464} \u0e1a\u0e38\u0e04\u0e04\u0e25</button>"+
+    "</div>"+
+    "<input type=\"hidden\" id=\"pfET\" value=\""+et+"\">"+
+    "<div style=\"display:flex;align-items:center;gap:14px;margin-bottom:16px;\">"+
+      "<div class=\"av-circle\" style=\"background:"+avC+"\" onclick=\"document.getElementById('pfAvatarInp').click()\">"+avHtml+"</div>"+
+      "<input type=\"file\" id=\"pfAvatarInp\" accept=\"image/*\" style=\"display:none;\" onchange=\"prevAv(this)\">"+
+      "<div style=\"font-size:11px;color:#9ca3af;\">\u0e01\u0e14\u0e17\u0e35\u0e48\u0e23\u0e39\u0e1b\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19</div>"+
+    "</div>"+
+    "<div class=\"pf-sec\">\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e1a\u0e23\u0e34\u0e29\u0e31\u0e17</div>"+
+    "<div class=\"pf-grid\">"+
+      row("\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e23\u0e34\u0e29\u0e31\u0e17 / \u0e23\u0e49\u0e32\u0e19\u0e04\u0e49\u0e32 *","pfCN","text",p.company_name||"")+
+      row("\u0e40\u0e25\u0e02\u0e1c\u0e39\u0e49\u0e40\u0e2a\u0e35\u0e22\u0e20\u0e32\u0e29\u0e35 *","pfTX","text",p.tax_id||"","\u0e1a\u0e38\u0e04\u0e04\u0e25: \u0e40\u0e25\u0e02\u0e1a\u0e31\u0e15\u0e23\u0e1b\u0e23\u0e30\u0e0a\u0e32\u0e0a\u0e19")+
+      row("\u0e1b\u0e23\u0e30\u0e40\u0e20\u0e17\u0e04\u0e39\u0e48\u0e04\u0e49\u0e32 *","pfPT","select",p.partner_type||"supplier")+
+      row("\u0e40\u0e27\u0e47\u0e1a / Social","pfSO","text",p.social_url||"")+
+      row("\u0e40\u0e1a\u0e2d\u0e23\u0e4c\u0e42\u0e17\u0e23 *","pfPH","tel",p.phone||"")+
+      "<div class=\"pf-full\">"+row("\u0e17\u0e35\u0e48\u0e2d\u0e22\u0e39\u0e48","pfAD","text",p.address||"")+"</div>"+
+      row("\u0e15\u0e33\u0e1a\u0e25","pfSB","text",p.subdistrict||"")+
+      row("\u0e2d\u0e33\u0e40\u0e20\u0e2d","pfDI","text",p.district||"")+
+      row("\u0e08\u0e31\u0e07\u0e2b\u0e27\u0e31\u0e14 *","pfPV","text",p.province||"")+
+      row("\u0e23\u0e2b\u0e31\u0e2a\u0e44\u0e1b\u0e23\u0e29\u0e13\u0e35\u0e22\u0e4c","pfPC","text",p.postal_code||"")+
+      row("\u0e1b\u0e23\u0e30\u0e40\u0e17\u0e28","pfCO","text",p.country||"\u0e44\u0e17\u0e22")+
+    "</div>"+
+    "<div class=\"pf-sec\">\u0e40\u0e2d\u0e01\u0e2a\u0e32\u0e23\u0e1b\u0e23\u0e30\u0e01\u0e2d\u0e1a</div>"+
+    "<div style=\"margin-bottom:16px;\"><input type=\"file\" id=\"pfDocs\" multiple accept=\"image/*,.pdf,.doc,.docx\" onchange=\"prevDocs(this)\" style=\"font-size:12px;\"><div class=\"doc-list\" id=\"pfDL\"></div></div>"+
+    "<div class=\"pf-sec\">\u0e1c\u0e39\u0e49\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d</div>"+
+    "<div class=\"pf-grid\">"+
+      row("\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d *","pfCTN","text",p.contact_name||"")+
+      row("\u0e15\u0e33\u0e41\u0e2b\u0e19\u0e48\u0e07","pfCTP","text",p.contact_position||"")+
+      row("\u0e40\u0e1a\u0e2d\u0e23\u0e4c\u0e42\u0e17\u0e23 *","pfCPH","tel",p.contact_phone||"")+
+      row("LINE ID","pfCLN","text",p.contact_line||"")+
+      "<div class=\"pf-full\">"+row("\u0e2d\u0e35\u0e40\u0e21\u0e25","pfCEM","email",p.contact_email||"")+"</div>"+
+    "</div>"+
+    "<div class=\"pf-sec\">\u0e01\u0e32\u0e23\u0e40\u0e07\u0e34\u0e19</div>"+
+    "<div class=\"pf-grid\">"+
+      row("\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19\u0e2a\u0e34\u0e19\u0e40\u0e0a\u0e37\u0e48\u0e2d (\u0e1a\u0e32\u0e17) *","pfCL","number",p.credit_limit||0)+
+      row("\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15\u0e40\u0e17\u0e2d\u0e23\u0e4c\u0e21 (\u0e27\u0e31\u0e19) *","pfCTM","number",p.credit_term||30)+
+      row("\u0e2a\u0e48\u0e27\u0e19\u0e25\u0e14 (%)","pfDC","number",p.discount||0)+
+      row("\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23","pfBK","text",p.bank||"")+
+      row("\u0e40\u0e25\u0e02\u0e1a\u0e31\u0e0d\u0e0a\u0e35","pfBA","text",p.bank_account||"")+
+      row("\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e0d\u0e0a\u0e35","pfBN","text",p.bank_account_name||"")+
+    "</div>"+
+    "<div class=\"pf-sec\">\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38</div>"+
+    "<div style=\"margin-bottom:16px;\"><textarea class=\"pf-ta\" id=\"pfNT\">"+( p.note||"")+"</textarea></div>"+
+    "<div class=\"pf-actions\">"+
+      (isEdit?"<button class=\"btn-del\" onclick=\"ptDel('"+p.id+"')\">\u{1F5D1} \u0e25\u0e1a\u0e1a\u0e31\u0e0d\u0e0a\u0e35</button>":"")+
+      "<span style=\"flex:1;\"></span>"+
+      "<button class=\"btn-cancel\" onclick=\"ptCloseForm()\">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>"+
+      "<button class=\"btn-save\" id=\"pfSB\" onclick=\"ptSave()\" disabled>\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button>"+
+    "</div>"+
+  "</div>";
+
+  // set select value after render
+  setTimeout(function(){
+    var sel=document.getElementById("pfPT");
+    if(sel) sel.value=p.partner_type||"supplier";
+  },10);
+  return h;
 }
 
-window.ptSave=function(id,isEdit){
-  var company=document.getElementById('pt-company').value.trim();
-  var taxid=document.getElementById('pt-taxid').value.trim();
-  if(!company){alert('กรุณาระบุชื่อบริษัท');return;}
-  if(!taxid){alert('กรุณาระบุเลขประจำตัวผู้เสียภาษี');return;}
-  var partner={
-    id: id||'PTN_'+Date.now(),
-    company_name: company,
-    tax_id: taxid,
-    type: document.getElementById('pt-type-sel').value,
-    website: document.getElementById('pt-website').value,
-    address: document.getElementById('pt-address').value,
-    province: document.getElementById('pt-province').value,
-    zipcode: document.getElementById('pt-zipcode').value,
-    country: document.getElementById('pt-country').value,
-    contact_name: document.getElementById('pt-contact').value,
-    position: document.getElementById('pt-position').value,
-    phone: document.getElementById('pt-phone').value,
-    fax: document.getElementById('pt-fax').value,
-    email: document.getElementById('pt-email').value,
-    line_id: document.getElementById('pt-line').value,
-    credit_limit: parseFloat(document.getElementById('pt-credit-limit').value)||0,
-    credit_term: parseInt(document.getElementById('pt-credit-term').value)||30,
-    discount: parseFloat(document.getElementById('pt-discount').value)||0,
-    bank: document.getElementById('pt-bank').value,
-    bank_account: document.getElementById('pt-bank-acc').value,
-    bank_account_name: document.getElementById('pt-bank-name').value,
-    note: document.getElementById('pt-note').value,
-    updated_at: new Date().toISOString(),
+window.setEt=function(v){
+  document.getElementById("pfET").value=v;
+  document.querySelectorAll(".et-btn").forEach(function(b){
+    b.classList.toggle("active",(v==="company"&&b.textContent.includes("\u0e19\u0e34\u0e15\u0e34"))||(v==="person"&&b.textContent.includes("\u0e1a\u0e38\u0e04\u0e04\u0e25")));
+  });
+};
+
+window.prevAv=function(inp){
+  if(!inp.files||!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var av=document.getElementById("pfAvatarInp").previousElementSibling;
+    av.innerHTML="<img id=\"pfAI\" src=\""+e.target.result+"\" style=\"width:100%;height:100%;object-fit:cover;\">";
   };
-  if(isEdit==='true'){
-    var idx=allPartners.findIndex(function(x){return x.id===id;});
-    if(idx>=0) allPartners[idx]=partner;
-  } else {
-    partner.created_at=new Date().toISOString();
-    allPartners.unshift(partner);
-  }
-  localStorage.setItem('viiv_partners',JSON.stringify(allPartners));
-  ptCloseForm();
-  ptFilter();
+  r.readAsDataURL(inp.files[0]);
 };
 
-window.ptDelete=function(id){
-  if(!confirm('ยืนยันการลบคู่ค้านี้?\n\nการดำเนินการนี้ไม่สามารถยกเลิกได้'))return;
-  allPartners=allPartners.filter(function(p){return p.id!==id;});
-  localStorage.setItem('viiv_partners',JSON.stringify(allPartners));
-  ptCloseForm();
-  ptFilter();
+window.prevDocs=function(inp){
+  if(!inp.files)return;
+  Array.from(inp.files).forEach(function(f){pendingDocs.push(f);});
+  var dl=document.getElementById("pfDL");
+  if(dl) dl.innerHTML=pendingDocs.map(function(f,i){
+    return "<div class=\"doc-chip\">\ud83d\udcce "+f.name+" <span onclick=\"pendingDocs.splice("+i+",1);\" style=\"cursor:pointer;color:#ef4444;\">\u2715</span></div>";
+  }).join("");
 };
 
-loadPartners();
+function chkReq(){
+  var req=["pfCN","pfTX","pfPH","pfPV","pfCTN","pfCPH","pfCL","pfCTM"];
+  var ok=req.every(function(id){var e=document.getElementById(id);return e&&e.value.toString().trim();});
+  var b=document.getElementById("pfSB");
+  if(b)b.disabled=!ok;
+}
+window.chkReq=chkReq;
+
+window.ptSave=function(){
+  var b=document.getElementById("pfSB");if(b&&b.disabled)return;
+  var avImg=document.querySelector("#pfAI");
+  var payload={
+    entity_type:fi("pfET","company"),company_name:fi("pfCN"),tax_id:fi("pfTX"),
+    partner_type:fi("pfPT","supplier"),social_url:fi("pfSO"),phone:fi("pfPH"),
+    address:fi("pfAD"),subdistrict:fi("pfSB"),district:fi("pfDI"),
+    province:fi("pfPV"),postal_code:fi("pfPC"),country:fi("pfCO","ไทย"),
+    contact_name:fi("pfCTN"),contact_position:fi("pfCTP"),contact_phone:fi("pfCPH"),
+    contact_line:fi("pfCLN"),contact_email:fi("pfCEM"),
+    credit_limit:parseFloat(document.getElementById("pfCL").value)||0,
+    credit_term:parseInt(document.getElementById("pfCTM").value)||30,
+    discount:parseFloat(document.getElementById("pfDC").value)||0,
+    bank:fi("pfBK"),bank_account:fi("pfBA"),bank_account_name:fi("pfBN"),
+    note:fi("pfNT"),avatar_url:avImg?avImg.src:""
+  };
+  var url=API+(editId?"/api/pos/partners/update/"+editId:"/api/pos/partners/create");
+  var method=editId?"PUT":"POST";
+  if(b){b.textContent="\u0e01\u0e33\u0e25\u0e31\u0e07\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01...";b.disabled=true;}
+  fetch(url,{method:method,headers:{"Authorization":"Bearer "+TOKEN,"Content-Type":"application/json"},body:JSON.stringify(payload)})
+  .then(function(r){return r.json();})
+  .then(function(){ptCloseForm();load();})
+  .catch(function(){if(b){b.textContent="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01";b.disabled=false;}});
+};
+
+window.ptDel=function(id){
+  var dm=document.getElementById("ptDelModal");
+  dm.style.display="flex";
+  document.getElementById("ptDelBtn").onclick=function(){
+    dm.style.display="none";
+    fetch(API+"/api/pos/partners/delete/"+id,{method:"DELETE",headers:{"Authorization":"Bearer "+TOKEN}})
+    .then(function(){ptCloseForm();load();});
+  };
+};
+
 })();
 </script>
 </body>
