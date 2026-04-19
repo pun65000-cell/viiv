@@ -1,10 +1,9 @@
 nohup: ignoring input
-INFO:     Started server process [1463560]
+INFO:     Started server process [1608654]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:59360 - "GET /api/pos/partners/list HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54740 - "GET /api/pos/partners/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=20&page=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/partners/list HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK

@@ -182,3 +182,5 @@ app.include_router(pos_categories_router)
 
 from app.api import pos_partners
 app.include_router(pos_partners.router)
+from app.api import pos_receive
+app.include_router(pos_receive.router)

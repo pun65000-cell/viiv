@@ -61,7 +61,7 @@ body{font-family:"Sarabun",sans-serif;font-size:13px;color:#1a1a1a;}
 .pf-sec{font-size:11px;font-weight:700;color:var(--g);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--bl);text-transform:uppercase;letter-spacing:.5px;}
 .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .pf-full{grid-column:1/-1;}
-.pf-lbl{font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:3px;}
+.pf-lbl{font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:3px;}.pf-lbl.req::after{content:" *";color:#ef4444;}
 .pf-inp{width:100%;height:34px;padding:0 10px;border:1px solid #d1d5db;border-radius:7px;font-family:"Sarabun",sans-serif;font-size:13px;outline:none;background:#fff;transition:border-color .15s;color:#1a1a1a;}
 .pf-inp:hover{border-color:#9ca3af;}.pf-inp:focus{border-color:var(--g);box-shadow:0 0 0 2px rgba(232,185,62,.15);}
 .pf-sel{width:100%;height:34px;padding:0 8px;border:1px solid #d1d5db;border-radius:7px;font-family:"Sarabun",sans-serif;font-size:13px;outline:none;background:#fff;transition:border-color .15s;}
@@ -78,6 +78,12 @@ body{font-family:"Sarabun",sans-serif;font-size:13px;color:#1a1a1a;}
 .btn-save:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed;}
 .doc-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .doc-chip{display:flex;align-items:center;gap:5px;padding:3px 8px;background:#f3f4f6;border-radius:6px;font-size:11px;}
+.ac-wrap{position:relative;}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--bd);border-radius:7px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999;max-height:200px;overflow-y:auto;font-size:12.5px;}
+.ac-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid #f3f4f6;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover{background:var(--gl);}
+.ac-item .ac-sub{font-size:10.5px;color:#9ca3af;}
 </style>
 <script>
 (function(){
@@ -134,7 +140,7 @@ function render(){
       "<div class=\"pt-avatar\" style=\"background:"+aColor(p.company_name)+"\">"+av+"</div>"+
       "<div class=\"pt-info\">"+
         "<div class=\"pt-name\">"+(p.company_name||"?")+"</div>"+
-        "<div class=\"pt-meta\">"+(p.tax_id?"\u0e40\u0e25\u0e02: "+p.tax_id+" | ":"")+(p.contact_phone||p.phone||"-")+"</div>"+
+        "<div class=\"pt-meta\"><span style=\"font-weight:600;color:var(--g);\">"+( p.partner_code||"")+"</span>"+(p.partner_code?" · ":"")+(p.tax_id?"\u0e40\u0e25\u0e02: "+p.tax_id+" | ":"")+(p.contact_phone||p.phone||"-")+"</div>"+
         eB+" <span class=\"pt-badge "+(p.partner_type||"other")+"\">"+( tmap[p.partner_type]||"\u0e2d\u0e37\u0e48\u0e19\u0e46")+"</span>"+
       "</div>"+
       "<div style=\"text-align:right;flex-shrink:0;\">"+
@@ -166,7 +172,10 @@ window.ptOpenForm=function(id){
   var fw=document.getElementById("ptFormWrap");
   fw.style.display="block";
   fw.innerHTML=buildForm(p,!!id);
-  setTimeout(chkReq,50);
+  setTimeout(function(){
+    chkReq();
+    initAddrAC();
+  },100);
 };
 
 window.ptCloseForm=function(){
@@ -176,6 +185,37 @@ window.ptCloseForm=function(){
 };
 
 function fi(id,def){var e=document.getElementById(id);return e?e.value.trim():def||"";}
+function fmtNum(el){
+  var raw=el.value.replace(/,/g,"");
+  if(isNaN(raw)||raw==="")return;
+  el.value=Number(raw).toLocaleString("th-TH");
+}
+window.fmtNum=fmtNum;
+var _codeTimer=null;
+function debounceCheckCode(){
+  clearTimeout(_codeTimer);
+  var el=document.getElementById("pfCodeStatus");
+  if(el)el.innerHTML="";
+  _codeTimer=setTimeout(function(){
+    var code=document.getElementById("pfCode").value.trim();
+    if(!code)return;
+    fetch(API+"/api/pos/partners/check-code?code="+encodeURIComponent(code)+(editId?"&pid="+editId:""),
+      {headers:{"Authorization":"Bearer "+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var el=document.getElementById("pfCodeStatus");
+      if(!el)return;
+      if(d.available){
+        el.innerHTML="<span style=\"color:#38a169;\">✓ ใช้ได้</span>";
+      } else {
+        el.innerHTML="<span style=\"color:#ef4444;\">✗ ซ้ำ</span>";
+        var b=document.getElementById("pfSB");
+        if(b)b.disabled=true;
+      }
+    }).catch(function(){});
+  },600);
+}
+window.debounceCheckCode=debounceCheckCode;
 
 function buildForm(p,isEdit){
   var et=p.entity_type||"company";
@@ -187,10 +227,13 @@ function buildForm(p,isEdit){
   var tOpts=["supplier:ซัพพลายเออร์","distributor:ตัวแทนจำหน่าย","manufacturer:ผู้ผลิต","service:บริการ","other:อื่นๆ"];
   var tSel=tOpts.map(function(o){var s=o.split(":");return "<option value=\""+s[0]+"\">"+(s[1])+"</option>";}).join("");
 
+  function isReq(lbl){return lbl.indexOf("*")!==-1;}
   function row(lbl,id,type,val,ph){
-    if(type==="select") return "<div><label class=\"pf-lbl\">"+lbl+"</label><select class=\"pf-sel\" id=\""+id+"\" onchange=\"chkReq()\">"+tSel+"</select></div>";
-    if(type==="ta") return "<div class=\"pf-full\"><label class=\"pf-lbl\">"+lbl+"</label><textarea class=\"pf-ta\" id=\""+id+"\">"+val+"</textarea></div>";
-    return "<div><label class=\"pf-lbl\">"+lbl+"</label><input class=\"pf-inp\" id=\""+id+"\" type=\""+type+"\" value=\""+val+"\""+
+    var rq=isReq(lbl);
+    var lblHtml="<label class=\"pf-lbl"+(rq?" req":"")+"\">"+(rq?lbl.replace(" *",""):lbl)+"</label>";
+    if(type==="select") return "<div>"+lblHtml+"<select class=\"pf-sel\" id=\""+id+"\" onchange=\"chkReq()\">"+tSel+"</select></div>";
+    if(type==="ta") return "<div class=\"pf-full\">"+lblHtml+"<textarea class=\"pf-ta\" id=\""+id+"\">"+val+"</textarea></div>";
+    return "<div>"+lblHtml+"<input class=\"pf-inp\" id=\""+id+"\" type=\""+type+"\" value=\""+val+"\""+
       (ph?" placeholder=\""+ph+"\"":"")+
       (type==="number"?" min=\"0\"":"")+
       " oninput=\"chkReq()\"></div>";
@@ -203,6 +246,7 @@ function buildForm(p,isEdit){
       "<button class=\"et-btn"+(et==="person"?" active":"")+"\" onclick=\"setEt('person')\">\u{1F464} \u0e1a\u0e38\u0e04\u0e04\u0e25</button>"+
     "</div>"+
     "<input type=\"hidden\" id=\"pfET\" value=\""+et+"\">"+
+    "<div style=\"display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px 12px;background:var(--gl);border-radius:8px;border:1px solid var(--bl);\">"+      "<div style=\"flex:1;\"><label class=\"pf-lbl\">รหัสคู่ค้า <span style=\"font-size:10px;color:#aaa;\">(ถ้าว่างระบบสร้างให้อัตโนมัติ)</span></label>"+      "<input class=\"pf-inp\" id=\"pfCode\" type=\"text\" value=\""+( p.partner_code||"")+"\" placeholder=\"เช่น P00001\" oninput=\"debounceCheckCode()\" style=\"background:#fff;\"></div>"+      "<div id=\"pfCodeStatus\" style=\"font-size:11px;min-width:80px;text-align:right;\"></div>"+    "</div>"+
     "<div style=\"display:flex;align-items:center;gap:14px;margin-bottom:16px;\">"+
       "<div class=\"av-circle\" style=\"background:"+avC+"\" onclick=\"document.getElementById('pfAvatarInp').click()\">"+avHtml+"</div>"+
       "<input type=\"file\" id=\"pfAvatarInp\" accept=\"image/*\" style=\"display:none;\" onchange=\"prevAv(this)\">"+
@@ -216,10 +260,10 @@ function buildForm(p,isEdit){
       row("\u0e40\u0e27\u0e47\u0e1a / Social","pfSO","text",p.social_url||"")+
       row("\u0e40\u0e1a\u0e2d\u0e23\u0e4c\u0e42\u0e17\u0e23 *","pfPH","tel",p.phone||"")+
       "<div class=\"pf-full\">"+row("\u0e17\u0e35\u0e48\u0e2d\u0e22\u0e39\u0e48","pfAD","text",p.address||"")+"</div>"+
-      row("\u0e15\u0e33\u0e1a\u0e25","pfSB","text",p.subdistrict||"")+
-      row("\u0e2d\u0e33\u0e40\u0e20\u0e2d","pfDI","text",p.district||"")+
-      row("\u0e08\u0e31\u0e07\u0e2b\u0e27\u0e31\u0e14 *","pfPV","text",p.province||"")+
-      row("\u0e23\u0e2b\u0e31\u0e2a\u0e44\u0e1b\u0e23\u0e29\u0e13\u0e35\u0e22\u0e4c","pfPC","text",p.postal_code||"")+
+      "<div><label class=\"pf-lbl\">\u0e15\u0e33\u0e1a\u0e25/\u0e41\u0e02\u0e27\u0e07</label><input class=\"pf-inp\" id=\"pfSBD\" type=\"text\" value=\""+( p.subdistrict||"")+"\"></div>"+
+      "<div><label class=\"pf-lbl\">\u0e2d\u0e33\u0e40\u0e20\u0e2d/\u0e40\u0e02\u0e15</label><input class=\"pf-inp\" id=\"pfDI\" type=\"text\" value=\""+( p.district||"")+"\" readonly></div>"+
+      "<div><label class=\"pf-lbl req\">\u0e08\u0e31\u0e07\u0e2b\u0e27\u0e31\u0e14</label><input class=\"pf-inp\" id=\"pfPV\" type=\"text\" value=\""+( p.province||"")+"\" oninput=\"chkReq()\"></div>"+
+      "<div><label class=\"pf-lbl\">\u0e23\u0e2b\u0e31\u0e2a\u0e44\u0e1b\u0e23\u0e29\u0e13\u0e35\u0e22\u0e4c</label><input class=\"pf-inp\" id=\"pfPC\" type=\"text\" value=\""+( p.postal_code||"")+"\" readonly></div>"+
       row("\u0e1b\u0e23\u0e30\u0e40\u0e17\u0e28","pfCO","text",p.country||"\u0e44\u0e17\u0e22")+
     "</div>"+
     "<div class=\"pf-sec\">\u0e40\u0e2d\u0e01\u0e2a\u0e32\u0e23\u0e1b\u0e23\u0e30\u0e01\u0e2d\u0e1a</div>"+
@@ -234,10 +278,16 @@ function buildForm(p,isEdit){
     "</div>"+
     "<div class=\"pf-sec\">\u0e01\u0e32\u0e23\u0e40\u0e07\u0e34\u0e19</div>"+
     "<div class=\"pf-grid\">"+
-      row("\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19\u0e2a\u0e34\u0e19\u0e40\u0e0a\u0e37\u0e48\u0e2d (\u0e1a\u0e32\u0e17) *","pfCL","number",p.credit_limit||0)+
-      row("\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15\u0e40\u0e17\u0e2d\u0e23\u0e4c\u0e21 (\u0e27\u0e31\u0e19) *","pfCTM","number",p.credit_term||30)+
+      "<div><label class=\"pf-lbl req\">\u0e27\u0e07\u0e40\u0e07\u0e34\u0e19\u0e2a\u0e34\u0e19\u0e40\u0e0a\u0e37\u0e48\u0e2d (\u0e1a\u0e32\u0e17)</label>"+"<input class=\"pf-inp\" id=\"pfCL\" type=\"text\" inputmode=\"numeric\" value=\""+(p.credit_limit&&p.credit_limit!=0?Number(p.credit_limit).toLocaleString("th-TH"):"")+"\" oninput=\"fmtNum(this);chkReq()\"></div>"+
+      row("\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15\u0e40\u0e17\u0e2d\u0e23\u0e4c\u0e21 (\u0e27\u0e31\u0e19) *","pfCTM","number",p.credit_term||1)+
       row("\u0e2a\u0e48\u0e27\u0e19\u0e25\u0e14 (%)","pfDC","number",p.discount||0)+
-      row("\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23","pfBK","text",p.bank||"")+
+      (function(){
+    var banks=["กสิกรไทย (KBank)","ไทยพาณิชย์ (SCB)","กรุงเทพ (BBL)","กรุงไทย (KTB)",
+      "กรุงศรีอยุธยา (BAY)","ทหารไทยธนชาต (TTB)","ออมสิน (GSB)","ธ.ก.ส.","อิสลาม","ซีไอเอ็มบี (CIMB)","ยูโอบี (UOB)","แลนด์แอนด์เฮ้าส์ (LH Bank)"];
+    var opts=banks.map(function(b){return "<option value=\""+b+"\">"+(b)+"</option>";}).join("");
+    return "<div><label class=\"pf-lbl\">\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23</label>"+
+      "<select class=\"pf-sel\" id=\"pfBK\"><option value=\"\">-- \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23 --</option>"+opts+"</select></div>";
+  })()+
       row("\u0e40\u0e25\u0e02\u0e1a\u0e31\u0e0d\u0e0a\u0e35","pfBA","text",p.bank_account||"")+
       row("\u0e0a\u0e37\u0e48\u0e2d\u0e1a\u0e31\u0e0d\u0e0a\u0e35","pfBN","text",p.bank_account_name||"")+
     "</div>"+
@@ -262,7 +312,8 @@ function buildForm(p,isEdit){
 window.setEt=function(v){
   document.getElementById("pfET").value=v;
   document.querySelectorAll(".et-btn").forEach(function(b){
-    b.classList.toggle("active",(v==="company"&&b.textContent.includes("\u0e19\u0e34\u0e15\u0e34"))||(v==="person"&&b.textContent.includes("\u0e1a\u0e38\u0e04\u0e04\u0e25")));
+    var oc=b.getAttribute("onclick")||"";
+    b.classList.toggle("active",(v==="company"&&oc.includes("company"))||(v==="person"&&oc.includes("person")));
   });
 };
 
@@ -287,23 +338,36 @@ window.prevDocs=function(inp){
 
 function chkReq(){
   var req=["pfCN","pfTX","pfPH","pfPV","pfCTN","pfCPH","pfCL","pfCTM"];
-  var ok=req.every(function(id){var e=document.getElementById(id);return e&&e.value.toString().trim();});
+  var ok=req.every(function(id){
+    var e=document.getElementById(id);
+    var val=e?e.value.toString().replace(/,/g,"").trim():"";var filled=val&&val!=="0"||id==="pfCTM";
+    if(e) e.style.borderColor=filled?"":"#ef4444";
+    return filled;
+  });
   var b=document.getElementById("pfSB");
   if(b)b.disabled=!ok;
 }
 window.chkReq=chkReq;
 
 window.ptSave=function(){
-  var b=document.getElementById("pfSB");if(b&&b.disabled)return;
+  var b=document.getElementById("pfSB");
+  if(b&&b.disabled){
+    chkReq();
+    var t=document.createElement("div");
+    t.textContent="\u0e01\u0e23\u0e38\u0e13\u0e32\u0e01\u0e23\u0e2d\u0e01\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e17\u0e35\u0e48\u0e08\u0e33\u0e40\u0e1b\u0e47\u0e19\u0e43\u0e2b\u0e49\u0e04\u0e23\u0e1a";
+    t.style.cssText="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:99999;font-family:Sarabun,sans-serif;";
+    document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
+    return;
+  }
   var avImg=document.querySelector("#pfAI");
   var payload={
-    entity_type:fi("pfET","company"),company_name:fi("pfCN"),tax_id:fi("pfTX"),
+    partner_code:fi("pfCode"),entity_type:fi("pfET","company"),company_name:fi("pfCN"),tax_id:fi("pfTX"),
     partner_type:fi("pfPT","supplier"),social_url:fi("pfSO"),phone:fi("pfPH"),
-    address:fi("pfAD"),subdistrict:fi("pfSB"),district:fi("pfDI"),
+    address:fi("pfAD"),subdistrict:fi("pfSBD"),district:fi("pfDI"),
     province:fi("pfPV"),postal_code:fi("pfPC"),country:fi("pfCO","ไทย"),
     contact_name:fi("pfCTN"),contact_position:fi("pfCTP"),contact_phone:fi("pfCPH"),
     contact_line:fi("pfCLN"),contact_email:fi("pfCEM"),
-    credit_limit:parseFloat(document.getElementById("pfCL").value)||0,
+    credit_limit:parseFloat((document.getElementById("pfCL").value||"0").replace(/,/g,""))||0,
     credit_term:parseInt(document.getElementById("pfCTM").value)||30,
     discount:parseFloat(document.getElementById("pfDC").value)||0,
     bank:fi("pfBK"),bank_account:fi("pfBA"),bank_account_name:fi("pfBN"),
@@ -328,6 +392,58 @@ window.ptDel=function(id){
   };
 };
 
+
+
+var PROVINCES=["กรุงเทพมหานคร","กระบี่","กาญจนบุรี","กาฬสินธุ์","กำแพงเพชร","ขอนแก่น","จันทบุรี","ฉะเชิงเทรา","ชลบุรี","ชัยนาท","ชัยภูมิ","ชุมพร","เชียงราย","เชียงใหม่","ตรัง","ตราด","ตาก","นครนายก","นครปฐม","นครพนม","นครราชสีมา","นครศรีธรรมราช","นครสวรรค์","นนทบุรี","นราธิวาส","น่าน","บึงกาฬ","บุรีรัมย์","ปทุมธานี","ประจวบคีรีขันธ์","ปราจีนบุรี","ปัตตานี","พระนครศรีอยุธยา","พะเยา","พังงา","พัทลุง","พิจิตร","พิษณุโลก","เพชรบุรี","เพชรบูรณ์","แพร่","ภูเก็ต","มหาสารคาม","มุกดาหาร","แม่ฮ่องสอน","ยโสธร","ยะลา","ร้อยเอ็ด","ระนอง","ระยอง","ราชบุรี","ลพบุรี","ลำปาง","ลำพูน","เลย","ศรีสะเกษ","สกลนคร","สงขลา","สตูล","สมุทรปราการ","สมุทรสงคราม","สมุทรสาคร","สระแก้ว","สระบุรี","สิงห์บุรี","สุโขทัย","สุพรรณบุรี","สุราษฎร์ธานี","สุรินทร์","หนองคาย","หนองบัวลำภู","อ่างทอง","อำนาจเจริญ","อุดรธานี","อุตรดิตถ์","อุทัยธานี","อุบลราชธานี"];
+
+function initAddrAC(){
+  var inp=document.getElementById("pfSBD");
+  if(!inp)return;
+  // ตำบล — ปกติ input ไม่ autocomplete
+  inp.removeAttribute("readonly");
+
+  // จังหวัด — datalist + search
+  var pvInp=document.getElementById("pfPV");
+  if(!pvInp)return;
+  pvInp.removeAttribute("readonly");
+
+  // สร้าง ac dropdown สำหรับจังหวัด
+  var wrap=pvInp.parentNode;
+  wrap.style.position="relative";
+  var list=document.createElement("div");
+  list.className="ac-list";
+  list.style.display="none";
+  wrap.appendChild(list);
+
+  pvInp.addEventListener("input",function(){
+    var q=this.value.trim();
+    if(!q){list.style.display="none";return;}
+    var results=PROVINCES.filter(function(p){return p.indexOf(q)!==-1;});
+    if(!results.length){list.style.display="none";return;}
+    list.innerHTML=results.map(function(p){
+      return "<div class=\"ac-item\" data-v=\""+p+"\">"+p+"</div>";
+    }).join("");
+    list.style.display="block";
+    list.querySelectorAll(".ac-item").forEach(function(el){
+      el.addEventListener("mousedown",function(e){
+        e.preventDefault();
+        pvInp.value=this.getAttribute("data-v");
+        list.style.display="none";
+        chkReq();
+      });
+    });
+  });
+  pvInp.addEventListener("blur",function(){setTimeout(function(){list.style.display="none";},150);});
+  pvInp.addEventListener("focus",function(){
+    if(this.value){this.dispatchEvent(new Event("input"));}
+  });
+
+  // อำเภอ — unlock
+  var diInp=document.getElementById("pfDI");
+  if(diInp)diInp.removeAttribute("readonly");
+  var pcInp=document.getElementById("pfPC");
+  if(pcInp)pcInp.removeAttribute("readonly");
+}
+
 })();
 </script>
-</body>
