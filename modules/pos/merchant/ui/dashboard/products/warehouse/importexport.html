@@ -1,0 +1,192 @@
+<body>
+<div style="padding:4px 0;">
+  <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">นำเข้า / ส่งออกสินค้า</div>
+  <!-- Export -->
+  <div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:16px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;">📤 ส่งออกสินค้า (Export)</div>
+        <div style="font-size:11.5px;color:#6b7280;margin-top:2px;">ดาวน์โหลดรายการสินค้าทั้งหมดเป็นไฟล์ CSV</div>
+      </div>
+      <button id="ieExportBtn" style="height:34px;padding:0 18px;border:none;border-radius:8px;background:#e8b93e;color:#1a1200;font-weight:700;font-size:13px;cursor:pointer;font-family:Sarabun,sans-serif;">ดาวน์โหลด CSV</button>
+    </div>
+    <div style="background:#f8f6f2;border-radius:6px;padding:8px 12px;font-size:11.5px;color:#6b7280;">
+      คอลัมน์: Barcode(SKU), Name, Cost, P1(ราคาขาย), PL(ราคาต่ำสุด), PV, Stock, Sell(สถานะ)
+    </div>
+  </div>
+  <!-- Import -->
+  <div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:16px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">📥 นำเข้าสินค้า (Import)</div>
+    <div style="font-size:11.5px;color:#6b7280;margin-bottom:12px;">อัพโหลดไฟล์ CSV ตามรูปแบบมาตรฐาน (รองรับรูปแบบ POS ทั่วไป)</div>
+    <div style="background:#fdf6e3;border:1px solid #ede8d8;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11.5px;">
+      <div style="font-weight:700;margin-bottom:4px;">รูปแบบไฟล์ที่รองรับ:</div>
+      <div>• คอลัมน์ <b>Barcode</b> หรือ <b>SKU</b> = รหัสสินค้า (ห้ามซ้ำ)</div>
+      <div>• คอลัมน์ <b>Name</b> = ชื่อสินค้า *</div>
+      <div>• คอลัมน์ <b>Cost</b> = ต้นทุน</div>
+      <div>• คอลัมน์ <b>P1</b> หรือ <b>Price</b> = ราคาขาย *</div>
+      <div>• คอลัมน์ <b>PL</b> = ราคาขายต่ำสุด</div>
+      <div>• คอลัมน์ <b>Stock</b> = จำนวนสต็อก</div>
+      <div style="margin-top:6px;color:#ef4444;">* จำเป็นต้องมี</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+      <label style="display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:1.5px dashed #d4b866;border-radius:8px;cursor:pointer;font-size:12.5px;background:#fdf6e3;font-family:Sarabun,sans-serif;">
+        📂 เลือกไฟล์ CSV
+        <input type="file" id="ieImportFile" accept=".csv" style="display:none;">
+      </label>
+      <span id="ieFileName" style="font-size:12px;color:#6b7280;"></span>
+    </div>
+    <div id="iePreview" style="display:none;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;">ตัวอย่างข้อมูล (5 แถวแรก)</div>
+      <div style="overflow-x:auto;" id="iePreviewTable"></div>
+      <div id="iePreviewMsg" style="margin-top:6px;font-size:12px;"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button id="ieImportBtn" disabled style="height:34px;padding:0 20px;border:none;border-radius:8px;background:#e8b93e;color:#1a1200;font-weight:700;font-size:13px;cursor:pointer;font-family:Sarabun,sans-serif;opacity:.5;">นำเข้าสินค้า</button>
+    </div>
+    <div id="ieImportMsg" style="display:none;font-size:12px;margin-top:8px;"></div>
+  </div>
+</div>
+<script>
+(function(){
+var API=window.API_BASE||'';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var _rows=[];
+
+// EXPORT
+document.getElementById('ieExportBtn').addEventListener('click',function(){
+  fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var prods=d.items||d||[];
+    var header='Barcode,Name,Cost,P1,P2,P3,P4,P5,PL,PV,Stock,Sell';
+    var lines=prods.map(function(p){
+      return [
+        p.sku||'',
+        '"'+(p.name||'').replace(/"/g,'""')+'"',
+        p.cost_price||0,
+        p.price||0,
+        0,0,0,0,
+        p.price_min||0,
+        p.pv||0,
+        p.stock_qty||0,
+        p.status==='inactive'?0:1
+      ].join(',');
+    });
+    var csv=header+'\n'+lines.join('\n');
+    var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='products_export.csv';
+    document.body.appendChild(a);a.click();a.remove();
+    URL.revokeObjectURL(url);
+  });
+});
+
+// IMPORT - parse CSV
+function parseCSV(text){
+  var lines=text.split('\n').filter(function(l){return l.trim();});
+  if(!lines.length)return[];
+  var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'');});
+  return lines.slice(1).map(function(line){
+    var vals=[];var cur='';var inQ=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line[i];
+      if(ch==='"'){inQ=!inQ;}
+      else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}
+      else{cur+=ch;}
+    }
+    vals.push(cur.trim());
+    var obj={};
+    headers.forEach(function(h,i){obj[h]=vals[i]||'';});
+    return obj;
+  }).filter(function(r){return r.Name||r.name;});
+}
+
+function mapRow(r){
+  return {
+    sku: r.Barcode||r.SKU||r.sku||r.barcode||'',
+    name: r.Name||r.name||'',
+    cost_price: parseFloat(r.Cost||r.cost||0)||0,
+    price: parseFloat(r.P1||r.Price||r.price||0)||0,
+    price_min: parseFloat(r.PL||r.price_min||0)||0,
+    pv: parseFloat(r.PV||r.pv||0)||0,
+    stock_qty: parseFloat(r.Stock||r.stock||0)||0,
+    status: (r.Sell||r.sell||'1')==='0'?'inactive':'active',
+    track_stock: true
+  };
+}
+
+document.getElementById('ieImportFile').addEventListener('change',function(){
+  var file=this.files[0];
+  if(!file)return;
+  document.getElementById('ieFileName').textContent=file.name;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var text=e.target.result;
+    var parsed=parseCSV(text);
+    _rows=parsed.map(mapRow).filter(function(r){return r.name&&r.price>0;});
+    // preview
+    var prev=document.getElementById('iePreview');
+    var ptbl=document.getElementById('iePreviewTable');
+    var pmsg=document.getElementById('iePreviewMsg');
+    prev.style.display='block';
+    var sample=_rows.slice(0,5);
+    ptbl.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:11.5px;">'
+      +'<thead><tr style="background:#f0ede8;">'
+      +'<th style="padding:5px 8px;text-align:left;">SKU</th>'
+      +'<th style="padding:5px 8px;text-align:left;">ชื่อสินค้า</th>'
+      +'<th style="padding:5px 8px;text-align:right;">ราคาขาย</th>'
+      +'<th style="padding:5px 8px;text-align:right;">ต้นทุน</th>'
+      +'<th style="padding:5px 8px;text-align:right;">สต็อก</th>'
+      +'</tr></thead><tbody>'
+      +sample.map(function(r){
+        return '<tr style="border-bottom:1px solid #f3f4f6;">'
+          +'<td style="padding:4px 8px;">'+r.sku+'</td>'
+          +'<td style="padding:4px 8px;">'+r.name+'</td>'
+          +'<td style="padding:4px 8px;text-align:right;">'+r.price.toLocaleString()+'</td>'
+          +'<td style="padding:4px 8px;text-align:right;">'+r.cost_price.toLocaleString()+'</td>'
+          +'<td style="padding:4px 8px;text-align:right;">'+r.stock_qty+'</td>'
+          +'</tr>';
+      }).join('')
+      +'</tbody></table>';
+    pmsg.textContent='พบสินค้า '+_rows.length+' รายการ (แสดง 5 แถวแรก)';
+    pmsg.style.color='#16a34a';
+    var btn=document.getElementById('ieImportBtn');
+    btn.disabled=_rows.length===0;
+    btn.style.opacity=_rows.length>0?'1':'0.5';
+  };
+  reader.readAsText(file,'UTF-8');
+});
+
+document.getElementById('ieImportBtn').addEventListener('click',function(){
+  if(!_rows.length)return;
+  var btn=this;
+  btn.textContent='กำลังนำเข้า...';btn.disabled=true;
+  var msg=document.getElementById('ieImportMsg');
+  msg.style.display='block';msg.textContent='กำลังประมวลผล...';msg.style.color='#6b7280';
+  var done=0,fail=0,total=_rows.length;
+  function next(i){
+    if(i>=total){
+      msg.textContent='นำเข้าสำเร็จ '+done+' รายการ'+(fail>0?' (ล้มเหลว '+fail+' รายการ)':'');
+      msg.style.color=fail>0?'#ef4444':'#16a34a';
+      btn.textContent='นำเข้าสินค้า';btn.disabled=false;
+      return;
+    }
+    fetch(API+'/api/pos/products/create',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify(_rows[i])
+    })
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.id)done++;else fail++;
+      msg.textContent='กำลังนำเข้า... '+(i+1)+'/'+total;
+      next(i+1);
+    })
+    .catch(function(){fail++;next(i+1);});
+  }
+  next(0);
+});
+})();
+</script>
+</body>

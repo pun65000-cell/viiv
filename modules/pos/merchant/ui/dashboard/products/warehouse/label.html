@@ -1,0 +1,360 @@
+<body>
+<div style="padding:4px 0;font-family:Sarabun,sans-serif;font-size:13px;">
+
+  <!-- tab bar -->
+  <div style="display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid #e5e5e5;padding-bottom:10px;">
+    <button class="lb-tab active" data-tab="qr" onclick="lbTab(this,'qr')" style="padding:5px 14px;border:none;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#e8b93e;color:#1a1200;font-family:Sarabun,sans-serif;">QR Code</button>
+    <button class="lb-tab" data-tab="barcode" onclick="lbTab(this,'barcode')" style="padding:5px 14px;border:none;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#e8e8e8;color:#555;font-family:Sarabun,sans-serif;">Barcode</button>
+    <button class="lb-tab" data-tab="price" onclick="lbTab(this,'price')" style="padding:5px 14px;border:none;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#e8e8e8;color:#555;font-family:Sarabun,sans-serif;">ป้ายราคา</button>
+  </div>
+
+  <!-- เลือกสินค้า (ใช้ร่วมกัน) -->
+  <div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;">เลือกสินค้า</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <select id="lbCat" style="height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;background:#fff;font-family:Sarabun,sans-serif;outline:none;">
+        <option value="">ทุกหมวดหมู่</option>
+      </select>
+      <input id="lbSearch" placeholder="ค้นหา..." style="flex:1;min-width:120px;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;">
+      <button onclick="lbSelectAll()" style="height:28px;padding:0 10px;border:1px solid #d4b866;border-radius:6px;background:#fff;font-size:11.5px;cursor:pointer;font-family:Sarabun,sans-serif;">✓ ทั้งหมด</button>
+      <button onclick="lbClearAll()" style="height:28px;padding:0 10px;border:1px solid #d1d5db;border-radius:6px;background:#fff;font-size:11.5px;cursor:pointer;font-family:Sarabun,sans-serif;">✗ ล้าง</button>
+    </div>
+    <div id="lbList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px;max-height:200px;overflow-y:auto;"></div>
+  </div>
+
+  <!-- QR tab -->
+  <div id="lbTabQr">
+    <div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:10px;">ขนาดสติ๊กเกอร์ & ตัวเลือก</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">ขนาดสติ๊กเกอร์</label>
+          <select id="lbQrSize" style="width:100%;height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;background:#fff;font-family:Sarabun,sans-serif;outline:none;">
+            <option value="20x40">20×40 มม.</option>
+            <option value="30x50" selected>30×50 มม.</option>
+            <option value="40x60">40×60 มม.</option>
+            <option value="50x80">50×80 มม.</option>
+            <option value="100x150">100×150 มม.</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">จำนวนป้ายต่อสินค้า</label>
+          <input id="lbQrQty" type="number" value="1" min="1" max="100" style="width:100%;height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrStore" checked style="accent-color:#e8b93e;"> ชื่อร้าน</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrName" checked style="accent-color:#e8b93e;"> ชื่อสินค้า</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrSku" style="accent-color:#e8b93e;"> รหัส (SKU)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrPrice" checked style="accent-color:#e8b93e;"> ราคา</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrDetail" style="accent-color:#e8b93e;"> รายละเอียด</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrLimit" style="accent-color:#e8b93e;"> ข้อจำกัด</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbQrMfg" style="accent-color:#e8b93e;"> วันผลิต/หมดอายุ</label>
+      </div>
+      <div id="lbQrMfgFields" style="display:none;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div><label style="font-size:11px;color:#6b7280;">รายละเอียด</label><input id="lbQrDetailTxt" placeholder="เช่น 300g." style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+        <div><label style="font-size:11px;color:#6b7280;">ข้อจำกัด</label><input id="lbQrLimitTxt" placeholder="เช่น เก็บในที่เย็น" style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><label style="font-size:11px;color:#6b7280;">วันที่ผลิต</label><input id="lbQrMfgDate" type="date" style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+          <div><label style="font-size:11px;color:#6b7280;">วันหมดอายุ</label><input id="lbQrExpDate" type="date" style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button onclick="lbPrintQr()" style="height:34px;padding:0 20px;border:none;border-radius:8px;background:#e8b93e;color:#1a1200;font-weight:700;font-size:13px;cursor:pointer;font-family:Sarabun,sans-serif;">🖨️ พิมพ์ QR</button>
+    </div>
+  </div>
+
+  <!-- Barcode tab -->
+  <div id="lbTabBarcode" style="display:none;">
+    <div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:10px;">ขนาดสติ๊กเกอร์บาร์โค้ด</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">ขนาด</label>
+          <select id="lbBcSize" style="width:100%;height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;background:#fff;font-family:Sarabun,sans-serif;outline:none;">
+            <option value="38x14">A4(E-100) — 38×14 มม. (100 ดวง/แผ่น)</option>
+            <option value="38x27" selected>A4(E-050) — 38×27 มม. (50 ดวง/แผ่น)</option>
+            <option value="48x25">A4 — 48×25 มม. (40 ดวง/แผ่น)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">จำนวนป้ายต่อสินค้า</label>
+          <input id="lbBcQty" type="number" value="1" min="1" max="100" style="width:100%;height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbBcName" checked style="accent-color:#e8b93e;"> แสดงชื่อสินค้า</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbBcPrice" checked style="accent-color:#e8b93e;"> แสดงราคา</label>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button onclick="lbPrintBarcode()" style="height:34px;padding:0 20px;border:none;border-radius:8px;background:#e8b93e;color:#1a1200;font-weight:700;font-size:13px;cursor:pointer;font-family:Sarabun,sans-serif;">🖨️ พิมพ์ Barcode</button>
+    </div>
+  </div>
+
+  <!-- ป้ายราคา tab -->
+  <div id="lbTabPrice" style="display:none;">
+    <div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:10px;">ตัวเลือกป้ายราคา</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">ขนาด</label>
+          <select id="lbPrSize" style="width:100%;height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;background:#fff;font-family:Sarabun,sans-serif;outline:none;">
+            <option value="40x60" selected>40×60 มม.</option>
+            <option value="50x80">50×80 มม.</option>
+            <option value="60x90">60×90 มม.</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">จำนวนป้ายต่อสินค้า</label>
+          <input id="lbPrQty" type="number" value="1" min="1" max="100" style="width:100%;height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbPrStore" checked style="accent-color:#e8b93e;"> ชื่อร้าน</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbPrSku" checked style="accent-color:#e8b93e;"> SKU</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbPrDetail" style="accent-color:#e8b93e;"> รายละเอียด</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbPrLimit" style="accent-color:#e8b93e;"> ข้อจำกัด</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="lbPrMfg" style="accent-color:#e8b93e;"> วันผลิต/หมดอายุ</label>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div><label style="font-size:11px;color:#6b7280;">รายละเอียด</label><input id="lbPrDetailTxt" placeholder="เช่น 300g." style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+        <div><label style="font-size:11px;color:#6b7280;">ข้อจำกัด</label><input id="lbPrLimitTxt" placeholder="เช่น เก็บในที่เย็น" style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+        <div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><label style="font-size:11px;color:#6b7280;">วันที่ผลิต</label><input id="lbPrMfgDate" type="date" style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+          <div><label style="font-size:11px;color:#6b7280;">วันหมดอายุ</label><input id="lbPrExpDate" type="date" style="width:100%;height:28px;padding:0 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:Sarabun,sans-serif;outline:none;box-sizing:border-box;margin-top:2px;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button onclick="lbPrintPrice()" style="height:34px;padding:0 20px;border:none;border-radius:8px;background:#e8b93e;color:#1a1200;font-weight:700;font-size:13px;cursor:pointer;font-family:Sarabun,sans-serif;">🖨️ พิมพ์ป้ายราคา</button>
+    </div>
+  </div>
+
+</div>
+<script>
+(function(){
+var API=window.API_BASE||'';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+var _all=[],_sel=new Set(),_filtered=[];
+var _store={};
+
+// โหลดสินค้า + store
+Promise.all([
+  fetch(API+'/api/pos/products/list',{headers:{'Authorization':'Bearer '+TOKEN}}).then(function(r){return r.json();}),
+  fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}}).then(function(r){return r.json();})
+]).then(function(res){
+  _all=(res[0].items||res[0]||[]).filter(function(p){return p.status!=='inactive';});
+  _store=res[1]||{};
+  var cats=[...new Set(_all.map(function(p){return p.category;}).filter(Boolean))];
+  var sel=document.getElementById('lbCat');
+  cats.forEach(function(cat){var op=document.createElement('option');op.value=cat;op.textContent=cat;sel.appendChild(op);});
+  _all.forEach(function(p){_sel.add(p.id);});
+  filterRender();
+});
+
+function filterRender(){
+  var q=document.getElementById('lbSearch').value.toLowerCase();
+  var cat=document.getElementById('lbCat').value;
+  _filtered=_all.filter(function(p){
+    return(!q||(p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q))&&(!cat||p.category===cat);
+  });
+  var el=document.getElementById('lbList');
+  el.innerHTML=_filtered.map(function(p){
+    var chk=_sel.has(p.id);
+    return '<label style="display:flex;align-items:center;gap:6px;padding:5px 7px;border:1px solid '+(chk?'#e8b93e':'#e5e5e5')+';border-radius:6px;cursor:pointer;font-size:11.5px;background:'+(chk?'#fdf6e3':'#fff')+';transition:.1s;">'
+      +'<input type="checkbox" '+(chk?'checked':'')+' data-id="'+p.id+'" style="accent-color:#e8b93e;flex-shrink:0;">'
+      +'<span>'+p.name+'</span></label>';
+  }).join('');
+  el.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener('change',function(){
+      if(this.checked)_sel.add(this.getAttribute('data-id'));
+      else _sel.delete(this.getAttribute('data-id'));
+      filterRender();
+    });
+  });
+}
+
+document.getElementById('lbSearch').addEventListener('input',filterRender);
+document.getElementById('lbCat').addEventListener('change',filterRender);
+window.lbSelectAll=function(){_filtered.forEach(function(p){_sel.add(p.id);});filterRender();};
+window.lbClearAll=function(){_filtered.forEach(function(p){_sel.delete(p.id);});filterRender();};
+
+window.lbTab=function(btn,tab){
+  document.querySelectorAll('.lb-tab').forEach(function(b){b.style.background='#e8e8e8';b.style.color='#555';});
+  btn.style.background='#e8b93e';btn.style.color='#1a1200';
+  ['qr','barcode','price'].forEach(function(t){
+    var el=document.getElementById('lbTab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el)el.style.display=t===tab?'block':'none';
+  });
+};
+
+function getProds(){
+  return _all.filter(function(p){return _sel.has(p.id);});
+}
+
+function mmToPx(mm){return Math.round(mm*3.7795);}
+
+function openPrintWin(title,css,bodyHtml,pageW,pageH){
+  fetch((window.API_BASE||'')+'/api/pos/products/print-label',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify({w:pageW,h:pageH,css:css,body:bodyHtml})
+  })
+  .then(function(r){return r.text();})
+  .then(function(html){
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    window.open(url,'_blank');
+    setTimeout(function(){URL.revokeObjectURL(url);},30000);
+  });
+}
+
+// ── QR CODE ──
+window.lbPrintQr=function(){
+  var prods=getProds();
+  if(!prods.length){alert('กรุณาเลือกสินค้า');return;}
+  var qty=parseInt(document.getElementById('lbQrQty').value)||1;
+  var size=document.getElementById('lbQrSize').value.split('x');
+  var W=parseInt(size[1]),H=parseInt(size[0]);  // W=ความยาว(แนวนอน), H=ความสูง
+  var showStore=document.getElementById('lbQrStore').checked;
+  var showName=document.getElementById('lbQrName').checked;
+  var showSku=document.getElementById('lbQrSku').checked;
+  var showPrice=document.getElementById('lbQrPrice').checked;
+  var showDetail=document.getElementById('lbQrDetail').checked;
+  var showLimit=document.getElementById('lbQrLimit').checked;
+  var showMfg=document.getElementById('lbQrMfg').checked;
+  var detailTxt=document.getElementById('lbQrDetailTxt').value;
+  var limitTxt=document.getElementById('lbQrLimitTxt').value;
+  var mfgDate=document.getElementById('lbQrMfgDate').value;
+  var expDate=document.getElementById('lbQrExpDate').value;
+  function fmtDate(d){if(!d)return'';var p=d.split('-');return p[2]+'-'+p[1]+'-'+p[0].slice(2);}
+  var qrSz=Math.round(H*0.82);
+  var infoW=W-qrSz-3;
+  var fs=infoW>22?10:infoW>16?9:8;
+  var labels=[];
+  prods.forEach(function(p){
+    for(var i=0;i<qty;i++){
+      var qrUrl=p.qr_url||('https://concore.viiv.me/catalog.html?sku='+encodeURIComponent(p.sku||p.id));
+      var qrApi='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(qrUrl);
+      // layout แนวนอน: QR ซ้าย, ข้อมูล ขวา
+      var info='<div class="lb-info">'
+        +(showStore&&_store.store_name?'<div class="lb-store">'+_store.store_name+'</div>':'')
+        +(showName?'<div class="lb-name">'+p.name+'</div>':'')
+        +(showSku&&p.sku?'<div class="lb-row"><span class="lb-lbl">*'+p.sku+'*</span></div>':'')
+        +(showPrice?'<div class="lb-price">฿'+parseFloat(p.price||0).toLocaleString()+'</div>':'')
+        +(showDetail&&detailTxt?'<div class="lb-row">'+detailTxt+'</div>':'')
+        +(showLimit&&limitTxt?'<div class="lb-row">'+limitTxt+'</div>':'')
+        +(showMfg&&mfgDate?'<div class="lb-row">MFG: '+fmtDate(mfgDate)+'</div>':'')
+        +(showMfg&&expDate?'<div class="lb-row">EXP: '+fmtDate(expDate)+'</div>':'')
+        +'</div>';
+      labels.push('<div class="lb"><img src="'+qrApi+'" class="lb-qr">'+info+'</div>');
+    }
+  });
+  var css='*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:Sarabun,sans-serif;}'
+    +'@media print{button{display:none;}}'
+    +'.wrap{display:flex;flex-wrap:wrap;gap:0;padding:0;}'
+    +'.lb{width:'+W+'mm;height:'+H+'mm;border:0.3px solid #aaa;display:flex;flex-direction:row;align-items:center;padding:1mm;overflow:hidden;gap:1.5mm;box-sizing:border-box;}'
+    +'.lb-qr{width:'+qrSz+'mm;height:'+qrSz+'mm;flex-shrink:0;}'
+    +'.lb-info{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;width:'+infoW+'mm;overflow:hidden;word-break:break-word;}'
+    +'.lb-store{font-size:'+(fs-1)+'px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}'
+    +'.lb-name{font-size:'+(fs+1)+'px;font-weight:700;line-height:1.2;margin-bottom:0.5mm;word-break:break-word;white-space:normal;}'
+    +'.lb-price{font-size:'+(fs+3)+'px;font-weight:700;color:#c8890e;}'
+    +'.lb-row{font-size:'+(fs-1)+'px;color:#444;line-height:1.3;}'
+    +'.lb-lbl{font-size:'+(fs-1)+'px;font-family:monospace;letter-spacing:1px;}';
+  openPrintWin('พิมพ์ QR Code',css,'<div class="wrap">'+labels.join('')+'</div>',W,H);
+};
+
+// ── BARCODE (Code128 via JsBarcode) ──
+window.lbPrintBarcode=function(){
+  var prods=getProds();
+  if(!prods.length){alert('กรุณาเลือกสินค้า');return;}
+  var qty=parseInt(document.getElementById('lbBcQty').value)||1;
+  var size=document.getElementById('lbBcSize').value.split('x');
+  var W=parseInt(size[0]),H=parseInt(size[1]);
+  var showName=document.getElementById('lbBcName').checked;
+  var showPrice=document.getElementById('lbBcPrice').checked;
+  var labels=[];
+  prods.forEach(function(p){
+    for(var i=0;i<qty;i++){
+      var code=p.sku||p.id;
+      labels.push('<div class="lb">'
+        +(showName?'<div class="lb-name">'+p.name+'</div>':'')
+        +'<svg class="lb-bc" data-code="'+code+'"></svg>'
+        +'<div class="lb-code">'+code+'</div>'
+        +(showPrice?'<div class="lb-price">฿'+parseFloat(p.price||0).toLocaleString()+'</div>':'')
+        +'</div>');
+    }
+  });
+  var css='*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:Sarabun,sans-serif;}'
+    +'@media print{button{display:none;}}'
+    +'.wrap{display:flex;flex-wrap:wrap;gap:0;padding:0;}'
+    +'.lb{width:'+W+'mm;height:'+H+'mm;border:0.3px solid #ccc;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1mm;overflow:hidden;box-sizing:border-box;}'
+    +'.lb-name{font-size:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;margin-bottom:0.5mm;}'
+    +'.lb-bc{width:'+(W-4)+'mm;}'
+    +'.lb-code{font-size:6px;color:#333;letter-spacing:1px;}'
+    +'.lb-price{font-size:7px;font-weight:700;color:#c8890e;}';
+  var w=window.open('','_blank','width=1000,height=700');
+  w.document.write('<html><head><title>พิมพ์ Barcode</title>'
+    +'<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>'
+    +'<style>'+css+'</style></head><body>'
+    +'<div class="wrap">'+labels.join('')+'</div>'
+    +'<script>document.querySelectorAll(".lb-bc").forEach(function(el){try{JsBarcode(el,el.getAttribute("data-code"),{format:"CODE128",displayValue:false,height:28,margin:0});}catch(e){}});window.print();<\/script>'
+    +'</body></html>');
+  w.document.close();
+};
+
+// ── ป้ายราคา ──
+window.lbPrintPrice=function(){
+  var prods=getProds();
+  if(!prods.length){alert('กรุณาเลือกสินค้า');return;}
+  var qty=parseInt(document.getElementById('lbPrQty').value)||1;
+  var size=document.getElementById('lbPrSize').value.split('x');
+  var W=parseInt(size[1]),H=parseInt(size[0]);
+  var showStore=document.getElementById('lbPrStore').checked;
+  var showSku=document.getElementById('lbPrSku').checked;
+  var showDetail=document.getElementById('lbPrDetail').checked;
+  var showLimit=document.getElementById('lbPrLimit').checked;
+  var showMfg=document.getElementById('lbPrMfg').checked;
+  var detailTxt=document.getElementById('lbPrDetailTxt').value;
+  var limitTxt=document.getElementById('lbPrLimitTxt').value;
+  var mfgDate=document.getElementById('lbPrMfgDate').value;
+  var expDate=document.getElementById('lbPrExpDate').value;
+  function fmtDate(d){if(!d)return'';var p=d.split('-');return p[2]+'-'+p[1]+'-'+p[0].slice(2);}
+  var fs=W>45?10:8;
+  var labels=[];
+  prods.forEach(function(p){
+    for(var i=0;i<qty;i++){
+      labels.push('<div class="lb">'
+        +(showStore&&_store.store_name?'<div class="lb-store">'+_store.store_name+'</div>':'')
+        +'<div class="lb-name">'+p.name+'</div>'
+        +(showSku&&p.sku?'<div class="lb-sku">'+p.sku+'</div>':'')
+        +(showDetail&&detailTxt?'<div class="lb-row">'+detailTxt+'</div>':'')
+        +'<div class="lb-price">฿'+parseFloat(p.price||0).toLocaleString('th-TH',{minimumFractionDigits:0})+'</div>'
+        +(p.price_min&&p.price_min<p.price?'<div class="lb-pmin">ราคาสมาชิก ฿'+parseFloat(p.price_min).toLocaleString()+'</div>':'')
+        +(showLimit&&limitTxt?'<div class="lb-row">'+limitTxt+'</div>':'')
+        +(showMfg&&mfgDate?'<div class="lb-row">MFG: '+fmtDate(mfgDate)+'</div>':'')
+        +(showMfg&&expDate?'<div class="lb-row">EXP: '+fmtDate(expDate)+'</div>':'')
+        +'</div>');
+    }
+  });
+  var css='*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:Sarabun,sans-serif;}'
+    +'@media print{button{display:none;}}'
+    +'.wrap{display:flex;flex-wrap:wrap;gap:0;padding:0;}'
+    +'.lb{width:'+W+'mm;height:'+H+'mm;border:0.5px solid #333;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2mm;overflow:hidden;text-align:center;box-sizing:border-box;}'
+    +'.lb-store{font-size:'+(fs-1)+'px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}'
+    +'.lb-name{font-size:'+(fs+1)+'px;font-weight:700;line-height:1.2;}'
+    +'.lb-sku{font-size:'+(fs-2)+'px;color:#888;font-family:monospace;}'
+    +'.lb-price{font-size:'+(fs+8)+'px;font-weight:700;color:#c8890e;line-height:1;margin:0.5mm 0;}'
+    +'.lb-pmin{font-size:'+(fs-1)+'px;color:#16a34a;}'
+    +'.lb-row{font-size:'+(fs-1)+'px;color:#444;}';
+  openPrintWin('พิมพ์ป้ายราคา',css,'<div class="wrap">'+labels.join('')+'</div>',W,H);
+};
+
+})();
+</script>
+</body>

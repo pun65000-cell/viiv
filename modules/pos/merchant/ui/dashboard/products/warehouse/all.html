@@ -307,7 +307,7 @@ window.waOpenPopup=function(id){
   var catDiv=document.createElement('div');catDiv.className='wa-field';
   var catLbl=document.createElement('label');catLbl.textContent='หมวดหมู่';
   var catSel=document.createElement('select');catSel.id='wa-cat';
-  catSel.style.cssText='padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;background:#fff;width:100%;box-sizing:border-box;';
+  catSel.style.cssText='padding:5px 8px;height:34px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;background:#fff;width:100%;box-sizing:border-box;';
   var emptyOpt=document.createElement('option');emptyOpt.value='';emptyOpt.textContent='ไม่มีหมวดหมู่';
   catSel.appendChild(emptyOpt);
   // ดึง categories ใหม่ทุกครั้งที่เปิดฟอร์ม
@@ -534,7 +534,7 @@ window.waSave=function(){
     })
     .then(function(r){return r.json();})
     .then(function(d){
-      if(d.id||d.success||d.name){waClosePopup();loadProducts();}
+      if(d.message||d.id||d.success||d.name){waClosePopup();loadProducts();}
       else{alert(d.detail||'บันทึกไม่สำเร็จ');if(btn){btn.textContent='บันทึก';btn.disabled=false;}}
     })
     .catch(function(){alert('เชื่อมต่อระบบไม่ได้');if(btn){btn.textContent='บันทึก';btn.disabled=false;}});

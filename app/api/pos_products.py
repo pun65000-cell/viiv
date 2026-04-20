@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Form
+from fastapi.responses import HTMLResponse
 from sqlalchemy import text
 from app.core.db import engine
 from app.core.id_generator import generate_id
@@ -206,3 +207,21 @@ def public_store_info(tenant: str = ""):
         r = c.execute(text("SELECT * FROM store_settings WHERE tenant_id=:tid"),{"tid":tenant}).fetchone()
     if not r: return {"store_name":"My Shop","logo_url":""}
     return dict(r._mapping)
+
+@router.post("/print-label")
+def print_label(payload: dict, authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    page_w = int(payload.get("w", 50))
+    page_h = int(payload.get("h", 30))
+    css = payload.get("css", "")
+    body = payload.get("body", "")
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@page{{size:{page_w}mm {page_h}mm;margin:0;}}
+{css}
+</style>
+</head><body>{body}
+<script>window.addEventListener('load',function(){{window.print();}});</script>
+</body></html>"""
+    return HTMLResponse(content=html)
