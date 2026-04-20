@@ -61,6 +61,39 @@
           <input id="stPostal" type="text" class="st-input" placeholder="10000"/>
         </div>
       </div>
+      <div style="border-top:1px solid #f0ede8;margin:16px 0 14px;padding-top:14px;">
+        <div class="st-section-title">ตั้งค่าการขาย</div>
+        <div class="st-grid">
+          <div class="st-field">
+            <label>สแกนหน้าร้าน</label>
+            <select id="stScanMode" class="st-input">
+              <option value="combine">รวม (รวมรายการเดิม)</option>
+              <option value="split">แยก (แยกเป็นรายการใหม่)</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>VAT</label>
+            <select id="stVatMode" class="st-input">
+              <option value="included">included (รวม VAT แล้ว)</option>
+              <option value="excluded">excluded (ยังไม่รวม VAT)</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>สต็อกหมด</label>
+            <select id="stStockEmptySell" class="st-input">
+              <option value="true">ขายได้ (คลังติดลบได้)</option>
+              <option value="false">ขายไม่ได้ (บล็อกเมื่อสต็อก 0)</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>แคตตาล็อคออนไลน์</label>
+            <select id="stCatalogOnline" class="st-input">
+              <option value="true">แสดง</option>
+              <option value="false">ไม่แสดง</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div class="st-actions">
         <button class="st-btn-cancel" id="stStoreCancelBtn">ยกเลิก</button>
         <button class="st-btn-save" id="stStoreSaveBtn">บันทึก</button>
@@ -217,7 +250,7 @@
   </div>
 </div>
 <style>
-.st-wrap{padding:4px 0;box-sizing:border-box;width:100%;}
+.st-wrap{padding:4px 0;box-sizing:border-box;width:100%;max-width:900px;margin:0 auto;}
 .st-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
 .st-tab{padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:#f0ede8;color:var(--text,#1f2937);transition:.15s;}
 .st-tab.active{background:var(--accent,#e8b93e);color:#1a1200;}
@@ -276,6 +309,10 @@ function loadSettings(){
     document.getElementById('stTaxId').value=d.tax_id||'';
     document.getElementById('stPhone').value=d.phone||'';
   var bc=document.getElementById('stBranchCode');if(bc)bc.value=d.branch_code||'';
+    var sm=document.getElementById('stScanMode');if(sm)sm.value=d.scan_mode||'combine';
+    var vm=document.getElementById('stVatMode');if(vm)vm.value=d.vat_mode||'included';
+    var ses=document.getElementById('stStockEmptySell');if(ses)ses.value=d.stock_empty_sell===false?'false':'true';
+    var co=document.getElementById('stCatalogOnline');if(co)co.value=(d.catalog_online===false)?'false':'true';
     document.getElementById('stAddress').value=d.address||'';
     document.getElementById('stRoad').value=d.road||'';
     document.getElementById('stSubdistrict').value=d.subdistrict||'';
@@ -329,6 +366,10 @@ function resetStore(){
   document.getElementById('stTaxId').value=d.tax_id||'';
   document.getElementById('stPhone').value=d.phone||'';
   var bc=document.getElementById('stBranchCode');if(bc)bc.value=d.branch_code||'';
+    var sm=document.getElementById('stScanMode');if(sm)sm.value=d.scan_mode||'combine';
+    var vm=document.getElementById('stVatMode');if(vm)vm.value=d.vat_mode||'included';
+    var ses=document.getElementById('stStockEmptySell');if(ses)ses.value=d.stock_empty_sell===false?'false':'true';
+    var co=document.getElementById('stCatalogOnline');if(co)co.value=(d.catalog_online===false)?'false':'true';
   document.getElementById('stAddress').value=d.address||'';
   document.getElementById('stRoad').value=d.road||'';
   document.getElementById('stSubdistrict').value=d.subdistrict||'';
@@ -370,7 +411,11 @@ function saveStore(){
       inv_start_seq:_origData.inv_start_seq||1,
       bill_format:_origData.bill_format||'BILL-YYYY-NNNNNN',
       show_tax_id:_origData.show_tax_id!==false,
-      show_address:_origData.show_address!==false
+      show_address:_origData.show_address!==false,
+      scan_mode:(document.getElementById('stScanMode')||{value:'combine'}).value,
+      vat_mode:(document.getElementById('stVatMode')||{value:'included'}).value,
+      stock_empty_sell:(document.getElementById('stStockEmptySell')||{value:'true'}).value!=='false',
+      catalog_online:(document.getElementById('stCatalogOnline')||{value:'false'}).value==='true'
     };
     fetch(API+'/api/pos/store/settings',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
