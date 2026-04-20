@@ -59,17 +59,24 @@ def create_bill(payload: dict, authorization: str = Header("")):
         dv = float(payload.get("discount",0)); dt = payload.get("discount_type","amount")
         disc = sub*dv/100 if dt=="percent" else dv
         after = max(0,sub-disc)
-        vr = int(payload.get("vat",0)); va = after*vr/100; total = after+va
+        vr = int(payload.get("vat",0))
+        vat_type = payload.get("vat_type","included")
+        if vr == 0:
+            va = 0; total = after
+        elif vat_type == "included":
+            va = round(after - after/(1+vr/100), 2); total = after
+        else:
+            va = round(after*vr/100, 2); total = after+va
         src = payload.get("source","billing")
         ship_st = payload.get("shipping_status", None)
         sched = payload.get("scheduled_at")
-        c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
-            VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
+        c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,vat_type,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
+            VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:vtype,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
             {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":payload.get("doc_type","receipt"),"st":status,
              "src":src,"ship":ship_st,"sched":sched,
              "cid":(payload.get("customer_data") or {}).get("id"),"cn":payload.get("customer",""),"cc":payload.get("customer_code",""),
              "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
-             "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"total":total,
+             "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"vtype":vat_type,"total":total,
              "pm":payload.get("pay_method","cash"),"paid":float(payload.get("paid",0)),"note":payload.get("note",""),"uid":uid})
         if status=="paid":
             for item in items_snap:

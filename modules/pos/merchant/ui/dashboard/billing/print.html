@@ -17,7 +17,7 @@
     <span id="printStatus" style="color:#9ca3af;font-size:11px;"></span>
   </div>
   <div id="printPreview" style="background:#e5e7eb;padding:20px;min-height:calc(100vh - 50px);display:flex;justify-content:center;">
-    <div id="printPage" style="background:#fff;width:210mm;min-height:297mm;padding:15mm 15mm;box-sizing:border-box;font-family:sans-serif;font-size:13px;position:relative;">
+    <div id="printPage" style="background:#fff;width:210mm;padding:12mm 14mm;box-sizing:border-box;font-family:sans-serif;font-size:13px;position:relative;">
       <div style="text-align:center;padding:60px;color:#aaa;"><div style="font-size:32px;margin-bottom:12px;">⏳</div><div style="font-size:14px;">กำลังโหลดข้อมูลบิล...</div></div>
     </div>
   </div>
@@ -47,8 +47,7 @@ body{margin:0;padding:0;}
 .doc-table td.num{text-align:right;}
 .doc-table td.ctr{text-align:center;}
 .doc-table tbody{min-height:200px;}
-.doc-items-wrap{min-height:220px;}
-#printPage{min-height:297mm;}
+.doc-items-wrap{min-height:160px;}
 .doc-summary{display:flex;justify-content:flex-end;margin-bottom:10px;}
 .doc-summary-box{width:240px;font-size:11px;}
 .doc-summary-row{display:flex;justify-content:space-between;padding:2px 0;}
@@ -199,7 +198,7 @@ function customerBlock(){
 }
 
 function itemsTable(showSku,showPrice){
-  var MIN_ROWS=16;
+  var MIN_ROWS=13;
   var rows=(_bill.items||[]).map(function(it,i){
     var amount=parseFloat(it.qty)*parseFloat(it.price);
     return '<tr>'+
@@ -234,11 +233,27 @@ function summaryBlock(showVat){
   var vat=parseFloat(_bill.vat_amount)||0;
   var total=parseFloat(_bill.total)||0;
   var vatRate=parseInt(_bill.vat_rate)||0;
-  return '<div class="doc-summary"><div class="doc-summary-box">'+
-    (disc>0?'<div class="doc-summary-row"><span>ส่วนลด</span><span>'+fmt(disc)+'</span></div>':'')+
-    (showVat&&vatRate>0?'<div class="doc-summary-row"><span>ภาษีมูลค่าเพิ่ม '+vatRate+'%</span><span>'+fmt(vat)+'</span></div>':'')+
-    '<div class="doc-summary-row doc-summary-total"><span>ยอดสุทธิ</span><span>'+fmt(total)+'</span></div>'+
-  '</div></div>';
+  var vatType=_bill.vat_type||'included';
+  var rows='';
+  if(showVat){
+    // แสดงครบ 6 บรรทัดเสมอ ไม่ว่า vat จะมีหรือไม่
+    var basePrice=vatType==='excluded'?sub:(vat>0?total-vat+disc:sub);
+    var afterDisc=basePrice-disc;
+    var vatLabel=vatRate>0?'ภาษีมูลค่าเพิ่ม '+vatRate+'%':'ภาษีมูลค่าเพิ่ม 7%';
+    var vatDisplay=vatType==='included'?'( '+fmt(vat)+' )':fmt(vat);
+    rows+=
+      '<div class="doc-summary-row"><span>รวมเป็นเงิน</span><span>'+fmt(sub)+'</span></div>'+
+      '<div class="doc-summary-row"><span>ราคาปกติ</span><span>'+fmt(sub)+'</span></div>'+
+      '<div class="doc-summary-row"><span>หักส่วนลด</span><span>'+fmt(disc)+'</span></div>'+
+      '<div class="doc-summary-row"><span>ยอดคำนวณภาษี</span><span>'+fmt(afterDisc)+'</span></div>'+
+      '<div class="doc-summary-row"><span>'+vatLabel+'</span><span>'+vatDisplay+'</span></div>'+
+      '<div class="doc-summary-row doc-summary-total"><span>ราคาสินค้า</span><span>'+fmt(total)+'</span></div>';
+  } else {
+    rows+=
+      (disc>0?'<div class="doc-summary-row"><span>ส่วนลด</span><span>-'+fmt(disc)+'</span></div>':'')+
+      '<div class="doc-summary-row doc-summary-total"><span>ยอดสุทธิ</span><span>'+fmt(total)+'</span></div>';
+  }
+  return '<div class="doc-summary"><div class="doc-summary-box">'+rows+'</div></div>';
 }
 
 function signBlock(cols){
@@ -279,7 +294,7 @@ window.renderForm = function renderForm(f){
       customerBlock()+
 
       itemsTable(false,true)+
-      summaryBlock(f==3)+
+      summaryBlock(f==1||f==3||f==4)+
       (f==1?'<div style="font-size:10px;margin-bottom:6px;">หมายเหตุ: '+(_bill.note||'แก้ไขใบส่งของกรุณาติดต่อภายใน 7 วัน')+'</div>':'')+
       signBlock(f==1?['ผู้รับสินค้า/Received By','ผู้ส่งสินค้า/Delivered By','ผู้จัดทำ/Prepared By','ผู้อนุมัติ/Authorized']:null)+
       
@@ -314,7 +329,9 @@ window.renderForm = function renderForm(f){
         '<div>2.บริษัทฯ จะออกใบเสร็จชำระเงิน เมื่อมีการชำระเงินเรียบร้อยแล้ว</div>'+
       '</div>'+
       summaryBlock(true)+
-      signBlock(['ผู้ส่งสินค้า/ผู้รับเงิน','ผู้รับสินค้า']);
+      signBlock(['ผู้ส่งสินค้า/ผู้รับเงิน','ผู้รับสินค้า'])+
+      (_store.show_footer_text&&_store.footer_text?'<div style="text-align:center;font-size:10px;color:#374151;margin-top:4px;padding-top:4px;border-top:1px dashed #e5e5e5;">'+_store.footer_text+'</div>':'')+
+      buildBankBlock(_store);
   }
   else if(f==6){
     var logoUrl='';

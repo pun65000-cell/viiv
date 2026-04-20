@@ -69,6 +69,10 @@
       </div>
       <div class="bill-sum-row">
         <span>VAT</span>
+        <select id="billVatType" class="bill-select-sm" style="margin-right:4px;">
+          <option value="included">included</option>
+          <option value="excluded">excluded</option>
+        </select>
         <select id="billVat" class="bill-select-sm">
           <option value="0">ไม่มี VAT</option>
           <option value="7">7%</option>
@@ -172,6 +176,7 @@ function autosaveDraft(){
       discount:parseFloat((document.getElementById('billDiscount')||{}).value)||0,
       discount_type:(document.getElementById('billDiscountType')||{}).value||'amount',
       vat:parseInt((document.getElementById('billVat')||{}).value)||0,
+      vat_type:(document.getElementById('billVatType')||{value:'included'}).value,
       pay_method:(document.getElementById('billPayMethod')||{}).value||'cash',
       note:(document.getElementById('billNote')||{}).value||'',
       scheduled_at:(document.getElementById('billScheduledAt')||{}).value||null,
@@ -468,6 +473,8 @@ window.addEventListener('viiv_load_draft',function(e){
   document.getElementById('billDiscount').value=bill.discount||0;
   document.getElementById('billDiscountType').value=bill.discount_type||'amount';
   document.getElementById('billVat').value=bill.vat||0;
+  var vtEl=document.getElementById('billVatType');
+  if(vtEl) vtEl.value=bill.vat_type||(window._storeSettings&&window._storeSettings.vat_mode)||'included';
   document.getElementById('billPaid').value=bill.paid||0;
   document.getElementById('billPayMethod').value=bill.pay_method||'cash';
   var bills=JSON.parse(localStorage.getItem('viiv_bills')||'[]');
@@ -487,6 +494,16 @@ window.addEventListener('viiv_load_draft',function(e){
 (function(){
   function _tok_create(e){
   if(e.detail&&e.detail.token)TOKEN=e.detail.token;
+  // โหลด store settings เพื่อเอา default vat_mode
+  if(!window._storeSettings){
+    fetch((window.API_BASE||'')+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      window._storeSettings=d;
+      var vtEl=document.getElementById('billVatType');
+      if(vtEl) vtEl.value=d.vat_mode||'included';
+    }).catch(function(){});
+  }
   loadData();
   reloadMembers();;
   // INIT - DOM พร้อมแล้ว (guard ทุก element)
