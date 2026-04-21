@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from sqlalchemy import text
 from app.core.db import engine
@@ -32,22 +33,39 @@ def get_settings(authorization: str = Header("")):
     with engine.connect() as c:
         r = c.execute(text("SELECT * FROM store_settings WHERE tenant_id=:tid"),{"tid":tid}).fetchone()
     if not r:
-        return {"tenant_id":tid,"store_name":"","logo_url":"","tax_id":"","phone":"","address":"","road":"","subdistrict":"","district":"","province":"","postal_code":"","bill_prefix":"BILL","inv_prefix":"INV","bill_start_seq":1,"inv_start_seq":1,"bill_format":"BILL-YYYY-NNNNNN","show_tax_id":True,"show_address":True}
+        return {"tenant_id":tid,"store_name":"","logo_url":"","tax_id":"","phone":"","address":"","road":"","subdistrict":"","district":"","province":"","postal_code":"","bill_prefix":"BILL","inv_prefix":"INV","bill_start_seq":1,"inv_start_seq":1,"bill_format":"BILL-YYYY-NNNNNN","show_tax_id":True,"show_address":True,"scan_mode":"combine","vat_mode":"included","stock_empty_sell":True,"catalog_online":True,"line_oa_id":"","line_channel_token":"","line_channel_secret":"","line_features":{}}
     return dict(r._mapping)
 
 @router.post("/settings")
 def save_settings(payload: dict, authorization: str = Header("")):
     tid = get_tenant(authorization)
-    missing = [f for f in ["store_name","phone","address","province"] if not str(payload.get(f,"")).strip()]
-    if missing: raise HTTPException(400, f"กรุณากรอก: {', '.join(missing)}")
+    # ถ้า payload มีแค่ line fields ไม่ต้อง validate store fields
+    _line_only = all(k.startswith("line_") for k in payload.keys())
+    if not _line_only:
+        missing = [f for f in ["store_name","phone","address","province"] if not str(payload.get(f,"")).strip()]
+        if missing: raise HTTPException(400, f"กรุณากรอก: {', '.join(missing)}")
     p = payload
-    params = {"tid":tid,"sn":p.get("store_name",""),"logo":p.get("logo_url",""),"tax":p.get("tax_id",""),"phone":p.get("phone",""),"addr":p.get("address",""),"road":p.get("road",""),"sub":p.get("subdistrict",""),"dist":p.get("district",""),"prov":p.get("province",""),"post":p.get("postal_code",""),"bp":p.get("bill_prefix","BILL"),"ip":p.get("inv_prefix","INV"),"bs":int(p.get("bill_start_seq",1)),"is_":int(p.get("inv_start_seq",1)),"bf":p.get("bill_format","BILL-YYYY-NNNNNN"),"bc":str(p.get("branch_code","")),"stax":bool(p.get("show_tax_id",True)),"saddr":bool(p.get("show_address",True)),"sbir":bool(p.get("show_bank_in_receipt",False)),"sft":bool(p.get("show_footer_text",False)),"ftxt":str(p.get("footer_text","")),"scan":str(p.get("scan_mode","combine")),"vat":str(p.get("vat_mode","included")),"ses":bool(p.get("stock_empty_sell",True)),"cat":bool(p.get("catalog_online",True))}
     with engine.begin() as c:
         ex = c.execute(text("SELECT 1 FROM store_settings WHERE tenant_id=:tid"),{"tid":tid}).fetchone()
-        if ex:
-            c.execute(text("UPDATE store_settings SET store_name=:sn,logo_url=:logo,tax_id=:tax,phone=:phone,address=:addr,road=:road,subdistrict=:sub,district=:dist,province=:prov,postal_code=:post,bill_prefix=:bp,inv_prefix=:ip,bill_start_seq=:bs,inv_start_seq=:is_,bill_format=:bf,branch_code=:bc,show_tax_id=:stax,show_address=:saddr,show_bank_in_receipt=:sbir,show_footer_text=:sft,footer_text=:ftxt,scan_mode=:scan,vat_mode=:vat,stock_empty_sell=:ses,catalog_online=:cat,updated_at=NOW() WHERE tenant_id=:tid"),params)
+        if _line_only:
+            # อัปเดตเฉพาะ LINE fields — ไม่แตะ store fields อื่น
+            lparams = {
+                "tid": tid,
+                "loa": str(p.get("line_oa_id","")),
+                "ltok": str(p.get("line_channel_token","")),
+                "lsec": str(p.get("line_channel_secret","")),
+                "lfeat": json.dumps(p.get("line_features",{}))
+            }
+            if ex:
+                c.execute(text("UPDATE store_settings SET line_oa_id=:loa,line_channel_token=:ltok,line_channel_secret=:lsec,line_features=:lfeat,updated_at=NOW() WHERE tenant_id=:tid"), lparams)
+            else:
+                c.execute(text("INSERT INTO store_settings(tenant_id,line_oa_id,line_channel_token,line_channel_secret,line_features) VALUES(:tid,:loa,:ltok,:lsec,:lfeat)"), lparams)
         else:
-            c.execute(text("INSERT INTO store_settings(tenant_id,store_name,logo_url,tax_id,phone,address,road,subdistrict,district,province,postal_code,bill_prefix,inv_prefix,bill_start_seq,inv_start_seq,bill_format,branch_code,show_tax_id,show_address,show_bank_in_receipt,show_footer_text,footer_text,scan_mode,vat_mode,stock_empty_sell,catalog_online) VALUES(:tid,:sn,:logo,:tax,:phone,:addr,:road,:sub,:dist,:prov,:post,:bp,:ip,:bs,:is_,:bf,:bc,:stax,:saddr,:sbir,:sft,:ftxt,:scan,:vat,:ses,:cat)"),params)
+            params = {"tid":tid,"sn":p.get("store_name",""),"logo":p.get("logo_url",""),"tax":p.get("tax_id",""),"phone":p.get("phone",""),"addr":p.get("address",""),"road":p.get("road",""),"sub":p.get("subdistrict",""),"dist":p.get("district",""),"prov":p.get("province",""),"post":p.get("postal_code",""),"bp":p.get("bill_prefix","BILL"),"ip":p.get("inv_prefix","INV"),"bs":int(p.get("bill_start_seq",1)),"is_":int(p.get("inv_start_seq",1)),"bf":p.get("bill_format","BILL-YYYY-NNNNNN"),"bc":str(p.get("branch_code","")),"stax":bool(p.get("show_tax_id",True)),"saddr":bool(p.get("show_address",True)),"sbir":bool(p.get("show_bank_in_receipt",False)),"sft":bool(p.get("show_footer_text",False)),"ftxt":str(p.get("footer_text","")),"scan":str(p.get("scan_mode","combine")),"vat":str(p.get("vat_mode","included")),"ses":bool(p.get("stock_empty_sell",True)),"cat":bool(p.get("catalog_online",True)),"loa":str(p.get("line_oa_id","")),"ltok":str(p.get("line_channel_token","")),"lsec":str(p.get("line_channel_secret","")),"lfeat":json.dumps(p.get("line_features",{}))}
+            if ex:
+                c.execute(text("UPDATE store_settings SET store_name=:sn,logo_url=:logo,tax_id=:tax,phone=:phone,address=:addr,road=:road,subdistrict=:sub,district=:dist,province=:prov,postal_code=:post,bill_prefix=:bp,inv_prefix=:ip,bill_start_seq=:bs,inv_start_seq=:is_,bill_format=:bf,branch_code=:bc,show_tax_id=:stax,show_address=:saddr,show_bank_in_receipt=:sbir,show_footer_text=:sft,footer_text=:ftxt,scan_mode=:scan,vat_mode=:vat,stock_empty_sell=:ses,catalog_online=:cat,line_oa_id=:loa,line_channel_token=:ltok,line_channel_secret=:lsec,line_features=:lfeat,updated_at=NOW() WHERE tenant_id=:tid"),params)
+            else:
+                c.execute(text("INSERT INTO store_settings(tenant_id,store_name,logo_url,tax_id,phone,address,road,subdistrict,district,province,postal_code,bill_prefix,inv_prefix,bill_start_seq,inv_start_seq,bill_format,branch_code,show_tax_id,show_address,show_bank_in_receipt,show_footer_text,footer_text,scan_mode,vat_mode,stock_empty_sell,catalog_online,line_oa_id,line_channel_token,line_channel_secret,line_features) VALUES(:tid,:sn,:logo,:tax,:phone,:addr,:road,:sub,:dist,:prov,:post,:bp,:ip,:bs,:is_,:bf,:bc,:stax,:saddr,:sbir,:sft,:ftxt,:scan,:vat,:ses,:cat,:loa,:ltok,:lsec,:lfeat)"),params)
     return {"message":"บันทึกสำเร็จ"}
 
 @router.post("/upload-qr")

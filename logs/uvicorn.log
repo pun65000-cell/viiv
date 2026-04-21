@@ -1,177 +1,116 @@
 nohup: ignoring input
-INFO:     Started server process [2170492]
+INFO:     Started server process [2244254]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
+INFO:     162.158.189.130:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.189.130:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.189.130:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     140.238.99.210:35852 - "GET / HTTP/1.1" 404 Not Found
+INFO:     162.158.162.10:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.162.10:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.162.10:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.162.10:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.162.3:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     162.158.162.3:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     162.158.162.3:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.162.3:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     185.226.196.25:43988 - "GET / HTTP/1.1" 404 Not Found
+INFO:     185.226.196.22:39168 - "GET /console HTTP/1.1" 404 Not Found
+INFO:     185.226.196.23:40194 - "GET / HTTP/1.1" 404 Not Found
+INFO:     185.226.196.24:60034 - "GET /admin/ HTTP/1.1" 404 Not Found
+INFO:     185.226.196.24:60044 - "GET / HTTP/1.1" 404 Not Found
+INFO:     185.226.196.25:35332 - "GET /owncloud/status.php HTTP/1.1" 404 Not Found
+INFO:     185.226.196.24:37870 - "GET /status.php HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     185.226.196.24:44562 - "GET /Web/Auth HTTP/1.1" 404 Not Found
+INFO:     185.226.196.25:46106 - "GET / HTTP/1.1" 404 Not Found
+INFO:     185.226.196.25:46116 - "GET /api/session/properties HTTP/1.1" 404 Not Found
+INFO:     162.158.106.168:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     141.101.76.191:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/upload-logo HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     104.23.175.156:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     104.23.175.156:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     104.23.175.147:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     104.23.175.147:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     104.23.175.147:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 WARNING:  Invalid HTTP request received.
-INFO:     47.84.102.173:23386 - "GET / HTTP/1.1" 404 Not Found
-INFO:     47.84.102.173:23390 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "PUT /api/pos/products/update/prd_1775814461_99oa HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "PUT /api/pos/products/update/prd_1775814461_99oa HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.70.189.36:0 - "POST /api/pos/products/print-label HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.71.82.149:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.233.24.189:53972 - "GET /.env HTTP/1.1" 404 Not Found
-INFO:     172.233.24.189:53980 - "GET /.git/config HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "PUT /api/pos/products/update/prd_1775814461_99oa HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/affiliate/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/categories/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.

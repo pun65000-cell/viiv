@@ -4,6 +4,7 @@
     <button class="st-tab active" data-tab="store">ร้านค้า</button>
     <button class="st-tab" data-tab="receipt">ตั้งค่าใบเสร็จ</button>
     <button class="st-tab" data-tab="payment">การชำระเงิน</button>
+    <button class="st-tab" data-tab="line">เชื่อมต่อ LINE</button>
   </div>
   <div id="stTabStore" class="st-panel">
     <div class="st-card">
@@ -271,7 +272,238 @@
 .st-btn-save:hover{opacity:.85;}
 .st-btn-outline{padding:7px 14px;background:transparent;border:1px solid #d1d5db;border-radius:7px;font-size:12px;cursor:pointer;color:#374151;}
 .st-preview{margin-top:12px;padding:10px 14px;background:#f8f6f2;border-radius:8px;font-size:12px;color:#6b7280;}
+
+  /* ── LINE feature rows ── */
+  .st-line-feature-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #f0ede8;}
+  .st-line-feature-info{flex:1;}
+  .st-line-feature-title{font-size:13px;font-weight:600;color:#1a1a1a;}
+  .st-line-feature-desc{font-size:11px;color:#9ca3af;margin-top:3px;line-height:1.5;}
+  /* toggle switch */
+  .st-toggle{position:relative;display:inline-flex;align-items:center;cursor:pointer;flex-shrink:0;}
+  .st-toggle input{opacity:0;width:0;height:0;position:absolute;}
+  .st-toggle-track{width:44px;height:24px;background:#d1d5db;border-radius:12px;transition:background .2s;position:relative;}
+  .st-toggle input:checked + .st-toggle-track{background:#06C755;}
+  .st-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+  .st-toggle input:checked + .st-toggle-track .st-toggle-thumb{transform:translateX(20px);}
+  /* step guide */
+  .st-line-step{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0ede8;font-size:13px;color:#374151;line-height:1.55;}
+  .st-line-step-num{flex-shrink:0;width:22px;height:22px;background:#e8b93e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px;}
+
+  /* LINE Guide Modal */
+  .lg-step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid #f0ede8;}
+  .lg-step-badge{flex-shrink:0;width:28px;height:28px;background:#1a1a1a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:2px;}
+  .lg-step-body{flex:1;}
+  .lg-step-title{font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:5px;}
+  .lg-step-desc{font-size:12px;color:#4b5563;line-height:1.65;}
+  .lg-illus{margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;}
 </style>
+
+  <div id="stTabLine" class="st-panel" style="display:none;">
+
+    <!-- ── STATUS BANNER ── -->
+    <div id="stLineStatusBanner" style="display:none;align-items:center;gap:12px;background:linear-gradient(135deg,#06C755 0%,#04a344 100%);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:18px;box-shadow:0 4px 16px rgba(6,199,85,.25);">
+      <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#fff" fill-opacity=".15"/><path d="M24 8C15.163 8 8 14.477 8 22.4c0 5.156 2.97 9.67 7.436 12.29-.328 1.224-1.183 4.433-1.354 5.121-.213.848.31 .838.65.61 1.01-.672 5.296-3.602 7.44-5.063A18.63 18.63 0 0024 35.8c8.837 0 16-6.477 16-14.4S32.837 8 24 8z" fill="#fff"/></svg>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;">เชื่อมต่อ LINE OA สำเร็จ</div>
+        <div id="stLineStatusOaId" style="font-size:12px;opacity:.85;margin-top:2px;"></div>
+      </div>
+      <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;">● Active</div>
+    </div>
+
+    <!-- ── CARD 1: ตั้งค่า LINE OA ── -->
+    <div class="st-card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#06C755,#04a344);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><path d="M24 8C15.163 8 8 14.477 8 22.4c0 5.156 2.97 9.67 7.436 12.29-.328 1.224-1.183 4.433-1.354 5.121-.213.848.31.838.65.61 1.01-.672 5.296-3.602 7.44-5.063A18.63 18.63 0 0024 35.8c8.837 0 16-6.477 16-14.4S32.837 8 24 8z" fill="#fff"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;color:#1a1a1a;">ตั้งค่า LINE Official Account</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:1px;">กรอก credentials จาก LINE Developer Console</div>
+        </div>
+        <button onclick="document.getElementById('lineGuideModal').style.display='flex'" style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:7px 14px;background:linear-gradient(135deg,#06C755,#04a344);border:none;border-radius:20px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(6,199,85,.3);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          วิธีสมัครสร้าง Channel
+        </button>
+      </div>
+      <div class="st-grid">
+        <div class="st-field full">
+          <label>LINE OA ID <span class="st-req">*</span></label>
+          <div style="position:relative;">
+            <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;">@</span>
+            <input id="stLineOaId" type="text" class="st-input" placeholder="your-oa-id" style="padding-left:26px;"/>
+          </div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:4px;">เช่น @abc1234d (ไม่ต้องใส่ @)</div>
+        </div>
+        <div class="st-field full">
+          <label>Channel Access Token <span class="st-req">*</span></label>
+          <div style="position:relative;">
+            <input id="stLineToken" type="password" class="st-input" placeholder="Long-lived access token"/>
+            <button onclick="(function(){var i=document.getElementById('stLineToken');i.type=i.type==='password'?'text':'password';})()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:12px;padding:2px 6px;">👁</button>
+          </div>
+        </div>
+        <div class="st-field full">
+          <label>Channel Secret <span class="st-req">*</span></label>
+          <div style="position:relative;">
+            <input id="stLineSecret" type="password" class="st-input" placeholder="Channel Secret"/>
+            <button onclick="(function(){var i=document.getElementById('stLineSecret');i.type=i.type==='password'?'text':'password';})()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:12px;padding:2px 6px;">👁</button>
+          </div>
+        </div>
+      </div>
+      <!-- Webhook URL box -->
+      <div style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:10px;padding:12px 14px;margin-top:12px;">
+        <div style="font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Webhook URL (ตั้งใน LINE Console)</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <code id="stLineWebhookUrl" style="flex:1;font-size:12px;color:#374151;word-break:break-all;background:none;border:none;">https://concore.viiv.me/api/line/webhook</code>
+          <button onclick="navigator.clipboard.writeText('https://concore.viiv.me/api/line/webhook').then(function(){var b=event.target;var orig=b.textContent;b.textContent='✓ copied';setTimeout(function(){b.textContent=orig;},1500);})" style="flex-shrink:0;padding:5px 12px;background:#e8b93e;border:none;border-radius:7px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;">Copy</button>
+        </div>
+      </div>
+      <div class="st-actions" style="margin-top:16px;">
+        <button class="st-btn-cancel" onclick="loadLineSettings()">ยกเลิก</button>
+        <button class="st-btn-save" id="stLineSaveBtn">บันทึก</button>
+      </div>
+      <div id="stLineMsg" style="display:none;font-size:12px;text-align:right;margin-top:6px;"></div>
+    </div>
+
+    <!-- ── CARD 2: Feature Toggles ── -->
+    <div class="st-card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:#1a1a1a;">ฟีเจอร์ LINE</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:1px;">เปิด/ปิดการทำงานแต่ละส่วน</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <div class="st-line-feature-row">
+          <div class="st-line-feature-info">
+            <div class="st-line-feature-title">ส่งบิลอัตโนมัติผ่าน LINE</div>
+            <div class="st-line-feature-desc">เมื่อออกบิล ระบบจะ Push Message ไปหาลูกค้าที่เชื่อม LINE ไว้อัตโนมัติ</div>
+          </div>
+          <label class="st-toggle">
+            <input type="checkbox" id="stLineFeatureBill" checked/>
+            <span class="st-toggle-track"><span class="st-toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="st-line-feature-row">
+          <div class="st-line-feature-info">
+            <div class="st-line-feature-title">ส่งใบเสนอราคาผ่าน LINE</div>
+            <div class="st-line-feature-desc">ปุ่ม "ส่งใบเสนอราคา" ใน Catalog จะ Push ข้อความไปยังลูกค้า</div>
+          </div>
+          <label class="st-toggle">
+            <input type="checkbox" id="stLineFeatureQuote" checked/>
+            <span class="st-toggle-track"><span class="st-toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="st-line-feature-row">
+          <div class="st-line-feature-info">
+            <div class="st-line-feature-title">ปุ่ม LINE Chat ใน Catalog</div>
+            <div class="st-line-feature-desc">แสดงปุ่มลอยมุมขวาล่างให้ลูกค้า Chat ผ่าน LINE ได้ทันที</div>
+          </div>
+          <label class="st-toggle">
+            <input type="checkbox" id="stLineFeatureChat" checked onchange="document.getElementById('stLineChatOptions').style.display=this.checked?'block':'none'"/>
+            <span class="st-toggle-track"><span class="st-toggle-thumb"></span></span>
+          </label>
+        </div>
+        <!-- sub-options เมื่อเปิด chat button -->
+        <div id="stLineChatOptions" style="background:#f8fffe;border:1px solid #d1fae5;border-radius:10px;padding:14px 16px;margin:0 0 4px 0;">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">ข้อความบนปุ่ม <span style="color:#9ca3af;font-weight:400;">(สูงสุด 10 ตัวอักษร)</span></label>
+              <input id="stLineChatLabel" type="text" maxlength="10" value="Chat" class="st-input" placeholder="Chat" style="max-width:200px;"/>
+              <div style="font-size:11px;color:#9ca3af;margin-top:4px;">ค่าเริ่มต้น: "Chat"</div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:8px;">เมื่อลูกค้ากดปุ่มครั้งแรก</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                  <input type="radio" name="stLineChatAction" id="stLineChatActionAdd" value="add" checked style="accent-color:#06C755;width:15px;height:15px;"/>
+                  <div>
+                    <div style="font-weight:600;color:#1a1a1a;">บังคับเพิ่มเพื่อนก่อน</div>
+                    <div style="font-size:11px;color:#6b7280;">เปิด line.me/R/ti/p/@oaid → ลูกค้าต้อง Add Friend แล้วค่อย Chat</div>
+                  </div>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                  <input type="radio" name="stLineChatAction" id="stLineChatActionChat" value="chat" style="accent-color:#06C755;width:15px;height:15px;"/>
+                  <div>
+                    <div style="font-weight:600;color:#1a1a1a;">เปิด LINE Chat ทันที</div>
+                    <div style="font-size:11px;color:#6b7280;">เปิด line.me/R/oaMessage/@oaid → Chat ได้เลยไม่ต้อง Add Friend</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="st-line-feature-row" style="border-bottom:none;">
+          <div class="st-line-feature-info">
+            <div class="st-line-feature-title">แจ้งเตือน Order ใหม่</div>
+            <div class="st-line-feature-desc">Push notify ไปยัง LINE ของเจ้าของร้านเมื่อมี Order เข้า</div>
+          </div>
+          <label class="st-toggle">
+            <input type="checkbox" id="stLineFeatureOrder" onchange="document.getElementById('stLineOrderOptions').style.display=this.checked?'block':'none'"/>
+            <span class="st-toggle-track"><span class="st-toggle-thumb"></span></span>
+          </label>
+        </div>
+        <!-- sub-options แจ้งเตือน -->
+        <div id="stLineOrderOptions" style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;margin-top:4px;">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                <label style="font-size:12px;font-weight:600;color:#374151;">
+                  LINE User ID หรือ Group ID ที่รับแจ้งเตือน
+                  <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:4px;">(เจ้าของร้าน / กลุ่มทีม)</span>
+                </label>
+                <button onclick="document.getElementById('lineUidGuideModal').style.display='flex'" style="flex-shrink:0;padding:4px 10px;background:#fff7ed;border:1px solid #fde68a;border-radius:16px;font-size:11px;font-weight:600;color:#d97706;cursor:pointer;">วิธีหา ID ?</button>
+              </div>
+              <input id="stLineNotifyTarget" type="text" class="st-input" placeholder="Uxxxxxxxx หรือ Cxxxxxxxx"/>
+              <div style="font-size:11px;color:#9ca3af;margin-top:4px;line-height:1.6;">User ID เริ่มต้นด้วย U · Group ID เริ่มต้นด้วย C</div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">แจ้งเตือนเมื่อ</label>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="stLineNotifyOnOrder" checked style="accent-color:#e8b93e;width:14px;height:14px;"/>
+                  มี Order ใหม่เข้า
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="stLineNotifyOnBill" style="accent-color:#e8b93e;width:14px;height:14px;"/>
+                  ออกบิลใหม่
+                </label>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+              <span style="font-size:16px;flex-shrink:0;">💡</span>
+              <div style="font-size:11px;color:#92400e;line-height:1.6;">ต้องให้เจ้าของร้านหรือกลุ่ม <strong>Add Friend LINE OA</strong> ก่อน จึงจะรับแจ้งเตือนได้</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── CARD 3: วิธีใช้งาน ── -->
+    <div class="st-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div style="font-weight:700;font-size:14px;color:#1a1a1a;">วิธีเชื่อมต่อ</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="st-line-step"><span class="st-line-step-num">1</span><span>เข้า <strong>LINE Developer Console</strong> → สร้าง Provider → สร้าง Channel (Messaging API)</span></div>
+        <div class="st-line-step"><span class="st-line-step-num">2</span><span>คัดลอก <strong>Channel ID, Channel Secret, Channel Access Token</strong> กรอกในฟอร์มด้านบน</span></div>
+        <div class="st-line-step"><span class="st-line-step-num">3</span><span>ในหน้า Messaging API ตั้ง <strong>Webhook URL</strong> เป็น URL ด้านบน แล้วกด Verify</span></div>
+        <div class="st-line-step"><span class="st-line-step-num">4</span><span>ลูกค้า <strong>Add Friend</strong> LINE OA → ระบบจะจำ LINE User ID ให้อัตโนมัติ</span></div>
+        <div class="st-line-step" style="border-bottom:none;"><span class="st-line-step-num">5</span><span>กลับมาที่หน้าเชื่อมต่อ LINE แล้วกด <strong>บันทึก</strong> เพื่อเปิดใช้งาน</span></div>
+      </div>
+    </div>
+
+  </div>
 <script>
 'use strict';
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
@@ -415,11 +647,16 @@ function saveStore(){
       scan_mode:(document.getElementById('stScanMode')||{value:'combine'}).value,
       vat_mode:(document.getElementById('stVatMode')||{value:'included'}).value,
       stock_empty_sell:(document.getElementById('stStockEmptySell')||{value:'true'}).value!=='false',
-      catalog_online:(document.getElementById('stCatalogOnline')||{value:'false'}).value==='true'
+      catalog_online:(document.getElementById('stCatalogOnline')||{value:'false'}).value==='true',
+      line_oa_id:_origData.line_oa_id||'',
+      line_channel_token:_origData.line_channel_token||'',
+      line_channel_secret:_origData.line_channel_secret||'',
+      line_features:_origData.line_features||{}
     };
     fetch(API+'/api/pos/store/settings',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(d){
+      console.log('[VIIV] saveStore response:', JSON.stringify(d));
       showMsg('stStoreMsg',d.message||'บันทึกสำเร็จ','#16a34a');
       _origData=Object.assign(_origData,payload);
     })
@@ -614,6 +851,102 @@ function saveReceipt(){
   window.renderBankList=renderBankList;
 
 
+
+  /* ══ LINE SETTINGS ══ */
+  function loadLineSettings(){
+    fetch('/api/pos/store/settings',{headers:{Authorization:'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var s=d.settings||d||{};
+      document.getElementById('stLineOaId').value=s.line_oa_id||'';
+      document.getElementById('stLineToken').value=s.line_channel_token||'';
+      document.getElementById('stLineSecret').value=s.line_channel_secret||'';
+      // features
+      var feats=s.line_features||{};
+      document.getElementById('stLineFeatureBill').checked  = feats.bill   !== false;
+      document.getElementById('stLineFeatureQuote').checked = feats.quote  !== false;
+      document.getElementById('stLineFeatureChat').checked  = feats.chat   !== false;
+      document.getElementById('stLineFeatureOrder').checked = !!feats.order;
+      // notify sub-options
+      var orderOpts = document.getElementById('stLineOrderOptions');
+      if(orderOpts) orderOpts.style.display = feats.order ? 'block' : 'none';
+      var notifyTarget = document.getElementById('stLineNotifyTarget');
+      if(notifyTarget) notifyTarget.value = feats.notify_target || '';
+      var notifyOnOrder = document.getElementById('stLineNotifyOnOrder');
+      if(notifyOnOrder) notifyOnOrder.checked = feats.notify_on_order !== false;
+      var notifyOnBill = document.getElementById('stLineNotifyOnBill');
+      if(notifyOnBill) notifyOnBill.checked = !!feats.notify_on_bill;
+      // chat sub-options
+      var chatOpts = document.getElementById('stLineChatOptions');
+      if(chatOpts) chatOpts.style.display = (feats.chat !== false) ? 'block' : 'none';
+      var chatLabel = document.getElementById('stLineChatLabel');
+      if(chatLabel) chatLabel.value = feats.chat_label || 'Chat';
+      var chatAction = feats.chat_action || 'add';
+      var radAdd = document.getElementById('stLineChatActionAdd');
+      var radChat = document.getElementById('stLineChatActionChat');
+      if(radAdd) radAdd.checked = chatAction === 'add';
+      if(radChat) radChat.checked = chatAction === 'chat';
+      // status banner
+      var banner=document.getElementById('stLineStatusBanner');
+      if(s.line_oa_id){
+        banner.style.display='flex';
+        document.getElementById('stLineStatusOaId').textContent='@'+s.line_oa_id;
+      } else {
+        banner.style.display='none';
+      }
+    }).catch(function(){});
+  }
+  function saveLineSettings(){
+    var btn=document.getElementById('stLineSaveBtn');
+    var msg=document.getElementById('stLineMsg');
+    var oaId=document.getElementById('stLineOaId').value.trim().replace(/^@/,'');
+    var token=document.getElementById('stLineToken').value.trim();
+    var secret=document.getElementById('stLineSecret').value.trim();
+    if(!oaId||!token||!secret){
+      msg.style.display='block';msg.style.color='#ef4444';
+      msg.textContent='กรุณากรอก OA ID, Token และ Secret ให้ครบ';
+      return;
+    }
+    btn.disabled=true;btn.textContent='กำลังบันทึก...';
+    var payload={
+      line_oa_id:oaId,
+      line_channel_token:token,
+      line_channel_secret:secret,
+      line_features:{
+        bill:document.getElementById('stLineFeatureBill').checked,
+        quote:document.getElementById('stLineFeatureQuote').checked,
+        chat:document.getElementById('stLineFeatureChat').checked,
+        order:document.getElementById('stLineFeatureOrder').checked,
+        notify_target:(document.getElementById('stLineNotifyTarget')||{value:''}).value.trim(),
+        notify_on_order:(document.getElementById('stLineNotifyOnOrder')||{checked:true}).checked,
+        notify_on_bill:(document.getElementById('stLineNotifyOnBill')||{checked:false}).checked,
+        chat_label:(document.getElementById('stLineChatLabel')||{value:'Chat'}).value.trim().slice(0,10)||'Chat',
+        chat_action:document.querySelector('input[name="stLineChatAction"]:checked')?(document.querySelector('input[name="stLineChatAction"]:checked').value):'add'
+      }
+    };
+    fetch('/api/pos/store/settings',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body:JSON.stringify(payload)
+    }).then(function(r){return r.json();})
+    .then(function(d){
+      msg.style.display='block';
+      if(d.message==='success'||d.message==='บันทึกสำเร็จ'||d.ok){
+        msg.style.color='#06C755';msg.textContent='✓ บันทึกสำเร็จ';
+        loadLineSettings();
+      } else {
+        msg.style.color='#ef4444';msg.textContent='เกิดข้อผิดพลาด: '+(d.detail||d.message||'');
+      }
+      setTimeout(function(){msg.style.display='none';},3000);
+    }).catch(function(){
+      msg.style.display='block';msg.style.color='#ef4444';msg.textContent='ไม่สามารถเชื่อมต่อ server';
+    }).finally(function(){
+      btn.disabled=false;btn.textContent='บันทึก';
+    });
+  }
+  var _lsb=document.getElementById('stLineSaveBtn'); if(_lsb) _lsb.addEventListener('click', saveLineSettings);
+  window.loadLineSettings=loadLineSettings;
+
   function _initTabs(){
     document.querySelectorAll('.st-tab').forEach(function(btn){
       btn.addEventListener('click',function(){
@@ -623,6 +956,8 @@ function saveReceipt(){
         document.getElementById('stTabStore').style.display=tab==='store'?'block':'none';
         document.getElementById('stTabReceipt').style.display=tab==='receipt'?'block':'none';
         document.getElementById('stTabPayment').style.display=tab==='payment'?'block':'none';
+        document.getElementById('stTabLine').style.display=tab==='line'?'block':'none';
+        if(tab==='line') loadLineSettings();
         if(tab==='payment'){
           if(!window._paymentBound){
             window._paymentBound=true;
@@ -668,4 +1003,314 @@ function saveReceipt(){
   if(_t){ _tok_store({detail:{token:_t}}); }
 })();
 </script>
+
+<!-- ══ LINE GUIDE MODAL ══ -->
+<div id="lineGuideModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <!-- header -->
+    <div style="background:linear-gradient(135deg,#06C755 0%,#04a344 100%);border-radius:20px 20px 0 0;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+          <svg width="26" height="26" viewBox="0 0 48 48" fill="none"><path d="M24 8C15.163 8 8 14.477 8 22.4c0 5.156 2.97 9.67 7.436 12.29-.328 1.224-1.183 4.433-1.354 5.121-.213.848.31.838.65.61 1.01-.672 5.296-3.602 7.44-5.063A18.63 18.63 0 0024 35.8c8.837 0 16-6.477 16-14.4S32.837 8 24 8z" fill="#fff"/></svg>
+        </div>
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:16px;">วิธีสมัครสร้าง LINE Channel</div>
+          <div style="color:rgba(255,255,255,.8);font-size:12px;margin-top:2px;">ทำตามขั้นตอน 5 ขั้น ใช้เวลาประมาณ 10 นาที</div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('lineGuideModal').style.display='none'" style="background:rgba(255,255,255,.2);border:none;border-radius:50%;width:32px;height:32px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+    </div>
+
+    <!-- steps -->
+    <div style="padding:24px;">
+
+      <!-- STEP 1 -->
+      <div class="lg-step">
+        <div class="lg-step-badge">1</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">สร้าง LINE Official Account (LINE OA)</div>
+          <div class="lg-step-desc">ถ้ายังไม่มี LINE OA ให้สมัครก่อนที่ <a href="https://account.line.biz" target="_blank" style="color:#06C755;font-weight:600;">account.line.biz</a> → กด <strong>"สร้างบัญชี"</strong> แล้วกรอกข้อมูลร้านค้า</div>
+          <!-- SVG illustration -->
+          <div class="lg-illus">
+            <svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px;">
+              <rect width="480" height="160" fill="#f0fdf4" rx="10"/>
+              <!-- browser bar -->
+              <rect x="20" y="16" width="440" height="128" rx="8" fill="#fff" stroke="#d1fae5" stroke-width="1.5"/>
+              <rect x="20" y="16" width="440" height="28" rx="8" fill="#ecfdf5"/>
+              <circle cx="36" cy="30" r="5" fill="#fca5a5"/>
+              <circle cx="52" cy="30" r="5" fill="#fde68a"/>
+              <circle cx="68" cy="30" r="5" fill="#86efac"/>
+              <rect x="90" y="22" width="280" height="16" rx="8" fill="#d1fae5"/>
+              <text x="230" y="33" font-size="9" fill="#059669" text-anchor="middle" font-family="sans-serif">account.line.biz</text>
+              <!-- content -->
+              <rect x="40" y="58" width="180" height="72" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+              <circle cx="80" cy="82" r="14" fill="#06C755"/>
+              <text x="80" y="87" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold" font-family="sans-serif">LINE</text>
+              <text x="105" y="78" font-size="10" fill="#065f46" font-weight="700" font-family="sans-serif">LINE Official Account</text>
+              <text x="105" y="92" font-size="9" fill="#6b7280" font-family="sans-serif">จัดการบัญชีธุรกิจของคุณ</text>
+              <rect x="48" y="108" width="80" height="16" rx="8" fill="#06C755"/>
+              <text x="88" y="120" font-size="9" fill="#fff" text-anchor="middle" font-family="sans-serif">สร้างบัญชี</text>
+              <!-- arrow -->
+              <text x="260" y="98" font-size="28" fill="#06C755" text-anchor="middle" font-family="sans-serif">→</text>
+              <!-- form box -->
+              <rect x="290" y="54" width="148" height="80" rx="8" fill="#fff" stroke="#bbf7d0" stroke-width="1"/>
+              <text x="364" y="70" font-size="9" fill="#374151" text-anchor="middle" font-weight="600" font-family="sans-serif">สร้างบัญชีใหม่</text>
+              <rect x="300" y="76" width="128" height="12" rx="4" fill="#f3f4f6"/>
+              <text x="308" y="86" font-size="8" fill="#9ca3af" font-family="sans-serif">ชื่อร้านค้า</text>
+              <rect x="300" y="93" width="128" height="12" rx="4" fill="#f3f4f6"/>
+              <text x="308" y="103" font-size="8" fill="#9ca3af" font-family="sans-serif">อีเมล</text>
+              <rect x="320" y="110" width="88" height="14" rx="7" fill="#06C755"/>
+              <text x="364" y="121" font-size="8" fill="#fff" text-anchor="middle" font-family="sans-serif">ยืนยัน</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="lg-step">
+        <div class="lg-step-badge">2</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">เปิด LINE Developer Console</div>
+          <div class="lg-step-desc">ไปที่ <a href="https://developers.line.biz" target="_blank" style="color:#06C755;font-weight:600;">developers.line.biz</a> → Login → กด <strong>"Create a Provider"</strong> → ตั้งชื่อ Provider (เช่น ชื่อธุรกิจของคุณ)</div>
+          <div class="lg-illus">
+            <svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px;">
+              <rect width="480" height="150" fill="#f5f3ff" rx="10"/>
+              <rect x="20" y="14" width="440" height="122" rx="8" fill="#fff" stroke="#e9d5ff" stroke-width="1.5"/>
+              <rect x="20" y="14" width="440" height="26" rx="8" fill="#f5f3ff"/>
+              <circle cx="34" cy="27" r="4" fill="#fca5a5"/><circle cx="48" cy="27" r="4" fill="#fde68a"/><circle cx="62" cy="27" r="4" fill="#86efac"/>
+              <rect x="80" y="20" width="260" height="14" rx="7" fill="#e9d5ff"/>
+              <text x="210" y="30" font-size="8" fill="#7c3aed" text-anchor="middle" font-family="sans-serif">developers.line.biz</text>
+              <!-- sidebar -->
+              <rect x="30" y="50" width="100" height="76" rx="6" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1"/>
+              <text x="80" y="66" font-size="8" fill="#7c3aed" text-anchor="middle" font-weight="600" font-family="sans-serif">Providers</text>
+              <rect x="38" y="72" width="84" height="10" rx="4" fill="#e9d5ff"/>
+              <text x="80" y="80" font-size="7" fill="#6d28d9" text-anchor="middle" font-family="sans-serif">My Provider</text>
+              <rect x="38" y="86" width="84" height="14" rx="4" fill="#7c3aed"/>
+              <text x="80" y="96" font-size="7" fill="#fff" text-anchor="middle" font-family="sans-serif">+ Create Provider</text>
+              <!-- main area -->
+              <rect x="146" y="50" width="294" height="76" rx="6" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1"/>
+              <text x="293" y="70" font-size="10" fill="#4c1d95" text-anchor="middle" font-weight="700" font-family="sans-serif">Create a new provider</text>
+              <rect x="166" y="78" width="254" height="14" rx="4" fill="#f3f4f6"/>
+              <text x="180" y="88" font-size="8" fill="#9ca3af" font-family="sans-serif">Provider name (ชื่อธุรกิจ)</text>
+              <rect x="226" y="98" width="134" height="16" rx="8" fill="#7c3aed"/>
+              <text x="293" y="110" font-size="8" fill="#fff" text-anchor="middle" font-family="sans-serif">Create</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="lg-step">
+        <div class="lg-step-badge">3</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">สร้าง Channel แบบ Messaging API</div>
+          <div class="lg-step-desc">ใน Provider ที่สร้าง → กด <strong>"Create a channel"</strong> → เลือก <strong>"Messaging API"</strong> → กรอกชื่อ Channel → กด Create</div>
+          <div class="lg-illus">
+            <svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px;">
+              <rect width="480" height="160" fill="#fff7ed" rx="10"/>
+              <!-- channel type cards -->
+              <rect x="24" y="20" width="130" height="120" rx="10" fill="#fff" stroke="#fed7aa" stroke-width="2"/>
+              <rect x="24" y="20" width="130" height="120" rx="10" fill="#fff" stroke="#06C755" stroke-width="2.5"/>
+              <!-- checkmark -->
+              <circle cx="144" cy="30" r="10" fill="#06C755"/>
+              <text x="144" y="35" font-size="11" fill="#fff" text-anchor="middle" font-family="sans-serif">✓</text>
+              <rect x="50" y="36" width="78" height="34" rx="8" fill="#dcfce7"/>
+              <text x="89" y="50" font-size="8" fill="#065f46" text-anchor="middle" font-weight="700" font-family="sans-serif">Messaging</text>
+              <text x="89" y="62" font-size="8" fill="#065f46" text-anchor="middle" font-family="sans-serif">API</text>
+              <text x="89" y="86" font-size="7.5" fill="#374151" text-anchor="middle" font-family="sans-serif">ส่งข้อความหาลูกค้า</text>
+              <text x="89" y="97" font-size="7.5" fill="#374151" text-anchor="middle" font-family="sans-serif">ผ่าน LINE OA</text>
+              <rect x="44" y="108" width="90" height="20" rx="10" fill="#06C755"/>
+              <text x="89" y="122" font-size="9" fill="#fff" text-anchor="middle" font-weight="700" font-family="sans-serif">✓ เลือกแบบนี้</text>
+
+              <rect x="174" y="20" width="130" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1.5"/>
+              <rect x="200" y="36" width="78" height="34" rx="8" fill="#f3f4f6"/>
+              <text x="239" y="56" font-size="8" fill="#9ca3af" text-anchor="middle" font-family="sans-serif">LINE Login</text>
+              <text x="239" y="86" font-size="7" fill="#9ca3af" text-anchor="middle" font-family="sans-serif">สำหรับ Login ด้วย LINE</text>
+
+              <rect x="324" y="20" width="130" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1.5"/>
+              <rect x="350" y="36" width="78" height="34" rx="8" fill="#f3f4f6"/>
+              <text x="389" y="56" font-size="8" fill="#9ca3af" text-anchor="middle" font-family="sans-serif">LIFF</text>
+              <text x="389" y="86" font-size="7" fill="#9ca3af" text-anchor="middle" font-family="sans-serif">Web App ใน LINE</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="lg-step">
+        <div class="lg-step-badge">4</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">คัดลอก Channel Secret และ Access Token</div>
+          <div class="lg-step-desc">ใน Channel ที่สร้าง → แถบ <strong>"Basic settings"</strong> → คัดลอก <strong>Channel secret</strong> | แถบ <strong>"Messaging API"</strong> → เลื่อนลงล่าง → กด <strong>"Issue"</strong> เพื่อสร้าง Channel access token แล้วคัดลอก</div>
+          <div class="lg-illus">
+            <svg viewBox="0 0 480 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px;">
+              <rect width="480" height="170" fill="#eff6ff" rx="10"/>
+              <!-- left panel: Basic settings -->
+              <rect x="20" y="18" width="210" height="134" rx="8" fill="#fff" stroke="#bfdbfe" stroke-width="1.5"/>
+              <rect x="20" y="18" width="210" height="24" rx="8" fill="#dbeafe"/>
+              <text x="125" y="34" font-size="9" fill="#1d4ed8" text-anchor="middle" font-weight="700" font-family="sans-serif">Basic settings</text>
+              <text x="32" y="58" font-size="8" fill="#6b7280" font-family="sans-serif">Channel ID</text>
+              <rect x="30" y="63" width="190" height="14" rx="4" fill="#f3f4f6"/>
+              <text x="38" y="73" font-size="7.5" fill="#374151" font-family="sans-serif">1234567890</text>
+              <text x="32" y="92" font-size="8" fill="#6b7280" font-family="sans-serif">Channel secret</text>
+              <rect x="30" y="97" width="190" height="14" rx="4" fill="#fefce8" stroke="#fde68a" stroke-width="1"/>
+              <text x="38" y="107" font-size="7" fill="#92400e" font-family="monospace">a1b2c3d4e5f6...</text>
+              <rect x="178" y="97" width="36" height="14" rx="4" fill="#f59e0b"/>
+              <text x="196" y="107" font-size="7" fill="#fff" text-anchor="middle" font-family="sans-serif">Copy</text>
+              <rect x="30" y="120" width="80" height="22" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+              <text x="70" y="129" font-size="7" fill="#1d4ed8" text-anchor="middle" font-family="sans-serif">Basic settings</text>
+              <text x="70" y="138" font-size="6" fill="#3b82f6" text-anchor="middle" font-family="sans-serif">← อยู่ที่นี่</text>
+
+              <!-- right panel: Messaging API -->
+              <rect x="250" y="18" width="210" height="134" rx="8" fill="#fff" stroke="#bfdbfe" stroke-width="1.5"/>
+              <rect x="250" y="18" width="210" height="24" rx="8" fill="#dbeafe"/>
+              <text x="355" y="34" font-size="9" fill="#1d4ed8" text-anchor="middle" font-weight="700" font-family="sans-serif">Messaging API</text>
+              <text x="262" y="58" font-size="8" fill="#6b7280" font-family="sans-serif">Channel access token</text>
+              <rect x="260" y="63" width="190" height="14" rx="4" fill="#f3f4f6"/>
+              <text x="268" y="73" font-size="7" fill="#9ca3af" font-family="sans-serif">(ยังว่างอยู่)</text>
+              <rect x="310" y="82" width="80" height="16" rx="8" fill="#1d4ed8"/>
+              <text x="350" y="94" font-size="8" fill="#fff" text-anchor="middle" font-weight="700" font-family="sans-serif">Issue ←กดตรงนี้</text>
+              <rect x="260" y="104" width="190" height="14" rx="4" fill="#fefce8" stroke="#fde68a" stroke-width="1"/>
+              <text x="268" y="114" font-size="7" fill="#92400e" font-family="monospace">eyJhbGciOiJI...</text>
+              <rect x="408" y="104" width="36" height="14" rx="4" fill="#f59e0b"/>
+              <text x="426" y="114" font-size="7" fill="#fff" text-anchor="middle" font-family="sans-serif">Copy</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="lg-step" style="border-bottom:none;">
+        <div class="lg-step-badge" style="background:#06C755;">5</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">ตั้ง Webhook URL แล้วกด Verify</div>
+          <div class="lg-step-desc">ใน แถบ <strong>"Messaging API"</strong> → หัวข้อ <strong>Webhook settings</strong> → วาง URL ด้านล่างลงไป → เปิด <strong>"Use webhook"</strong> → กด <strong>"Verify"</strong> ต้องขึ้น <span style="color:#06C755;font-weight:600;">Success</span></div>
+          <div class="lg-illus">
+            <svg viewBox="0 0 480 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px;">
+              <rect width="480" height="140" fill="#f0fdf4" rx="10"/>
+              <rect x="20" y="16" width="440" height="108" rx="8" fill="#fff" stroke="#bbf7d0" stroke-width="1.5"/>
+              <text x="40" y="38" font-size="9" fill="#374151" font-weight="700" font-family="sans-serif">Webhook settings</text>
+              <!-- use webhook toggle -->
+              <text x="40" y="56" font-size="8" fill="#6b7280" font-family="sans-serif">Use webhook</text>
+              <rect x="300" y="46" width="44" height="22" rx="11" fill="#06C755"/>
+              <circle cx="333" cy="57" r="9" fill="#fff"/>
+              <text x="360" y="60" font-size="8" fill="#06C755" font-weight="600" font-family="sans-serif">ON</text>
+              <!-- webhook url -->
+              <text x="40" y="76" font-size="8" fill="#6b7280" font-family="sans-serif">Webhook URL</text>
+              <rect x="40" y="82" width="320" height="16" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+              <text x="48" y="93" font-size="7.5" fill="#065f46" font-family="monospace">https://concore.viiv.me/api/line/webhook</text>
+              <rect x="368" y="82" width="72" height="16" rx="6" fill="#06C755"/>
+              <text x="404" y="93" font-size="8" fill="#fff" text-anchor="middle" font-weight="700" font-family="sans-serif">Verify</text>
+              <!-- success badge -->
+              <rect x="40" y="106" width="80" height="14" rx="7" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+              <text x="80" y="116" font-size="8" fill="#15803d" text-anchor="middle" font-weight="600" font-family="sans-serif">✓ Success</text>
+            </svg>
+          </div>
+          <!-- tip box -->
+          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 14px;margin-top:10px;display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">💡</span>
+            <div style="font-size:12px;color:#065f46;line-height:1.6;">หลัง Verify สำเร็จ → กลับมากรอก <strong>OA ID, Token, Secret</strong> ในฟอร์มด้านบน → กด <strong>บันทึก</strong> → ระบบพร้อมส่งบิลผ่าน LINE ได้ทันที!</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- footer -->
+    <div style="padding:16px 24px;border-top:1px solid #f0ede8;display:flex;justify-content:space-between;align-items:center;">
+      <a href="https://developers.line.biz/console/" target="_blank" style="display:flex;align-items:center;gap:6px;color:#06C755;font-size:13px;font-weight:600;text-decoration:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        เปิด LINE Developer Console
+      </a>
+      <button onclick="document.getElementById('lineGuideModal').style.display='none'" style="padding:9px 24px;background:#06C755;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">เข้าใจแล้ว!</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ LINE USER ID GUIDE MODAL ══ -->
+<div id="lineUidGuideModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <!-- header -->
+    <div style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:20px 20px 0 0;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:40px;height:40px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🔍</div>
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:15px;">วิธีหา LINE User ID</div>
+          <div style="color:rgba(255,255,255,.85);font-size:11px;margin-top:1px;">ทำตาม 3 วิธีนี้ เลือกแบบที่สะดวก</div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('lineUidGuideModal').style.display='none'" style="background:rgba(255,255,255,.2);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>
+
+    <div style="padding:20px;">
+
+      <!-- วิธี 1 -->
+      <div class="lg-step">
+        <div class="lg-step-badge" style="background:#06C755;">1</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">ใช้บอท "LINE User ID Finder" (ง่ายสุด)</div>
+          <div class="lg-step-desc">
+            1. เปิด LINE → ค้นหา <strong>@lineuid</strong> หรือ <strong>LINE ID Finder</strong><br>
+            2. กด Add Friend → ส่งข้อความอะไรก็ได้<br>
+            3. บอทจะตอบกลับ User ID ของคุณทันที รูปแบบ <code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:11px;">Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code>
+          </div>
+          <div class="lg-illus">
+            <svg viewBox="0 0 480 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px;">
+              <rect width="480" height="130" fill="#f0fdf4" rx="10"/>
+              <!-- phone mock -->
+              <rect x="160" y="10" width="160" height="110" rx="12" fill="#1a1a1a"/>
+              <rect x="164" y="22" width="152" height="94" rx="6" fill="#fff"/>
+              <!-- chat bubbles -->
+              <rect x="172" y="28" width="80" height="18" rx="9" fill="#f3f4f6"/>
+              <text x="212" y="41" font-size="8" fill="#6b7280" text-anchor="middle" font-family="sans-serif">สวัสดี</text>
+              <rect x="184" y="52" width="124" height="28" rx="8" fill="#dcfce7"/>
+              <text x="246" y="63" font-size="7" fill="#065f46" text-anchor="middle" font-family="sans-serif">Your User ID:</text>
+              <text x="246" y="74" font-size="7" fill="#065f46" text-anchor="middle" font-weight="700" font-family="monospace">U1a2b3c4d5e6f...</text>
+              <!-- label -->
+              <text x="240" y="120" font-size="9" fill="#16a34a" text-anchor="middle" font-weight="600" font-family="sans-serif">บอทตอบ User ID ทันที</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- วิธี 2 -->
+      <div class="lg-step">
+        <div class="lg-step-badge" style="background:#7c3aed;">2</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">ดูจาก Webhook Log ของ VIIV</div>
+          <div class="lg-step-desc">
+            1. ให้เจ้าของร้าน <strong>Add Friend LINE OA</strong> ของร้านก่อน<br>
+            2. ส่งข้อความใดๆ ไปที่ LINE OA<br>
+            3. ระบบ VIIV จะ log User ID ไว้ → ดูได้จาก <strong>Server Log</strong> หรือรอฟีเจอร์ "ดู User ID" ที่จะมาเร็วๆ นี้
+          </div>
+        </div>
+      </div>
+
+      <!-- วิธี 3: Group -->
+      <div class="lg-step" style="border-bottom:none;">
+        <div class="lg-step-badge" style="background:#e8b93e;">3</div>
+        <div class="lg-step-body">
+          <div class="lg-step-title">Group ID (สำหรับแจ้งทั้งทีม)</div>
+          <div class="lg-step-desc">
+            1. สร้างกลุ่ม LINE ของทีมงาน<br>
+            2. <strong>เพิ่ม LINE OA เข้ากลุ่ม</strong><br>
+            3. ส่งข้อความในกลุ่ม → OA จะได้รับ Group ID อัตโนมัติ<br>
+            4. Group ID รูปแบบ <code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:11px;">Cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code> (ขึ้นต้นด้วย C)
+          </div>
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;margin-top:8px;display:flex;gap:8px;">
+            <span style="font-size:16px;flex-shrink:0;">⚠️</span>
+            <div style="font-size:11px;color:#92400e;line-height:1.6;">LINE OA ต้องได้รับสิทธิ์ <strong>"เพิ่มเป็นเพื่อน"</strong> และยอมรับ <strong>Group Chat</strong> ก่อน ตั้งได้ที่ LINE OA Manager → Response → Group Chat</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="padding:14px 20px;border-top:1px solid #f0ede8;display:flex;justify-content:flex-end;">
+      <button onclick="document.getElementById('lineUidGuideModal').style.display='none'" style="padding:9px 24px;background:#e8b93e;border:none;border-radius:10px;color:#1a1200;font-size:13px;font-weight:700;cursor:pointer;">เข้าใจแล้ว</button>
+    </div>
+  </div>
+</div>
+
 </body>

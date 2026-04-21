@@ -221,5 +221,54 @@ function shareStore(){
 }
 init();
 </script>
+
+<!-- LINE Float Button -->
+<div id="lineFab" style="display:none;position:fixed;bottom:24px;right:20px;z-index:999;">
+  <button id="lineFabBtn" style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#06C755;border:none;border-radius:50px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(6,199,85,.45);transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><path d="M24 8C15.163 8 8 14.477 8 22.4c0 5.156 2.97 9.67 7.436 12.29-.328 1.224-1.183 4.433-1.354 5.121-.213.848.31.838.65.61 1.01-.672 5.296-3.602 7.44-5.063A18.63 18.63 0 0024 35.8c8.837 0 16-6.477 16-14.4S32.837 8 24 8z" fill="#fff"/></svg>
+    <span id="lineFabLabel">Chat</span>
+  </button>
+</div>
+<script>
+(function(){
+  function initLineFab(){
+    var s = window.storeSettings || {};
+    var feats = s.line_features || {};
+    var oaId = s.line_oa_id || '';
+    if(!oaId || feats.chat === false) return;
+    var fab = document.getElementById('lineFab');
+    var btn = document.getElementById('lineFabBtn');
+    var lbl = document.getElementById('lineFabLabel');
+    if(!fab || !btn) return;
+    // label
+    lbl.textContent = feats.chat_label || 'Chat';
+    // แสดงปุ่ม
+    fab.style.display = 'block';
+    // action
+    btn.addEventListener('click', function(){
+      var action = feats.chat_action || 'add';
+      var url = action === 'chat'
+        ? 'https://line.me/R/oaMessage/@' + oaId
+        : 'https://line.me/R/ti/p/@' + oaId;
+      window.open(url, '_blank');
+    });
+  }
+  // รอ storeSettings โหลดเสร็จก่อน
+  var _orig = window.init;
+  window.init = function(){
+    if(typeof _orig === 'function') _orig.apply(this, arguments);
+    // hook หลัง Promise.all
+  };
+  // ใช้ MutationObserver หรือ polling ง่ายกว่า
+  var _check = setInterval(function(){
+    if(window.storeSettings && window.storeSettings.store_name){
+      clearInterval(_check);
+      initLineFab();
+    }
+  }, 200);
+  setTimeout(function(){ clearInterval(_check); }, 8000);
+})();
+</script>
+
 </body>
 </html>
