@@ -2,6 +2,10 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<meta name="version" content="1776784078"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>ViiV Platform</title>
 <style>
@@ -19,7 +23,8 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
-body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;flex-direction:column;}
+.viiv-dash{display:flex;flex-direction:column;height:100%;width:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);}
 
 /* ── HEADER ── */
 .hdr{
@@ -141,15 +146,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
 .kv.purple{color:var(--purple);}
 
 /* status tags */
-.strow{display:flex;gap:2px;flex-wrap:wrap;flex-shrink:0;}
+.strow{display:flex;gap:1px;flex-wrap:wrap;flex-shrink:0;}
 .stag{
-  display:inline-flex;align-items:center;gap:2px;
-  padding:0 3px;border-radius:3px;font-size:5.5px;font-weight:600;letter-spacing:0;line-height:1.7;
+  display:inline-flex;align-items:center;gap:1px;
+  padding:0 2px;border-radius:2px;font-size:4px;font-weight:600;letter-spacing:0;line-height:2;
   border:1px solid;
 }
 .stag.on{background:rgba(26,171,90,.07);border-color:rgba(26,171,90,.25);color:var(--green);}
 .stag.off{background:var(--mod2);border-color:var(--border);color:var(--text3);}
-.si{width:3px;height:3px;border-radius:50%;flex-shrink:0;}
+.si{width:2.5px;height:2.5px;border-radius:50%;flex-shrink:0;}
 .stag.on .si{background:var(--green);box-shadow:0 0 4px var(--green);animation:aw-b 1.8s infinite;}
 .stag.off .si{background:var(--text3);}
 
@@ -158,11 +163,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
   display:inline-flex;align-items:center;gap:2px;
   background:rgba(201,168,76,.06);
   border:1px solid rgba(201,168,76,.22);
-  border-radius:4px;padding:0 3px;line-height:1.7;
-  font-size:5.5px;color:var(--gold-d);
+  border-radius:3px;padding:0 2px;line-height:2;
+  font-size:4px;color:var(--gold-d);
   margin-top:auto;flex-shrink:0;
 }
-.ai-dot{width:3px;height:3px;border-radius:50%;background:var(--gold);animation:aw-b 1.2s infinite;}
+.ai-dot{width:2px;height:2px;border-radius:50%;background:var(--gold);animation:aw-b 1.2s infinite;}
 
 /* ── HUB CENTER ── */
 .hub{
@@ -284,7 +289,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
 </style>
 </head>
 <body>
-
+<div class="viiv-dash">
 <!-- HEADER -->
 <div class="hdr">
   <div class="logo"><span class="logo-v">⬡</span>ViiV <span class="logo-p">Platform</span></div>
@@ -508,6 +513,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
 <div id="coinL" style="position:fixed;inset:0;pointer-events:none;z-index:40;"></div>
 
 <script>
+/* clear any existing timers from previous load */
+['_vLiveT','_vMonT','_vBubT','_vTickT','_vPollT'].forEach(function(k){if(window[k])clearInterval(window[k]);});
 var API=window.location.origin,TOKEN=localStorage.getItem('viiv_token')||'';
 window.addEventListener('message',function(e){if(e.data&&e.data.type==='viiv_token'){TOKEN=e.data.token;initPoll();}});
 
@@ -813,7 +820,7 @@ function setLoad(l,ev){
 
   clearInterval(liveT);clearInterval(tickT);clearInterval(monT);clearInterval(bubT);
 
-  liveT=setInterval(function(){
+  window._vLiveT=liveT=setInterval(function(){
     if(l==='low')return;
     var inc=l==='high'?Math.floor(Math.random()*2000+200):Math.floor(Math.random()*400+50);
     var cur=parseInt((document.getElementById('posRev').textContent||'0').replace(/[฿,]/g,''))||0;
@@ -827,16 +834,16 @@ function setLoad(l,ev){
     if(Math.random()>.6){clk+=Math.floor(Math.random()*3+1);sa('affClk',clk);}
   },cfg.iv);
 
-  tickT=setInterval(function(){
+  window._vTickT=tickT=setInterval(function(){
     rotateTick('pos');rotateTick('chat');rotateTick('aff');
     var _ae=document.getElementById('autoTicker');if(_ae){_ae.textContent=TICK_AUTO[_ati%TICK_AUTO.length];_ati++;}
   },l==='high'?1500:l==='mid'?3000:6000);
 
-  monT=setInterval(function(){
+  window._vMonT=monT=setInterval(function(){
     spawnMoney('mz1');if(l!=='low')spawnMoney('mz2');
   },l==='high'?700:l==='mid'?1800:5000);
 
-  bubT=setInterval(spawnBub,l==='high'?500:l==='mid'?1200:3000);
+  window._vBubT=bubT=setInterval(spawnBub,l==='high'?500:l==='mid'?1200:3000);
 }
 
 /* away */
@@ -872,11 +879,20 @@ function fetchData(){
     if(todayBills&&todayBills.length>0){st('posOrd',todayBills.length);st('hubSub',todayBills.length+' orders');}
   }).catch(function(){st('pollSt','Error');});
 }
-function initPoll(){fetchData();clearInterval(pollT);pollT=setInterval(fetchData,30000);}
+function initPoll(){fetchData();clearInterval(pollT);window._vPollT=pollT=setInterval(fetchData,30000);}
+/* cleanup on SPA navigate */
+if(window._viivCleanup) window._viivCleanup();
+window._viivCleanup=function(){
+  clearInterval(window._liveT);clearInterval(window._monT);
+  clearInterval(window._bubT);clearInterval(window._tickT);
+  clearInterval(window._pollT);
+};
+
 document.addEventListener('visibilitychange',function(){if(document.hidden)clearInterval(pollT);else initPoll();});
 if(TOKEN)initPoll();
 
 /* init */
+try{
 buildStaff();
 buildAiMini('posAiRow',3);
 buildAiMini('affAiRow',3);
@@ -885,6 +901,8 @@ buildAiMini('autoAiRow',6);
 rotateTick('pos');rotateTick('chat');rotateTick('aff');
 setLoad('mid',null);
 document.getElementById('btnMid').classList.add('act');
+}catch(e){console.error('ViiV init error:',e);}
 </script>
+</div>
 </body>
 </html>

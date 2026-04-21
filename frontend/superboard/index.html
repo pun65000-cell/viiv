@@ -198,7 +198,10 @@ window.sbNav = function(page){
   closeDD();
   var c = document.getElementById('sbContent');
   c.innerHTML = '<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-spinner"></div><div class="spa-loader-title">กำลังโหลด</div></div></div>';
-  fetch('/superboard/pages/'+page+'.html')
+  var el=document.getElementById('sbContent');
+    if(page==='home'){el.classList.add('home-fullscreen');}
+    else{el.classList.remove('home-fullscreen');}
+    fetch('/superboard/pages/'+page+'.html')
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
     .then(function(html){
       var tmp = document.createElement('div');

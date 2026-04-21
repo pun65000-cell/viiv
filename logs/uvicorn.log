@@ -1,820 +1,151 @@
 nohup: ignoring input
-INFO:     Started server process [2301873]
+INFO:     Started server process [2422836]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:36136 - "GET /api/pos/products/public/store?tenant=ten_1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "POST /api/line/push-quote HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=20&page=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=20&page=1 HTTP/1.1" 200 OK
-INFO:     139.162.186.99:41524 - "GET / HTTP/1.0" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:41548 - "GET /nice%20ports%2C/Trinity.txt.bak HTTP/1.0" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:41574 - "OPTIONS / HTTP/1.0" 404 Not Found
-INFO:     139.162.186.99:41578 - "OPTIONS / HTTP/1.0" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:41816 - "GET /devicedesc.xml HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:41904 - "GET /nmaplowercheck1776758176 HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42596 - "POST /sdk HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42616 - "GET /evox/about HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42624 - "GET /webui HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42632 - "GET /webui HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42640 - "GET /login.php HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42648 - "GET /dniapi/userInfos HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42650 - "GET / HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42654 - "GET /dana-na/nc/nc_gina_ver.txt HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42668 - "GET /user HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42684 - "GET /geoserver/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42698 - "GET /geoserver/index.html HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42710 - "GET /owa/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42720 - "GET /CFIDE/componentutils/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42732 - "GET /rest/applinks/1.0/manifest HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42754 - "GET /nmaplowercheck1776758179 HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42758 - "GET /geoserver/web/wicket/bookmarkable/org.geoserver.web.AboutGeoServerPage HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42774 - "GET /magento_version HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42790 - "GET /owa/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42804 - "GET /cgi-bin/info.cgi HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42814 - "GET /xml/info.xml HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42826 - "GET /confluence/rest/applinks/1.0/manifest HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42830 - "GET /HNAP1 HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42840 - "GET /Account/Login HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42854 - "GET /helpdesk/WebObjects/Helpdesk.woa HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42870 - "GET /fog/management/index.php?node=client&sub=logininfo HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42882 - "GET / HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42906 - "GET /home.jsp HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42910 - "GET /cluster/list.query HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42930 - "GET /apps/zxtm/login.cgi HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42942 - "GET /base.cfm HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42944 - "GET /api/server/version HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42952 - "GET /language/en-GB/en-GB.xml HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42980 - "GET /versa/login HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42988 - "GET /default.jsp HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:42998 - "GET /api/v2/about HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43014 - "GET /login.html HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43022 - "GET / HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43032 - "GET /p/login/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43046 - "GET /index.cfm HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43054 - "GET /api/version HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43056 - "GET /info.asp HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43070 - "GET /status HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43082 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43086 - "GET /default.html HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43090 - "GET /portal/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43106 - "GET /cgi-bin/param.cgi?get_device_conf HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43118 - "GET /lms/db HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43122 - "GET /indice.asp HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43152 - "GET /allversions HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43162 - "GET /versions HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43170 - "GET /login/login.html HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43180 - "GET /localstart.cgi HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43192 - "GET /r-seenet/index.php HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43208 - "GET /ext-js/app/common/zld_product_spec.js HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43224 - "GET /c/login HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43238 - "GET /api/vip/i18n/api/v2/translation/products/vRNIUI/versions/1 HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43240 - "GET /tos/index.php?user/login HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43256 - "GET /localstart.jsp HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43266 - "GET /WebApp/js/UI_String.js HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43282 - "GET /health HTTP/1.1" 200 OK
-INFO:     139.162.186.99:43292 - "GET /readme.txt HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43322 - "GET /IPCamDesc.xml HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43328 - "GET /officescan/console/html/localization.js HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43336 - "GET /officescan/console/cgi/cgiChkMasterPwd.exe HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:41890 - "GET / HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43358 - "GET /dashboard/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43364 - "GET /kylin/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43376 - "GET /admin.shtml HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43404 - "GET /cgi-mod/header_logo.cgi?size=big HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43388 - "GET /login.aspx HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43416 - "GET /cslu/v1/core/conf HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43428 - "GET /config HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43440 - "GET /webui/index.html HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43446 - "GET /api/v1.0/environment HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43456 - "GET /CHANGELOG.txt HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43466 - "GET /default.aspx HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43468 - "GET /ise/img/rm-logo_small.png HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43470 - "GET /routes HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43486 - "GET /javascript/validation/OEM.js HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43498 - "GET /admin/reports/updates HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43514 - "GET /admin/reports/status HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43516 - "GET /menu.jhtml HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43530 - "GET /images/logo.png HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43548 - "GET /build.gradle HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43556 - "GET /pom.xml HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43560 - "GET /css/eonweb.css HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43568 - "GET /webportal.cgi HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43582 - "GET /start.jsp HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43590 - "GET /phoenix/favicon.ico HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43596 - "GET /api/v1/check-version HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43608 - "GET /pandora_console/ HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43618 - "GET /admin.pl HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43626 - "GET /assets/png/favicon-abe32304.png HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43642 - "GET /centreon/api/latest/platform/versions HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43638 - "GET /cgi-bin/authLogin.cgi HTTP/1.1" 404 Not Found
-INFO:     139.162.186.99:43648 - "GET /css/elfinder.min.css HTTP/1.1" 429 Too Many Requests
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:43668 - "GET /%2BCSCOE%2B/logon.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43674 - "GET /api/v3/meta HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43678 - "GET /admin.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43690 - "GET /App_Themes/Default/Images/favicon.ico HTTP/1.1" 429 Too Many Requests
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:43714 - "GET /api/v1/version HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43720 - "GET /am_bin/amlogin HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43736 - "GET /geoserver/web/ HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43750 - "GET /i18n/component/JS HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43762 - "GET /localstart.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43776 - "GET /images/logo.gif HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43796 - "GET /hx/api/about HTTP/1.1" 429 Too Many Requests
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:43852 - "GET /home.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43862 - "GET /human.aspx?arg12=infotech HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43854 - "GET /assets/img/favicon.ico HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43864 - "GET /administrator/manifests/files/joomla.xml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43870 - "GET /app/ui/login.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43882 - "GET /MagicInfo/config.js HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43888 - "GET /plugin/webs_model_cfg.js HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:43890 - "GET /login/?next=/ HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57112 - "GET /Main_Login.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57122 - "GET /index.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57126 - "GET /themes/admin/default/build/assets/favicon-19fbef86.svg HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57132 - "GET /rs/application-about HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57146 - "GET /nidp/app/login HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57148 - "GET /photo/webapi/query.php?api=SYNO.API.Info&method=query&version=1 HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57156 - "GET /admin.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57168 - "GET /dashboard/favicon.ico HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57178 - "GET /indice.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57184 - "GET /cgi-bin/luci HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57208 - "GET /kubepi/fav.png HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57198 - "GET /json/login_session HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57212 - "GET /metrics HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57218 - "GET /about HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57238 - "GET /ui/login.action HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57226 - "GET /main/main.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57240 - "GET /api/v2/hoverfly/version HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57248 - "GET /localstart.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57252 - "GET /public/static/favicon.png HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57268 - "GET /login HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57274 - "GET /api/v1/info HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57276 - "GET /admin.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57292 - "GET /assets/favicon.png HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57308 - "GET /mailinspector/login.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57322 - "GET /api/status HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57324 - "GET /~login HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57330 - "GET /localstart.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57340 - "GET /config_dump HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57354 - "GET /agc/vicidial.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57368 - "GET /admin/config.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57372 - "GET /index.do HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57388 - "GET /AppsHome.do HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57398 - "GET /agent/vicidial.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57410 - "GET /admin.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57418 - "GET /system/gwinfo HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57422 - "GET /localstart.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57432 - "GET /dana-cached/hc/HostCheckerInstaller.osx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57430 - "GET /system/version/current HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57434 - "GET /workplace/home.action HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57448 - "GET /main.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57458 - "GET /nifi/ HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57464 - "GET /jtcgi/wte.pyc HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57474 - "GET /openapi.json HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57486 - "GET /api-description HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57490 - "GET /info.htm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57492 - "GET /cgi-bin/meteobridge.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57496 - "GET /menu.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57516 - "GET /sys/en/neoclassic/login/login HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57524 - "GET /monitor/index.php/auth/login HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57540 - "GET /nifi-api/flow/about HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57548 - "GET /indice.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57562 - "GET /management/v1/cluster/state HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57564 - "GET /sap/bc/ui2/flp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57586 - "GET /decisioncenter-api/v1/about HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57592 - "GET /home.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57594 - "GET /wp-content/plugins/post-smtp/readme.txt HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57610 - "GET /help/en_US/Content/utm/utmAdminGuide/WebAdmin.htm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57614 - "GET /ignite?cmd=version HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57640 - "GET /api/v1/cluster/summary HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57628 - "GET /api/v2.0/systeminfo HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57648 - "GET /localstart.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57656 - "GET /index.lua HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57664 - "GET /api/system/status HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57666 - "GET /nmc/rss/server HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57696 - "GET /ScadaBR/login.htm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57704 - "GET /index.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57708 - "GET /webpages/login.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57722 - "GET /download/python/ HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57730 - "GET /cgi-bin/getagent.cgi?type=s HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57734 - "GET /main.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57746 - "GET /core/auth/login/ HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57760 - "GET /admin HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57772 - "GET /rest/settings HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57784 - "GET /angular.js HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57796 - "GET /sms_mp/.sms_aut?mplist HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57790 - "GET /admin.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57798 - "GET /browser/index.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57814 - "GET /scripts/languages/en-US.json HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57834 - "GET /remote/login HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57844 - "GET /start.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57848 - "GET /idexpert/ HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57862 - "GET /UOF/Login.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57890 - "GET /_matrix/identity/v2 HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57898 - "GET /default.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57896 - "GET /metasys/com/jci/metasys/MetasysProperties.properties HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57910 - "GET /rustfs/console/version HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57936 - "GET /objects/?module=saverestore HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57948 - "GET /localstart.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57974 - "GET /home.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:57996 - "GET /admin.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:58004 - "GET /v2 HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:58008 - "GET /base.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:58020 - "GET /base.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:58024 - "GET /backend/banner HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47748 - "GET /robots.txt HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47752 - "GET /default.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47758 - "GET /menu.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47770 - "GET /inicio.php HTTP/1.1" 429 Too Many Requests
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:47796 - "GET /default.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47822 - "GET /base.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47836 - "GET /start.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47850 - "GET /indice.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47860 - "GET /base.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47868 - "GET /main.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47876 - "GET /base.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47892 - "GET /base.inc HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47894 - "GET /base.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47902 - "GET /base.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47912 - "GET /menu.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47928 - "GET /base.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47938 - "GET /base.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47944 - "GET /admin.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47960 - "GET /indice.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47970 - "GET /home.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47982 - "GET /start.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:47994 - "GET /main.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48010 - "GET /default.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48026 - "GET /indice.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48028 - "GET /index.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48030 - "GET /menu.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48052 - "GET /default.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48058 - "GET /admin.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48064 - "GET /main.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48084 - "GET /default.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48110 - "GET /index.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48124 - "GET /indice.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48128 - "GET /base.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48156 - "GET /index.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48166 - "GET /inicio.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48176 - "GET /default.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48186 - "GET /home.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48192 - "GET /inicio.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48198 - "GET /inicio.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48214 - "GET /inicio.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48230 - "GET /inicio.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48234 - "GET /index.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48236 - "GET /inicio.cfm HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48258 - "GET /start.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48280 - "GET /inicio.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48300 - "GET /main.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48304 - "GET /inicio.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48316 - "GET /indice.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48320 - "GET /localstart.pl HTTP/1.1" 429 Too Many Requests
-WARNING:  Invalid HTTP request received.
-INFO:     139.162.186.99:48324 - "GET /menu.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48340 - "GET /start.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48350 - "GET /menu.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48360 - "GET /admin.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48370 - "GET /menu.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48380 - "GET /home.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48384 - "GET /inicio.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:48386 - "GET /start.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50480 - "GET /main.jsp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50496 - "GET /start.aspx HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50498 - "GET /index.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50502 - "GET /home.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50510 - "GET /default.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50524 - "GET /menu.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50526 - "GET /indice.html HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50528 - "GET /start.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50534 - "GET /menu.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50538 - "GET /index.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50544 - "GET /localstart.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50546 - "GET /inicio.pl HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50550 - "GET /menu.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50554 - "GET /start.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50570 - "GET /main.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50574 - "GET /main.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50576 - "GET /home.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50586 - "GET /home.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50610 - "GET /index.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50612 - "GET /localstart.php HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50614 - "GET /main.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50636 - "GET /main.jhtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50644 - "GET /indice.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50646 - "GET /indice.jsa HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50658 - "GET /start.cgi HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50672 - "GET /home.asp HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50704 - "GET /index.shtml HTTP/1.1" 429 Too Many Requests
-INFO:     139.162.186.99:50710 - "GET / HTTP/1.0" 429 Too Many Requests
-INFO:     139.162.186.99:50724 - "GET / HTTP/1.1" 429 Too Many Requests
-INFO:     65.49.1.232:14430 - "GET / HTTP/1.1" 404 Not Found
-INFO:     65.49.1.236:64499 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     65.49.1.233:30403 - "GET /?format=json HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     3.129.187.38:44134 - "GET / HTTP/1.1" 404 Not Found
-INFO:     3.129.187.38:56826 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.108.19:0 - "GET /api/.env HTTP/1.1" 404 Not Found
-INFO:     198.235.24.172:61956 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.92.201:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     185.189.182.234:40444 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.71.124.208:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.108.165:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.39:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.39:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.225.37:0 - "GET /xmlrpc.php HTTP/1.1" 404 Not Found
-INFO:     172.68.225.37:0 - "GET /wp-login.php HTTP/1.1" 404 Not Found
-INFO:     104.23.239.129:0 - "GET /xmlrpc.php HTTP/1.1" 404 Not Found
-INFO:     172.70.248.175:0 - "GET /wp-login.php HTTP/1.1" 404 Not Found
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.71.81.2:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/staff/list HTTP/1.1" 401 Unauthorized
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.160:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.162.160:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.160:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.162.160:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.38:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.38:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.188.157:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.70.188.157:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.71.124.208:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     199.45.154.119:60198 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     199.45.154.119:55748 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     199.45.154.119:55802 - "GET /.well-known/security.txt HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.92.200:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     108.162.226.189:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     108.162.226.189:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     108.162.226.189:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.170.176:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.170.176:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.170.176:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     85.217.149.47:43488 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.71.81.2:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.63:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.106.169:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.106.169:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.147:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.156:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     104.23.175.156:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.190.4:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.190.4:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.190.4:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.170.177:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     165.154.162.193:47598 - "GET / HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49302 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49306 - "GET /robots.txt HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49320 - "GET /sitemap.xml HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49330 - "GET /sse HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49338 - "GET /mcp HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49346 - "GET /mcp-sse HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49350 - "GET /get_server_info HTTP/1.1" 404 Not Found
-INFO:     165.154.162.193:49362 - "POST /update_weights_from_tensor HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.146:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.71.124.209:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.242.126:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.108.165:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.146:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.106.168:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     108.162.226.189:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.170.177:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.176.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.190.3:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.146:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.176.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.190.3:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.146:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.88.56:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.170.177:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.147:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.88.56:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.88.56:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.88.56:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.88.56:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.88.56:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.94:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.92.200:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.147:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     104.23.175.147:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     104.23.175.147:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     23.132.164.10:41644 - "GET / HTTP/1.1" 404 Not Found
-INFO:     108.162.226.189:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.208.27:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.208.27:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.164.90:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
-INFO:     172.68.164.90:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.170.176:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     108.162.226.188:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     108.162.226.121:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     108.162.226.121:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     108.162.226.121:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     108.162.226.121:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     108.162.226.121:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     108.162.226.121:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
 INFO:     108.162.226.188:0 - "GET /api/stores/ HTTP/1.1" 200 OK
 INFO:     108.162.226.188:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.70.92.201:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     104.22.66.39:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
 INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
 INFO:     172.69.166.95:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
 INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
 INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.189.129:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.189.129:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.189.129:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.162.62:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     44.220.188.54:48096 - "GET / HTTP/1.1" 404 Not Found
+INFO:     162.158.88.35:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     162.158.88.35:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
 INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
 INFO:     172.68.242.126:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.70.92.201:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.70.92.201:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.106.168:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.176.37:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.162.62:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.170.177:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.108.165:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     104.23.175.146:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.108.165:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.108.165:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.108.165:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.189.129:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     162.158.189.129:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     162.158.189.129:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.70.92.201:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
