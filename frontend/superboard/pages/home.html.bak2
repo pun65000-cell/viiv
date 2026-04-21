@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="th">
+<head><meta charset="utf-8"><title>หน้าหลัก</title></head>
+<body>
+<div class="sb-page-title">หน้าหลัก</div>
+<div class="sb-page-sub">สรุปภาพรวมร้านค้าวันนี้</div>
+
+<div class="sb-stats">
+  <div class="sb-stat">
+    <div class="sb-stat-label">💰 ยอดขายวันนี้</div>
+    <div class="sb-stat-val gold">—</div>
+  </div>
+  <div class="sb-stat">
+    <div class="sb-stat-label">📦 ออเดอร์ใหม่</div>
+    <div class="sb-stat-val">—</div>
+  </div>
+  <div class="sb-stat">
+    <div class="sb-stat-label">👤 ลูกค้าใหม่</div>
+    <div class="sb-stat-val">—</div>
+  </div>
+  <div class="sb-stat">
+    <div class="sb-stat-label">⚡ Credits คงเหลือ</div>
+    <div class="sb-stat-val gold">—</div>
+  </div>
+</div>
+
+<div class="sb-card">
+  <div class="sb-card-title">ภาพรวมกิจกรรม</div>
+  <div class="sb-card-sub">สรุปกิจกรรมร้านค้าวันนี้</div>
+  <div class="sb-placeholder">
+    <div class="sb-ph-icon">📊</div>
+    <div class="sb-ph-text">เชื่อมต่อ POS เพื่อดูสถิติการขาย</div>
+  </div>
+</div>
+</body>
+</html>
