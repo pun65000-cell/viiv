@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ViiV Platform — Living Dashboard</title>
+<style>
+:root{
+  --gold:#d4af37;--gold-l:#f9e29d;--gold-glow:rgba(212,175,55,.35);
+  --bg-c:#fffaf0;--bg-e:#f0e8d0;
+  --text:#3e362d;--text2:#7a6a55;
+  --mod:rgba(255,255,255,.88);
+  --green:#2ecc71;--orange:#ff8c00;--red:#e74c3c;
+  --purple:#8b5cf6;--blue:#3b82f6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{
+  background:radial-gradient(circle at 50% 40%,var(--bg-c) 0%,var(--bg-e) 100%);
+  font-family:'Segoe UI',Tahoma,sans-serif;
+  color:var(--text);
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 28px;
+  border-bottom:2px solid var(--gold-glow);
+  flex-shrink:0;
+}
+.logo{font-size:26px;font-weight:900;display:flex;align-items:center;gap:8px;}
+.logo-v{color:var(--gold);font-size:32px;text-shadow:0 0 12px var(--gold-glow);}
+.logo-plat{color:var(--gold);}
+.hdr-right{display:flex;align-items:center;gap:16px;}
+.clock{font-size:13px;color:var(--text2);font-weight:600;}
+.staff-panel{
+  background:#fff;padding:6px 14px;border-radius:40px;
+  display:flex;gap:8px;align-items:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.s-av{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#e8e0d0,#d0c8b8);
+  position:relative;border:2px solid #fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--text);
+  cursor:pointer;transition:transform .2s;
+}
+.s-av:hover{transform:scale(1.12);}
+.s-dot{
+  width:9px;height:9px;border-radius:50%;
+  position:absolute;bottom:-1px;right:-1px;
+  border:2px solid #fff;
+}
+.s-on{background:var(--green);box-shadow:0 0 5px var(--green);}
+.s-away{background:var(--orange);animation:away-b .8s infinite;}
+@keyframes away-b{0%,100%{opacity:1;box-shadow:0 0 6px var(--orange);}50%{opacity:.2;box-shadow:none;}}
+.s-count{font-size:10px;color:var(--text2);font-weight:700;}
+
+/* ── MAIN LAYOUT ── */
+.main{
+  flex:1;
+  display:grid;
+  grid-template-columns:340px 1fr 340px;
+  grid-template-rows:1fr 1fr;
+  gap:18px;
+  padding:14px 24px;
+  position:relative;
+  overflow:hidden;
+  min-height:0;
+}
+
+/* ── SVG PATHS ── */
+.path-svg{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;z-index:1;
+}
+
+/* ── MODULES ── */
+.mod{
+  background:var(--mod);border-radius:20px;
+  padding:18px 20px;
+  border:1px solid rgba(212,175,55,.2);
+  box-shadow:0 8px 28px rgba(0,0,0,.06);
+  position:relative;z-index:2;
+  transition:box-shadow .3s;
+  overflow:hidden;
+}
+.mod:hover{box-shadow:0 10px 36px rgba(212,175,55,.22);}
+.mod-title{
+  color:var(--gold);font-size:12px;font-weight:700;
+  letter-spacing:.6px;display:flex;align-items:center;gap:6px;
+  margin-bottom:5px;
+}
+.badge{
+  background:var(--gold);color:#fff;
+  padding:3px 9px;border-radius:8px;
+  font-size:11px;font-weight:700;margin-left:auto;
+}
+.badge-g{background:var(--green);}
+.badge-p{background:var(--purple);}
+.mod-big{font-size:22px;font-weight:700;color:var(--text);line-height:1.1;}
+.mod-sub{font-size:10px;color:var(--text2);margin-top:3px;}
+.ai-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#fffbee;border:1px solid rgba(212,175,55,.4);
+  border-radius:8px;padding:3px 8px;
+  font-size:9px;color:var(--gold);margin-top:3px;
+}
+.ai-dot-anim{
+  width:6px;height:6px;border-radius:50%;background:var(--gold);
+  animation:away-b 1.2s infinite;
+}
+.chars{display:flex;gap:4px;margin:3px 0;}
+
+/* money overlay */
+.money-area{
+  position:absolute;right:12px;top:40px;
+  width:60px;height:70px;pointer-events:none;overflow:visible;
+}
+@keyframes money-fly{
+  0%{transform:translate(0,0) rotate(-4deg);opacity:1;}
+  100%{transform:translate(15px,-45px) rotate(8deg);opacity:0;}
+}
+
+/* ── CENTER HUB ── */
+.hub-col{
+  grid-column:2;grid-row:1/span 2;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  position:relative;z-index:2;gap:14px;
+}
+.hub-ring{
+  width:150px;height:150px;border-radius:50%;
+  background:#fff;border:5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 30px var(--gold-glow);
+  animation:hub-pulse 3s ease-in-out infinite;
+  position:relative;
+}
+@keyframes hub-pulse{
+  0%,100%{box-shadow:0 0 20px var(--gold-glow);}
+  50%{box-shadow:0 0 55px rgba(212,175,55,.55);}
+}
+.hub-inner{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,#fffbee,#fff8e0);
+  border:2px solid var(--gold-l);
+  display:flex;align-items:center;justify-content:center;
+  animation:hub-spin 14s linear infinite;
+}
+@keyframes hub-spin{to{transform:rotate(360deg);}}
+.hub-name{font-size:20px;font-weight:900;color:var(--gold);text-align:center;}
+.hub-sub{font-size:9px;color:var(--text2);letter-spacing:.6px;text-align:center;}
+.hub-total{text-align:center;}
+.hub-total-label{font-size:10px;color:var(--text2);}
+.hub-total-val{font-size:26px;font-weight:700;color:var(--gold);}
+.hub-total-sub{font-size:10px;color:var(--text2);}
+
+/* AI TEAM CARD */
+.ai-team-card{
+  background:#fff;border-radius:16px;
+  padding:10px 18px;
+  box-shadow:0 3px 14px rgba(0,0,0,.06);
+  border:1px solid var(--gold-glow);
+  text-align:center;width:280px;
+}
+.ai-team-title{
+  font-size:11px;font-weight:700;color:var(--gold);
+  letter-spacing:.5px;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.ai-team-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 5px var(--green);
+}
+.ai-units{display:flex;gap:12px;justify-content:center;}
+.ai-unit{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.ai-unit-name{font-size:8px;color:var(--text2);font-weight:600;}
+.ai-icon-anim{animation:bob 2s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+
+/* BOT PANELS */
+.bot-row{
+  display:flex;justify-content:space-between;
+  padding:0 24px 10px;flex-shrink:0;
+}
+.bot-card{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.7);
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:10px;padding:6px 12px;
+}
+.bot-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 5px var(--green);
+}
+.bot-text{font-size:9px;color:var(--text2);}
+.bot-text strong{display:block;font-size:10px;color:var(--green);}
+
+/* CHAT BUBBLES */
+.chat-bubble-area{position:relative;flex:1;min-height:28px;max-height:55px;margin:3px 0;overflow:visible;}
+@keyframes bubble-pop{
+  0%{transform:scale(0) translateY(5px);opacity:0;}
+  30%{transform:scale(1.08);}
+  100%{transform:scale(1) translateY(0);opacity:.92;}
+}
+.cbubble{
+  position:absolute;
+  background:#fff;border:1px solid var(--gold-l);
+  border-radius:10px 10px 10px 2px;
+  padding:4px 8px;font-size:9px;color:var(--text);
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  animation:bubble-pop .4s ease-out forwards;
+  white-space:nowrap;pointer-events:none;
+}
+
+/* FUTURE MODULE */
+.mod-future{
+  border-style:dashed;border-color:rgba(212,175,55,.3);opacity:.78;
+}
+.future-tag{
+  font-size:8px;color:var(--text2);
+  background:#fffbee;border:1px solid var(--gold-l);
+  border-radius:4px;padding:1px 6px;
+  margin-top:4px;display:inline-block;
+}
+
+/* MINI CHARTS */
+.mini-chart{
+  display:flex;align-items:flex-end;gap:3px;
+  height:36px;margin-top:3px;
+}
+.bar{
+  flex:1;border-radius:3px 3px 0 0;
+  background:linear-gradient(to top,var(--gold),var(--gold-l));
+  transition:height .5s ease;min-width:8px;
+}
+
+/* COIN */
+@keyframes coin-up{
+  0%{transform:translateY(0) scale(1);opacity:1;}
+  100%{transform:translateY(-50px) scale(.2);opacity:0;}
+}
+.coin{
+  position:absolute;width:10px;height:10px;border-radius:50%;
+  background:radial-gradient(circle,#FFD700 40%,#B8860B);
+  pointer-events:none;
+}
+
+/* RUNNER ROBOT */
+.runner{position:absolute;pointer-events:none;z-index:5;}
+@keyframes glow-r{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(212,175,55,.7));}
+  50%{filter:drop-shadow(0 0 10px rgba(212,175,55,1));}
+}
+
+/* CONTROLS */
+.ctrl{
+  display:flex;gap:8px;align-items:center;
+  justify-content:center;
+  padding:6px;flex-shrink:0;
+  background:rgba(255,255,255,.5);
+  border-top:1px solid var(--gold-glow);
+}
+.ctrl-btn{
+  padding:4px 12px;border-radius:14px;
+  border:1.5px solid var(--gold-glow);
+  background:transparent;color:var(--text2);
+  font-size:10px;cursor:pointer;
+  font-family:inherit;transition:all .2s;
+}
+.ctrl-btn:hover{background:var(--gold-l);border-color:var(--gold);}
+.ctrl-btn.act{background:var(--gold);color:#fff;border-color:var(--gold);}
+.ctrl-label{font-size:10px;color:var(--text2);}
+
+/* TOOLTIP */
+.tooltip{
+  display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);
+  background:#3e362d;color:#fff;font-size:9px;
+  padding:3px 7px;border-radius:6px;white-space:nowrap;z-index:100;
+}
+.s-av:hover .tooltip{display:block;}
+
+/* AWAY LOG PANEL */
+.away-log{
+  display:none;position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:#fff;border:1px solid var(--gold);
+  border-radius:16px;padding:20px;
+  box-shadow:0 10px 40px rgba(0,0,0,.15);
+  z-index:200;min-width:280px;
+}
+.away-log h3{color:var(--gold);font-size:14px;margin-bottom:5px;}
+.away-log-item{font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid #f0e8d0;}
+.away-log-close{
+  margin-top:12px;padding:5px 16px;
+  background:var(--gold);color:#fff;border:none;
+  border-radius:8px;cursor:pointer;font-size:11px;
+}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">
+    <span class="logo-v">⬡</span>
+    ViiV <span class="logo-plat">Platform</span>
+  </div>
+  <div class="hdr-right">
+    <span class="clock" id="clock">--:--:--</span>
+    <div class="staff-panel" id="staffPanel"></div>
+  </div>
+  <button onclick="document.getElementById('ctrlPanel').style.display=document.getElementById('ctrlPanel').style.display==='none'?'flex':'none'" 
+    style="background:rgba(212,175,55,.1);border:1px solid var(--gold-glow);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--gold);font-family:inherit;">
+    ⚙️ จัดการ
+  </button>
+</div>
+
+<!-- CONTROL PANEL POPUP -->
+<div id="ctrlPanel" style="display:none;position:fixed;top:44px;right:12px;z-index:100;background:white;border:1px solid var(--gold-glow);border-radius:14px;padding:12px 16px;box-shadow:0 8px 32px rgba(0,0,0,.12);flex-direction:column;gap:8px;min-width:280px;">
+  <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">⚙️ จัดการแดชบอร์ด</div>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:10px;color:var(--text2);">Load:</span>
+    <button class="ctrl-btn" onclick="setLoad('low',event)">ต่ำ</button>
+    <button class="ctrl-btn act" id="btnMid" onclick="setLoad('mid',event)">ปานกลาง</button>
+    <button class="ctrl-btn" onclick="setLoad('high',event)">สูง</button>
+    <span style="font-size:10px;color:var(--gold);">🤖 <span id="rCnt" style="font-weight:700;">4</span> หุ่น</span>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="ctrl-btn" onclick="triggerAway()" style="color:#ff8c00;border-color:#ff8c0044;">จำลอง Away</button>
+    <button class="ctrl-btn" onclick="resetAll()" style="color:#2ecc71;border-color:#2ecc7144;">Reset</button>
+    <button class="ctrl-btn" onclick="showLog()">📋 Away Log</button>
+    <button class="ctrl-btn" onclick="document.getElementById('ctrlPanel').style.display='none'">✕ ปิด</button>
+  </div>
+  <div style="font-size:9px;color:var(--text2);">API polling ทุก 30s</div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainGrid">
+
+  <!-- SVG PATHS -->
+  <svg class="path-svg" id="pathSvg" viewBox="0 0 1200 580" preserveAspectRatio="xMidYMid meet">
+    <!-- center ~(600,290) POS1 ~(170,145) POS2 ~(170,435) Chat ~(1030,145) Future ~(1030,435) -->
+    <line x1="600" y1="290" x2="220" y2="155" stroke="#d4af37" stroke-width="2" stroke-dasharray="8 5" opacity=".4">
+      <animate attributeName="stroke-dashoffset" from="0" to="-26" dur="1s" repeatCount="indefinite"/>
+    </line>
+    <line x1="600" y1="290" x2="220" y2="430" stroke="#d4af37" stroke-width="2" stroke-dasharray="8 5" opacity=".4">
+      <animate attributeName="stroke-dashoffset" from="0" to="-26" dur="1.3s" repeatCount="indefinite"/>
+    </line>
+    <line x1="600" y1="290" x2="980" y2="155" stroke="#d4af37" stroke-width="2" stroke-dasharray="8 5" opacity=".4">
+      <animate attributeName="stroke-dashoffset" from="0" to="-26" dur="1.1s" repeatCount="indefinite"/>
+    </line>
+    <line x1="600" y1="290" x2="980" y2="430" stroke="#d4af37" stroke-width="2" stroke-dasharray="8 5" opacity=".35">
+      <animate attributeName="stroke-dashoffset" from="0" to="-26" dur=".95s" repeatCount="indefinite"/>
+    </line>
+    <!-- flow dots -->
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.2s" repeatCount="indefinite" path="M600,290 L220,155"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.5s" repeatCount="indefinite" path="M220,155 L600,290"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.4s" repeatCount="indefinite" path="M600,290 L220,430"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.7s" repeatCount="indefinite" path="M220,430 L600,290"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.1s" repeatCount="indefinite" path="M600,290 L980,155"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.8s" repeatCount="indefinite" path="M980,155 L600,290"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="1.3s" repeatCount="indefinite" path="M600,290 L980,430"/></circle>
+    <circle r="5" fill="#d4af37" opacity=".85"><animateMotion dur="2.1s" repeatCount="indefinite" path="M980,430 L600,290"/></circle>
+    <!-- orbit -->
+    <circle cx="600" cy="290" r="130" fill="none" stroke="#d4af37" stroke-width="1" opacity=".12" stroke-dasharray="10 8">
+      <animateTransform attributeName="transform" type="rotate" from="0 600 290" to="360 600 290" dur="22s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="600" cy="290" r="210" fill="none" stroke="#d4af37" stroke-width=".5" opacity=".07" stroke-dasharray="16 10">
+      <animateTransform attributeName="transform" type="rotate" from="360 600 290" to="0 600 290" dur="35s" repeatCount="indefinite"/>
+    </circle>
+  </svg>
+
+  <!-- POS 1 top-left -->
+  <div class="mod" id="modPos1">
+    <div class="mod-title">
+      🏪 POS MODULE
+      <span class="badge" id="pos1Badge">฿12,500</span>
+    </div>
+    <div class="chars" id="pos1Chars"></div>
+    <div class="mod-big" id="pos1Rev">฿12,500</div>
+    <div class="mod-sub">รายรับวันนี้</div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <span style="font-size:10px;color:var(--text2);">🧾 <span id="pos1Bills">8 บิล</span></span>
+      <span style="font-size:10px;color:var(--text2);">👤 <span id="pos1Staff">3 staff</span></span>
+      <span style="font-size:10px;color:var(--text2);">📦 <span id="pos1Orders">12 orders</span></span>
+    </div>
+    <div class="mini-chart" id="pos1Chart"></div>
+    <div class="ai-badge"><div class="ai-dot-anim"></div>POS Assistive AI</div>
+    <div class="money-area" id="moneyArea1"></div>
+  </div>
+
+  <!-- CENTER HUB -->
+  <div class="hub-col">
+    <div class="hub-ring">
+      <div class="hub-inner">
+        <svg width="48" height="48" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" r="20" fill="none" stroke="#d4af37" stroke-width="2.5"/>
+          <path d="M24 8L29 18L24 15L19 18Z" fill="#d4af37"/>
+          <path d="M24 40L19 30L24 33L29 30Z" fill="#d4af37" opacity=".6"/>
+          <circle cx="24" cy="24" r="5" fill="#d4af37"/>
+          <line x1="8" y1="24" x2="19" y2="24" stroke="#d4af37" stroke-width="1.5" opacity=".5"/>
+          <line x1="29" y1="24" x2="40" y2="24" stroke="#d4af37" stroke-width="1.5" opacity=".5"/>
+        </svg>
+      </div>
+    </div>
+    <div>
+      <div class="hub-name">CONCORE</div>
+      <div class="hub-sub">Multi-Agent Hub API</div>
+    </div>
+    <div class="ai-team-card">
+      <div class="ai-team-title">
+        <div class="ai-team-dot"></div>
+        AI TEAM ONLINE &nbsp;
+        <span id="aiCount" style="color:var(--gold);">4 units</span>
+      </div>
+      <div class="ai-units" id="aiUnits"></div>
+    </div>
+    <div class="hub-total">
+      <div class="hub-total-label">Total Today</div>
+      <div class="hub-total-val" id="totalRev">฿20,700</div>
+      <div class="hub-total-sub" id="totalSub">20 orders · 5 staff</div>
+    </div>
+  </div>
+
+  <!-- Chat top-right -->
+  <div class="mod" id="modChat">
+    <div class="mod-title">
+      💬 CHAT &amp; SHOWROOM
+      <span class="badge badge-g" id="chatBadge">15</span>
+    </div>
+    <div class="chars" id="chatChars"></div>
+    <div class="mod-big" style="color:var(--purple);" id="chatN">15</div>
+    <div class="mod-sub">Open Chats · AI ตอบ <span id="chatAiN">8</span> chat</div>
+    <div class="chat-bubble-area" id="chatBubbleArea"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;font-size:10px;color:var(--text2);">
+      <span>📊 Conversion <span id="chatConv" style="color:var(--green);">32%</span></span>
+      <span>⏱ Avg reply <span id="chatReply">2.3s</span></span>
+    </div>
+    <div class="ai-badge"><div class="ai-dot-anim"></div>Chat AI Operational</div>
+  </div>
+
+  <!-- POS 2 bottom-left -->
+  <div class="mod" style="grid-row:2;" id="modPos2">
+    <div class="mod-title">
+      🏪 POS MODULE 2
+      <span class="badge" id="pos2Badge">฿8,200</span>
+    </div>
+    <div class="chars" id="pos2Chars"></div>
+    <div class="mod-big" id="pos2Rev">฿8,200</div>
+    <div class="mod-sub">รายรับวันนี้</div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <span style="font-size:10px;color:var(--text2);">🧾 <span id="pos2Bills">5 บิล</span></span>
+      <span style="font-size:10px;color:var(--text2);">👤 <span id="pos2Staff">2 staff</span></span>
+      <span style="font-size:10px;color:var(--text2);">📦 <span id="pos2Orders">8 orders</span></span>
+    </div>
+    <div class="mini-chart" id="pos2Chart"></div>
+    <div class="ai-badge"><div class="ai-dot-anim"></div>POS Assistive AI</div>
+    <div class="money-area" id="moneyArea2"></div>
+  </div>
+
+  <!-- Future bottom-right -->
+  <div class="mod mod-future" style="grid-row:2;" id="modFuture">
+    <div class="mod-title" style="color:var(--text2);">
+      ⚙️ FUTURE PREDICTION
+      <span class="future-tag">In Dev</span>
+    </div>
+    <div class="chars" id="futureChars"></div>
+    <div class="mod-big" style="color:#ccc;font-size:18px;">Predictive AI</div>
+    <div class="mod-sub">Market Trends · Auto Parts · ERP</div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+      <div style="background:#fffbee;border:1px dashed var(--gold-l);border-radius:8px;padding:4px 8px;font-size:9px;color:var(--text2);">📈 Predictive Graphs</div>
+      <div style="background:#fffbee;border:1px dashed var(--gold-l);border-radius:8px;padding:4px 8px;font-size:9px;color:var(--text2);">📅 Future Timeline</div>
+      <div style="background:#fffbee;border:1px dashed var(--gold-l);border-radius:8px;padding:4px 8px;font-size:9px;color:var(--text2);">🎯 Prediction Score</div>
+    </div>
+    <div class="ai-badge" style="border-color:#ddd;color:#bbb;margin-top:6px;">
+      <div class="ai-dot-anim" style="background:#ccc;"></div>Predictive AI Agent
+    </div>
+  </div>
+
+</div>
+
+<!-- AWAY LOG MODAL -->
+<div class="overlay" id="overlay" onclick="closeLog()"></div>
+<div class="away-log" id="awayLog">
+  <h3>📋 Away Log</h3>
+  <div id="awayLogItems"></div>
+  <button class="away-log-close" onclick="closeLog()">ปิด</button>
+</div>
+
+<!-- ROBOT LAYER -->
+<div id="robotLayer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;"></div>
+<!-- COIN LAYER -->
+<div id="coinLayer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9;"></div>
+
+<script>
+var API = window.location.origin;
+var TOKEN = localStorage.getItem('viiv_token') || '';
+window.addEventListener('message',function(e){
+  if(e.data&&e.data.type==='viiv_token'){TOKEN=e.data.token;initPolling();}
+});
+
+/* ── STAFF ── */
+var staff=[
+  {id:1,name:'สมชาย',init:'ส',color:'#f9e29d',away:false,lastSeen:Date.now()},
+  {id:2,name:'สุดา',init:'ส',color:'#fca5a5',away:false,lastSeen:Date.now()},
+  {id:3,name:'วิชัย',init:'ว',color:'#93c5fd',away:false,lastSeen:Date.now()-10*60*1000},
+  {id:4,name:'นิดา',init:'น',color:'#6ee7b7',away:false,lastSeen:Date.now()},
+  {id:5,name:'ประวิทย์',init:'ป',color:'#c4b5fd',away:false,lastSeen:Date.now()},
+];
+var awayLog=[];
+
+function faceEl(s,sz){
+  sz=sz||32;
+  var d=document.createElement('div');
+  d.style.cssText='position:relative;cursor:pointer;';
+  d.title=(s.away?'Away 30+ นาที':'Online')+' — '+s.name;
+  var sc=s.away?'var(--orange)':'var(--green)';
+  d.innerHTML='<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:'+s.color+';border:2.5px solid '+(s.away?'var(--orange)':'var(--green)')+';display:flex;align-items:center;justify-content:center;font-size:'+(sz*.4)+'px;font-weight:700;color:var(--text);'+(s.away?'animation:away-b .8s infinite;':'box-shadow:0 0 6px '+sc+';')+'">'+s.init+'</div>'+
+    '<div style="width:9px;height:9px;border-radius:50%;background:'+(s.away?'var(--orange)':'var(--green)')+';position:absolute;bottom:-1px;right:-1px;border:2px solid #fff;'+(s.away?'animation:away-b .8s infinite;':'box-shadow:0 0 5px '+sc+';')+'"></div>'+
+    '<div class="tooltip">'+(s.away?'Away | ':'Online | ')+s.name+'</div>';
+  if(s.away){
+    d.addEventListener('click',function(){showLog();});
+  }
+  return d;
+}
+
+function buildStaff(){
+  var panel=document.getElementById('staffPanel');
+  panel.innerHTML='';
+  staff.forEach(function(s){panel.appendChild(faceEl(s,32));});
+  var cnt=document.createElement('span');
+  cnt.className='s-count';
+  cnt.textContent=staff.filter(function(s){return!s.away;}).length+' online';
+  panel.appendChild(cnt);
+}
+
+function buildChars(id,count,offset){
+  var el=document.getElementById(id);if(!el)return;
+  el.innerHTML='';
+  for(var i=0;i<count;i++){
+    var s=staff[(i+(offset||0))%staff.length];
+    el.appendChild(faceEl(s,20));
+  }
+}
+
+/* ── ROBOT SVG ── */
+function robotSvg(color,sz){
+  sz=sz||24;
+  return '<svg width="'+sz+'" height="'+(sz*1.3)+'" viewBox="0 0 24 31">'+
+    '<ellipse cx="12" cy="29" rx="8" ry="2" fill="'+color+'" opacity=".25"/>'+
+    '<rect x="4" y="15" width="16" height="12" rx="3.5" fill="'+color+'"/>'+
+    '<rect x="6" y="5" width="12" height="12" rx="5" fill="'+color+'"/>'+
+    '<circle cx="9.5" cy="10" r="2.2" fill="#fff"/>'+
+    '<circle cx="14.5" cy="10" r="2.2" fill="#fff"/>'+
+    '<circle cx="9.5" cy="10" r="1.1" fill="#3e362d"/>'+
+    '<circle cx="14.5" cy="10" r="1.1" fill="#3e362d"/>'+
+    '<rect x="1.5" y="17" width="3.5" height="7" rx="1.75" fill="'+color+'" opacity=".8"/>'+
+    '<rect x="19" y="17" width="3.5" height="7" rx="1.75" fill="'+color+'" opacity=".8"/>'+
+    '<rect x="8.5" y="0" width="7" height="5" rx="2.5" fill="'+color+'" opacity=".65"/>'+
+    '<circle cx="12" cy="1.5" r="1.8" fill="'+color+'"/>'+
+    '</svg>';
+}
+
+function buildBots(){
+  ['bot1icon','bot2icon','bot3icon'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.innerHTML=robotSvg('#d4af37',22);
+  });
+}
+
+/* ── AI UNITS ── */
+var AI_LABELS=['AlControl','AI Support','AI POS','AI แชท','AI Auto Post','AI Route'];
+function buildAiUnits(count){
+  var el=document.getElementById('aiUnits');if(!el)return;
+  el.innerHTML='';
+  document.getElementById('aiCount').textContent=count+' units';
+  for(var i=0;i<Math.min(count,5);i++){
+    var u=document.createElement('div');
+    u.className='ai-unit';
+    u.innerHTML='<div class="ai-icon-anim" style="animation-delay:'+(i*.2)+'s">'+robotSvg('#d4af37',26)+'</div>'+
+      '<div class="ai-unit-name">'+AI_LABELS[i]+'</div>';
+    el.appendChild(u);
+  }
+}
+
+/* ── MINI BAR CHART ── */
+function buildMiniChart(id,vals){
+  var el=document.getElementById(id);if(!el)return;
+  el.innerHTML='';
+  var max=Math.max.apply(null,vals)||1;
+  vals.forEach(function(v){
+    var b=document.createElement('div');
+    b.className='bar';
+    b.style.height=Math.round(v/max*34)+'px';
+    el.appendChild(b);
+  });
+}
+
+/* ── ROBOTS ── */
+var PATHS=[
+  {x1:600,y1:290,x2:220,y2:155},
+  {x1:600,y1:290,x2:220,y2:430},
+  {x1:600,y1:290,x2:980,y2:155},
+  {x1:600,y1:290,x2:980,y2:430},
+  {x1:220,y1:155,x2:980,y2:155},
+];
+var robots=[],rTimers=[];
+
+function makeRobot(){
+  var d=document.createElement('div');
+  d.className='runner';
+  d.style.animation='glow-r 1.5s ease-in-out infinite';
+  d.innerHTML=robotSvg('#d4af37',20);
+  document.getElementById('robotLayer').appendChild(d);
+  return d;
+}
+
+function animRobot(robot,path,spd){
+  var t=Math.random();var dir=Math.random()>.5?1:-1;
+  var W=window.innerWidth,H=window.innerHeight;
+  function step(){
+    if(!robot.parentNode)return;
+    t+=dir*.013;
+    if(t>=1){t=1;dir=-1;maybeCoin(cx,cy);}
+    if(t<=0){t=0;dir=1;}
+    var cx=path.x1+(path.x2-path.x1)*t;
+    var cy=path.y1+(path.y2-path.y1)*t;
+    robot.style.left=(cx/1200*W-10)+'px';
+    robot.style.top=(cy/580*H-15)+'px';
+    robot.style.opacity='1';
+    return setTimeout(step,spd);
+  }
+  return step();
+}
+
+function maybeCoin(x,y){
+  if(Math.random()>.45)return;
+  var W=window.innerWidth,H=window.innerHeight;
+  var c=document.createElement('div');
+  c.className='coin';
+  var dur=(.7+Math.random()*.7).toFixed(2);
+  c.style.cssText='position:absolute;left:'+(x/1200*W-5)+'px;top:'+(y/580*H-5)+'px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#FFD700,#B8860B);animation:coin-up '+dur+'s ease-out forwards;pointer-events:none;';
+  document.getElementById('coinLayer').appendChild(c);
+  setTimeout(function(){if(c.parentNode)c.parentNode.removeChild(c);},dur*1000+100);
+}
+
+function buildRobots(count){
+  rTimers.forEach(clearTimeout);rTimers=[];
+  robots.forEach(function(r){if(r.parentNode)r.parentNode.removeChild(r);});
+  robots=[];
+  document.getElementById('rCnt').textContent=count;
+  var spd=Math.max(12,70-count*5);
+  for(var i=0;i<count;i++){
+    var r=makeRobot();robots.push(r);
+    rTimers.push(animRobot(r,PATHS[i%PATHS.length],spd+i*5));
+  }
+}
+
+/* ── CHAT BUBBLES ── */
+var chatMsgs=['สวัสดีครับ 🙏','ราคาเท่าไหร่คะ?','มีสต็อกไหมครับ','โอเค สั่งเลย!','ส่งได้เร็วแค่ไหน?','ขอบคุณมากครับ','แนะนำสินค้าด้วยนะ'];
+var bubTimer;
+function spawnBubble(){
+  var area=document.getElementById('chatBubbleArea');if(!area)return;
+  var b=document.createElement('div');
+  b.className='cbubble';
+  b.textContent=chatMsgs[Math.floor(Math.random()*chatMsgs.length)];
+  b.style.left=Math.random()*120+'px';
+  b.style.top=Math.random()*24+'px';
+  area.appendChild(b);
+  setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b);},2200);
+}
+
+/* ── MONEY TEXT ── */
+function spawnMoney(areaId){
+  var area=document.getElementById(areaId);if(!area)return;
+  var m=document.createElement('div');
+  m.style.cssText='position:absolute;font-size:11px;font-weight:700;color:var(--green);left:'+Math.random()*30+'px;top:'+Math.random()*20+'px;animation:money-fly 1s ease-out forwards;pointer-events:none;white-space:nowrap;';
+  m.textContent='+฿'+(Math.floor(Math.random()*1200)+100);
+  area.appendChild(m);
+  setTimeout(function(){if(m.parentNode)m.parentNode.removeChild(m);},1100);
+}
+
+/* ── ANIMATE COUNT ── */
+function animCount(el,to){
+  if(!el)return;
+  var from=parseFloat((el.textContent||'0').replace(/[฿,]/g,''))||0;
+  var isCurrency=el.textContent.includes('฿');
+  var start=Date.now();var dur=700;
+  (function tick(){
+    var p=Math.min((Date.now()-start)/dur,1);
+    var ease=1-Math.pow(1-p,3);
+    var val=Math.round(from+(to-from)*ease);
+    el.textContent=isCurrency?'฿'+val.toLocaleString():val.toLocaleString();
+    if(p<1)requestAnimationFrame(tick);
+  })();
+}
+
+/* ── LOAD CONFIG ── */
+var CFGS={
+  low:{robots:2,aiTeam:2,interval:5000,
+    p1rev:2100,p1bills:'2 บิล',p1staff:'1 staff',p1orders:'3 orders',
+    p2rev:900,p2bills:'1 บิล',p2staff:'1 staff',p2orders:'2 orders',
+    chat:4,chatai:2,p1bars:[2,3,1,4,2,3],p2bars:[1,2,1,3,1,2]},
+  mid:{robots:4,aiTeam:4,interval:2500,
+    p1rev:12500,p1bills:'8 บิล',p1staff:'3 staff',p1orders:'12 orders',
+    p2rev:8200,p2bills:'5 บิล',p2staff:'2 staff',p2orders:'8 orders',
+    chat:15,chatai:8,p1bars:[5,8,6,10,7,9],p2bars:[4,6,5,8,5,7]},
+  high:{robots:8,aiTeam:8,interval:900,
+    p1rev:89000,p1bills:'35 บิล',p1staff:'5 staff',p1orders:'48 orders',
+    p2rev:42000,p2bills:'20 บิล',p2staff:'4 staff',p2orders:'31 orders',
+    chat:52,chatai:40,p1bars:[20,32,28,40,35,38],p2bars:[15,22,18,30,25,28]},
+};
+var liveT,monT,curLoad='mid';
+
+function setLoad(l,ev){
+  curLoad=l;
+  var c=CFGS[l];
+  document.querySelectorAll('.ctrl-btn').forEach(function(b){b.classList.remove('act');});
+  if(ev)ev.target.classList.add('act');
+
+  animCount(document.getElementById('pos1Rev'),c.p1rev);
+  document.getElementById('pos1Badge').textContent='฿'+c.p1rev.toLocaleString();
+  document.getElementById('pos1Bills').textContent=c.p1bills;
+  document.getElementById('pos1Staff').textContent=c.p1staff;
+  document.getElementById('pos1Orders').textContent=c.p1orders;
+  animCount(document.getElementById('pos2Rev'),c.p2rev);
+  document.getElementById('pos2Badge').textContent='฿'+c.p2rev.toLocaleString();
+  document.getElementById('pos2Bills').textContent=c.p2bills;
+  document.getElementById('pos2Staff').textContent=c.p2staff;
+  document.getElementById('pos2Orders').textContent=c.p2orders;
+  animCount(document.getElementById('chatN'),c.chat);
+  document.getElementById('chatBadge').textContent=c.chat;
+  document.getElementById('chatAiN').textContent=c.chatai;
+  animCount(document.getElementById('totalRev'),c.p1rev+c.p2rev);
+  document.getElementById('totalSub').textContent=(parseInt(c.p1orders)+parseInt(c.p2orders))+' orders';
+  buildMiniChart('pos1Chart',c.p1bars);
+  buildMiniChart('pos2Chart',c.p2bars);
+  buildRobots(c.robots);
+  buildAiUnits(c.aiTeam);
+
+  var sc=parseInt(c.p1staff);
+  buildChars('pos1Chars',Math.min(sc,3),0);
+  buildChars('pos2Chars',Math.min(parseInt(c.p2staff),3),1);
+  buildChars('chatChars',2,2);
+
+  clearInterval(liveT);clearInterval(monT);clearInterval(bubTimer);
+
+  liveT=setInterval(function(){
+    if(l==='low')return;
+    var inc=l==='high'?Math.floor(Math.random()*2000+200):Math.floor(Math.random()*400+50);
+    var cur=parseInt((document.getElementById('pos1Rev').textContent||'0').replace(/[฿,]/g,''))||0;
+    animCount(document.getElementById('pos1Rev'),cur+inc);
+    document.getElementById('pos1Badge').textContent='฿'+(cur+inc).toLocaleString();
+    var tot=parseInt((document.getElementById('pos2Rev').textContent||'0').replace(/[฿,]/g,''))||0;
+    animCount(document.getElementById('totalRev'),cur+inc+tot);
+    var cn=parseInt(document.getElementById('chatN').textContent)||0;
+    var delta=Math.floor(Math.random()*5-2);cn=Math.max(0,cn+delta);
+    animCount(document.getElementById('chatN'),cn);
+    document.getElementById('chatBadge').textContent=cn;
+  },c.interval);
+
+  monT=setInterval(function(){
+    spawnMoney('moneyArea1');
+    if(l!=='low')spawnMoney('moneyArea2');
+  },l==='high'?600:l==='mid'?1500:4000);
+
+  bubTimer=setInterval(spawnBubble,l==='high'?500:l==='mid'?1100:3000);
+}
+
+/* ── AWAY ── */
+function triggerAway(){
+  var idx=staff.findIndex(function(s){return!s.away;});
+  if(idx<0)return;
+  staff[idx].away=true;
+  staff[idx].lastSeen=Date.now()-32*60*1000;
+  awayLog.push({name:staff[idx].name,time:new Date().toLocaleTimeString('th-TH')});
+  buildStaff();
+  buildChars('pos1Chars',Math.min(parseInt(CFGS[curLoad].p1staff),3),0);
+}
+function resetAll(){
+  staff.forEach(function(s){s.away=false;s.lastSeen=Date.now();});
+  buildStaff();
+  buildChars('pos1Chars',3,0);
+  buildChars('pos2Chars',2,1);
+  buildChars('chatChars',2,2);
+}
+function showLog(){
+  var el=document.getElementById('awayLogItems');
+  el.innerHTML=awayLog.length?awayLog.map(function(l){return'<div class="away-log-item">'+l.name+' — Away เวลา '+l.time+'</div>';}).join(''):'<div style="color:var(--text2);font-size:11px;">ยังไม่มี log</div>';
+  document.getElementById('awayLog').style.display='block';
+  document.getElementById('overlay').style.display='block';
+}
+function closeLog(){
+  document.getElementById('awayLog').style.display='none';
+  document.getElementById('overlay').style.display='none';
+}
+
+/* ── CLOCK ── */
+function updateClock(){
+  var n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('th-TH');
+}
+setInterval(updateClock,1000);updateClock();
+
+/* ── API POLLING ── */
+var pollTimer;
+function fetchSummary(){
+  if(!TOKEN)return;
+  fetch(API+'/api/pos/bills/finance-summary',{headers:{Authorization:'Bearer '+TOKEN}})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.today_income!=null)animCount(document.getElementById('pos1Rev'),d.today_income);
+    if(d.income_count!=null)document.getElementById('pos1Orders').textContent=d.income_count+' orders';
+  }).catch(function(){});
+}
+function initPolling(){
+  fetchSummary();
+  clearInterval(pollTimer);
+  pollTimer=setInterval(fetchSummary,30000);
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden)clearInterval(pollTimer);
+  else initPolling();
+});
+if(TOKEN)initPolling();
+
+/* ── INIT ── */
+buildStaff();
+buildBots();
+buildChars('pos1Chars',3,0);
+buildChars('pos2Chars',2,1);
+buildChars('chatChars',2,2);
+buildChars('futureChars',1,3);
+setLoad('mid',null);
+document.getElementById('btnMid').classList.add('act');
+</script>
+</body>
+</html>
