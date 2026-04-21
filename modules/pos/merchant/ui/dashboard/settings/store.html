@@ -394,9 +394,39 @@
             <div class="st-line-feature-desc">ปุ่ม "ส่งใบเสนอราคา" ใน Catalog จะ Push ข้อความไปยังลูกค้า</div>
           </div>
           <label class="st-toggle">
-            <input type="checkbox" id="stLineFeatureQuote" checked/>
+            <input type="checkbox" id="stLineFeatureQuote" checked onchange="document.getElementById('stLineQuoteOptions').style.display=this.checked?'block':'none'"/>
             <span class="st-toggle-track"><span class="st-toggle-thumb"></span></span>
           </label>
+        </div>
+        <!-- sub-options ใบเสนอราคา -->
+        <div id="stLineQuoteOptions" style="margin:8px 0 4px 0;padding:14px 16px;background:#f9f7f0;border-radius:10px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:2px;">ตั้งค่าใบเสนอราคา</div>
+          <!-- QR / รูปติดต่อ -->
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">QR หรือรูปช่องทางติดต่อ (แสดงมุมขวาล่างของใบเสนอราคา)</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="stQuoteQrPreview" style="width:64px;height:64px;border:1px solid #e5e5e5;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f8f8f8;cursor:pointer;overflow:hidden;flex-shrink:0;">
+                <span style="font-size:22px;opacity:.3;">&#x25A6;</span>
+              </div>
+              <div>
+                <input type="file" id="stQuoteQrInput" accept="image/*" style="display:none;"/>
+                <button id="stQuoteQrBtn" class="st-btn-outline" style="font-size:12px;padding:5px 12px;">อัพโหลดรูป</button>
+                <div id="stQuoteQrName" style="font-size:11px;color:#9ca3af;margin-top:4px;"></div>
+              </div>
+            </div>
+          </div>
+          <!-- ข้อความติดต่อ -->
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">ข้อความช่องทางติดต่อ</label>
+            <input id="stLineQuoteContact" type="text" class="st-input" placeholder="เช่น LINE: @myshop หรือ Tel: 081-xxx-xxxx"/>
+          </div>
+          <!-- หมายเหตุ -->
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">ข้อความหมายเหตุ</label>
+            <input id="stLineQuoteNote" type="text" class="st-input" placeholder="เช่น ใบเสนอราคานี้มีผล 7 วัน ขอสงวนสิทธิ์ในการเปลี่ยนแปลงทุกกรณี" value="ใบเสนอราคานี้มีผล 7 วัน ขอสงวนสิทธิ์ในการเปลี่ยนแปลงทุกกรณี"/>
+          </div>
+          <button id="stLineQuoteSaveBtn" style="align-self:flex-start;padding:7px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">บันทึกการตั้งค่าใบเสนอราคา</button>
+          <div id="stLineQuoteMsg" style="display:none;font-size:12px;"></div>
         </div>
 
         <div class="st-line-feature-row">
@@ -462,6 +492,10 @@
               </div>
               <input id="stLineNotifyTarget" type="text" class="st-input" placeholder="Uxxxxxxxx หรือ Cxxxxxxxx"/>
               <div style="font-size:11px;color:#9ca3af;margin-top:4px;line-height:1.6;">User ID เริ่มต้นด้วย U · Group ID เริ่มต้นด้วย C</div>
+              <div style="font-size:11px;color:#d97706;background:#fff7ed;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-top:6px;line-height:1.7;">
+                &#9888; บัญชีที่ใช้รับแจ้งเตือนต้องเป็นเพื่อนกับ LINE OA ก่อน จึงจะรับ Push Message ได้<br/>
+                วิธีหา User ID: เปิด LINE OA Manager → Chats → คลิกชื่อผู้ใช้ → ดู User ID ใต้ชื่อ
+              </div>
             </div>
             <div>
               <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">แจ้งเตือนเมื่อ</label>
@@ -703,13 +737,16 @@ function saveReceipt(){
 
 
 (function(){
-  var _banks=JSON.parse(localStorage.getItem('viiv_bank_accounts')||'[]');
-  var _editBankIdx=-1;
+  var _banks=[];
+  var _editBankId=null;
   var _qrFile=null;
 
-  var _banks=JSON.parse(localStorage.getItem('viiv_bank_accounts')||'[]');
-  var _editBankIdx=-1;
-  var _qrFile=null;
+  function loadBanks(){
+    fetch((window.API_BASE||'')+'/api/pos/bank/list',{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.json();})
+    .then(function(d){_banks=d.banks||[];renderBankList();})
+    .catch(function(){});
+  }
 
   function renderBankList(){
     var el=document.getElementById('stBankList');
@@ -729,41 +766,45 @@ function saveReceipt(){
         '<div style="flex-shrink:0;">'+qrHtml+'</div>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-size:13px;font-weight:700;">'+b.bank_name+'</div>'+
-          '<div style="font-size:12px;color:#6b7280;">'+b.acc_name+' | '+b.acc_no+(b.branch?' | '+b.branch:'')+'</div>'+
+          '<div style="font-size:12px;color:#6b7280;">'+b.acc_name+' | '+b.acc_no+'</div>'+
           '<div style="font-size:11px;color:#9ca3af;">'+b.acc_type+(b.is_default?' &nbsp;<span style="background:#e8b93e;color:#1a1200;padding:1px 7px;border-radius:10px;font-size:10px;">ค่าเริ่มต้น</span>':'')+(b.bank_shop_name?' &nbsp;<span style="background:#ebf8ff;color:#2b6cb0;padding:1px 7px;border-radius:10px;font-size:10px;">&#x1F3EA; '+b.bank_shop_name+'</span>':'')+'</div>'+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-shrink:0;">'+
-          '<button data-idx="'+i+'" class="stBankEditBtn" style="padding:5px 10px;background:#f0ede8;border:1px solid #d1d5db;border-radius:7px;font-size:11px;cursor:pointer;">แก้ไข</button>'+
-          '<button data-idx="'+i+'" class="stBankDelBtn" style="padding:5px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:7px;font-size:11px;cursor:pointer;">ลบ</button>'+
+          '<button data-id="'+b.id+'" class="stBankEditBtn" style="padding:5px 10px;background:#f0ede8;border:1px solid #d1d5db;border-radius:7px;font-size:11px;cursor:pointer;">แก้ไข</button>'+
+          '<button data-id="'+b.id+'" data-name="'+b.bank_name+'" class="stBankDelBtn" style="padding:5px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:7px;font-size:11px;cursor:pointer;">ลบ</button>'+
         '</div>';
       el.appendChild(row);
     });
     el.querySelectorAll('.stBankEditBtn').forEach(function(btn){
-      btn.addEventListener('click',function(){ openBankForm(parseInt(this.dataset.idx)); });
+      btn.addEventListener('click',function(){
+        var b=_banks.find(function(x){return x.id===this.dataset.id;},this);
+        if(b) openBankForm(b);
+      });
     });
     el.querySelectorAll('.stBankDelBtn').forEach(function(btn){
       btn.addEventListener('click',function(){
-        var idx=parseInt(this.dataset.idx);
-        if(!confirm('ลบบัญชี "'+_banks[idx].bank_name+'" ?')) return;
-        _banks.splice(idx,1);
-        localStorage.setItem('viiv_bank_accounts',JSON.stringify(_banks));
-        renderBankList();
+        var id=this.dataset.id, name=this.dataset.name;
+        if(!confirm('ลบบัญชี "'+name+'" ?')) return;
+        fetch((window.API_BASE||'')+'/api/pos/bank/delete/'+id,{
+          method:'DELETE',headers:{'Authorization':'Bearer '+TOKEN}
+        }).then(function(){loadBanks();showMsg('stBankMsg','ลบสำเร็จ','#16a34a');})
+        .catch(function(){showMsg('stBankMsg','ลบไม่สำเร็จ','#ef4444');});
       });
     });
   }
 
-  function openBankForm(idx){
-    _editBankIdx=idx;
+  function openBankForm(b){
+    b=b||{};
+    _editBankId=b.id||null;
     _qrFile=null;
-    var b=idx>=0?_banks[idx]:{};
-    document.getElementById('stBankFormTitle').textContent=idx>=0?'แก้ไขบัญชี':'เพิ่มบัญชีใหม่';
+    document.getElementById('stBankFormTitle').textContent=_editBankId?'แก้ไขบัญชี':'เพิ่มบัญชีใหม่';
     document.getElementById('stBankName').value=b.bank_name||'';
     document.getElementById('stBankType').value=b.acc_type||'ออมทรัพย์';
     document.getElementById('stBankAccName').value=b.acc_name||'';
     document.getElementById('stBankAccNo').value=b.acc_no||'';
     document.getElementById('stBankBranch').value=b.branch||'';
-      var bsn=document.getElementById('stBankShopName');if(bsn)bsn.value=b.bank_shop_name||'';
-      var bsi=document.getElementById('stBankShopId');if(bsi)bsi.value=b.bank_shop_id||'';
+    var bsn=document.getElementById('stBankShopName');if(bsn)bsn.value=b.bank_shop_name||'';
+    var bsi=document.getElementById('stBankShopId');if(bsi)bsi.value=b.bank_shop_id||'';
     document.getElementById('stBankDefault').checked=b.is_default||false;
     document.getElementById('stQrName').textContent='';
     var qrPrev=document.getElementById('stQrPreview');
@@ -779,34 +820,42 @@ function saveReceipt(){
       showMsg('stBankMsg','กรุณากรอกข้อมูลที่จำเป็น (ธนาคาร / ชื่อบัญชี / เลขบัญชี)','#ef4444');
       return;
     }
-    if(_banks.length>=3&&_editBankIdx<0){
-      showMsg('stBankMsg','สร้างได้สูงสุด 3 บัญชี','#ef4444');
-      return;
-    }
+    var payload={
+      bank_name:bank,
+      acc_type:document.getElementById('stBankType').value,
+      acc_name:accName,
+      acc_no:accNo,
+      branch:(document.getElementById('stBankBranch')||{value:''}).value.trim(),
+      bank_shop_name:(document.getElementById('stBankShopName')||{value:''}).value.trim(),
+      bank_shop_id:(document.getElementById('stBankShopId')||{value:''}).value.trim(),
+      is_default:document.getElementById('stBankDefault').checked,
+      qr_url:_editBankId?(_banks.find(function(x){return x.id===_editBankId;})||{}).qr_url||'':''
+    };
     function doSave(qrUrl){
-      var obj={
-        bank_name:bank,
-        acc_type:document.getElementById('stBankType').value,
-        acc_name:accName,
-        acc_no:accNo,
-        branch:document.getElementById('stBankBranch').value.trim(),
-        bank_shop_name:(document.getElementById('stBankShopName')||{value:''}).value.trim(),
-        bank_shop_id:(document.getElementById('stBankShopId')||{value:''}).value.trim(),
-        is_default:document.getElementById('stBankDefault').checked,
-        qr_url:qrUrl||(_editBankIdx>=0?_banks[_editBankIdx].qr_url:'')
-      };
-      if(obj.is_default) _banks.forEach(function(b){b.is_default=false;});
-      if(_editBankIdx>=0) _banks[_editBankIdx]=obj;
-      else _banks.push(obj);
-      localStorage.setItem('viiv_bank_accounts',JSON.stringify(_banks));
-      document.getElementById('stBankFormWrap').style.display='none';
-      renderBankList();
-      showMsg('stBankMsg','บันทึกสำเร็จ','#16a34a');
+      if(qrUrl) payload.qr_url=qrUrl;
+      var url=_editBankId
+        ?(window.API_BASE||'')+'/api/pos/bank/update/'+_editBankId
+        :(window.API_BASE||'')+'/api/pos/bank/create';
+      var method=_editBankId?'PUT':'POST';
+      fetch(url,{method:method,
+        headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      }).then(function(r){return r.json();})
+      .then(function(d){
+        if(d.message==='ok'||d.id){
+          document.getElementById('stBankFormWrap').style.display='none';
+          loadBanks();
+          showMsg('stBankMsg','บันทึกสำเร็จ','#16a34a');
+        } else {
+          showMsg('stBankMsg',d.detail||'เกิดข้อผิดพลาด','#ef4444');
+        }
+      }).catch(function(){showMsg('stBankMsg','เชื่อมต่อ server ไม่ได้','#ef4444');});
     }
     if(_qrFile){
       var fd=new FormData();fd.append('file',_qrFile);
-      fetch(API+'/api/pos/store/upload-qr',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
-      .then(function(r){return r.json();})
+      fetch((window.API_BASE||'')+'/api/pos/bank/upload-qr-new',{
+        method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd
+      }).then(function(r){return r.json();})
       .then(function(d){doSave(d.url||'');})
       .catch(function(){doSave('');});
     } else { doSave(''); }
@@ -849,50 +898,123 @@ function saveReceipt(){
   window.saveBankForm=saveBankForm;
   window.openBankForm=openBankForm;
   window.renderBankList=renderBankList;
+  window.loadBanks=loadBanks;
 
 
 
   /* ══ LINE SETTINGS ══ */
+
+  // ── LINE QUOTE SETTINGS ──
+  var _quoteQrFile = null;
+
+  function loadQuoteSettings(s){
+    var qopts = document.getElementById('stLineQuoteOptions');
+    if(qopts) qopts.style.display = (s.feature_quote !== false) ? 'block' : 'none';
+    var inp = document.getElementById('stLineQuoteContact');
+    if(inp) inp.value = s.quote_contact || '';
+    var note = document.getElementById('stLineQuoteNote');
+    if(note) note.value = s.quote_note || 'ใบเสนอราคานี้มีผล 7 วัน ขอสงวนสิทธิ์ในการเปลี่ยนแปลงทุกกรณี';
+    var prev = document.getElementById('stQuoteQrPreview');
+    if(prev && s.quote_qr_url){
+      prev.innerHTML = '<img src="'+s.quote_qr_url+'" style="width:64px;height:64px;object-fit:contain;">';
+    }
+  }
+
+  function saveQuoteSettings(){
+    var btn = document.getElementById('stLineQuoteSaveBtn');
+    var msg = document.getElementById('stLineQuoteMsg');
+    if(btn){ btn.disabled=true; btn.textContent='กำลังบันทึก...'; }
+
+    function doSave(qrUrl){
+      var payload = {
+        quote_qr_url: qrUrl || '',
+        quote_contact: (document.getElementById('stLineQuoteContact')||{value:''}).value.trim(),
+        quote_note: (document.getElementById('stLineQuoteNote')||{value:''}).value.trim()
+      };
+      fetch('/api/pos/line/quote-config',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+        body:JSON.stringify(payload)
+      }).then(function(r){return r.json();})
+      .then(function(d){
+        if(btn){ btn.disabled=false; btn.textContent='บันทึกการตั้งค่าใบเสนอราคา'; }
+        if(msg){
+          msg.style.display='block';
+          msg.style.color = (d.message==='success'||d.message==='บันทึกสำเร็จ'||d.ok) ? '#16a34a' : '#ef4444';
+          msg.textContent = (d.message==='success'||d.message==='บันทึกสำเร็จ'||d.ok) ? '✓ บันทึกสำเร็จ' : 'เกิดข้อผิดพลาด';
+          setTimeout(function(){ msg.style.display='none'; }, 2500);
+        }
+      }).catch(function(){
+        if(btn){ btn.disabled=false; btn.textContent='บันทึกการตั้งค่าใบเสนอราคา'; }
+        if(msg){ msg.style.display='block'; msg.style.color='#ef4444'; msg.textContent='เชื่อมต่อไม่ได้'; }
+      });
+    }
+
+    if(_quoteQrFile){
+      var fd = new FormData(); fd.append('file', _quoteQrFile);
+      fetch('/api/pos/line/upload-quote-qr',{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.url){
+          var prev = document.getElementById('stQuoteQrPreview');
+          if(prev) prev.innerHTML = '<img src="'+d.url+'" style="width:64px;height:64px;object-fit:contain;">';
+        }
+        doSave(d.url||'');
+      }).catch(function(){ doSave(''); });
+    } else {
+      // ใช้ URL เดิมจาก preview
+      var prev = document.getElementById('stQuoteQrPreview');
+      var img = prev ? prev.querySelector('img') : null;
+      doSave(img ? img.src.replace(window.location.origin,'') : '');
+    }
+  }
+
+  (function initQuoteBindings(){
+    var qrBtn = document.getElementById('stQuoteQrBtn');
+    var qrInput = document.getElementById('stQuoteQrInput');
+    var qrPrev = document.getElementById('stQuoteQrPreview');
+    var saveBtn = document.getElementById('stLineQuoteSaveBtn');
+    if(qrBtn) qrBtn.addEventListener('click', function(){ if(qrInput) qrInput.click(); });
+    if(qrPrev) qrPrev.addEventListener('click', function(){ if(qrInput) qrInput.click(); });
+    if(qrInput) qrInput.addEventListener('change', function(){
+      if(!this.files||!this.files[0]) return;
+      _quoteQrFile = this.files[0];
+      var nm = document.getElementById('stQuoteQrName');
+      if(nm) nm.textContent = _quoteQrFile.name;
+      var r = new FileReader();
+      r.onload = function(e){
+        if(qrPrev) qrPrev.innerHTML = '<img src="'+e.target.result+'" style="width:64px;height:64px;object-fit:contain;">';
+      };
+      r.readAsDataURL(_quoteQrFile);
+    });
+    if(saveBtn) saveBtn.addEventListener('click', saveQuoteSettings);
+  })();
+
   function loadLineSettings(){
-    fetch('/api/pos/store/settings',{headers:{Authorization:'Bearer '+TOKEN}})
+    fetch('/api/pos/line/settings',{headers:{Authorization:'Bearer '+TOKEN}})
     .then(function(r){return r.json();})
-    .then(function(d){
-      var s=d.settings||d||{};
-      document.getElementById('stLineOaId').value=s.line_oa_id||'';
-      document.getElementById('stLineToken').value=s.line_channel_token||'';
-      document.getElementById('stLineSecret').value=s.line_channel_secret||'';
-      // features
-      var feats=s.line_features||{};
-      document.getElementById('stLineFeatureBill').checked  = feats.bill   !== false;
-      document.getElementById('stLineFeatureQuote').checked = feats.quote  !== false;
-      document.getElementById('stLineFeatureChat').checked  = feats.chat   !== false;
-      document.getElementById('stLineFeatureOrder').checked = !!feats.order;
-      // notify sub-options
-      var orderOpts = document.getElementById('stLineOrderOptions');
-      if(orderOpts) orderOpts.style.display = feats.order ? 'block' : 'none';
-      var notifyTarget = document.getElementById('stLineNotifyTarget');
-      if(notifyTarget) notifyTarget.value = feats.notify_target || '';
-      var notifyOnOrder = document.getElementById('stLineNotifyOnOrder');
-      if(notifyOnOrder) notifyOnOrder.checked = feats.notify_on_order !== false;
-      var notifyOnBill = document.getElementById('stLineNotifyOnBill');
-      if(notifyOnBill) notifyOnBill.checked = !!feats.notify_on_bill;
-      // chat sub-options
-      var chatOpts = document.getElementById('stLineChatOptions');
-      if(chatOpts) chatOpts.style.display = (feats.chat !== false) ? 'block' : 'none';
-      var chatLabel = document.getElementById('stLineChatLabel');
-      if(chatLabel) chatLabel.value = feats.chat_label || 'Chat';
-      var chatAction = feats.chat_action || 'add';
-      var radAdd = document.getElementById('stLineChatActionAdd');
-      var radChat = document.getElementById('stLineChatActionChat');
-      if(radAdd) radAdd.checked = chatAction === 'add';
-      if(radChat) radChat.checked = chatAction === 'chat';
-      // status banner
+    .then(function(s){
+      loadQuoteSettings(s);
+      document.getElementById('stLineOaId').value=s.oa_id||'';
+      document.getElementById('stLineToken').value=s.channel_token||'';
+      document.getElementById('stLineSecret').value=s.channel_secret||'';
+      var fb=document.getElementById('stLineFeatureBill'); if(fb)fb.checked=s.feature_bill!==false;
+      var fq=document.getElementById('stLineFeatureQuote'); if(fq)fq.checked=s.feature_quote!==false;
+      var fc=document.getElementById('stLineFeatureChat'); if(fc)fc.checked=s.feature_chat!==false;
+      var fo=document.getElementById('stLineFeatureOrder'); if(fo)fo.checked=!!s.feature_order;
+      var qopts=document.getElementById('stLineQuoteOptions'); if(qopts)qopts.style.display=s.feature_quote!==false?'block':'none';
+      var orderOpts=document.getElementById('stLineOrderOptions'); if(orderOpts)orderOpts.style.display=s.feature_order?'block':'none';
+      var nt=document.getElementById('stLineNotifyTarget'); if(nt)nt.value=s.notify_target||'';
+      var no=document.getElementById('stLineNotifyOnOrder'); if(no)no.checked=s.notify_on_order!==false;
+      var nb=document.getElementById('stLineNotifyOnBill'); if(nb)nb.checked=!!s.notify_on_bill;
+      var chatOpts=document.getElementById('stLineChatOptions'); if(chatOpts)chatOpts.style.display=s.feature_chat!==false?'block':'none';
+      var cl=document.getElementById('stLineChatLabel'); if(cl)cl.value=s.chat_label||'Chat';
+      var radAdd=document.getElementById('stLineChatActionAdd'); if(radAdd)radAdd.checked=(s.chat_action||'add')==='add';
+      var radChat=document.getElementById('stLineChatActionChat'); if(radChat)radChat.checked=s.chat_action==='chat';
       var banner=document.getElementById('stLineStatusBanner');
-      if(s.line_oa_id){
-        banner.style.display='flex';
-        document.getElementById('stLineStatusOaId').textContent='@'+s.line_oa_id;
-      } else {
-        banner.style.display='none';
+      if(banner){
+        if(s.oa_id){ banner.style.display='flex'; var oid=document.getElementById('stLineStatusOaId'); if(oid)oid.textContent='@'+s.oa_id; }
+        else { banner.style.display='none'; }
       }
     }).catch(function(){});
   }
@@ -903,45 +1025,47 @@ function saveReceipt(){
     var token=document.getElementById('stLineToken').value.trim();
     var secret=document.getElementById('stLineSecret').value.trim();
     if(!oaId||!token||!secret){
-      msg.style.display='block';msg.style.color='#ef4444';
-      msg.textContent='กรุณากรอก OA ID, Token และ Secret ให้ครบ';
+      if(msg){msg.style.display='block';msg.style.color='#ef4444';msg.textContent='กรุณากรอก OA ID, Token และ Secret ให้ครบ';}
       return;
     }
-    btn.disabled=true;btn.textContent='กำลังบันทึก...';
-    var payload={
-      line_oa_id:oaId,
-      line_channel_token:token,
-      line_channel_secret:secret,
-      line_features:{
-        bill:document.getElementById('stLineFeatureBill').checked,
-        quote:document.getElementById('stLineFeatureQuote').checked,
-        chat:document.getElementById('stLineFeatureChat').checked,
-        order:document.getElementById('stLineFeatureOrder').checked,
-        notify_target:(document.getElementById('stLineNotifyTarget')||{value:''}).value.trim(),
-        notify_on_order:(document.getElementById('stLineNotifyOnOrder')||{checked:true}).checked,
-        notify_on_bill:(document.getElementById('stLineNotifyOnBill')||{checked:false}).checked,
-        chat_label:(document.getElementById('stLineChatLabel')||{value:'Chat'}).value.trim().slice(0,10)||'Chat',
-        chat_action:document.querySelector('input[name="stLineChatAction"]:checked')?(document.querySelector('input[name="stLineChatAction"]:checked').value):'add'
-      }
-    };
-    fetch('/api/pos/store/settings',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
-      body:JSON.stringify(payload)
-    }).then(function(r){return r.json();})
+    if(btn){btn.disabled=true;btn.textContent='กำลังบันทึก...';}
+    var h={'Content-Type':'application/json','Authorization':'Bearer '+TOKEN};
+    // 1) save credentials
+    fetch('/api/pos/line/credentials',{method:'POST',headers:h,
+      body:JSON.stringify({oa_id:oaId,channel_token:token,channel_secret:secret})
+    })
+    .then(function(r){return r.json();})
+    .then(function(){
+      // 2) save features
+      return fetch('/api/pos/line/features',{method:'POST',headers:h,
+        body:JSON.stringify({
+          feature_bill:(document.getElementById('stLineFeatureBill')||{checked:true}).checked,
+          feature_quote:(document.getElementById('stLineFeatureQuote')||{checked:true}).checked,
+          feature_chat:(document.getElementById('stLineFeatureChat')||{checked:true}).checked,
+          feature_order:(document.getElementById('stLineFeatureOrder')||{checked:false}).checked,
+          notify_target:(document.getElementById('stLineNotifyTarget')||{value:''}).value.trim(),
+          notify_on_order:(document.getElementById('stLineNotifyOnOrder')||{checked:true}).checked,
+          notify_on_bill:(document.getElementById('stLineNotifyOnBill')||{checked:false}).checked,
+          chat_label:(document.getElementById('stLineChatLabel')||{value:'Chat'}).value.trim().slice(0,10)||'Chat',
+          chat_action:(document.querySelector('input[name="stLineChatAction"]:checked')||{value:'add'}).value
+        })
+      });
+    })
+    .then(function(r){return r.json();})
     .then(function(d){
-      msg.style.display='block';
-      if(d.message==='success'||d.message==='บันทึกสำเร็จ'||d.ok){
-        msg.style.color='#06C755';msg.textContent='✓ บันทึกสำเร็จ';
-        loadLineSettings();
-      } else {
-        msg.style.color='#ef4444';msg.textContent='เกิดข้อผิดพลาด: '+(d.detail||d.message||'');
+      if(msg){
+        msg.style.display='block';
+        msg.style.color='#06C755';
+        msg.textContent='✓ บันทึกสำเร็จ';
+        setTimeout(function(){msg.style.display='none';},3000);
       }
-      setTimeout(function(){msg.style.display='none';},3000);
-    }).catch(function(){
-      msg.style.display='block';msg.style.color='#ef4444';msg.textContent='ไม่สามารถเชื่อมต่อ server';
-    }).finally(function(){
-      btn.disabled=false;btn.textContent='บันทึก';
+      loadLineSettings();
+    })
+    .catch(function(){
+      if(msg){msg.style.display='block';msg.style.color='#ef4444';msg.textContent='เชื่อมต่อไม่ได้';}
+    })
+    .finally(function(){
+      if(btn){btn.disabled=false;btn.textContent='บันทึก';}
     });
   }
   var _lsb=document.getElementById('stLineSaveBtn'); if(_lsb) _lsb.addEventListener('click', saveLineSettings);
@@ -963,7 +1087,7 @@ function saveReceipt(){
             window._paymentBound=true;
             document.getElementById('stAddBankBtn').addEventListener('click',function(){
               if(_banks.length>=3){showMsg('stBankMsg','สร้างได้สูงสุด 3 บัญชี','#ef4444');return;}
-              openBankForm(-1);
+              openBankForm(null);
             });
             document.getElementById('stBankCancelBtn').addEventListener('click',function(){
               document.getElementById('stBankFormWrap').style.display='none';
@@ -984,7 +1108,7 @@ function saveReceipt(){
               r.readAsDataURL(_qrFile);
             });
           }
-          renderBankList();
+          loadBanks();
         }
       });
     });
@@ -1002,6 +1126,27 @@ function saveReceipt(){
   var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
   if(_t){ _tok_store({detail:{token:_t}}); }
 })();
+
+function fetchPendingUid(){
+  var status = document.getElementById('stPendingUidStatus');
+  if(status) status.textContent = 'กำลังดึง...';
+  fetch('/api/line/pending-uid', {
+    headers:{ Authorization: 'Bearer '+(TOKEN||'') }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.found && d.line_user_id){
+      var inp = document.getElementById('stLineNotifyTarget');
+      if(inp) inp.value = d.line_user_id;
+      if(status) status.textContent = '✅ พบ: '+d.line_user_id+(d.display_name?' ('+d.display_name+')':'');
+    } else {
+      if(status) status.textContent = '⚠️ ยังไม่มี User ID ใหม่ — ลอง Add Friend LINE OA แล้วกดใหม่';
+    }
+  })
+  .catch(function(){
+    if(status) status.textContent = '❌ เรียก API ไม่สำเร็จ';
+  });
+}
 </script>
 
 <!-- ══ LINE GUIDE MODAL ══ -->

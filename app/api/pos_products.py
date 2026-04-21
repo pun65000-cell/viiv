@@ -204,9 +204,25 @@ def public_store_info(tenant: str = ""):
             t = c.execute(text("SELECT id FROM tenants ORDER BY created_at LIMIT 1")).fetchone()
             if not t: return {}
             tenant = t[0]
-        r = c.execute(text("SELECT * FROM store_settings WHERE tenant_id=:tid"),{"tid":tenant}).fetchone()
+        r  = c.execute(text("SELECT * FROM store_settings WHERE tenant_id=:tid"),{"tid":tenant}).fetchone()
+        ls = c.execute(text("SELECT * FROM line_settings WHERE tenant_id=:tid"),{"tid":tenant}).fetchone()
     if not r: return {"store_name":"My Shop","logo_url":""}
-    return dict(r._mapping)
+    result = dict(r._mapping)
+    if ls:
+        ld = dict(ls._mapping)
+        result["line_oa_id"]       = ld.get("oa_id","")
+        result["line_features"]    = {
+            "bill":           ld.get("feature_bill", True),
+            "quote":          ld.get("feature_quote", True),
+            "chat":           ld.get("feature_chat", True),
+            "order":          ld.get("feature_order", False),
+            "chat_label":     ld.get("chat_label","Chat"),
+            "chat_action":    ld.get("chat_action","add"),
+            "notify_target":  ld.get("notify_target",""),
+            "notify_on_order":ld.get("notify_on_order", True),
+            "notify_on_bill": ld.get("notify_on_bill", False),
+        }
+    return result
 
 @router.post("/print-label")
 def print_label(payload: dict, authorization: str = Header("")):

@@ -183,4 +183,10 @@ app.include_router(pos_categories_router)
 from app.api import pos_partners
 app.include_router(pos_partners.router)
 from app.api import pos_receive
+from app.api import pos_line
+from app.api import pos_bank
+from app.api import pos_line_settings
 app.include_router(pos_receive.router)
+app.include_router(pos_line.router, prefix="/api/line")
+app.include_router(pos_line_settings.router, prefix="/api/pos/line")
+app.include_router(pos_bank.router, prefix="/api/pos/bank")

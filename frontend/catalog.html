@@ -48,6 +48,7 @@ body{background:#f5f4f0;min-height:100vh;}
     <div class="cat-store-name" id="catStoreName">Loading...</div>
   </div>
   <button class="cat-share-btn" onclick="shareStore()">แชร์</button>
+  <button id="catQuoteBtn" onclick="sendQuoteLine()" style="display:none;margin-left:6px;padding:6px 12px;background:#06C755;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">📋 ส่งราคา LINE</button>
 </div>
 <div class="cat-search-wrap">
   <input class="cat-search" id="catSearch" placeholder="ค้นหาสินค้า..." oninput="filterProducts()"/>
@@ -78,6 +79,11 @@ function init(){
     allProducts=(r[0]||[]);
     storeSettings=r[1]||{};
     renderHeader();renderCats();filterProducts();
+    // แสดงปุ่ม Quote ถ้ามี LINE config
+    var qBtn = document.getElementById('catQuoteBtn');
+    if(qBtn && storeSettings.line_oa_id && (storeSettings.line_features||{}).quote !== false){
+      qBtn.style.display = 'inline-flex';
+    }
   }).catch(function(){
     document.getElementById('catGrid').innerHTML='<div class="cat-empty">ไม่สามารถโหลดสินค้าได้</div>';
   });
@@ -220,6 +226,72 @@ function shareStore(){
   document.body.appendChild(ov);
 }
 init();
+function sendQuoteLine(){
+  var token = getToken();
+  var feats = storeSettings.line_features || {};
+  var oaId  = storeSettings.line_oa_id || '';
+
+  // เตรียม products จาก allProducts ทั้งหมด (ไม่ filter catalog_online)
+  var prods = allProducts.map(function(p){
+    return {
+      name: p.name,
+      sku:  p.sku || '',
+      price: p.price || 0,
+      category_name: p.category_name || p.category || 'สินค้าทั่วไป'
+    };
+  });
+
+  if(!prods.length){ alert('ไม่มีสินค้า'); return; }
+
+  // ถ้า login อยู่ → ส่งผ่าน API พร้อม line_user_id จาก notify_target
+  var lineUid = feats.notify_target || '';
+  var btn = document.getElementById('catQuoteBtn');
+  if(btn){ btn.textContent='กำลังสร้าง...'; btn.disabled=true; }
+
+  var tenant = getTenant();
+  var q = tenant ? '?tenant='+tenant : '';
+
+  fetch('https://concore.viiv.me/api/line/push-quote'+q, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + (token || '')
+    },
+    body: JSON.stringify({
+      line_user_id: lineUid,
+      products: prods,
+      creator_name: (window.VIIV_USER && window.VIIV_USER.name) || '',
+      creator_phone: (window.VIIV_USER && window.VIIV_USER.phone) || '',
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(btn){ btn.textContent='📋 ส่งราคา LINE'; btn.disabled=false; }
+    if(d.ok){
+      alert('✅ ส่งใบเสนอราคาไป LINE สำเร็จ');
+    } else if(d.img_url){
+      // เปิด popup ดูภาพ + ลิงก์ download
+      var ov = document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;overflow-y:auto;';
+      ov.innerHTML =
+        '<div style="background:#fff;border-radius:14px;padding:16px;max-width:520px;width:100%;text-align:center;margin-top:20px;">' +
+        '<div style="font-size:14px;font-weight:700;margin-bottom:10px;">ใบเสนอราคา</div>' +
+        '<img src="'+d.img_url+'" style="width:100%;border-radius:8px;margin-bottom:12px;">' +
+        '<div style="font-size:11px;color:#9ca3af;margin-bottom:10px;">'+(d.reason==='no_line_config'?'ยังไม่ได้ตั้งค่า LINE — บันทึกภาพแล้วส่งเองได้':'ส่ง LINE ไม่สำเร็จ: '+d.reason)+'</div>' +
+        '<a href="'+d.img_url+'" download="quote.jpg" style="display:block;padding:10px;background:#e8b93e;color:#1a1200;border-radius:8px;font-weight:700;text-decoration:none;margin-bottom:8px;">&#8595; บันทึกภาพ</a>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove()" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;">ปิด</button>' +
+        '</div>';
+      document.body.appendChild(ov);
+    } else {
+      alert('เกิดข้อผิดพลาด: '+(d.reason||'unknown'));
+    }
+  })
+  .catch(function(){
+    if(btn){ btn.textContent='📋 ส่งราคา LINE'; btn.disabled=false; }
+    alert('เชื่อมต่อ server ไม่ได้');
+  });
+}
+
 </script>
 
 <!-- LINE Float Button -->

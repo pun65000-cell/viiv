@@ -333,21 +333,22 @@ function save(status){
   }
   if(errors.length){showMsg(errors.join(' | '),'#ef4444');return;}
   var cel=document.getElementById('billCustomer');if(cel)cel.classList.remove('error');
-  var seq=(parseInt(localStorage.getItem('viiv_bill_seq')||'1000')+1);
-  localStorage.setItem('viiv_bill_seq',String(seq));
-  var bill={
-    id:'BILL'+String(seq).padStart(6,'0'),
-    doc_type:(document.getElementById('billDocType')||{}).value,
+
+  var d=document.getElementById('billDeliveryDate');
+  var q=document.getElementById('billQtDays');
+  var rv=document.getElementById('billReserveDate');
+  var payload={
+    doc_type:(document.getElementById('billDocType')||{}).value||'receipt',
     items:billItems.slice(),
     customer:(document.getElementById('billCustomer')||{}).value||'',
     customer_code:_selectedMember?(_selectedMember.code||_selectedMember.id||''):'',
-    customer_data:_selectedMember?{id:_selectedMember.id,name:_selectedMember.name,phone:_selectedMember.phone,code:_selectedMember.code}:null,
+    member_id:_selectedMember?(_selectedMember.id||''):'',
     note:(document.getElementById('billNote')||{}).value||'',
     scheduled_at:(function(){
       var el=document.getElementById('billScheduledAt');
       if(el&&el.value) return el.value;
-      var d=new Date(); d.setMinutes(d.getMinutes()+45);
-      return d.toISOString().slice(0,16);
+      var dd=new Date(); dd.setMinutes(dd.getMinutes()+45);
+      return dd.toISOString().slice(0,16);
     })(),
     total:_total,
     pay_method:(document.getElementById('billPayMethod')||{}).value||'cash',
@@ -355,26 +356,62 @@ function save(status){
     discount:parseFloat((document.getElementById('billDiscount')||{}).value)||0,
     discount_type:(document.getElementById('billDiscountType')||{}).value||'amount',
     vat:parseInt((document.getElementById('billVat')||{}).value)||0,
-    status:status,
-    created_at:new Date().toISOString()
+    vat_type:(document.getElementById('billVatType')||{value:'included'}).value,
+    status:status
   };
-  var d=document.getElementById('billDeliveryDate');
-  var q=document.getElementById('billQtDays');
-  var rv=document.getElementById('billReserveDate');
-  if(d)bill.delivery_date=d.value;
-  if(q)bill.quotation_days=q.value;
-  if(rv)bill.reserve_date=rv.value;
-  var bills=JSON.parse(localStorage.getItem('viiv_bills')||'[]');
-  bills.unshift(bill);
-  localStorage.setItem('viiv_bills',JSON.stringify(bills.slice(0,500)));
-  showMsg(status==='draft'?'บันทึกร่าง #'+bill.id:'จบการขาย #'+bill.id+' '+fmt(bill.total),'#16a34a');
-  if(status==='paid')setTimeout(clearBillSilent,1500);
-  if(status==='draft'){
-    setTimeout(function(){
-      if(typeof navigate==='function')navigate('billing_receipt');
-      else if(window.parent&&window.parent.navigate)window.parent.navigate('billing_receipt');
-    },900);
-  }
+  if(d)payload.delivery_date=d.value;
+  if(q)payload.quotation_days=q.value;
+  if(rv)payload.reserve_date=rv.value;
+
+  var submitBtn=document.getElementById('billSubmitBtn');
+  var draftBtn=document.getElementById('billDraftBtn');
+  if(submitBtn)submitBtn.disabled=true;
+  if(draftBtn)draftBtn.disabled=true;
+  showMsg('กำลังบันทึก...','#e8b93e');
+
+  fetch((window.API_BASE||'')+'/api/pos/bills/create',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  })
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(submitBtn)submitBtn.disabled=false;
+    if(draftBtn)draftBtn.disabled=false;
+    if(res.id||res.message||res.success){
+      var billId=res.id||res.bill_id||'';
+      showMsg(status==='draft'?'บันทึกร่าง '+billId:'จบการขาย '+billId+' '+fmt(_total),'#16a34a');
+      // LINE push — ถ้า member มี line_user_id
+      var lineUid=_selectedMember&&_selectedMember.line_user_id;
+      if(lineUid && status==='paid'){
+        fetch((window.API_BASE||'')+'/api/line/push-bill',{
+          method:'POST',
+          headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
+          body:JSON.stringify({bill_id:billId,line_user_id:lineUid})
+        }).catch(function(){});
+      }
+      if(status==='paid'){
+        setTimeout(function(){
+          clearBillSilent();
+          if(typeof navigate==='function')navigate('billing_search');
+          else if(window.parent&&window.parent.navigate)window.parent.navigate('billing_search');
+        },1200);
+      }
+      if(status==='draft'){
+        setTimeout(function(){
+          if(typeof navigate==='function')navigate('billing_search');
+          else if(window.parent&&window.parent.navigate)window.parent.navigate('billing_search');
+        },900);
+      }
+    } else {
+      showMsg(res.detail||res.error||'เกิดข้อผิดพลาด','#ef4444');
+    }
+  })
+  .catch(function(err){
+    if(submitBtn)submitBtn.disabled=false;
+    if(draftBtn)draftBtn.disabled=false;
+    showMsg('เชื่อมต่อ server ไม่ได้','#ef4444');
+  });
 }
 function mfField(label,id,type,val,ph){
   return '<div style="display:flex;flex-direction:column;gap:4px;">'+

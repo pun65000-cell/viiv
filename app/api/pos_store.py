@@ -48,24 +48,33 @@ def save_settings(payload: dict, authorization: str = Header("")):
     with engine.begin() as c:
         ex = c.execute(text("SELECT 1 FROM store_settings WHERE tenant_id=:tid"),{"tid":tid}).fetchone()
         if _line_only:
-            # อัปเดตเฉพาะ LINE fields — ไม่แตะ store fields อื่น
-            lparams = {
-                "tid": tid,
-                "loa": str(p.get("line_oa_id","")),
-                "ltok": str(p.get("line_channel_token","")),
-                "lsec": str(p.get("line_channel_secret","")),
-                "lfeat": json.dumps(p.get("line_features",{}))
+            # อัปเดตเฉพาะ field ที่ส่งมาใน payload — ไม่ overwrite field อื่น
+            allowed = {
+                "line_oa_id":          ("loa",  lambda v: str(v)),
+                "line_channel_token":  ("ltok", lambda v: str(v)),
+                "line_channel_secret": ("lsec", lambda v: str(v)),
+                "line_features":       ("lfeat",lambda v: json.dumps(v) if isinstance(v,dict) else str(v)),
+                "qr_url":              ("qr",   lambda v: str(v)),
+                "line_quote_qr_url":   ("lqqr", lambda v: str(v)),
+                "line_quote_contact":  ("lqc",  lambda v: str(v)),
+                "line_quote_note":     ("lqn",  lambda v: str(v)),
             }
-            if ex:
-                c.execute(text("UPDATE store_settings SET line_oa_id=:loa,line_channel_token=:ltok,line_channel_secret=:lsec,line_features=:lfeat,updated_at=NOW() WHERE tenant_id=:tid"), lparams)
-            else:
-                c.execute(text("INSERT INTO store_settings(tenant_id,line_oa_id,line_channel_token,line_channel_secret,line_features) VALUES(:tid,:loa,:ltok,:lsec,:lfeat)"), lparams)
+            sets = []
+            lparams = {"tid": tid}
+            for field, (param, cast) in allowed.items():
+                if field in p:
+                    sets.append(f"{field}=:{param}")
+                    lparams[param] = cast(p[field])
+            if ex and sets:
+                c.execute(text(f"UPDATE store_settings SET {','.join(sets)},updated_at=NOW() WHERE tenant_id=:tid"), lparams)
+            elif not ex:
+                c.execute(text("INSERT INTO store_settings(tenant_id) VALUES(:tid)"), {"tid":tid})
         else:
-            params = {"tid":tid,"sn":p.get("store_name",""),"logo":p.get("logo_url",""),"tax":p.get("tax_id",""),"phone":p.get("phone",""),"addr":p.get("address",""),"road":p.get("road",""),"sub":p.get("subdistrict",""),"dist":p.get("district",""),"prov":p.get("province",""),"post":p.get("postal_code",""),"bp":p.get("bill_prefix","BILL"),"ip":p.get("inv_prefix","INV"),"bs":int(p.get("bill_start_seq",1)),"is_":int(p.get("inv_start_seq",1)),"bf":p.get("bill_format","BILL-YYYY-NNNNNN"),"bc":str(p.get("branch_code","")),"stax":bool(p.get("show_tax_id",True)),"saddr":bool(p.get("show_address",True)),"sbir":bool(p.get("show_bank_in_receipt",False)),"sft":bool(p.get("show_footer_text",False)),"ftxt":str(p.get("footer_text","")),"scan":str(p.get("scan_mode","combine")),"vat":str(p.get("vat_mode","included")),"ses":bool(p.get("stock_empty_sell",True)),"cat":bool(p.get("catalog_online",True)),"loa":str(p.get("line_oa_id","")),"ltok":str(p.get("line_channel_token","")),"lsec":str(p.get("line_channel_secret","")),"lfeat":json.dumps(p.get("line_features",{}))}
+            params = {"tid":tid,"sn":p.get("store_name",""),"logo":p.get("logo_url",""),"tax":p.get("tax_id",""),"phone":p.get("phone",""),"addr":p.get("address",""),"road":p.get("road",""),"sub":p.get("subdistrict",""),"dist":p.get("district",""),"prov":p.get("province",""),"post":p.get("postal_code",""),"bp":p.get("bill_prefix","BILL"),"ip":p.get("inv_prefix","INV"),"bs":int(p.get("bill_start_seq",1)),"is_":int(p.get("inv_start_seq",1)),"bf":p.get("bill_format","BILL-YYYY-NNNNNN"),"bc":str(p.get("branch_code","")),"stax":bool(p.get("show_tax_id",True)),"saddr":bool(p.get("show_address",True)),"sbir":bool(p.get("show_bank_in_receipt",False)),"sft":bool(p.get("show_footer_text",False)),"ftxt":str(p.get("footer_text","")),"scan":str(p.get("scan_mode","combine")),"vat":str(p.get("vat_mode","included")),"ses":bool(p.get("stock_empty_sell",True)),"cat":bool(p.get("catalog_online",True)),"loa":str(p.get("line_oa_id","")),"ltok":str(p.get("line_channel_token","")),"lsec":str(p.get("line_channel_secret","")),"lfeat":json.dumps(p.get("line_features",{})),"qr":str(p.get("qr_url","")),"lqqr":str(p.get("line_quote_qr_url","")),"lqc":str(p.get("line_quote_contact","")),"lqn":str(p.get("line_quote_note",""))}
             if ex:
-                c.execute(text("UPDATE store_settings SET store_name=:sn,logo_url=:logo,tax_id=:tax,phone=:phone,address=:addr,road=:road,subdistrict=:sub,district=:dist,province=:prov,postal_code=:post,bill_prefix=:bp,inv_prefix=:ip,bill_start_seq=:bs,inv_start_seq=:is_,bill_format=:bf,branch_code=:bc,show_tax_id=:stax,show_address=:saddr,show_bank_in_receipt=:sbir,show_footer_text=:sft,footer_text=:ftxt,scan_mode=:scan,vat_mode=:vat,stock_empty_sell=:ses,catalog_online=:cat,line_oa_id=:loa,line_channel_token=:ltok,line_channel_secret=:lsec,line_features=:lfeat,updated_at=NOW() WHERE tenant_id=:tid"),params)
+                c.execute(text("UPDATE store_settings SET store_name=:sn,logo_url=:logo,tax_id=:tax,phone=:phone,address=:addr,road=:road,subdistrict=:sub,district=:dist,province=:prov,postal_code=:post,bill_prefix=:bp,inv_prefix=:ip,bill_start_seq=:bs,inv_start_seq=:is_,bill_format=:bf,branch_code=:bc,show_tax_id=:stax,show_address=:saddr,show_bank_in_receipt=:sbir,show_footer_text=:sft,footer_text=:ftxt,scan_mode=:scan,vat_mode=:vat,stock_empty_sell=:ses,catalog_online=:cat,line_oa_id=:loa,line_channel_token=:ltok,line_channel_secret=:lsec,line_features=:lfeat,qr_url=:qr,line_quote_qr_url=:lqqr,line_quote_contact=:lqc,line_quote_note=:lqn,updated_at=NOW() WHERE tenant_id=:tid"),params)
             else:
-                c.execute(text("INSERT INTO store_settings(tenant_id,store_name,logo_url,tax_id,phone,address,road,subdistrict,district,province,postal_code,bill_prefix,inv_prefix,bill_start_seq,inv_start_seq,bill_format,branch_code,show_tax_id,show_address,show_bank_in_receipt,show_footer_text,footer_text,scan_mode,vat_mode,stock_empty_sell,catalog_online,line_oa_id,line_channel_token,line_channel_secret,line_features) VALUES(:tid,:sn,:logo,:tax,:phone,:addr,:road,:sub,:dist,:prov,:post,:bp,:ip,:bs,:is_,:bf,:bc,:stax,:saddr,:sbir,:sft,:ftxt,:scan,:vat,:ses,:cat,:loa,:ltok,:lsec,:lfeat)"),params)
+                c.execute(text("INSERT INTO store_settings(tenant_id,store_name,logo_url,tax_id,phone,address,road,subdistrict,district,province,postal_code,bill_prefix,inv_prefix,bill_start_seq,inv_start_seq,bill_format,branch_code,show_tax_id,show_address,show_bank_in_receipt,show_footer_text,footer_text,scan_mode,vat_mode,stock_empty_sell,catalog_online,line_oa_id,line_channel_token,line_channel_secret,line_features,qr_url,line_quote_qr_url,line_quote_contact,line_quote_note) VALUES(:tid,:sn,:logo,:tax,:phone,:addr,:road,:sub,:dist,:prov,:post,:bp,:ip,:bs,:is_,:bf,:bc,:stax,:saddr,:sbir,:sft,:ftxt,:scan,:vat,:ses,:cat,:loa,:ltok,:lsec,:lfeat,:qr,:lqqr,:lqc,:lqn)"),params)
     return {"message":"บันทึกสำเร็จ"}
 
 @router.post("/upload-qr")
@@ -79,7 +88,27 @@ async def upload_qr(file: UploadFile = File(...), authorization: str = Header(""
     qr_dir = "/home/viivadmin/viiv/uploads/store/qr"
     os.makedirs(qr_dir, exist_ok=True)
     with open(os.path.join(qr_dir, fname),"wb") as f: f.write(content)
-    return {"url": f"/uploads/store/qr/{fname}"}
+    url = f"/uploads/store/qr/{fname}"
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE store_settings SET qr_url=:url WHERE tenant_id=:tid"), {"url":url,"tid":tid})
+    return {"url": url}
+
+
+@router.post("/upload-quote-qr")
+async def upload_quote_qr(file: UploadFile = File(...), authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    content = await file.read()
+    if len(content) > 5*1024*1024:
+        raise HTTPException(400, "ไฟล์ใหญ่เกิน 5MB")
+    ext = (file.filename or "qr.png").rsplit(".",1)[-1].lower()
+    fname = f"quote_qr_{tid}.{ext}"
+    qr_dir = "/home/viivadmin/viiv/uploads/store/qr"
+    os.makedirs(qr_dir, exist_ok=True)
+    with open(os.path.join(qr_dir, fname),"wb") as f: f.write(content)
+    url = f"/uploads/store/qr/{fname}"
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE store_settings SET line_quote_qr_url=:url WHERE tenant_id=:tid"), {"url":url,"tid":tid})
+    return {"url": url}
 
 @router.post("/upload-logo")
 async def upload_logo(file: UploadFile = File(...), authorization: str = Header("")):

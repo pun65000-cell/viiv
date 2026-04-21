@@ -76,8 +76,8 @@ def list_members(
             base += " AND platforms @> :pf::jsonb"
             params["pf"] = json.dumps([platform])
         total = c.execute(text(f"SELECT COUNT(*) {base}"), params).scalar()
-        rows = c.execute(text(f"SELECT id,code,name,phone,tax_id,email,birthday,address,geo,pv_total,cash,credit,credit_limit,note,platforms,avatar_url,created_at,updated_at {base} ORDER BY created_at DESC LIMIT :limit OFFSET :offset"), params).fetchall()
-        keys = ["id","code","name","phone","tax_id","email","birthday","address","geo","pv_total","cash","credit","credit_limit","note","platforms","avatar_url","created_at","updated_at"]
+        rows = c.execute(text(f"SELECT id,code,name,phone,tax_id,email,birthday,address,geo,pv_total,cash,credit,credit_limit,note,platforms,avatar_url,line_user_id,created_at,updated_at {base} ORDER BY created_at DESC LIMIT :limit OFFSET :offset"), params).fetchall()
+        keys = ["id","code","name","phone","tax_id","email","birthday","address","geo","pv_total","cash","credit","credit_limit","note","platforms","avatar_url","line_user_id","created_at","updated_at"]
         members = []
         for r in rows:
             m = dict(zip(keys,r))

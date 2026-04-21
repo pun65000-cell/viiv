@@ -68,10 +68,9 @@ if(!TOKEN){ setTimeout(function(){ TOKEN=localStorage.getItem('viiv_token')||'';
 var _bill=null, _store=null, _form=1;
 
 function fmt(n){ return (parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2}); }
-function buildBankBlock(store){
+function buildBankBlock(store, banks){
   if(!store.show_bank_in_receipt) return '';
-  var banks=[];
-  try{ banks=JSON.parse(localStorage.getItem('viiv_bank_accounts')||'[]'); }catch(e){}
+  banks=banks||[];
   if(!banks.length) return '';
   var def=banks.find(function(b){return b.is_default;})||banks[0];
   if(!def) return '';
@@ -95,12 +94,14 @@ window.loadData = async function loadData(bid){
   var status=document.getElementById('printStatus');
   if(status) status.textContent='กำลังโหลด...';
   try{
-    var [bRes,sRes]=await Promise.all([
+    var [bRes,sRes,bankRes]=await Promise.all([
       fetch(API+'/api/pos/bills/detail/'+bid,{headers:{'Authorization':'Bearer '+TOKEN}}),
-      fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}})
+      fetch(API+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}}),
+      fetch(API+'/api/pos/bank/list',{headers:{'Authorization':'Bearer '+TOKEN}})
     ]);
     _bill=await bRes.json();
     _store=await sRes.json();
+    var _banks=(await bankRes.json()).banks||[];
     if(_bill.items && typeof _bill.items==='string') _bill.items=JSON.parse(_bill.items);
     if(status) status.textContent='';
     renderForm(_form);
@@ -299,7 +300,7 @@ window.renderForm = function renderForm(f){
       signBlock(f==1?['ผู้รับสินค้า/Received By','ผู้ส่งสินค้า/Delivered By','ผู้จัดทำ/Prepared By','ผู้อนุมัติ/Authorized']:null)+
       
       (_store.show_footer_text&&_store.footer_text?'<div style="text-align:center;font-size:10px;color:#374151;margin-top:4px;padding-top:4px;border-top:1px dashed #e5e5e5;">'+_store.footer_text+'</div>':'')+
-      buildBankBlock(_store);
+      buildBankBlock(_store, _banks);
   }
   else if(f==4||f==5){
     var title4={4:'ใบเสร็จรับเงิน/ใบกำกับภาษี',5:'ใบส่งของชั่วคราว/ใบกำกับภาษี'};
@@ -331,7 +332,7 @@ window.renderForm = function renderForm(f){
       summaryBlock(true)+
       signBlock(['ผู้ส่งสินค้า/ผู้รับเงิน','ผู้รับสินค้า'])+
       (_store.show_footer_text&&_store.footer_text?'<div style="text-align:center;font-size:10px;color:#374151;margin-top:4px;padding-top:4px;border-top:1px dashed #e5e5e5;">'+_store.footer_text+'</div>':'')+
-      buildBankBlock(_store);
+      buildBankBlock(_store, _banks);
   }
   else if(f==6){
     var logoUrl='';
