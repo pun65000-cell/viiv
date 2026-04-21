@@ -169,12 +169,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
   grid-column:2;grid-row:1/span 2;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  position:relative;z-index:3;gap:8px;
+  position:relative;z-index:3;gap:6px;
+  padding:0;
 }
-.hub-name{font-size:15px;font-weight:800;color:var(--gold-d);text-align:center;}
+.hub-name{font-size:14px;font-weight:800;color:var(--gold-d);text-align:center;}
 .hub-sub{font-size:7.5px;color:var(--text3);letter-spacing:.5px;text-align:center;}
 .hub-ring{
-  width:130px;height:130px;border-radius:50%;
+  width:128px;height:128px;border-radius:50%;flex-shrink:0;
   background:var(--mod);border:4px solid var(--gold);
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 0 22px var(--gold-glow),var(--shadow);
@@ -190,7 +191,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
 }
 @keyframes hub-s{to{transform:rotate(360deg);}}
 .hub-total{text-align:center;flex-shrink:0;}
-.htv{font-size:19px;font-weight:700;color:var(--gold-d);}
+.htv{font-size:17px;font-weight:700;color:var(--gold-d);}
 .hts{font-size:8px;color:var(--text2);}
 
 /* AI TEAM CARD */
@@ -364,14 +365,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
       </svg>
     </div>
   </div>
-  <div class="ai-card">
-    <div class="ai-hd"><div class="ai-live"></div>AI TEAM ONLINE <span id="aiCnt" style="color:var(--gold-d);margin-left:3px;">4 units</span></div>
-    <div class="ai-units" id="aiUnits"></div>
-  </div>
   <div class="hub-total">
     <div style="font-size:8px;color:var(--text2);">Total Today</div>
     <div class="htv" id="hubTot">฿15,300</div>
     <div class="hts" id="hubSub">20 orders</div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-hd"><div class="ai-live"></div>AI TEAM ONLINE <span id="aiCnt" style="color:var(--gold-d);margin-left:3px;">4 units</span></div>
+    <div class="ai-units" id="aiUnits"></div>
   </div>
 </div>
 
@@ -423,22 +424,33 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);display:flex;
   </div>
 </div>
 
-<!-- FUTURE PREDICTION -->
-<div class="mod" style="grid-row:2;" id="modFuture">
+<!-- AUTO POST MODULE -->
+<div class="mod" style="grid-row:2;" id="modAuto">
   <div class="mod-inner">
-    <div class="mt" style="color:var(--text3);">⚙️ Future Prediction
-      <span style="font-size:7.5px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--text3);margin-left:auto;">In Dev</span>
+    <div class="mt">🤖 Auto Post Module <span class="bdg bg-p" id="autoBdg">18</span></div>
+    <div class="sa-row" id="autoStaff"></div>
+    <div class="bnum" style="color:var(--purple);" id="autoN">18</div>
+    <div class="bsub">คลิปโพสวันนี้</div>
+    <div class="ticker" id="autoTicker">🔔 รอข้อมูล</div>
+    <div class="kgrid">
+      <div class="kpi"><div class="kl">🎬 Hook ล่าสุด</div><div class="kv" id="autoHook" style="font-size:8px;line-height:1.3;">—</div></div>
+      <div class="kpi"><div class="kl">⚙️ กำลังสร้าง</div><div class="kv blue" id="autoCreating">3</div></div>
+      <div class="kpi"><div class="kl">⏳ คิวรอ</div><div class="kv gold" id="autoQueue">5</div></div>
+      <div class="kpi"><div class="kl">👁️ วิว/เดือน</div><div class="kv green" id="autoViews">28,000</div></div>
     </div>
-    <div class="sa-row" id="futStaff"></div>
-    <div class="bnum" style="color:#b0a090;font-size:14px;">Predictive AI</div>
-    <div class="bsub">Market Trends · Auto Parts · ERP</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;">
-      <div style="background:var(--mod2);border:1px dashed var(--border2);border-radius:6px;padding:3px 7px;font-size:8px;color:var(--text2);">📈 Predictive Graphs</div>
-      <div style="background:var(--mod2);border:1px dashed var(--border2);border-radius:6px;padding:3px 7px;font-size:8px;color:var(--text2);">📅 Future Timeline</div>
-      <div style="background:var(--mod2);border:1px dashed var(--border2);border-radius:6px;padding:3px 7px;font-size:8px;color:var(--text2);">🎯 Prediction Score</div>
-      <div style="background:var(--mod2);border:1px dashed var(--border2);border-radius:6px;padding:3px 7px;font-size:8px;color:var(--text2);">📊 Market Trends</div>
+    <div class="strow">
+      <div class="stag on"><div class="si"></div>Auto Creating</div>
+      <div class="stag on"><div class="si"></div>Scheduler</div>
+      <div class="stag on"><div class="si"></div>TikTok</div>
+      <div class="stag on"><div class="si"></div>IG Reels</div>
     </div>
-    <div class="ai-tag" style="border-color:var(--border);color:var(--text3);"><div class="ai-dot" style="background:var(--text3);"></div>Predictive AI Agent</div>
+    <div style="display:flex;gap:3px;margin-top:2px;">
+      <div style="width:14px;height:14px;border-radius:2px;background:#1877f2;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700;">f</div>
+      <div style="width:14px;height:14px;border-radius:2px;background:#e1306c;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;">Ig</div>
+      <div style="width:14px;height:14px;border-radius:2px;background:#06C755;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700;">L</div>
+      <div style="width:14px;height:14px;border-radius:2px;background:#111;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;">TK</div>
+    </div>
+    <div class="ai-tag" style="border-color:rgba(112,64,204,.3);color:var(--purple);"><div class="ai-dot" style="background:var(--purple);"></div>AI Auto Post × 5</div>
   </div>
 </div>
 
@@ -611,7 +623,7 @@ var PATHS=[
   [{x:51,y:46},{x:80,y:26}],
   [{x:49,y:54},{x:20,y:74}],
   [{x:51,y:54},{x:80,y:74}],
-  [{x:20,y:26},{x:20,y:74}],
+  [{x:20,y:50},{x:80,y:50}],
 ];
 var robots=[],rTimers=[];
 function mkRobot(){
@@ -687,6 +699,8 @@ function st(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function sa(id,v){var e=document.getElementById(id);if(e)anim(e,v);}
 
 /* tickers */
+var TICK_AUTO=['🔔 สร้างคลิป "5 ไอเดีย" สำเร็จ','🔔 โพสต์ TikTok เสร็จ','🔔 Hook: "ทำไมคนรวย..."','🔔 คิวสร้าง 3 คลิปรอ','🔔 IG Reels โพสต์แล้ว'];
+var _ati=0;
 var TICK={
   pos:['🔔 ออเดอร์ใหม่ #3421 ฿1,250','🔔 ลูกค้า สมหญิง ชำระแล้ว','🔔 สต็อก A เหลือน้อย!','🔔 ออเดอร์ #3422 ฿890','🔔 ออเดอร์ #3423 ฿2,100'],
   chat:['🔔 สวัสดีครับ ถามราคา...','🔔 AI ปิดการขาย ฿2,100','🔔 ข้อความใหม่จาก LINE','🔔 ลูกค้าใหม่เข้าแชท','🔔 AI แนะนำสินค้าสำเร็จ'],
@@ -740,6 +754,9 @@ function setLoad(l,ev){
   buildModStaff('posStaff',Math.min(Math.max(1,Math.floor(cfg.posOrd/5)),3),0);
   buildModStaff('chatStaff',2,1);
   buildModStaff('affStaff',1,2);
+  buildModStaff('autoStaff',2,3);
+  var _am={low:{n:3,cr:1,q:2,v:4200,h:'5 ไอเดียทำเงิน...'},mid:{n:18,cr:3,q:5,v:28000,h:'เปิดเผยความลับ...'},high:{n:65,cr:8,q:15,v:120000,h:'ทำไมคนรวย...'}}[l];
+  if(_am){sa('autoN',_am.n);st('autoBdg',_am.n);st('autoCreating',_am.cr);st('autoQueue',_am.q);st('autoViews',_am.v.toLocaleString());st('autoHook',_am.h);}
   buildModStaff('futStaff',1,3);
 
   clearInterval(liveT);clearInterval(tickT);clearInterval(monT);clearInterval(bubT);
@@ -760,6 +777,7 @@ function setLoad(l,ev){
 
   tickT=setInterval(function(){
     rotateTick('pos');rotateTick('chat');rotateTick('aff');
+    var _ae=document.getElementById('autoTicker');if(_ae){_ae.textContent=TICK_AUTO[_ati%TICK_AUTO.length];_ati++;}
   },l==='high'?1500:l==='mid'?3000:6000);
 
   monT=setInterval(function(){
@@ -798,8 +816,8 @@ function fetchData(){
   .then(function(r){return r.json();})
   .then(function(d){
     st('pollSt','อัพเดต '+new Date().toLocaleTimeString('th-TH'));
-    if(d.today_income!=null){sa('posRev',d.today_income);st('posBdg','฿'+Math.round(d.today_income).toLocaleString());}
-    if(d.income_count!=null){st('posOrd',d.income_count);st('hubSub',d.income_count+' orders');}
+    var bills=d.bills||d.data||d||[];var todayBills=Array.isArray(bills)?bills.filter(function(b){var today=new Date().toISOString().slice(0,10);return b.created_at&&b.created_at.slice(0,10)===today&&b.status!=='void';}):[];var total=todayBills.reduce(function(s,b){return s+(parseFloat(b.total)||0);},0);if(total>0){sa('posRev',total);st('posBdg','฿'+Math.round(total).toLocaleString());}
+    if(todayBills&&todayBills.length>0){st('posOrd',todayBills.length);st('hubSub',todayBills.length+' orders');}
   }).catch(function(){st('pollSt','Error');});
 }
 function initPoll(){fetchData();clearInterval(pollT);pollT=setInterval(fetchData,30000);}
