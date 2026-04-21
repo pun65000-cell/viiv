@@ -20,6 +20,7 @@ body{
   font-family:'Segoe UI',Tahoma,sans-serif;
   color:var(--text);
   display:flex;flex-direction:column;
+  justify-content:space-between;
 }
 
 /* ── HEADER ── */
@@ -62,12 +63,14 @@ body{
 .main{
   flex:1;
   display:grid;
-  grid-template-columns:340px 1fr 340px;
+  grid-template-columns:1fr 1.1fr 1fr;
   grid-template-rows:1fr 1fr;
-  gap:18px;
-  padding:14px 24px;
+  gap:10px;
+  padding:8px 12px;
+  min-height:0;
   position:relative;
   overflow:hidden;
+  min-height:0;
 }
 
 /* ── SVG PATHS ── */
@@ -91,7 +94,7 @@ body{
 .mod-title{
   color:var(--gold);font-size:12px;font-weight:700;
   letter-spacing:.6px;display:flex;align-items:center;gap:6px;
-  margin-bottom:10px;
+  margin-bottom:5px;
 }
 .badge{
   background:var(--gold);color:#fff;
@@ -100,19 +103,19 @@ body{
 }
 .badge-g{background:var(--green);}
 .badge-p{background:var(--purple);}
-.mod-big{font-size:28px;font-weight:700;color:var(--text);line-height:1.1;}
+.mod-big{font-size:22px;font-weight:700;color:var(--text);line-height:1.1;}
 .mod-sub{font-size:10px;color:var(--text2);margin-top:3px;}
 .ai-badge{
   display:inline-flex;align-items:center;gap:4px;
   background:#fffbee;border:1px solid rgba(212,175,55,.4);
   border-radius:8px;padding:3px 8px;
-  font-size:9px;color:var(--gold);margin-top:6px;
+  font-size:9px;color:var(--gold);margin-top:3px;
 }
 .ai-dot-anim{
   width:6px;height:6px;border-radius:50%;background:var(--gold);
   animation:away-b 1.2s infinite;
 }
-.chars{display:flex;gap:4px;margin:6px 0;}
+.chars{display:flex;gap:4px;margin:3px 0;}
 
 /* money overlay */
 .money-area{
@@ -129,7 +132,7 @@ body{
   grid-column:2;grid-row:1/span 2;
   display:flex;flex-direction:column;
   justify-content:center;align-items:center;
-  position:relative;z-index:2;gap:14px;
+  position:relative;z-index:2;gap:10px;
 }
 .hub-ring{
   width:150px;height:150px;border-radius:50%;
@@ -200,7 +203,7 @@ body{
 .bot-text strong{display:block;font-size:10px;color:var(--green);}
 
 /* CHAT BUBBLES */
-.chat-bubble-area{position:relative;height:48px;margin:4px 0;overflow:visible;}
+.chat-bubble-area{position:relative;flex:1;min-height:28px;max-height:55px;margin:3px 0;overflow:visible;}
 @keyframes bubble-pop{
   0%{transform:scale(0) translateY(5px);opacity:0;}
   30%{transform:scale(1.08);}
@@ -230,7 +233,7 @@ body{
 /* MINI CHARTS */
 .mini-chart{
   display:flex;align-items:flex-end;gap:3px;
-  height:36px;margin-top:6px;
+  height:36px;margin-top:3px;
 }
 .bar{
   flex:1;border-radius:3px 3px 0 0;
@@ -292,7 +295,7 @@ body{
   box-shadow:0 10px 40px rgba(0,0,0,.15);
   z-index:200;min-width:280px;
 }
-.away-log h3{color:var(--gold);font-size:14px;margin-bottom:10px;}
+.away-log h3{color:var(--gold);font-size:14px;margin-bottom:5px;}
 .away-log-item{font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid #f0e8d0;}
 .away-log-close{
   margin-top:12px;padding:5px 16px;
@@ -314,6 +317,29 @@ body{
     <span class="clock" id="clock">--:--:--</span>
     <div class="staff-panel" id="staffPanel"></div>
   </div>
+  <button onclick="document.getElementById('ctrlPanel').style.display=document.getElementById('ctrlPanel').style.display==='none'?'flex':'none'" 
+    style="background:rgba(212,175,55,.1);border:1px solid var(--gold-glow);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--gold);font-family:inherit;">
+    ⚙️ จัดการ
+  </button>
+</div>
+
+<!-- CONTROL PANEL POPUP -->
+<div id="ctrlPanel" style="display:none;position:fixed;top:44px;right:12px;z-index:100;background:white;border:1px solid var(--gold-glow);border-radius:14px;padding:12px 16px;box-shadow:0 8px 32px rgba(0,0,0,.12);flex-direction:column;gap:8px;min-width:280px;">
+  <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">⚙️ จัดการแดชบอร์ด</div>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:10px;color:var(--text2);">Load:</span>
+    <button class="ctrl-btn" onclick="setLoad('low',event)">ต่ำ</button>
+    <button class="ctrl-btn act" id="btnMid" onclick="setLoad('mid',event)">ปานกลาง</button>
+    <button class="ctrl-btn" onclick="setLoad('high',event)">สูง</button>
+    <span style="font-size:10px;color:var(--gold);">🤖 <span id="rCnt" style="font-weight:700;">4</span> หุ่น</span>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="ctrl-btn" onclick="triggerAway()" style="color:#ff8c00;border-color:#ff8c0044;">จำลอง Away</button>
+    <button class="ctrl-btn" onclick="resetAll()" style="color:#2ecc71;border-color:#2ecc7144;">Reset</button>
+    <button class="ctrl-btn" onclick="showLog()">📋 Away Log</button>
+    <button class="ctrl-btn" onclick="document.getElementById('ctrlPanel').style.display='none'">✕ ปิด</button>
+  </div>
+  <div style="font-size:9px;color:var(--text2);">API polling ทุก 30s</div>
 </div>
 
 <!-- MAIN -->
@@ -373,9 +399,13 @@ body{
 
   <!-- CENTER HUB -->
   <div class="hub-col">
-    <div class="hub-ring">
-      <div class="hub-inner">
-        <svg width="48" height="48" viewBox="0 0 48 48">
+    <div style="text-align:center;">
+      <div class="hub-name">CONCORE</div>
+      <div class="hub-sub">Multi-Agent Hub API</div>
+    </div>
+    <div style="width:160px;height:160px;border-radius:50%;background:#fff;border:5px solid var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px var(--gold-glow);animation:hub-pulse 3s ease-in-out infinite;position:relative;">
+      <div style="width:100px;height:100px;border-radius:50%;background:#fffbee;border:2px solid var(--gold-l);display:flex;align-items:center;justify-content:center;animation:hub-spin 14s linear infinite;">
+        <svg width="52" height="52" viewBox="0 0 48 48">
           <circle cx="24" cy="24" r="20" fill="none" stroke="#d4af37" stroke-width="2.5"/>
           <path d="M24 8L29 18L24 15L19 18Z" fill="#d4af37"/>
           <path d="M24 40L19 30L24 33L29 30Z" fill="#d4af37" opacity=".6"/>
@@ -385,22 +415,23 @@ body{
         </svg>
       </div>
     </div>
-    <div>
-      <div class="hub-name">CONCORE</div>
-      <div class="hub-sub">Multi-Agent Hub API</div>
-    </div>
-    <div class="ai-team-card">
-      <div class="ai-team-title">
-        <div class="ai-team-dot"></div>
-        AI TEAM ONLINE &nbsp;
-        <span id="aiCount" style="color:var(--gold);">4 units</span>
-      </div>
-      <div class="ai-units" id="aiUnits"></div>
-    </div>
+
     <div class="hub-total">
       <div class="hub-total-label">Total Today</div>
       <div class="hub-total-val" id="totalRev">฿20,700</div>
       <div class="hub-total-sub" id="totalSub">20 orders · 5 staff</div>
+    </div>
+  </div>
+
+  <!-- AI TEAM CARD — ใน grid row2 col2 ชิดล่าง -->
+  <div style="grid-column:2;grid-row:2;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;z-index:3;">
+    <div style="background:rgba(255,255,255,.92);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:5px 12px;text-align:center;width:90%;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:4px;">
+        <div style="width:6px;height:6px;border-radius:50%;background:#2ecc71;box-shadow:0 0 4px #2ecc71;"></div>
+        <span style="font-size:8.5px;font-weight:700;color:var(--gold);letter-spacing:.4px;">AI TEAM ONLINE</span>
+        <span id="aiCount" style="font-size:8.5px;color:var(--gold);">4 units</span>
+      </div>
+      <div style="display:flex;gap:6px;justify-content:center;" id="aiUnits"></div>
     </div>
   </div>
 
@@ -421,23 +452,27 @@ body{
     <div class="ai-badge"><div class="ai-dot-anim"></div>Chat AI Operational</div>
   </div>
 
-  <!-- POS 2 bottom-left -->
-  <div class="mod" style="grid-row:2;" id="modPos2">
+  <!-- AUTO POST bottom-left -->
+  <div class="mod" style="grid-row:2;" id="modAutoPost">
     <div class="mod-title">
-      🏪 POS MODULE 2
-      <span class="badge" id="pos2Badge">฿8,200</span>
+      🤖 AUTO POST MODULE
+      <span class="badge" style="background:var(--purple);" id="autoPostBadge">52</span>
     </div>
-    <div class="chars" id="pos2Chars"></div>
-    <div class="mod-big" id="pos2Rev">฿8,200</div>
-    <div class="mod-sub">รายรับวันนี้</div>
-    <div style="display:flex;gap:10px;margin-top:6px;">
-      <span style="font-size:10px;color:var(--text2);">🧾 <span id="pos2Bills">5 บิล</span></span>
-      <span style="font-size:10px;color:var(--text2);">👤 <span id="pos2Staff">2 staff</span></span>
-      <span style="font-size:10px;color:var(--text2);">📦 <span id="pos2Orders">8 orders</span></span>
+    <div class="chars" id="autoPostChars"></div>
+    <div class="mod-big" style="color:var(--purple);" id="autoPostN">52</div>
+    <div class="mod-sub">Auto Posts Completed วันนี้</div>
+    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+      <div style="background:#f5f0ff;border:1px solid rgba(139,92,246,.2);border-radius:6px;padding:3px 8px;font-size:9px;color:var(--purple);">📅 Scheduled: <span id="apSched">6</span></div>
+      <div style="background:#f5f0ff;border:1px solid rgba(139,92,246,.2);border-radius:6px;padding:3px 8px;font-size:9px;color:var(--purple);">✅ Done: <span id="apDone">52</span></div>
     </div>
-    <div class="mini-chart" id="pos2Chart"></div>
-    <div class="ai-badge"><div class="ai-dot-anim"></div>POS Assistive AI</div>
-    <div class="money-area" id="moneyArea2"></div>
+    <div style="display:flex;gap:4px;margin-top:6px;">
+      <div style="width:16px;height:16px;border-radius:3px;background:#1877f2;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">f</div>
+      <div style="width:16px;height:16px;border-radius:3px;background:#1da1f2;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;">tw</div>
+      <div style="width:16px;height:16px;border-radius:3px;background:#e1306c;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;">Ig</div>
+      <div style="width:16px;height:16px;border-radius:3px;background:#06C755;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">L</div>
+      <div style="width:16px;height:16px;border-radius:3px;background:#111;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;">TK</div>
+    </div>
+    <div class="ai-badge" style="border-color:rgba(139,92,246,.3);color:var(--purple);margin-top:auto;"><div class="ai-dot-anim" style="background:var(--purple);"></div>AI Auto Post Operational</div>
   </div>
 
   <!-- Future bottom-right -->
@@ -459,38 +494,6 @@ body{
     </div>
   </div>
 
-</div>
-
-<!-- BOT STATUS ROW -->
-<div class="bot-row">
-  <div class="bot-card">
-    <div id="bot1icon"></div>
-    <div class="bot-dot"></div>
-    <div class="bot-text"><strong>Operational</strong>Step-for-Control BOT</div>
-  </div>
-  <div class="bot-card">
-    <div id="bot2icon"></div>
-    <div class="bot-dot"></div>
-    <div class="bot-text"><strong>Operational</strong>Step-for-Control BOT</div>
-  </div>
-  <div class="bot-card">
-    <div id="bot3icon"></div>
-    <div class="bot-dot"></div>
-    <div class="bot-text"><strong>Operational</strong>Step-for-Control BOT</div>
-  </div>
-</div>
-
-<!-- CONTROLS -->
-<div class="ctrl">
-  <span class="ctrl-label">Load:</span>
-  <button class="ctrl-btn" onclick="setLoad('low',event)">ต่ำ</button>
-  <button class="ctrl-btn act" id="btnMid" onclick="setLoad('mid',event)">ปานกลาง</button>
-  <button class="ctrl-btn" onclick="setLoad('high',event)">สูง</button>
-  <span class="ctrl-label" style="margin-left:8px;">🤖 <span id="rCnt" style="color:var(--gold);font-weight:700;">4</span> หุ่น AI</span>
-  <button class="ctrl-btn" onclick="triggerAway()" style="border-color:#ff8c0044;color:#ff8c00;">จำลอง Away</button>
-  <button class="ctrl-btn" onclick="resetAll()" style="border-color:#2ecc7144;color:#2ecc71;">Reset</button>
-  <button class="ctrl-btn" onclick="showLog()" style="border-color:var(--gold-glow);">📋 Away Log</button>
-  <span class="ctrl-label" style="margin-left:4px;font-size:9px;color:var(--text2);">API polling ทุก 30s</span>
 </div>
 
 <!-- AWAY LOG MODAL -->

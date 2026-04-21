@@ -391,3 +391,118 @@ INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 No
 INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
 INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
 INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.70.92.201:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     185.189.182.234:40444 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.71.124.208:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     162.158.108.165:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.225.37:0 - "GET /xmlrpc.php HTTP/1.1" 404 Not Found
+INFO:     172.68.225.37:0 - "GET /wp-login.php HTTP/1.1" 404 Not Found
+INFO:     104.23.239.129:0 - "GET /xmlrpc.php HTTP/1.1" 404 Not Found
+INFO:     172.70.248.175:0 - "GET /wp-login.php HTTP/1.1" 404 Not Found
+INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.71.81.2:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/staff/list HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     162.158.162.63:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     162.158.162.160:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     162.158.162.160:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     162.158.162.160:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     162.158.162.160:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     104.22.66.38:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     104.22.66.38:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.70.189.36:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.70.188.157:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.70.188.157:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.71.124.208:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     199.45.154.119:60198 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     199.45.154.119:55748 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     199.45.154.119:55802 - "GET /.well-known/security.txt HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     108.162.226.189:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
+INFO:     108.162.226.189:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/pos/bills/finance-summary HTTP/1.1" 404 Not Found
