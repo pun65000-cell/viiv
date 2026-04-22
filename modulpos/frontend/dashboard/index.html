@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>VIIV POS</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="tb-back" id="tb-back" onclick="goPage('home')">←</div>
+  <div style="flex:1">
+    <div class="tb-title" id="tb-title">POS</div>
+  </div>
+  <div id="tb-clock">--:--</div>
+  <button class="tb-action" id="tb-action">+ บิลใหม่</button>
+</div>
+
+<!-- PAGES -->
+<div id="pages">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="page-body">
+
+      <!-- HERO SUMMARY -->
+      <div class="hero">
+        <div class="hero-label">ยอดขายวันนี้</div>
+        <div class="hero-amount" id="s-today">฿0</div>
+        <div class="hero-sub" id="s-orders-txt">0 ออเดอร์</div>
+        <div class="hero-row">
+          <div class="hero-stat">
+            <div class="hero-stat-l">ยอด/เดือน</div>
+            <div class="hero-stat-v" id="s-msales">฿0</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-l">ออเดอร์/เดือน</div>
+            <div class="hero-stat-v" id="s-morders">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STOCK ALERT -->
+      <div class="alert-row" id="stock-alert" style="display:none">
+        ⚠️ <span>สต็อกต่ำ</span>
+      </div>
+
+      <!-- MENU GRID -->
+      <div class="menu-grid">
+        <div class="menu-btn" onclick="goPage('bill_new')">
+          <div class="menu-btn-icon">🧾</div>
+          <div class="menu-btn-label">ออกบิล</div>
+          <div class="menu-btn-sub">สร้างบิลใหม่</div>
+        </div>
+        <div class="menu-btn" onclick="goPage('bills')">
+          <div class="menu-btn-icon">📋</div>
+          <div class="menu-btn-label">รายการบิล</div>
+          <div class="menu-btn-sub">ประวัติทั้งหมด</div>
+        </div>
+        <div class="menu-btn" onclick="goPage('products')">
+          <div class="menu-btn-icon">📦</div>
+          <div class="menu-btn-label">สินค้า</div>
+          <div class="menu-btn-sub">สต็อก & ราคา</div>
+        </div>
+        <div class="menu-btn" onclick="goPage('members')">
+          <div class="menu-btn-icon">👥</div>
+          <div class="menu-btn-label">ลูกค้า</div>
+          <div class="menu-btn-sub">สมาชิก & แต้ม</div>
+        </div>
+        <div class="menu-btn full" onclick="goPage('summary')">
+          <div class="menu-btn-icon">📊</div>
+          <div class="menu-btn-label">รายงานยอดขาย</div>
+        </div>
+      </div>
+
+      <!-- RECENT BILLS -->
+      <div class="card">
+        <div class="sec-hd">
+          <div class="sec-title">บิลล่าสุด</div>
+          <div class="sec-more" onclick="goPage('bills')">ดูทั้งหมด</div>
+        </div>
+        <div id="bill-list"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-txt">กำลังโหลด...</div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BILLS PAGE -->
+  <div class="page" id="page-bills">
+    <div class="page-body">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="ค้นหาบิล..." id="bill-search"/>
+      </div>
+      <div class="card">
+        <div id="bill-list-full"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-txt">กำลังโหลด...</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS PAGE -->
+  <div class="page" id="page-products">
+    <div class="page-body">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="ค้นหาสินค้า..."/>
+      </div>
+      <div class="card">
+        <div id="prod-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-txt">กำลังโหลด...</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMBERS PAGE -->
+  <div class="page" id="page-members">
+    <div class="page-body">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="ค้นหาลูกค้า..."/>
+      </div>
+      <div class="card">
+        <div id="member-list"><div class="empty"><div class="empty-icon">👥</div><div class="empty-txt">กำลังโหลด...</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BILL NEW PAGE -->
+  <div class="page" id="page-bill_new">
+    <div class="page-body">
+      <div class="card">
+        <div class="sec-hd"><div class="sec-title">🧾 สร้างบิลใหม่</div></div>
+        <div class="empty"><div class="empty-icon">🧾</div><div class="empty-txt">Coming Soon<br/>ระบบออกบิลมือถือ</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY PAGE -->
+  <div class="page" id="page-summary">
+    <div class="page-body">
+      <div class="hero">
+        <div class="hero-label">ยอดขายวันนี้</div>
+        <div class="hero-amount" id="s-today2">฿0</div>
+        <div class="hero-row">
+          <div class="hero-stat"><div class="hero-stat-l">ออเดอร์วันนี้</div><div class="hero-stat-v" id="s-orders">0</div></div>
+          <div class="hero-stat"><div class="hero-stat-l">ยอด/เดือน</div><div class="hero-stat-v" id="s-msales2">฿0</div></div>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kb"><div class="kl">ออเดอร์/เดือน</div><div class="kv bl" id="s-morders2">0</div></div>
+        <div class="kb"><div class="kl">สต็อกต่ำ</div><div class="kv rd" id="s-lowstock">0</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /pages -->
+
+<!-- BOTTOM NAV -->
+<nav id="nav">
+  <button class="nav-btn active" data-page="home"     onclick="goPage('home')">
+    <span class="nav-icon">🏠</span><span class="nav-label">หน้าหลัก</span>
+  </button>
+  <button class="nav-btn" data-page="bills"    onclick="goPage('bills')">
+    <span class="nav-icon">🧾</span><span class="nav-label">บิล</span>
+  </button>
+  <button class="nav-btn" data-page="bill_new" onclick="goPage('bill_new')">
+    <span class="nav-icon">➕</span><span class="nav-label">ออกบิล</span>
+  </button>
+  <button class="nav-btn" data-page="products" onclick="goPage('products')">
+    <span class="nav-icon">📦</span><span class="nav-label">สินค้า</span>
+  </button>
+  <button class="nav-btn" data-page="members"  onclick="goPage('members')">
+    <span class="nav-icon">👥</span><span class="nav-label">ลูกค้า</span>
+  </button>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>

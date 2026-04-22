@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Chakra+Petch:wght@400;600;700&display=swap');
+
+:root {
+  --gold:   #c9a84c;  --gold-l: #e8c870;  --gold-d: #8a6820;
+  --gold-a: rgba(201,168,76,.16);
+  --bg:     #f7f3eb;  --bg2: #efe9d8;  --bg3: #e4dbc8;
+  --card:   #fffdf8;  --bdr: rgba(201,168,76,.26);
+  --txt:    #231908;  --muted: #8a7050;  --lite: #b89060;
+  --green:  #2aaa58;  --orange: #d86820;  --blue: #3878cc;  --red: #cc3838;
+  --nav-h:  58px;
+  --top-h:  52px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Sarabun',sans-serif; color:var(--txt); -webkit-tap-highlight-color:transparent; }
+
+/* ── TOP BAR ── */
+#topbar { position:fixed; inset:0 0 auto 0; height:var(--top-h); background:var(--card); border-bottom:1px solid var(--bdr); display:flex; align-items:center; padding:0 16px; gap:10px; z-index:200; }
+.tb-back { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; flex-shrink:0; display:none; }
+.tb-title { font-family:'Chakra Petch',sans-serif; font-size:15px; font-weight:700; color:var(--gold); flex:1; }
+.tb-sub { font-size:11px; color:var(--muted); display:block; font-weight:400; }
+#tb-clock { font-family:'Chakra Petch',sans-serif; font-size:13px; color:var(--txt); font-weight:600; }
+.tb-action { background:var(--gold); color:#1a1206; border:none; border-radius:20px; padding:6px 14px; font-family:'Chakra Petch',sans-serif; font-size:11px; font-weight:700; cursor:pointer; display:none; white-space:nowrap; }
+
+/* ── PAGES ── */
+#pages { position:fixed; top:var(--top-h); left:0; right:0; bottom:calc(var(--nav-h) + var(--safe-b)); overflow:hidden; }
+.page { position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; opacity:0; pointer-events:none; transition:opacity .2s; scrollbar-width:none; }
+.page::-webkit-scrollbar { display:none; }
+.page.active { opacity:1; pointer-events:auto; }
+.page-body { padding:12px 14px; display:flex; flex-direction:column; gap:10px; }
+
+/* ── BOTTOM NAV ── */
+#nav { position:fixed; left:0; right:0; bottom:0; height:calc(var(--nav-h) + var(--safe-b)); padding-bottom:var(--safe-b); background:#1a1206; border-top:1.5px solid rgba(201,168,76,.35); display:flex; align-items:stretch; z-index:200; box-shadow:0 -4px 20px rgba(0,0,0,.25); }
+.nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; background:none; border:none; padding:6px 2px 4px; position:relative; -webkit-tap-highlight-color:transparent; min-width:0; }
+.nav-btn:active { background:rgba(201,168,76,.10); }
+.nav-icon { font-size:20px; line-height:1; filter:grayscale(1) brightness(1.8); transition:filter .2s, transform .2s; }
+.nav-label { font-family:'Chakra Petch',sans-serif; font-size:8px; color:rgba(201,168,76,.45); letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.nav-btn.active .nav-icon  { filter:none; transform:translateY(-2px); }
+.nav-btn.active .nav-label { color:var(--gold); }
+.nav-btn.active::after { content:''; position:absolute; top:0; left:15%; right:15%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+.nav-badge { position:absolute; top:3px; right:calc(50% - 16px); background:var(--orange); color:#fff; font-size:8px; font-weight:700; border-radius:10px; padding:1px 4px; min-width:14px; text-align:center; display:none; }
+.nav-badge.show { display:block; }
+
+/* ── CARDS ── */
+.card { background:var(--card); border:1.5px solid var(--bdr); border-radius:12px; padding:14px 16px; position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+.card::before { content:''; position:absolute; top:0; left:0; width:40px; height:40px; background:linear-gradient(135deg,rgba(201,168,76,.14) 0%,transparent 70%); pointer-events:none; }
+
+/* ── SUMMARY HERO ── */
+.hero { background:linear-gradient(135deg,#1a1206 0%,#2c1e08 100%); border:1.5px solid rgba(201,168,76,.35); border-radius:14px; padding:18px; color:#fff; }
+.hero-label { font-size:11px; color:rgba(201,168,76,.7); text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; }
+.hero-amount { font-family:'Chakra Petch',sans-serif; font-size:32px; font-weight:700; color:var(--gold); line-height:1; }
+.hero-sub { font-size:12px; color:rgba(255,255,255,.5); margin-top:4px; }
+.hero-row { display:flex; gap:12px; margin-top:14px; }
+.hero-stat { flex:1; background:rgba(255,255,255,.06); border-radius:8px; padding:8px 10px; }
+.hero-stat-l { font-size:10px; color:rgba(201,168,76,.6); text-transform:uppercase; }
+.hero-stat-v { font-family:'Chakra Petch',sans-serif; font-size:18px; font-weight:700; color:#fff; }
+
+/* ── MENU GRID ── */
+.menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.menu-btn {
+  background:var(--card); border:1.5px solid var(--bdr); border-radius:14px;
+  padding:18px 14px; display:flex; flex-direction:column; align-items:center;
+  gap:8px; cursor:pointer; transition:all .15s; position:relative; overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+  -webkit-tap-highlight-color:transparent;
+}
+.menu-btn:active { background:var(--bg2); transform:scale(.97); }
+.menu-btn.full { grid-column:1/-1; flex-direction:row; justify-content:center; gap:12px; padding:16px; }
+.menu-btn-icon { font-size:28px; }
+.menu-btn-label { font-family:'Chakra Petch',sans-serif; font-size:12px; font-weight:600; color:var(--txt); letter-spacing:.05em; }
+.menu-btn-sub { font-size:10px; color:var(--muted); text-align:center; }
+.menu-badge { position:absolute; top:8px; right:8px; background:var(--orange); color:#fff; font-size:9px; font-weight:700; border-radius:10px; padding:1px 6px; }
+
+/* ── BILL LIST ── */
+.bill-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--bg3); }
+.bill-item:last-child { border-bottom:none; }
+.bill-status { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.bill-status.paid    { background:var(--green); }
+.bill-status.pending { background:var(--orange); }
+.bill-status.void    { background:#ccc; }
+.bill-info { flex:1; min-width:0; }
+.bill-no   { font-family:'Chakra Petch',sans-serif; font-size:13px; font-weight:600; color:var(--txt); }
+.bill-name { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bill-time { font-size:10px; color:var(--lite); }
+.bill-amount { font-family:'Chakra Petch',sans-serif; font-size:14px; font-weight:700; color:var(--txt); white-space:nowrap; }
+
+/* ── PRODUCT LIST ── */
+.prod-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--bg3); }
+.prod-item:last-child { border-bottom:none; }
+.prod-img { width:40px; height:40px; border-radius:8px; background:var(--bg2); object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.prod-info { flex:1; min-width:0; }
+.prod-name  { font-size:13px; font-weight:600; color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.prod-price { font-family:'Chakra Petch',sans-serif; font-size:12px; color:var(--gold-d); }
+.prod-stock { font-size:11px; }
+.prod-stock.low { color:var(--red); font-weight:600; }
+.prod-stock.ok  { color:var(--green); }
+
+/* ── SECTION HEADER ── */
+.sec-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.sec-title { font-family:'Chakra Petch',sans-serif; font-size:11px; color:var(--gold-d); letter-spacing:.12em; text-transform:uppercase; }
+.sec-more { font-size:11px; color:var(--blue); cursor:pointer; }
+
+/* ── KPI ROW ── */
+.kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.kb { background:var(--bg2); border-radius:8px; padding:10px 12px; }
+.kl { font-size:10px; color:var(--lite); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+.kv { font-family:'Chakra Petch',sans-serif; font-size:18px; font-weight:700; color:var(--txt); }
+.kv.bl { color:var(--blue); } .kv.gd { color:var(--gold-d); } .kv.rd { color:var(--red); }
+
+/* ── SEARCH BAR ── */
+.search-bar { display:flex; align-items:center; gap:8px; background:var(--card); border:1.5px solid var(--bdr); border-radius:10px; padding:8px 12px; }
+.search-bar input { flex:1; border:none; background:none; font-size:14px; color:var(--txt); outline:none; font-family:'Sarabun',sans-serif; }
+.search-bar input::placeholder { color:var(--muted); }
+
+/* ── EMPTY STATE ── */
+.empty { text-align:center; padding:30px 20px; color:var(--muted); }
+.empty-icon { font-size:36px; margin-bottom:8px; }
+.empty-txt  { font-size:13px; }
+
+/* ── ALERT BADGE ── */
+.alert-row { display:flex; align-items:center; gap:6px; background:rgba(216,104,32,.10); border:1px solid rgba(216,104,32,.25); border-radius:8px; padding:8px 12px; font-size:12px; color:#a04010; }
