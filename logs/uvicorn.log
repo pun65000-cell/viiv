@@ -121,3 +121,25 @@ WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
 INFO:     45.135.193.118:34476 - "GET / HTTP/1.0" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.233.12.14:39238 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.233.12.14:39254 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     172.233.12.14:39268 - "GET /AGENTS.md HTTP/1.1" 404 Not Found
+INFO:     140.238.99.210:50002 - "GET / HTTP/1.1" 404 Not Found
+INFO:     3.131.220.121:35264 - "GET / HTTP/1.1" 404 Not Found
+INFO:     3.131.220.121:35278 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
