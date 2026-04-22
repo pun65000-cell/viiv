@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<title>VIIV</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Chakra+Petch:wght@400;600;700&display=swap');
+
+:root {
+  --gold:   #c9a84c;
+  --gold-d: #8a6820;
+  --gold-a: rgba(201,168,76,.16);
+  --bg:     #f7f3eb;
+  --bg2:    #efe9d8;
+  --card:   #fffdf8;
+  --bdr:    rgba(201,168,76,.26);
+  --txt:    #231908;
+  --muted:  #8a7050;
+  --green:  #2aaa58;
+  --orange: #d86820;
+  --blue:   #3878cc;
+  --nav-h:  58px;
+  --top-h:  52px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Sarabun', sans-serif;
+  color: var(--txt);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  position: fixed; inset: 0 0 auto 0;
+  height: var(--top-h);
+  background: var(--card);
+  border-bottom: 1px solid var(--bdr);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 10px;
+  z-index: 200;
+}
+.tb-logo {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 18px; font-weight: 700; color: var(--gold);
+  display: flex; align-items: center; gap: 6px;
+}
+.tb-logo .tb-o { color: var(--muted); font-size: 15px; font-weight: 400; }
+.tb-shop {
+  flex: 1;
+  font-size: 13px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tb-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+#tb-clock {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 13px; color: var(--txt); font-weight: 600;
+}
+#tb-notif {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg2); border: 1px solid var(--bdr);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; position: relative; cursor: pointer;
+}
+#tb-notif .dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--orange); border: 2px solid var(--card);
+  display: none;
+}
+#tb-notif .dot.show { display: block; }
+
+/* ── PAGE AREA ── */
+#pages {
+  position: fixed;
+  top: var(--top-h);
+  left: 0; right: 0;
+  bottom: calc(var(--nav-h) + var(--safe-b));
+  overflow: hidden;
+}
+
+/* each page = iframe fills full area */
+.page {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.page.active {
+  opacity: 1; pointer-events: auto;
+}
+
+/* ── BOTTOM NAV ── */
+#nav {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: 0;
+  height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  background: var(--card);
+  border-top: 1px solid var(--bdr);
+  display: flex; align-items: stretch;
+  z-index: 200;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; cursor: pointer;
+  background: none; border: none;
+  padding: 6px 4px;
+  position: relative;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn:active { background: var(--bg2); }
+
+.nav-icon {
+  font-size: 22px; line-height: 1;
+  transition: transform .2s;
+}
+.nav-label {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 9px; color: var(--muted);
+  letter-spacing: .05em; text-transform: uppercase;
+  transition: color .2s;
+}
+.nav-badge {
+  position: absolute; top: 4px; right: calc(50% - 18px);
+  background: var(--orange); color: #fff;
+  font-size: 9px; font-weight: 700;
+  border-radius: 10px; padding: 1px 5px;
+  min-width: 16px; text-align: center;
+  display: none;
+}
+.nav-badge.show { display: block; }
+
+/* active state */
+.nav-btn.active .nav-label { color: var(--gold); }
+.nav-btn.active .nav-icon  { transform: translateY(-2px); }
+.nav-btn.active::after {
+  content: '';
+  position: absolute; top: 0; left: 20%; right: 20%;
+  height: 2px; background: var(--gold); border-radius: 0 0 2px 2px;
+}
+
+/* ── LOADING SCREEN ── */
+#loading {
+  position: fixed; inset: 0;
+  background: var(--card);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; z-index: 999;
+  transition: opacity .4s;
+}
+#loading.hide { opacity: 0; pointer-events: none; }
+.load-logo {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 32px; font-weight: 700; color: var(--gold);
+}
+.load-ring {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 3px solid var(--bg2);
+  border-top-color: var(--gold);
+  animation: spin .8s linear infinite;
+}
+.load-txt { font-size: 13px; color: var(--muted); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: calc(var(--nav-h) + var(--safe-b) + 12px);
+  left: 50%; transform: translateX(-50%);
+  background: #231908ee; color: #fff;
+  font-size: 13px; padding: 8px 18px;
+  border-radius: 20px; z-index: 300;
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none; white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-logo">VIIV</div>
+  <div class="load-ring"></div>
+  <div class="load-txt">กำลังโหลด...</div>
+</div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="tb-logo"><span class="tb-o">○</span> ViiV</div>
+  <div class="tb-shop" id="tb-shop">Platform</div>
+  <div class="tb-right">
+    <div id="tb-clock">--:--</div>
+    <div id="tb-notif">🔔<div class="dot" id="notif-dot"></div></div>
+  </div>
+</div>
+
+<!-- PAGES (iframes) -->
+<div id="pages">
+  <iframe class="page active" id="page-home" src="" data-src="/superboard/dashboard/index.html" title="Dashboard"></iframe>
+  <iframe class="page"        id="page-pos"  src="" data-src="/superboard/pages/pos.html"       title="POS"></iframe>
+  <iframe class="page"        id="page-chat" src="" data-src="/superboard/pages/chat.html"       title="Chat"></iframe>
+  <iframe class="page"        id="page-post" src="" data-src="/superboard/pages/autopost.html"   title="AutoPost"></iframe>
+  <iframe class="page"        id="page-more" src="" data-src="/superboard/pages/settings.html"   title="Settings"></iframe>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="nav">
+  <button class="nav-btn active" data-page="home" onclick="goPage('home')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">หน้าหลัก</span>
+  </button>
+  <button class="nav-btn" data-page="pos" onclick="goPage('pos')">
+    <span class="nav-icon">🖥</span>
+    <span class="nav-label">POS</span>
+    <span class="nav-badge" id="badge-pos"></span>
+  </button>
+  <button class="nav-btn" data-page="chat" onclick="goPage('chat')">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">Chat</span>
+    <span class="nav-badge" id="badge-chat"></span>
+  </button>
+  <button class="nav-btn" data-page="post" onclick="goPage('post')">
+    <span class="nav-icon">📲</span>
+    <span class="nav-label">AutoPost</span>
+  </button>
+  <button class="nav-btn" data-page="more" onclick="goPage('more')">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">จัดการ</span>
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────
+const S = {
+  token: null,
+  currentPage: 'home',
+  loaded: {},   // track which iframes already loaded
+};
+
+// ── CLOCK ──────────────────────────────────────
+function tick() {
+  const e = document.getElementById('tb-clock');
+  if (e) e.textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+}
+tick(); setInterval(tick, 1000);
+
+// ── TOKEN — รับจาก Superboard parent ──────────
+window.addEventListener('message', function(e) {
+  if (!e.data) return;
+
+  // token จาก superboard
+  if (e.data.type === 'viiv_token') {
+    S.token = e.data.token;
+    S.tenantId = e.data.tenant_id;
+    if (e.data.shop_name) {
+      document.getElementById('tb-shop').textContent = e.data.shop_name;
+    }
+    // forward token ไปยัง active iframe
+    broadcastToken();
+    hideLoading();
+  }
+
+  // badge update จาก child iframe
+  if (e.data.type === 'viiv_badge') {
+    setBadge(e.data.module, e.data.count);
+  }
+
+  // toast จาก child
+  if (e.data.type === 'viiv_toast') {
+    showToast(e.data.msg);
+  }
+});
+
+// ── BROADCAST TOKEN ────────────────────────────
+function broadcastToken() {
+  if (!S.token) return;
+  document.querySelectorAll('.page').forEach(function(iframe) {
+    try {
+      iframe.contentWindow.postMessage({ type: 'viiv_token', token: S.token }, '*');
+    } catch(e) {}
+  });
+}
+
+// ── PAGE NAVIGATION ────────────────────────────
+function goPage(name) {
+  if (S.currentPage === name) return;
+
+  // hide current
+  const cur = document.getElementById('page-' + S.currentPage);
+  if (cur) { cur.classList.remove('active'); }
+
+  // deactivate nav
+  document.querySelectorAll('.nav-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.page === name);
+  });
+
+  // show new page
+  const next = document.getElementById('page-' + name);
+  if (next) {
+    // lazy load iframe
+    if (!S.loaded[name]) {
+      const src = next.dataset.src;
+      if (src) { next.src = src; S.loaded[name] = true; }
+    }
+    next.classList.add('active');
+    // send token to newly activated iframe
+    setTimeout(function() {
+      try {
+        next.contentWindow.postMessage({ type: 'viiv_token', token: S.token }, '*');
+      } catch(e) {}
+    }, 300);
+  }
+
+  S.currentPage = name;
+}
+
+// ── BADGE ──────────────────────────────────────
+function setBadge(module, count) {
+  const el = document.getElementById('badge-' + module);
+  if (!el) return;
+  if (count > 0) {
+    el.textContent = count > 99 ? '99+' : count;
+    el.classList.add('show');
+    document.getElementById('notif-dot').classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+// ── TOAST ──────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+// ── LOADING ────────────────────────────────────
+function hideLoading() {
+  const el = document.getElementById('loading');
+  if (el) { el.classList.add('hide'); setTimeout(function() { el.remove(); }, 500); }
+}
+
+// ── INIT ───────────────────────────────────────
+function init() {
+  // load home iframe immediately
+  const home = document.getElementById('page-home');
+  if (home && home.dataset.src) {
+    home.src = home.dataset.src;
+    S.loaded['home'] = true;
+    home.onload = function() {
+      broadcastToken();
+      // ถ้าไม่มี token ภายใน 3 วินาที ให้ hide loading ไปก่อน
+      setTimeout(hideLoading, 3000);
+    };
+  }
+}
+
+init();
+</script>
+</body>
+</html>
