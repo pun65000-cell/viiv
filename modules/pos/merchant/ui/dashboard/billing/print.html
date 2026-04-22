@@ -93,6 +93,7 @@ function fmtDateTime(d){ return d?new Date(d).toLocaleString('th-TH'):''; }
 window.loadData = async function loadData(bid){
   var status=document.getElementById('printStatus');
   if(status) status.textContent='กำลังโหลด...';
+  var _banks=[];
   try{
     var [bRes,sRes,bankRes]=await Promise.all([
       fetch(API+'/api/pos/bills/detail/'+bid,{headers:{'Authorization':'Bearer '+TOKEN}}),
@@ -101,7 +102,7 @@ window.loadData = async function loadData(bid){
     ]);
     _bill=await bRes.json();
     _store=await sRes.json();
-    var _banks=(await bankRes.json()).banks||[];
+    _banks=(await bankRes.json()).banks||[];
     if(_bill.items && typeof _bill.items==='string') _bill.items=JSON.parse(_bill.items);
     if(status) status.textContent='';
     renderForm(_form);
