@@ -12,6 +12,18 @@ const fmtTime = s => {
   return d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 };
 
+// ── IFRAME CHECK — ซ่อน nav ถ้าอยู่ใน Superboard shell ──
+if (window.self !== window.top) {
+  const nav = document.getElementById('nav');
+  const pages = document.getElementById('pages');
+  const topbar = document.getElementById('topbar');
+  if (nav) nav.style.display = 'none';
+  if (pages) {
+    pages.style.bottom = '0';
+  }
+  if (topbar) topbar.style.display = 'none';
+}
+
 // ── TOKEN ──────────────────────────────────────
 window.addEventListener('message', e => {
   if (e.data?.type === 'viiv_token') {

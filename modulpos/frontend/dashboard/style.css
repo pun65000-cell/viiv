@@ -34,9 +34,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
 #nav { position:fixed; left:0; right:0; bottom:0; height:calc(var(--nav-h) + var(--safe-b)); padding-bottom:var(--safe-b); background:#1a1206; border-top:1.5px solid rgba(201,168,76,.35); display:flex; align-items:stretch; z-index:200; box-shadow:0 -4px 20px rgba(0,0,0,.25); }
 .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; background:none; border:none; padding:6px 2px 4px; position:relative; -webkit-tap-highlight-color:transparent; min-width:0; }
 .nav-btn:active { background:rgba(201,168,76,.10); }
-.nav-icon { font-size:20px; line-height:1; filter:grayscale(1) brightness(1.8); transition:filter .2s, transform .2s; }
+.nav-icon { font-size:20px; line-height:1; filter:sepia(1) saturate(2) hue-rotate(5deg) brightness(.9); transition:filter .2s, transform .2s; }
 .nav-label { font-family:'Chakra Petch',sans-serif; font-size:8px; color:rgba(201,168,76,.45); letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-.nav-btn.active .nav-icon  { filter:none; transform:translateY(-2px); }
+.nav-btn.active .nav-icon  { filter:sepia(1) saturate(3) hue-rotate(5deg) brightness(1.2); transform:translateY(-2px); }
+/* golden tint for all icons */
+.nav-icon { color: var(--gold); }
 .nav-btn.active .nav-label { color:var(--gold); }
 .nav-btn.active::after { content:''; position:absolute; top:0; left:15%; right:15%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
 .nav-badge { position:absolute; top:3px; right:calc(50% - 16px); background:var(--orange); color:#fff; font-size:8px; font-weight:700; border-radius:10px; padding:1px 4px; min-width:14px; text-align:center; display:none; }
