@@ -1,329 +1,429 @@
-/* VIIV Living Dashboard — app.js v2
-   Isolated from SPA. Token via postMessage from parent.
-*/
+/* ═══════════════════════════════════════════════════════════
+   VIIV Living Dashboard — app.js v3
+   Living World Engine: characters walk between modules,
+   react to real events, simulate believable AI workflows
+   ═══════════════════════════════════════════════════════════ */
 
-// ─── STATE ────────────────────────────────────────────────────────────
-const S = {
-  load: 'low',   // low | mid | high
+// ─── WORLD STATE ─────────────────────────────────────────────────────
+const W = {
   token: null,
+  load: 'low',
   timers: [],
-  walkers: [],
-  dots: [],
-  staffData: [
-    { id:'ส', name:'สุรศักดิ์' },
-    { id:'ส', name:'สมชาย' },
-    { id:'ว', name:'วรรณา' },
-    { id:'น', name:'น้องออย' },
-    { id:'ป', name:'ปรีชา' },
+  characters: [],   // all live sprite elements
+
+  // module zone centres (% of canvas, computed on init)
+  zones: {
+    pos:  { x: 0, y: 0 },
+    chat: { x: 0, y: 0 },
+    aff:  { x: 0, y: 0 },
+    post: { x: 0, y: 0 },
+    hub:  { x: 0, y: 0 },
+  },
+
+  staff: [
+    { id: 'adm',  name: 'Admin',  type: 'staff', home: 'pos',  state: 'idle' },
+    { id: 'st1',  name: 'Staff1', type: 'staff', home: 'pos',  state: 'idle' },
+    { id: 'st2',  name: 'Staff2', type: 'staff', home: 'chat', state: 'idle' },
+    { id: 'rd1',  name: 'Rider1', type: 'staff', home: 'aff',  state: 'idle' },
   ],
-  staffIdle: [0, 0, 0, 46*60000, 0],   // ms since last active (>45m = away)
+
+  aiAgents: [
+    { id: 'ai-sup',  name: 'AI Support', cssClass: 'sp-ai-support', route: ['chat','pos','hub'],       speed: 1.4 },
+    { id: 'ai-pos',  name: 'AI POS',     cssClass: 'sp-ai-pos',     route: ['pos','hub','pos'],        speed: 1.2 },
+    { id: 'ai-chat', name: 'AI แชท',    cssClass: 'sp-ai-chat',    route: ['chat','aff','chat','hub'],speed: 1.6 },
+    { id: 'ai-post', name: 'AI AutoPost',cssClass: 'sp-ai-post',    route: ['post','hub','post'],      speed: 1.1 },
+    { id: 'ai-aff',  name: 'AI Aff',    cssClass: 'sp-ai-aff',     route: ['aff','hub','aff'],        speed: 1.0 },
+  ],
+
+  customers: [],   // active customer sprites in chat zone
+
   kpi: {
-    todaySales:0, todayOrders:0, monthSales:0, monthOrders:0,
-    staffOnline:4,
-    affToday:2800, affMonth:42000, clicksToday:95, clicksMonth:2100, comm:8,
-    chatToday:16, chatMonth:480, closedMonth:52, conv:32, aiReply:8,
-    postsToday:18, hookLatest:'เปิดเผยความลับ...', building:3, queue:5, views:28000,
+    todaySales: 0, todayOrders: 0, monthSales: 0, monthOrders: 0,
+    staffOnline: 3,
+    affToday: 2800, affMonth: 42000, clicks: 95, clicksM: 2100, comm: 8,
+    chatToday: 16, chatMonth: 480, closedM: 52, conv: 32, aiReply: 8,
+    postsToday: 18, hook: 'เปิดเผยความลับ...', building: 3, queue: 5, views: 28000,
   },
 };
 
-const LOAD_AI = { low:4, mid:6, high:8 };
+const LOAD_COUNT = { low: 3, mid: 4, high: 5 };
 
-const TICKERS = {
-  pos:  ['🔔 ลูกค้า สมหญิง ชำระแล้ว','🧾 ออเดอร์ใหม่ #1042 — เมนูพิเศษ ×2','✅ บิล #1041 ปิดแล้ว','👤 สมาชิกใหม่ลงทะเบียน','💳 ชำระ QR ฿380'],
-  aff:  ['🔔 Commission ฿340 เข้า','🔗 คลิกใหม่ 12 ครั้ง','📊 Conversion วันนี้ 9.8%','🛒 ออเดอร์จาก affiliate #A-281'],
+// Mock customer names for chat simulation
+const CUST_NAMES = ['สมหญิง','ทนงศักดิ์','มาลี','วิชัย','นภา','อรุณ','เพ็ญ','ธนา','จินดา','ลดา'];
+const MOCK_TICKER = {
+  pos:  ['🔔 ลูกค้า สมหญิง ชำระแล้ว','🧾 ออเดอร์ใหม่ ×2 เมนูพิเศษ','✅ บิล #1041 ปิดแล้ว','👤 สมาชิกใหม่ลงทะเบียน'],
+  aff:  ['🔔 Commission ฿340 เข้า','🔗 คลิกใหม่ 12 ครั้ง','📊 Conversion วันนี้ 9.8%','🛒 ออเดอร์ affiliate #A-281'],
   chat: ['💬 แชทใหม่ 3 บทสนทนา','🤖 AI ปิดการขาย ฿2,100','📱 LINE OA: ส่งโปรฯ แล้ว','🎯 มีสต็อก?'],
-  auto: ['🎬 สร้างคลิป "5 ไอเดีย" สำเร็จ','📝 Hook: เปิดเผยความลับ... กำลังสร้าง','📅 Scheduler: 5 โพสรออยู่','🔥 วิวสะสมวันนี้ +4,200'],
+  post: ['🎬 สร้างคลิป "5 ไอเดีย" สำเร็จ','📝 Hook กำลังสร้าง...','📅 Scheduler: 5 โพสรออยู่','🔥 วิวสะสม +4,200'],
 };
-const tIdx = { pos:0, aff:0, chat:0, auto:0 };
+const tIdx = { pos:0, aff:0, chat:0, post:0 };
 
-// ─── UTILS ────────────────────────────────────────────────────────────
+// ─── UTILS ───────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const fmtB = n => '฿' + Number(n).toLocaleString('th-TH',{maximumFractionDigits:0});
+const fmtB = n => '฿' + Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 });
+const rnd  = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
-function addTimer(fn, ms) { const id = setInterval(fn, ms); S.timers.push(id); return id; }
-function clearTimers() { S.timers.forEach(clearInterval); S.timers = []; }
+function addTimer(fn, ms) { const id = setInterval(fn, ms); W.timers.push(id); }
+function clearTimers()    { W.timers.forEach(clearInterval); W.timers = []; }
 
 function log(msg) {
   const el = $('log-box'); if (!el) return;
-  const t = new Date().toTimeString().slice(0,5);
+  const t = new Date().toTimeString().slice(0, 5);
   el.innerHTML = `[${t}] ${msg}\n` + el.innerHTML;
 }
 
-// ─── TOKEN ────────────────────────────────────────────────────────────
+// ─── TOKEN ───────────────────────────────────────────────────────────
 window.addEventListener('message', e => {
   if (e.data?.type === 'viiv_token') {
-    S.token = e.data.token;
-    log('token received');
-    fetchSales();
+    W.token = e.data.token;
+    log('token received'); fetchSales();
   }
 });
 
-// ─── API ──────────────────────────────────────────────────────────────
+// ─── API ─────────────────────────────────────────────────────────────
 async function fetchSales() {
-  if (!S.token) return;
+  if (!W.token) return;
   try {
     const res = await fetch('/api/pos/bills/list?limit=200', {
-      headers: { Authorization: 'Bearer ' + S.token }
+      headers: { Authorization: 'Bearer ' + W.token }
     });
     if (!res.ok) throw new Error(res.status);
     const body = await res.json();
-    const today = new Date().toISOString().slice(0,10);
-    const month = new Date().toISOString().slice(0,7);
+    const today = new Date().toISOString().slice(0, 10);
+    const month = new Date().toISOString().slice(0, 7);
     let ts=0,to=0,ms=0,mo=0;
     (body.data || body || []).forEach(b => {
       if (b.status === 'void') return;
       const amt = parseFloat(b.total || 0);
-      const d = (b.created_at||'').slice(0,10);
-      const m = (b.created_at||'').slice(0,7);
-      if (m===month) { ms+=amt; mo++; }
-      if (d===today) { ts+=amt; to++; }
+      const d   = (b.created_at||'').slice(0,10);
+      const m   = (b.created_at||'').slice(0,7);
+      if (m===month){ ms+=amt; mo++; }
+      if (d===today){ ts+=amt; to++; }
     });
-    S.kpi.todaySales=ts; S.kpi.todayOrders=to;
-    S.kpi.monthSales=ms; S.kpi.monthOrders=mo;
-    renderPOS(); renderHub(); log('API OK — ' + fmtB(ts));
+    W.kpi.todaySales=ts; W.kpi.todayOrders=to;
+    W.kpi.monthSales=ms; W.kpi.monthOrders=mo;
+    renderPOS(); renderHub(); log('API OK '+fmtB(ts));
   } catch(e) { log('API err: '+e.message); }
 }
 
-// ─── STAFF ────────────────────────────────────────────────────────────
-function renderStaff(containerId) {
-  const el = $(containerId); if (!el) return;
-  el.innerHTML = '';
-  let online = 0;
-  S.staffData.forEach((s,i) => {
-    const away = S.staffIdle[i] > 45*60000;
-    if (!away) online++;
-    const d = document.createElement('div');
-    d.className = 'av' + (away?' away':'');
-    d.title = s.name + (away?' (away)':' (online)');
-    d.textContent = s.id;
-    el.appendChild(d);
+// ─── ZONE CALCULATOR ─────────────────────────────────────────────────
+// Computes pixel centre of each module card in fixed/viewport coords
+function computeZones() {
+  const ids = { pos:'card-pos', chat:'card-chat', aff:'card-aff', post:'card-post', hub:'hub' };
+  Object.keys(ids).forEach(key => {
+    const el = $(ids[key]);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    W.zones[key] = { x: r.left + r.width/2, y: r.top + r.height/2 };
   });
-  S.kpi.staffOnline = online;
-}
-function renderAllStaff() {
-  ['staff-pos','staff-aff','staff-chat','staff-auto'].forEach(renderStaff);
 }
 
-// ─── AI MINI BOTS ─────────────────────────────────────────────────────
-const BOT_COLORS = ['vc-b','vc-g','vc-o','vc-p'];
-function renderBots(containerId, count) {
-  const el = $(containerId); if (!el) return;
-  el.innerHTML = '';
-  for (let i=0; i<count; i++) {
-    const c = BOT_COLORS[i % BOT_COLORS.length];
-    const d = document.createElement('div');
-    d.className = `bm ${c}`;
-    d.style.animationDelay = (i*0.22)+'s';
-    d.innerHTML = `<div class="bh"></div><div class="bb"></div>`;
-    el.appendChild(d);
+// ─── SPRITE FACTORY ──────────────────────────────────────────────────
+function makeSprite(cssClass, name) {
+  const el = document.createElement('div');
+  el.className = `sprite ${cssClass}`;
+
+  const nm = document.createElement('div');
+  nm.className = 'sprite-name';
+  nm.textContent = name;
+
+  const head = document.createElement('div');
+  head.className = 'sprite-head';
+
+  const body = document.createElement('div');
+  body.className = 'sprite-body';
+
+  el.appendChild(nm);
+  el.appendChild(head);
+  el.appendChild(body);
+  document.body.appendChild(el);
+  return el;
+}
+
+function posSprite(el, x, y) {
+  // x,y = viewport pixel, centred on sprite
+  const cs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--char-s')) || 24;
+  el.style.left = (x - cs/2) + 'px';
+  el.style.top  = (y - cs*1.8) + 'px'; // account for name tag + head height
+}
+
+// ─── CHARACTER MOVEMENT ENGINE ────────────────────────────────────────
+// Moves a sprite from current position to target zone, calls cb when done
+function moveTo(el, targetZone, speedMult, cb) {
+  const z = W.zones[targetZone];
+  if (!z) { if(cb) cb(); return; }
+
+  // scatter destination within zone (not exact centre)
+  const scatter = 30;
+  const tx = z.x + rnd(-scatter, scatter);
+  const ty = z.y + rnd(-scatter, scatter);
+
+  const cs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--char-s')) || 24;
+  const sx = parseFloat(el.style.left||0) + cs/2;
+  const sy = parseFloat(el.style.top||0)  + cs*1.8;
+  const dx = tx - sx, dy = ty - sy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const basePx = 60; // px per second base speed
+  const dur = (dist / (basePx * (speedMult||1))) * 1000;
+
+  el.classList.remove('idle','busy');
+  el.classList.add('walking');
+
+  const t0 = performance.now();
+  function tick(now) {
+    if (!el.isConnected) return;
+    const p = Math.min((now - t0) / dur, 1);
+    posSprite(el, sx + dx*p, sy + dy*p);
+    if (p < 1) { requestAnimationFrame(tick); }
+    else {
+      el.classList.remove('walking');
+      el.classList.add('idle');
+      if (cb) cb();
+    }
   }
+  requestAnimationFrame(tick);
 }
 
-// ─── AI TEAM (large, with names) ──────────────────────────────────────
-const AI_NAMES = ['AIControl','AI Support','AI POS','AI แชท','AI Post','AI SEO','AI Aff','AI Hub'];
-const LG_COLORS = ['lc-b','lc-g','lc-o','lc-p','lc-b','lc-g','lc-o','lc-p'];
-function renderAITeam() {
-  const count = LOAD_AI[S.load];
-  const row = $('ai-bot-row'); if (!row) return;
+// ─── AI AGENT WORKFLOW LOOP ───────────────────────────────────────────
+function runAILoop(agent, spriteEl) {
+  let routeIdx = 0;
+
+  function next() {
+    if (!spriteEl.isConnected) return;
+    const zone = agent.route[routeIdx % agent.route.length];
+    routeIdx++;
+
+    // pause at zone for believable "working" moment
+    const pauseMs = rnd(2000, 6000);
+
+    moveTo(spriteEl, zone, agent.speed, () => {
+      spriteEl.classList.add('idle');
+      // randomly go "busy" while at zone
+      const busyId = setTimeout(() => {
+        if (!spriteEl.isConnected) return;
+        spriteEl.classList.remove('idle');
+        spriteEl.classList.add('busy');
+        setTimeout(() => {
+          if (!spriteEl.isConnected) return;
+          spriteEl.classList.remove('busy');
+          spriteEl.classList.add('idle');
+        }, rnd(500, 1500));
+      }, pauseMs * 0.4);
+
+      const nextId = setTimeout(() => {
+        clearTimeout(busyId);
+        next();
+      }, pauseMs);
+      W.timers.push(nextId);
+    });
+  }
+  next();
+}
+
+// ─── STAFF LOOP ───────────────────────────────────────────────────────
+function runStaffLoop(staff, spriteEl) {
+  const homeZone = staff.home;
+  // staff mostly stay home, occasionally move to adjacent zone
+  const adj = { pos:['pos','hub'], chat:['chat','hub'], aff:['aff','hub'], post:['post','hub'] };
+
+  function next() {
+    if (!spriteEl.isConnected) return;
+    const zones = adj[homeZone] || [homeZone];
+    const dest  = Math.random() < 0.8 ? homeZone : pick(zones);
+    const pause = rnd(5000, 14000);
+    moveTo(spriteEl, dest, 0.7, () => {
+      const id = setTimeout(next, pause);
+      W.timers.push(id);
+    });
+  }
+  next();
+}
+
+// ─── SPAWN ALL CHARACTERS ─────────────────────────────────────────────
+function spawnCharacters() {
+  // remove existing
+  W.characters.forEach(c => c.remove && c.remove());
+  W.characters = [];
+
+  computeZones();
+
+  // AI agents
+  const count = LOAD_COUNT[W.load];
+  W.aiAgents.slice(0, count).forEach(agent => {
+    const el = makeSprite(agent.cssClass, agent.name);
+    const startZone = agent.route[0];
+    const z = W.zones[startZone];
+    if (z) posSprite(el, z.x + rnd(-20,20), z.y + rnd(-20,20));
+    W.characters.push(el);
+    // slight delay so they don't all start at once
+    setTimeout(() => runAILoop(agent, el), rnd(0, 2000));
+  });
+
+  // Staff
+  W.staff.forEach(s => {
+    const el = makeSprite('sp-staff', s.name);
+    const z = W.zones[s.home];
+    if (z) posSprite(el, z.x + rnd(-25,25), z.y + rnd(-10,10));
+    W.characters.push(el);
+    setTimeout(() => runStaffLoop(s, el), rnd(0, 3000));
+  });
+}
+
+// ─── CUSTOMER SYSTEM ──────────────────────────────────────────────────
+let custIdx = 0;
+function spawnCustomer() {
+  if (W.customers.length >= 5) return;
+  const name = CUST_NAMES[custIdx % CUST_NAMES.length]; custIdx++;
+  const el = makeSprite('sp-customer', name);
+  const z = W.zones['chat'];
+  if (!z) return;
+  posSprite(el, z.x + rnd(-40,40), z.y + rnd(-20,20));
+  el.classList.add('idle');
+  W.customers.push(el);
+  W.characters.push(el);
+  log('💬 ลูกค้า ' + name + ' เข้าแชท');
+
+  // customer stays for random duration then leaves
+  const dur = rnd(20000, 60000);
+  setTimeout(() => {
+    el.style.transition = 'opacity 1s';
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.remove();
+      W.customers = W.customers.filter(c => c !== el);
+      W.characters = W.characters.filter(c => c !== el);
+    }, 1000);
+  }, dur);
+}
+
+// ─── HEADER STAFF AVATARS ─────────────────────────────────────────────
+function renderHeaderStaff() {
+  const row = $('h-staff'); if (!row) return;
   row.innerHTML = '';
-  for (let i=0; i<count; i++) {
+  W.staff.forEach(s => {
     const d = document.createElement('div');
-    d.className = `bl ${LG_COLORS[i]}`;
-    d.style.animationDelay = (i*0.2)+'s';
-    d.innerHTML = `<div class="blh"></div><div class="blb"></div><div class="bn">${AI_NAMES[i]||'AI'}</div>`;
+    d.className = 'av';
+    d.title = s.name;
+    d.textContent = s.name.slice(0,2);
     row.appendChild(d);
-  }
-  const u = $('ai-units');
-  if (u) u.textContent = count + ' units';
+  });
+  const cnt = $('h-online');
+  if (cnt) cnt.textContent = W.staff.length + ' online';
 }
 
-// ─── X LINES ──────────────────────────────────────────────────────────
-// Returns absolute coords of both diagonals in viewport (below header)
-function getLines() {
-  const hh = 46;
-  const W = window.innerWidth;
-  const H = window.innerHeight - hh;
-  return [
-    { x1:0,      y1:hh,    x2:W, y2:hh+H },   // TL → BR
-    { x1:W,      y1:hh,    x2:0, y2:hh+H },   // TR → BL
-  ];
+// ─── RENDER CARDS ─────────────────────────────────────────────────────
+function renderPOS() {
+  setText('pos-sales',  fmtB(W.kpi.todaySales));
+  setText('pos-badge',  fmtB(W.kpi.todaySales));
+  setText('pos-orders', W.kpi.todayOrders);
+  setText('pos-msales', fmtB(W.kpi.monthSales));
+  setText('pos-morder', W.kpi.monthOrders);
+  setText('pos-staff',  W.kpi.staffOnline + ' คน');
 }
-
-function drawXLines() {
-  const svg = $('xsvg'); if (!svg) return;
-  const hh = 46;
-  const W = window.innerWidth;
-  const H = window.innerHeight - hh;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.innerHTML = `
-    <line x1="0" y1="0" x2="${W}" y2="${H}"
-      stroke="rgba(201,168,76,0.18)" stroke-width="1.5" stroke-dasharray="7 5"/>
-    <line x1="${W}" y1="0" x2="0" y2="${H}"
-      stroke="rgba(201,168,76,0.18)" stroke-width="1.5" stroke-dasharray="7 5"/>
-  `;
+function renderHub() {
+  setText('hub-total',  fmtB(W.kpi.todaySales));
+  setText('hub-orders', W.kpi.todayOrders + ' orders');
 }
-
-// ─── WALKING BOTS ─────────────────────────────────────────────────────
-const WB_COLORS = ['wb-b','wb-g','wb-o','wb-p'];
-function spawnWalker() {
-  const max = LOAD_AI[S.load];
-  if (S.walkers.length >= max) return;
-  const lines = getLines();
-  const line = lines[Math.floor(Math.random()*2)];
-  const rev  = Math.random() > 0.5;
-  const dur  = S.load==='high' ? 4500 : S.load==='mid' ? 6500 : 9000;
-  const col  = WB_COLORS[Math.floor(Math.random()*4)];
-
-  const el = document.createElement('div');
-  el.className = `wbot ${col}`;
-  el.innerHTML = `<div class="wbh"></div><div class="wbb"></div>`;
-  document.body.appendChild(el);
-  S.walkers.push(el);
-
-  const t0 = performance.now();
-  function tick(now) {
-    if (!el.isConnected) return;
-    let p = (now-t0)/dur;
-    if (p >= 1) { el.remove(); S.walkers = S.walkers.filter(w=>w!==el); return; }
-    if (rev) p = 1-p;
-    el.style.left = (line.x1 + (line.x2-line.x1)*p - 7) + 'px';
-    el.style.top  = (line.y1 + (line.y2-line.y1)*p - 13) + 'px';
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-// ─── FLOW DOTS ────────────────────────────────────────────────────────
-function spawnDot() {
-  const lines = getLines();
-  const line = lines[Math.floor(Math.random()*2)];
-  const rev  = Math.random() > 0.5;
-  const dur  = 1200 + Math.random()*2000;
-
-  const el = document.createElement('div');
-  el.className = 'fdot';
-  document.body.appendChild(el);
-  S.dots.push(el);
-
-  const t0 = performance.now();
-  function tick(now) {
-    if (!el.isConnected) return;
-    let p = (now-t0)/dur;
-    if (p >= 1) { el.remove(); S.dots = S.dots.filter(d=>d!==el); return; }
-    if (rev) p = 1-p;
-    el.style.left = (line.x1 + (line.x2-line.x1)*p - 3.5) + 'px';
-    el.style.top  = (line.y1 + (line.y2-line.y1)*p - 3.5) + 'px';
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
+function setText(id, val) { const e=$(id); if(e) e.textContent=val; }
 
 // ─── TICKER ───────────────────────────────────────────────────────────
 function rotateTicker(key) {
-  const el = $('ticker-'+key); if (!el) return;
+  const el = $('ticker-' + key); if (!el) return;
   el.classList.add('out');
   setTimeout(() => {
-    const arr = TICKERS[key];
+    const arr = MOCK_TICKER[key];
     tIdx[key] = (tIdx[key]+1) % arr.length;
     el.textContent = arr[tIdx[key]];
     el.classList.remove('out');
   }, 300);
 }
 function startTickers() {
-  const delays = { pos:2000, aff:3600, chat:2700, auto:4300 };
-  Object.keys(delays).forEach(k => {
-    // initial text
-    const el = $('ticker-'+k);
-    if (el) el.textContent = TICKERS[k][0];
-    addTimer(() => rotateTicker(k), delays[k] + Math.random()*1000);
+  const d = { pos:2200, aff:3600, chat:2700, post:4100 };
+  Object.keys(d).forEach(k => {
+    const el = $('ticker-'+k); if(el) el.textContent = MOCK_TICKER[k][0];
+    addTimer(() => rotateTicker(k), d[k] + Math.random()*800);
   });
-}
-
-// ─── RENDER CARDS ─────────────────────────────────────────────────────
-function renderPOS() {
-  const s = $('pos-sales');   if (s) s.innerHTML = fmtB(S.kpi.todaySales)+'<small> ยอดขายวันนี้</small>';
-  const b = $('pos-badge');   if (b) b.textContent = fmtB(S.kpi.todaySales);
-  const o = $('pos-orders');  if (o) o.textContent = S.kpi.todayOrders;
-  const ms= $('pos-msales');  if (ms) ms.textContent = fmtB(S.kpi.monthSales);
-  const mo= $('pos-morder');  if (mo) mo.textContent = S.kpi.monthOrders;
-  const st= $('pos-staff');   if (st) st.textContent = S.kpi.staffOnline + ' คน';
-}
-function renderHub() {
-  const t = $('hub-total');  if (t) t.textContent = fmtB(S.kpi.todaySales);
-  const o = $('hub-orders'); if (o) o.textContent = S.kpi.todayOrders + ' orders';
 }
 
 // ─── CLOCK ────────────────────────────────────────────────────────────
 function tick() {
-  const el = $('clock'); if (!el) return;
-  el.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const e = $('h-clock');
+  if (e) e.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 
 // ─── LOAD LEVEL ───────────────────────────────────────────────────────
 function setLoad(lv) {
-  S.load = lv;
+  W.load = lv;
   document.querySelectorAll('[data-lv]').forEach(b => b.classList.toggle('on', b.dataset.lv===lv));
-  renderAITeam();
+  // respawn characters with new count
+  W.characters.forEach(c => c.remove());
+  W.characters = []; W.customers = [];
+  computeZones();
+  spawnCharacters();
   log('Load: ' + lv);
 }
 
+// ─── X LINES ──────────────────────────────────────────────────────────
+function drawXLines() {
+  const svg = $('xsvg'); if (!svg) return;
+  const W2 = svg.offsetWidth, H = svg.offsetHeight;
+  svg.setAttribute('viewBox', `0 0 ${W2} ${H}`);
+  svg.innerHTML = `
+    <line x1="0" y1="0" x2="${W2}" y2="${H}"
+      stroke="rgba(201,168,76,0.16)" stroke-width="1.5" stroke-dasharray="7 5"/>
+    <line x1="${W2}" y1="0" x2="0" y2="${H}"
+      stroke="rgba(201,168,76,0.16)" stroke-width="1.5" stroke-dasharray="7 5"/>
+  `;
+}
+
 // ─── POPUP ────────────────────────────────────────────────────────────
-function togglePopup() {
-  const p = $('popup'); if (!p) return;
-  p.classList.toggle('open');
-}
-function resetDash() {
-  S.staffIdle = S.staffIdle.map(()=>0);
-  renderAllStaff();
-  fetchSales();
-  log('Reset OK');
-}
+function togglePopup() { $('popup')?.classList.toggle('open'); }
+function resetDash()   { spawnCharacters(); fetchSales(); log('Reset'); }
 
 // ─── INIT ─────────────────────────────────────────────────────────────
 function init() {
   clearTimers();
 
-  // date badge
-  const db = $('date-badge');
+  // date
+  const db = $('h-date');
   if (db) db.textContent = new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
 
   // clock
   tick(); addTimer(tick, 1000);
 
-  // staff
-  renderAllStaff(); addTimer(renderAllStaff, 30000);
-
-  // bot mini per card
-  renderBots('bots-pos', 2);
-  renderBots('bots-aff', 3);
-  renderBots('bots-chat',4);
-  renderBots('bots-auto',6);
-
-  // ai team
-  renderAITeam();
-
   // X lines
   drawXLines();
-  window.addEventListener('resize', drawXLines);
+  window.addEventListener('resize', () => { drawXLines(); computeZones(); });
+
+  // header staff
+  renderHeaderStaff();
 
   // tickers
   startTickers();
 
-  // walkers & dots
-  addTimer(spawnWalker, 2200);
-  addTimer(spawnDot,    700);
+  // initial data render
+  renderPOS(); renderHub();
 
-  // api
+  // spawn living world (after a frame so zones are computed correctly)
+  requestAnimationFrame(() => {
+    computeZones();
+    spawnCharacters();
+  });
+
+  // customer simulation — random customers appear in chat
+  addTimer(() => {
+    if (Math.random() < 0.4) spawnCustomer();
+  }, 12000);
+
+  // API polling
   fetchSales();
   addTimer(fetchSales, 30000);
 
-  // initial render
-  renderPOS(); renderHub();
-
-  log('Dashboard v2 init OK');
+  log('Living Dashboard v3 init OK');
 }
 
-// expose
+// ─── EXPOSE ───────────────────────────────────────────────────────────
 window.vDash = { setLoad, togglePopup, resetDash, fetchSales };
 
 document.readyState === 'loading'

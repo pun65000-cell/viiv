@@ -2,66 +2,66 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>VIIV Living Dashboard</title>
 <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 
-<!-- ══════════════════ HEADER ══════════════════ -->
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
 <header id="hdr">
   <div>
-    <div class="hlogo">VIIV</div>
-    <div class="htitle">Platform</div>
+    <div class="h-logo">VIIV <span>Platform</span></div>
   </div>
 
-  <!-- staff online row (top-center, like old screenshot) -->
-  <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;">
-    <div class="staff" id="staff-online-hdr"></div>
-    <span style="font-family:'Chakra Petch',sans-serif;font-size:11px;color:var(--gold);" id="online-count">5 online</span>
+  <div class="h-center">
+    <div id="h-staff"></div>
+    <span class="h-online" id="h-online">0 online</span>
   </div>
 
-  <div class="hright">
-    <span class="hdate" id="date-badge"></span>
-    <span id="clock" class="hclock" style="position:static;transform:none;font-size:14px;"></span>
-    <button id="settingsBtn" onclick="vDash.togglePopup()">⚙ จัดการ</button>
+  <div class="h-right">
+    <span id="h-date"></span>
+    <span id="h-clock">--:--:--</span>
+    <button id="mgr-btn" onclick="vDash.togglePopup()">⚙ จัดการ</button>
   </div>
 </header>
 
-<!-- ══════════════════ CANVAS ══════════════════ -->
+<!-- ══════════════════════════════════════════
+     CANVAS (world stage — characters live here)
+══════════════════════════════════════════ -->
 <div id="canvas">
 
-  <!-- X lines -->
+  <!-- X diagonal lines -->
   <svg id="xsvg" xmlns="http://www.w3.org/2000/svg"></svg>
 
   <!-- ══════════════ GRID ══════════════ -->
   <div id="grid">
 
-    <!-- ── POS MODULE (top-left) ── -->
-    <div class="card c-tl">
+    <!-- ── POS MODULE · top-left ── -->
+    <div class="card c-tl" id="card-pos">
       <div class="cbadge" id="pos-badge">฿0</div>
 
-      <div class="card-top">
-        <div class="card-left">
-          <div class="ctag"><span class="ctag-icon">🖥</span> POS MODULE</div>
-          <div class="camount" id="pos-sales">฿0 <small>ยอดขายวันนี้</small></div>
-        </div>
-        <div class="card-right">
-          <div class="staff" id="staff-pos"></div>
-          <div class="bots" id="bots-pos"></div>
+      <div class="c-top">
+        <div class="c-left">
+          <div class="c-label">🖥 POS MODULE</div>
+          <div class="c-amount" id="pos-sales">฿0 <small>ยอดขายวันนี้</small></div>
         </div>
       </div>
 
       <div class="ticker">
-        <span class="ticker-ico">🔔</span>
-        <span class="ticker-txt" id="ticker-pos">กำลังโหลด...</span>
+        <span class="t-ico">🔔</span>
+        <span class="t-txt" id="ticker-pos">กำลังโหลด...</span>
       </div>
 
       <div class="kpi">
         <div class="kb"><div class="kl">ออเดอร์วันนี้</div><div class="kv bl" id="pos-orders">0</div></div>
         <div class="kb"><div class="kl">ยอด/เดือน</div><div class="kv gd" id="pos-msales">฿0</div></div>
         <div class="kb"><div class="kl">ออเดอร์/เดือน</div><div class="kv" id="pos-morder">0</div></div>
-        <div class="kb"><div class="kl">Staff online</div><div class="kv" id="pos-staff">4 คน</div></div>
+        <div class="kb"><div class="kl">Staff online</div><div class="kv" id="pos-staff">3 คน</div></div>
       </div>
 
       <div class="strow">
@@ -71,38 +71,34 @@
       </div>
     </div>
 
-    <!-- ── HUB (center) ── -->
+    <!-- ── HUB CENTER ── -->
     <div id="hub">
-      <div id="hub-outer">
+      <div id="hub-ring">
         <div id="hub-inner"></div>
         <div id="hub-content">
-          <div class="hub-label">CONCORE</div>
+          <div class="hub-title">CONCORE</div>
           <div class="hub-sub">Multi-Agent Hub API</div>
-          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">Total Today</div>
+          <div class="hub-label">Total Today</div>
           <div class="hub-total" id="hub-total">฿0</div>
-          <div class="hub-orders" id="hub-orders">0 orders</div>
+          <div class="hub-ord"   id="hub-orders">0 orders</div>
         </div>
       </div>
     </div>
 
-    <!-- ── CHAT & SHOWROOM (top-right) ── -->
-    <div class="card c-tr">
-      <div class="cbadge" id="chat-badge">15</div>
+    <!-- ── CHAT & SHOWROOM · top-right ── -->
+    <div class="card c-tr" id="card-chat">
+      <div class="cbadge">16</div>
 
-      <div class="card-top">
-        <div class="card-left">
-          <div class="ctag"><span class="ctag-icon">💬</span> CHAT &amp; SHOWROOM</div>
-          <div class="camount" id="chat-today">16 <small>แชทวันนี้</small></div>
-        </div>
-        <div class="card-right">
-          <div class="staff" id="staff-chat"></div>
-          <div class="bots" id="bots-chat"></div>
+      <div class="c-top">
+        <div class="c-left">
+          <div class="c-label">💬 CHAT &amp; SHOWROOM</div>
+          <div class="c-amount">16 <small>แชทวันนี้</small></div>
         </div>
       </div>
 
       <div class="ticker">
-        <span class="ticker-ico">🔔</span>
-        <span class="ticker-txt" id="ticker-chat">กำลังโหลด...</span>
+        <span class="t-ico">🔔</span>
+        <span class="t-txt" id="ticker-chat">กำลังโหลด...</span>
       </div>
 
       <div class="kpi">
@@ -119,24 +115,20 @@
       </div>
     </div>
 
-    <!-- ── POS-AFFILIATE (bottom-left) ── -->
-    <div class="card c-bl">
+    <!-- ── POS-AFFILIATE · bottom-left ── -->
+    <div class="card c-bl" id="card-aff">
       <div class="cbadge">฿2,800</div>
 
-      <div class="card-top">
-        <div class="card-left">
-          <div class="ctag"><span class="ctag-icon">🔗</span> POS-AFFILIATE</div>
-          <div class="camount">฿2,800 <small>คลิก × % = ยอดวันนี้</small></div>
-        </div>
-        <div class="card-right">
-          <div class="staff" id="staff-aff"></div>
-          <div class="bots" id="bots-aff"></div>
+      <div class="c-top">
+        <div class="c-left">
+          <div class="c-label">🔗 POS-AFFILIATE</div>
+          <div class="c-amount">฿2,800 <small>คลิก × % = ยอดวันนี้</small></div>
         </div>
       </div>
 
       <div class="ticker">
-        <span class="ticker-ico">🔔</span>
-        <span class="ticker-txt" id="ticker-aff">กำลังโหลด...</span>
+        <span class="t-ico">🔔</span>
+        <span class="t-txt" id="ticker-aff">กำลังโหลด...</span>
       </div>
 
       <div class="kpi">
@@ -153,41 +145,40 @@
       </div>
     </div>
 
-    <!-- ── AI TEAM (center-bottom) ── -->
+    <!-- ── AI TEAM · center-bottom ── -->
     <div id="ai-team">
-      <div class="ai-title">AI TEAM ONLINE</div>
-      <div class="ai-units" id="ai-units">4 units</div>
-      <div id="ai-bot-row"></div>
+      <div class="ai-hd">AI TEAM ONLINE</div>
+      <div class="ai-units" id="ai-units">4 units active</div>
+      <div id="ai-row">
+        <!-- populated by JS based on load level -->
+        <span style="font-size:var(--fs-xs);color:var(--muted);">กำลังโหลด...</span>
+      </div>
     </div>
 
-    <!-- ── AUTO POST MODULE (bottom-right) ── -->
-    <div class="card c-br">
+    <!-- ── AUTO POST · bottom-right ── -->
+    <div class="card c-br" id="card-post">
       <div class="cbadge">18</div>
 
-      <div class="card-top">
-        <div class="card-left">
-          <div class="ctag"><span class="ctag-icon">📲</span> AUTO POST MODULE</div>
-          <div class="camount">18 <small>คลิปโพสวันนี้</small></div>
-        </div>
-        <div class="card-right">
-          <div class="staff" id="staff-auto"></div>
-          <div class="bots" id="bots-auto"></div>
+      <div class="c-top">
+        <div class="c-left">
+          <div class="c-label">📲 AUTO POST MODULE</div>
+          <div class="c-amount">18 <small>คลิปโพสวันนี้</small></div>
         </div>
       </div>
 
       <div class="ticker">
-        <span class="ticker-ico">🔔</span>
-        <span class="ticker-txt" id="ticker-auto">กำลังโหลด...</span>
+        <span class="t-ico">🔔</span>
+        <span class="t-txt" id="ticker-post">กำลังโหลด...</span>
       </div>
 
       <div class="kpi">
-        <div class="kb"><div class="kl">Hook ล่าสุด</div><div class="kv" style="font-size:12px;line-height:1.3">เปิดเผยความลับ...</div></div>
+        <div class="kb"><div class="kl">Hook ล่าสุด</div><div class="kv" style="font-size:var(--fs-xs);line-height:1.3">เปิดเผยความลับ...</div></div>
         <div class="kb"><div class="kl">กำลังสร้าง</div><div class="kv bl">3</div></div>
         <div class="kb"><div class="kl">คิวรอ</div><div class="kv">5</div></div>
         <div class="kb"><div class="kl">วิว/เดือน</div><div class="kv gd">28,000</div></div>
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div class="strow" style="flex:1">
           <span class="st st-g">●Auto Creating</span>
           <span class="st st-b">●Scheduler</span>
@@ -206,16 +197,18 @@
   </div><!-- /#grid -->
 </div><!-- /#canvas -->
 
-<!-- ══════════════════ POPUP ══════════════════ -->
+<!-- ══════════════════════════════════════════
+     SETTINGS POPUP
+══════════════════════════════════════════ -->
 <div id="popup">
   <h3>⚙ จัดการ Dashboard</h3>
 
   <div class="psec">
-    <label>Load Level (จำนวน AI)</label>
+    <label>Load Level (จำนวน AI ที่แสดง)</label>
     <div class="pbtns">
-      <button class="pbtn on" data-lv="low"  onclick="vDash.setLoad('low')">ต่ำ</button>
-      <button class="pbtn"    data-lv="mid"  onclick="vDash.setLoad('mid')">กลาง</button>
-      <button class="pbtn"    data-lv="high" onclick="vDash.setLoad('high')">สูง</button>
+      <button class="pbtn on" data-lv="low"  onclick="vDash.setLoad('low')">ต่ำ (3)</button>
+      <button class="pbtn"    data-lv="mid"  onclick="vDash.setLoad('mid')">กลาง (4)</button>
+      <button class="pbtn"    data-lv="high" onclick="vDash.setLoad('high')">สูง (5)</button>
     </div>
   </div>
 
@@ -228,28 +221,11 @@
   </div>
 
   <div class="psec">
-    <label>Log</label>
+    <label>Activity Log</label>
     <div id="log-box"></div>
   </div>
 </div>
 
 <script src="app.js"></script>
-<script>
-  // Sync header staff avatars from same data
-  function syncHdrStaff() {
-    const row = document.getElementById('staff-online-hdr');
-    const cnt = document.getElementById('online-count');
-    if (!row || !window.vDash) return;
-    // clone from pos staff row
-    const src = document.getElementById('staff-pos');
-    if (src) {
-      row.innerHTML = src.innerHTML;
-      const online = src.querySelectorAll('.av:not(.away)').length;
-      if (cnt) cnt.textContent = online + ' online';
-    }
-  }
-  setInterval(syncHdrStaff, 2000);
-  setTimeout(syncHdrStaff, 500);
-</script>
 </body>
 </html>
