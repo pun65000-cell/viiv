@@ -12,15 +12,14 @@
 
 <!-- HEADER -->
 <header id="hdr">
-  <div class="h-logo">VIIV <span>Platform</span></div>
+  <div class="h-logo"><span class="viiv-o">○</span><span class="viiv-name">ViiV</span><span class="viiv-sub">Platform</span></div>
   <div class="h-center">
-    <div id="h-staff"></div>
-    <span class="h-online" id="h-online">0 online</span>
+    <div id="h-staff-wrap"><div id="h-staff"></div><span class="h-online" id="h-online">0 online</span></div>
   </div>
   <div class="h-right">
     <span id="h-date"></span>
     <span id="h-clock">--:--:--</span>
-    <button id="mgr-btn" onclick="vDash.togglePopup()">⚙ จัดการ</button>
+    <button id="mgr-btn" onclick="vDash.togglePopup()">⚙&nbsp;จัดการ</button>
   </div>
 </header>
 
@@ -73,6 +72,10 @@
       <div class="cbadge">16</div>
       <div class="c-label">💬 CHAT &amp; SHOWROOM</div>
       <div class="c-amount">16 <small>แชทวันนี้</small></div>
+      <!-- LIVE CHAT FEED (1 row compact) -->
+      <div id="chat-feed">
+        <div class="cf-row" id="cf-1"><span class="cf-src cf-line">L</span><span class="cf-msg" id="cf-msg-1">กำลังโหลด...</span></div>
+      </div>
       <div class="ticker">
         <span class="t-ico">🔔</span>
         <span class="t-txt" id="ticker-chat">กำลังโหลด...</span>

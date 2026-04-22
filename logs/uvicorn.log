@@ -143,3 +143,48 @@ WARNING:  Invalid HTTP request received.
 INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
 WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     16.58.56.214:39562 - "GET / HTTP/1.1" 404 Not Found
+INFO:     16.58.56.214:50938 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     141.101.104.94:0 - "GET /.env HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     64.62.156.24:16804 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     64.62.156.37:38321 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     64.62.156.29:26327 - "GET /?format=json HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK

@@ -281,6 +281,49 @@ function setLoad(lv){
 function togglePopup(){$('popup')?.classList.toggle('open');}
 function resetDash(){W.chars.forEach(c=>c.remove());W.chars=[];W.customers=[];computeZones();spawnAll();fetchSales();log('Reset');}
 
+
+// ── CHAT FEED ──────────────────────────────────
+const CHAT_MSGS = [
+  {src:'cf-line', name:'สมหญิง',  msg:'มีสินค้าตัวนี้ไหมคะ?'},
+  {src:'cf-fb',   name:'ทนงศักดิ์',msg:'ราคาเท่าไหร่ครับ'},
+  {src:'cf-line', name:'มาลี',    msg:'ขอดูรูปเพิ่มได้มั้ยคะ'},
+  {src:'cf-ig',   name:'วิชัย',   msg:'ส่งถึงเชียงใหม่ได้ไหม'},
+  {src:'cf-line', name:'นภา',     msg:'มีโปรโมชั่นอะไรบ้างคะ'},
+  {src:'cf-fb',   name:'อรุณ',    msg:'สั่งแล้วกี่วันได้รับครับ'},
+  {src:'cf-line', name:'เพ็ญ',    msg:'ขอบคุณนะคะ ได้รับแล้ว'},
+  {src:'cf-ig',   name:'ธนา',     msg:'สินค้าหมดแล้วเมื่อไหร่มีครับ'},
+];
+const cfIdx = [0, 3, 6];
+
+function setChatRow(n, i, instant) {
+  const msgEl = document.getElementById('cf-msg-' + n);
+  const rowEl = document.getElementById('cf-' + n);
+  if (!msgEl || !rowEl) return;
+  const d = CHAT_MSGS[cfIdx[i] % CHAT_MSGS.length];
+  const srcEl = rowEl.querySelector('.cf-src');
+  if (srcEl) {
+    srcEl.className = 'cf-src ' + d.src;
+    srcEl.textContent = d.src === 'cf-line' ? 'L' : d.src === 'cf-fb' ? 'f' : 'Ig';
+  }
+  msgEl.innerHTML = '<span class="cf-name">' + d.name + '&nbsp;</span>' + d.msg;
+}
+
+function initChatFeed() {
+  setChatRow(1, 0);
+}
+
+function updateChatFeed() {
+  const msgEl = document.getElementById('cf-msg-1');
+  const rowEl = document.getElementById('cf-1');
+  if (!msgEl || !rowEl) return;
+  msgEl.classList.add('out');
+  setTimeout(() => {
+    cfIdx[0] = (cfIdx[0] + 1) % CHAT_MSGS.length;
+    setChatRow(1, 0);
+    msgEl.classList.remove('out');
+  }, 300);
+}
+
 // ── init ───────────────────────────────────────
 function init(){
   clearTimers();
@@ -289,6 +332,8 @@ function init(){
   tick();addTimer(tick,1000);
   renderHeaderStaff();
   startTickers();
+  initChatFeed();
+  addTimer(updateChatFeed, 3500);
   renderPOS();renderHub();
   drawX();
   window.addEventListener('resize',()=>{drawX();computeZones();});
