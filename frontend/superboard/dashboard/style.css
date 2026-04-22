@@ -41,9 +41,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .h-logo .viiv-name{color:var(--gold);}
 .h-logo .viiv-sub{color:var(--muted);font-weight:400;font-size:var(--fs-sm);}
 .h-center{display:flex;align-items:center;gap:clamp(4px,.8vw,10px);flex:1;justify-content:center;overflow:hidden;min-width:0;}
-#h-staff-wrap{display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--bdr);border-radius:30px;padding:3px 12px 3px 4px;}
+#h-staff-wrap{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--bdr);border-radius:30px;padding:5px 16px 5px 6px;}
 #h-staff{display:flex;gap:clamp(2px,.3vw,3px);}
-.h-online{font-family:'Sarabun',sans-serif;font-size:var(--fs-sm);color:var(--txt);font-weight:600;white-space:nowrap;}
+.h-online{font-family:'Sarabun',sans-serif;font-size:var(--fs-md);color:var(--txt);font-weight:600;white-space:nowrap;}
 .h-right{display:flex;align-items:center;gap:clamp(6px,.9vw,12px);flex-shrink:0;}
 #h-clock{font-family:'Chakra Petch',sans-serif;font-size:var(--fs-md);color:var(--txt);letter-spacing:.08em;white-space:nowrap;font-weight:600;}
 #h-date{display:none;}
@@ -127,6 +127,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 #card-chat .strow{gap:2px;}
 #card-chat .st{padding:1px 5px;font-size:clamp(7px,.75vw,9px);}
 
+
+/* ── CHAT CARD — compact to fit extra chat-feed row ── */
+#card-chat{padding:clamp(6px,.8vh,10px) clamp(8px,.9vw,12px);gap:clamp(2px,.35vh,5px);}
+#card-chat .kb{padding:clamp(2px,.35vh,4px) clamp(5px,.6vw,8px);}
+#card-chat .c-amount{font-size:var(--fs-lg);}
+
 /* ── CHAT FEED ── */
 #chat-feed{flex-shrink:0;}
 .cf-row{display:flex;align-items:center;gap:6px;background:var(--bg2);border-radius:calc(var(--r)*.6);padding:4px 8px;overflow:hidden;min-height:0;}
@@ -167,7 +173,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .si-l{background:#06c755;}.si-tk{background:#010101;border:1px solid #444;}
 
 /* ── HEADER AVATARS ── */
-.av{width:clamp(18px,2.5vmin,27px);height:clamp(18px,2.5vmin,27px);border-radius:50%;border:2px solid var(--green);background:linear-gradient(135deg,#d4a84c,#f0d070);display:flex;align-items:center;justify-content:center;font-size:clamp(6px,.85vmin,9px);font-weight:700;color:#231908;position:relative;flex-shrink:0;transition:border-color .4s;}
+.av{width:clamp(24px,3.2vmin,35px);height:clamp(24px,3.2vmin,35px);border-radius:50%;border:2px solid var(--green);background:linear-gradient(135deg,#d4a84c,#f0d070);display:flex;align-items:center;justify-content:center;font-size:clamp(8px,1.1vmin,12px);font-weight:700;color:#231908;position:relative;flex-shrink:0;transition:border-color .4s;}
 .av.away{border-color:var(--orange);}
 .av::after{content:'';position:absolute;bottom:-1px;right:-1px;width:clamp(4px,.65vmin,7px);height:clamp(4px,.65vmin,7px);border-radius:50%;background:var(--green);border:1.5px solid var(--card);transition:background .4s;}
 .av.away::after{background:var(--orange);}

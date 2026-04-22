@@ -188,3 +188,16 @@ WARNING:  Invalid HTTP request received.
 WARNING:  Invalid HTTP request received.
 INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK

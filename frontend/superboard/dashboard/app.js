@@ -264,7 +264,9 @@ function tick(){setText('h-clock',new Date().toLocaleTimeString('th-TH',{hour:'2
 // ── X lines ────────────────────────────────────
 function drawX(){
   const svg=$('xsvg');if(!svg)return;
-  const W2=svg.offsetWidth,H=svg.offsetHeight;
+  const W2=svg.offsetWidth||svg.parentElement?.offsetWidth||window.innerWidth;
+  const H=svg.offsetHeight||svg.parentElement?.offsetHeight||(window.innerHeight-46);
+  if(!W2||!H)return;
   svg.setAttribute('viewBox',`0 0 ${W2} ${H}`);
   svg.innerHTML=`
     <line x1="0" y1="0" x2="${W2}" y2="${H}" stroke="rgba(201,168,76,.14)" stroke-width="1.5" stroke-dasharray="7 5"/>
