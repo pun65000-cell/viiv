@@ -6,74 +6,238 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>VIIV POS</title>
-<link rel="stylesheet" href="style.css"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Chakra+Petch:wght@400;600;700&display=swap');
+
+:root {
+  --gold:   #c9a84c;  --gold-l: #e8c870;  --gold-d: #8a6820;
+  --gold-a: rgba(201,168,76,.16);
+  --bg:     #f7f3eb;  --bg2: #efe9d8;
+  --card:   #fffdf8;  --bdr: rgba(201,168,76,.26);
+  --txt:    #231908;  --muted: #8a7050;
+  --green:  #2aaa58;  --orange: #d86820;  --blue: #3878cc;
+  --nav-h:  58px;
+  --top-h:  50px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Sarabun',sans-serif; color:var(--txt); -webkit-tap-highlight-color:transparent; }
+
+/* ── TOP BAR ── */
+#topbar {
+  position:fixed; inset:0 0 auto 0; height:var(--top-h);
+  background:#1a1206; border-bottom:1.5px solid rgba(201,168,76,.35);
+  display:flex; align-items:center; padding:0 14px; gap:10px; z-index:300;
+}
+#tb-back {
+  width:34px; height:34px; border-radius:50%;
+  background:rgba(201,168,76,.12); border:1px solid rgba(201,168,76,.25);
+  display:none; align-items:center; justify-content:center;
+  font-size:18px; cursor:pointer; color:var(--gold); flex-shrink:0;
+}
+.tb-logo { font-family:'Chakra Petch',sans-serif; font-size:14px; font-weight:700; color:var(--gold); letter-spacing:.15em; }
+#tb-title { font-family:'Chakra Petch',sans-serif; font-size:14px; color:var(--gold-l); font-weight:600; flex:1; }
+#tb-clock { font-family:'Chakra Petch',sans-serif; font-size:13px; color:rgba(201,168,76,.7); }
+#tb-more {
+  width:34px; height:34px; border-radius:50%;
+  background:rgba(201,168,76,.12); border:1px solid rgba(201,168,76,.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; cursor:pointer; color:var(--gold);
+}
+
+/* ── CONTENT AREA ── */
+#content {
+  position:fixed;
+  top:var(--top-h); left:0; right:0;
+  bottom:calc(var(--nav-h) + var(--safe-b));
+  overflow:hidden;
+}
+
+/* ── HOME PAGE ── */
+#home-page {
+  position:absolute; inset:0;
+  overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:none;
+  background:var(--bg);
+}
+#home-page::-webkit-scrollbar { display:none; }
+.home-body { padding:12px 14px 16px; display:flex; flex-direction:column; gap:10px; }
+
+/* hero */
+.hero {
+  background:linear-gradient(135deg,#1a1206 0%,#2c1e08 60%,#1a1206 100%);
+  border:1.5px solid rgba(201,168,76,.35);
+  border-radius:14px; padding:18px;
+}
+.hero-lbl { font-size:11px; color:rgba(201,168,76,.65); text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; }
+.hero-amt { font-family:'Chakra Petch',sans-serif; font-size:34px; font-weight:700; color:var(--gold); line-height:1; }
+.hero-sub { font-size:12px; color:rgba(255,255,255,.4); margin-top:3px; }
+.hero-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+.hstat { background:rgba(255,255,255,.06); border-radius:8px; padding:8px 12px; }
+.hstat-l { font-size:10px; color:rgba(201,168,76,.55); text-transform:uppercase; }
+.hstat-v { font-family:'Chakra Petch',sans-serif; font-size:18px; font-weight:700; color:#fff; }
+
+/* alert */
+.alert { display:none; align-items:center; gap:8px; background:rgba(216,104,32,.10); border:1px solid rgba(216,104,32,.28); border-radius:8px; padding:9px 12px; font-size:12px; color:#a04010; }
+.alert.show { display:flex; }
+
+/* menu grid */
+.menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mbtn {
+  background:var(--card); border:1.5px solid var(--bdr); border-radius:14px;
+  padding:20px 14px 16px; display:flex; flex-direction:column; align-items:center; gap:8px;
+  cursor:pointer; transition:all .15s; position:relative; overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.05); -webkit-tap-highlight-color:transparent;
+}
+.mbtn::before { content:''; position:absolute; top:0; left:0; width:40px; height:40px; background:linear-gradient(135deg,rgba(201,168,76,.12) 0%,transparent 70%); pointer-events:none; }
+.mbtn:active { background:var(--bg2); transform:scale(.97); }
+.mbtn.full { grid-column:1/-1; flex-direction:row; justify-content:center; gap:12px; padding:16px; }
+.mbtn.highlight { border-color:var(--gold); background:linear-gradient(135deg,rgba(201,168,76,.08),var(--card)); }
+.mbtn-icon { font-size:30px; }
+.mbtn-label { font-family:'Chakra Petch',sans-serif; font-size:13px; font-weight:700; color:var(--txt); letter-spacing:.03em; }
+.mbtn-sub { font-size:10px; color:var(--muted); text-align:center; }
+.mbtn-badge { position:absolute; top:8px; right:8px; background:var(--orange); color:#fff; font-size:9px; font-weight:700; border-radius:10px; padding:1px 7px; }
+
+/* section */
+.sec-hd { display:flex; align-items:center; justify-content:space-between; }
+.sec-title { font-family:'Chakra Petch',sans-serif; font-size:10px; color:var(--gold-d); letter-spacing:.12em; text-transform:uppercase; }
+.sec-more { font-size:11px; color:var(--blue); cursor:pointer; }
+.card { background:var(--card); border:1.5px solid var(--bdr); border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+
+/* bill items */
+.bill-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--bg2); }
+.bill-row:last-child { border:none; padding-bottom:0; }
+.bill-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dot-paid { background:var(--green); } .dot-pending { background:var(--orange); } .dot-void { background:#ccc; }
+.bill-info { flex:1; min-width:0; }
+.bill-no   { font-family:'Chakra Petch',sans-serif; font-size:13px; font-weight:600; }
+.bill-name { font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bill-time { font-size:10px; color:#b89060; }
+.bill-amt  { font-family:'Chakra Petch',sans-serif; font-size:14px; font-weight:700; white-space:nowrap; }
+.empty { text-align:center; padding:24px; color:var(--muted); font-size:13px; }
+
+/* ── MERCHANT IFRAME ── */
+#merchant-frame {
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  border:none; display:none;
+  background:#fff;
+}
+#merchant-frame.show { display:block; }
+
+/* ── DRAWER (เพิ่มเติม) ── */
+#drawer {
+  position:fixed; inset:0; z-index:400;
+  display:none;
+}
+#drawer.open { display:block; }
+#drawer-bg { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+#drawer-panel {
+  position:absolute; bottom:0; left:0; right:0;
+  background:var(--card); border-radius:18px 18px 0 0;
+  border-top:1.5px solid var(--bdr);
+  padding:0 0 calc(20px + var(--safe-b));
+  transform:translateY(100%);
+  transition:transform .3s ease;
+}
+#drawer.open #drawer-panel { transform:translateY(0); }
+.drawer-handle { width:36px; height:4px; background:var(--bg3); border-radius:2px; margin:12px auto 16px; }
+.drawer-title { font-family:'Chakra Petch',sans-serif; font-size:11px; color:var(--gold-d); letter-spacing:.12em; text-transform:uppercase; padding:0 20px 12px; border-bottom:1px solid var(--bg2); }
+.drawer-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 20px; cursor:pointer;
+  transition:background .15s; -webkit-tap-highlight-color:transparent;
+}
+.drawer-item:active { background:var(--bg2); }
+.drawer-icon { font-size:22px; width:36px; text-align:center; }
+.drawer-label { font-size:14px; color:var(--txt); font-weight:600; }
+.drawer-sub { font-size:11px; color:var(--muted); }
+
+/* ── BOTTOM NAV ── */
+#nav {
+  position:fixed; left:0; right:0; bottom:0;
+  height:calc(var(--nav-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  background:#1a1206;
+  border-top:1.5px solid rgba(201,168,76,.35);
+  display:flex; align-items:stretch; z-index:200;
+  box-shadow:0 -4px 20px rgba(0,0,0,.3);
+}
+.nbtn {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:2px;
+  cursor:pointer; background:none; border:none;
+  padding:6px 2px 4px; position:relative;
+  -webkit-tap-highlight-color:transparent; min-width:0;
+}
+.nbtn:active { background:rgba(201,168,76,.10); }
+.nicon { font-size:21px; line-height:1; filter:sepia(1) saturate(1.5) hue-rotate(5deg) brightness(.75); transition:filter .2s,transform .2s; }
+.nlabel { font-family:'Chakra Petch',sans-serif; font-size:8px; color:rgba(201,168,76,.4); letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; }
+.nbtn.active .nicon  { filter:sepia(1) saturate(4) hue-rotate(5deg) brightness(1.1); transform:translateY(-2px); }
+.nbtn.active .nlabel { color:var(--gold); }
+.nbtn.active::after { content:''; position:absolute; top:0; left:10%; right:10%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+.nbtn-badge { position:absolute; top:3px; right:calc(50% - 16px); background:var(--orange); color:#fff; font-size:8px; font-weight:700; border-radius:10px; padding:1px 5px; display:none; }
+.nbtn-badge.show { display:block; }
+</style>
 </head>
 <body>
 
 <!-- TOP BAR -->
 <div id="topbar">
-  <div class="tb-back" id="tb-back" onclick="goPage('home')">←</div>
-  <div style="flex:1">
-    <div class="tb-title" id="tb-title">POS</div>
-  </div>
+  <div id="tb-back" onclick="goHome()">←</div>
+  <div class="tb-logo">VIIV</div>
+  <div id="tb-title">POS</div>
   <div id="tb-clock">--:--</div>
-  <button class="tb-action" id="tb-action">+ บิลใหม่</button>
+  <div id="tb-more" onclick="openDrawer()">⋯</div>
 </div>
 
-<!-- PAGES -->
-<div id="pages">
+<!-- CONTENT -->
+<div id="content">
 
-  <!-- HOME -->
-  <div class="page active" id="page-home">
-    <div class="page-body">
+  <!-- HOME PAGE -->
+  <div id="home-page">
+    <div class="home-body">
 
-      <!-- HERO SUMMARY -->
+      <!-- HERO -->
       <div class="hero">
-        <div class="hero-label">ยอดขายวันนี้</div>
-        <div class="hero-amount" id="s-today">฿0</div>
-        <div class="hero-sub" id="s-orders-txt">0 ออเดอร์</div>
-        <div class="hero-row">
-          <div class="hero-stat">
-            <div class="hero-stat-l">ยอด/เดือน</div>
-            <div class="hero-stat-v" id="s-msales">฿0</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat-l">ออเดอร์/เดือน</div>
-            <div class="hero-stat-v" id="s-morders">0</div>
-          </div>
+        <div class="hero-lbl">ยอดขายวันนี้</div>
+        <div class="hero-amt" id="h-sales">฿0</div>
+        <div class="hero-sub" id="h-orders">0 ออเดอร์</div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="hstat-l">ยอด/เดือน</div><div class="hstat-v" id="h-msales">฿0</div></div>
+          <div class="hstat"><div class="hstat-l">ออเดอร์/เดือน</div><div class="hstat-v" id="h-morders">0</div></div>
         </div>
       </div>
 
-      <!-- STOCK ALERT -->
-      <div class="alert-row" id="stock-alert" style="display:none">
-        ⚠️ <span>สต็อกต่ำ</span>
-      </div>
+      <!-- ALERT -->
+      <div class="alert" id="stock-alert">⚠️ <span id="alert-txt">สต็อกต่ำ</span></div>
 
-      <!-- MENU GRID -->
+      <!-- MENU -->
       <div class="menu-grid">
-        <div class="menu-btn" onclick="goPage('bill_new')">
-          <div class="menu-btn-icon">🧾</div>
-          <div class="menu-btn-label">ออกบิล</div>
-          <div class="menu-btn-sub">สร้างบิลใหม่</div>
+        <div class="mbtn highlight" onclick="goMerchant('/merchant/billing/create.html','ออกบิล')">
+          <div class="mbtn-icon">🧾</div>
+          <div class="mbtn-label">ออกบิล</div>
+          <div class="mbtn-sub">สร้างบิลใหม่</div>
         </div>
-        <div class="menu-btn" onclick="goPage('bills')">
-          <div class="menu-btn-icon">📋</div>
-          <div class="menu-btn-label">รายการบิล</div>
-          <div class="menu-btn-sub">ประวัติทั้งหมด</div>
+        <div class="mbtn" onclick="goMerchant('/merchant/easysale/pos.html','EasySale')">
+          <div class="mbtn-icon">⚡</div>
+          <div class="mbtn-label">EasySale</div>
+          <div class="mbtn-sub">ขายด่วน</div>
         </div>
-        <div class="menu-btn" onclick="goPage('products')">
-          <div class="menu-btn-icon">📦</div>
-          <div class="menu-btn-label">สินค้า</div>
-          <div class="menu-btn-sub">สต็อก & ราคา</div>
+        <div class="mbtn" onclick="goMerchant('/merchant/orders/all.html','ออเดอร์')">
+          <div class="mbtn-icon">📋</div>
+          <div class="mbtn-label">ออเดอร์</div>
+          <div class="mbtn-sub">คำสั่งซื้อทั้งหมด</div>
         </div>
-        <div class="menu-btn" onclick="goPage('members')">
-          <div class="menu-btn-icon">👥</div>
-          <div class="menu-btn-label">ลูกค้า</div>
-          <div class="menu-btn-sub">สมาชิก & แต้ม</div>
+        <div class="mbtn" onclick="goMerchant('/merchant/members/all.html','ลูกค้า')">
+          <div class="mbtn-icon">👥</div>
+          <div class="mbtn-label">ลูกค้า</div>
+          <div class="mbtn-sub">สมาชิก & แต้ม</div>
         </div>
-        <div class="menu-btn full" onclick="goPage('summary')">
-          <div class="menu-btn-icon">📊</div>
-          <div class="menu-btn-label">รายงานยอดขาย</div>
+        <div class="mbtn full" onclick="goMerchant('/merchant/sales/today.html','ยอดขาย')">
+          <div class="mbtn-icon">📊</div>
+          <div class="mbtn-label">รายงานยอดขาย</div>
         </div>
       </div>
 
@@ -81,102 +245,172 @@
       <div class="card">
         <div class="sec-hd">
           <div class="sec-title">บิลล่าสุด</div>
-          <div class="sec-more" onclick="goPage('bills')">ดูทั้งหมด</div>
+          <div class="sec-more" onclick="goMerchant('/merchant/billing/search.html','ค้นหาบิล')">ดูทั้งหมด</div>
         </div>
-        <div id="bill-list"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-txt">กำลังโหลด...</div></div></div>
+        <div id="bill-list"><div class="empty">กำลังโหลด...</div></div>
       </div>
 
     </div>
   </div>
 
-  <!-- BILLS PAGE -->
-  <div class="page" id="page-bills">
-    <div class="page-body">
-      <div class="search-bar">
-        <span>🔍</span>
-        <input type="text" placeholder="ค้นหาบิล..." id="bill-search"/>
-      </div>
-      <div class="card">
-        <div id="bill-list-full"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-txt">กำลังโหลด...</div></div></div>
-      </div>
+  <!-- MERCHANT IFRAME -->
+  <iframe id="merchant-frame" src="" title="POS"></iframe>
+
+</div>
+
+<!-- DRAWER -->
+<div id="drawer">
+  <div id="drawer-bg" onclick="closeDrawer()"></div>
+  <div id="drawer-panel">
+    <div class="drawer-handle"></div>
+    <div class="drawer-title">เมนูเพิ่มเติม</div>
+    <div class="drawer-item" onclick="goMerchant('/merchant/products/all.html','สินค้า')">
+      <div class="drawer-icon">📦</div>
+      <div><div class="drawer-label">สินค้า & สต็อก</div><div class="drawer-sub">จัดการสินค้าทั้งหมด</div></div>
+    </div>
+    <div class="drawer-item" onclick="goMerchant('/merchant/affiliate/all.html','Affiliate')">
+      <div class="drawer-icon">🔗</div>
+      <div><div class="drawer-label">Affiliate</div><div class="drawer-sub">ลิงก์และคอมมิชชั่น</div></div>
+    </div>
+    <div class="drawer-item" onclick="goMerchant('/merchant/finance/overview.html','การเงิน')">
+      <div class="drawer-icon">💰</div>
+      <div><div class="drawer-label">การเงิน</div><div class="drawer-sub">รายรับ รายจ่าย</div></div>
+    </div>
+    <div class="drawer-item" onclick="goMerchant('/merchant/products/warehouse.html','คลังสินค้า')">
+      <div class="drawer-icon">🏭</div>
+      <div><div class="drawer-label">คลังสินค้า</div><div class="drawer-sub">รับสินค้า & โอนย้าย</div></div>
+    </div>
+    <div class="drawer-item" onclick="goMerchant('/merchant/settings/store.html','ตั้งค่า')">
+      <div class="drawer-icon">⚙️</div>
+      <div><div class="drawer-label">ตั้งค่าร้านค้า</div><div class="drawer-sub">ข้อมูลร้านและการชำระ</div></div>
     </div>
   </div>
-
-  <!-- PRODUCTS PAGE -->
-  <div class="page" id="page-products">
-    <div class="page-body">
-      <div class="search-bar">
-        <span>🔍</span>
-        <input type="text" placeholder="ค้นหาสินค้า..."/>
-      </div>
-      <div class="card">
-        <div id="prod-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-txt">กำลังโหลด...</div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MEMBERS PAGE -->
-  <div class="page" id="page-members">
-    <div class="page-body">
-      <div class="search-bar">
-        <span>🔍</span>
-        <input type="text" placeholder="ค้นหาลูกค้า..."/>
-      </div>
-      <div class="card">
-        <div id="member-list"><div class="empty"><div class="empty-icon">👥</div><div class="empty-txt">กำลังโหลด...</div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BILL NEW PAGE -->
-  <div class="page" id="page-bill_new">
-    <div class="page-body">
-      <div class="card">
-        <div class="sec-hd"><div class="sec-title">🧾 สร้างบิลใหม่</div></div>
-        <div class="empty"><div class="empty-icon">🧾</div><div class="empty-txt">Coming Soon<br/>ระบบออกบิลมือถือ</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SUMMARY PAGE -->
-  <div class="page" id="page-summary">
-    <div class="page-body">
-      <div class="hero">
-        <div class="hero-label">ยอดขายวันนี้</div>
-        <div class="hero-amount" id="s-today2">฿0</div>
-        <div class="hero-row">
-          <div class="hero-stat"><div class="hero-stat-l">ออเดอร์วันนี้</div><div class="hero-stat-v" id="s-orders">0</div></div>
-          <div class="hero-stat"><div class="hero-stat-l">ยอด/เดือน</div><div class="hero-stat-v" id="s-msales2">฿0</div></div>
-        </div>
-      </div>
-      <div class="kpi-row">
-        <div class="kb"><div class="kl">ออเดอร์/เดือน</div><div class="kv bl" id="s-morders2">0</div></div>
-        <div class="kb"><div class="kl">สต็อกต่ำ</div><div class="kv rd" id="s-lowstock">0</div></div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /pages -->
+</div>
 
 <!-- BOTTOM NAV -->
 <nav id="nav">
-  <button class="nav-btn active" data-page="home"     onclick="goPage('home')">
-    <span class="nav-icon">🏠</span><span class="nav-label">หน้าหลัก</span>
+  <button class="nbtn active" id="nb-home" onclick="goHome()">
+    <span class="nicon">🏠</span><span class="nlabel">หน้าหลัก</span>
   </button>
-  <button class="nav-btn" data-page="bills"    onclick="goPage('bills')">
-    <span class="nav-icon">🧾</span><span class="nav-label">บิล</span>
+  <button class="nbtn" id="nb-bill" onclick="goMerchant('/merchant/billing/create.html','ออกบิล')">
+    <span class="nicon">🧾</span><span class="nlabel">บิล</span>
   </button>
-  <button class="nav-btn" data-page="bill_new" onclick="goPage('bill_new')">
-    <span class="nav-icon">➕</span><span class="nav-label">ออกบิล</span>
+  <button class="nbtn" id="nb-easy" onclick="goMerchant('/merchant/easysale/pos.html','EasySale')">
+    <span class="nicon">⚡</span><span class="nlabel">ขายด่วน</span>
   </button>
-  <button class="nav-btn" data-page="products" onclick="goPage('products')">
-    <span class="nav-icon">📦</span><span class="nav-label">สินค้า</span>
+  <button class="nbtn" id="nb-orders" onclick="goMerchant('/merchant/orders/all.html','ออเดอร์')">
+    <span class="nicon">📋</span><span class="nlabel">ออเดอร์</span>
+    <span class="nbtn-badge" id="badge-orders"></span>
   </button>
-  <button class="nav-btn" data-page="members"  onclick="goPage('members')">
-    <span class="nav-icon">👥</span><span class="nav-label">ลูกค้า</span>
+  <button class="nbtn" id="nb-more" onclick="openDrawer()">
+    <span class="nicon">⋯</span><span class="nlabel">เพิ่มเติม</span>
   </button>
 </nav>
 
-<script src="app.js"></script>
+<script>
+const S = { token: null, inIframe: window.self !== window.top };
+
+// ── HIDE NAV IF IN SUPERBOARD SHELL ──
+if (S.inIframe) {
+  document.getElementById('nav').style.display = 'none';
+  document.getElementById('topbar').style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.top = '0';
+  content.style.bottom = '0';
+}
+
+// ── CLOCK ──
+function tick() {
+  const e = document.getElementById('tb-clock');
+  if (e) e.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick, 1000);
+
+// ── TOKEN ──
+window.addEventListener('message', e => {
+  if (e.data?.type === 'viiv_token') {
+    S.token = e.data.token;
+    // forward ไป merchant iframe
+    const fr = document.getElementById('merchant-frame');
+    if (fr?.contentWindow) fr.contentWindow.postMessage(e.data, '*');
+    loadSummary();
+  }
+});
+
+// ── API ──
+const fmtB = n => '฿' + Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
+async function api(path) {
+  if (!S.token) return null;
+  try {
+    const r = await fetch('/api/pos-mobile' + path, { headers: { Authorization: 'Bearer ' + S.token } });
+    return r.ok ? r.json() : null;
+  } catch { return null; }
+}
+
+async function loadSummary() {
+  const [sum, bills] = await Promise.all([api('/summary'), api('/bills/recent?limit=8')]);
+  if (sum) {
+    document.getElementById('h-sales').textContent   = fmtB(sum.today_sales);
+    document.getElementById('h-orders').textContent  = (sum.today_orders||0) + ' ออเดอร์';
+    document.getElementById('h-msales').textContent  = fmtB(sum.month_sales);
+    document.getElementById('h-morders').textContent = sum.month_orders||0;
+    if (sum.low_stock > 0) {
+      const a = document.getElementById('stock-alert');
+      document.getElementById('alert-txt').textContent = 'สต็อกต่ำ ' + sum.low_stock + ' รายการ';
+      a.classList.add('show');
+    }
+  }
+  if (bills?.bills) renderBills(bills.bills);
+}
+
+function renderBills(list) {
+  const el = document.getElementById('bill-list');
+  if (!list.length) { el.innerHTML = '<div class="empty">ยังไม่มีบิลวันนี้</div>'; return; }
+  el.innerHTML = list.map(b => `
+    <div class="bill-row">
+      <div class="bill-dot dot-${b.status==='paid'?'paid':b.status==='void'?'void':'pending'}"></div>
+      <div class="bill-info">
+        <div class="bill-no">${b.bill_no||('#'+b.id?.slice(-6))}</div>
+        <div class="bill-name">${b.customer_name||'ลูกค้าทั่วไป'}</div>
+        <div class="bill-time">${b.created_at ? new Date(b.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
+      </div>
+      <div class="bill-amt">${fmtB(b.total)}</div>
+    </div>`).join('');
+}
+
+// ── NAVIGATION ──
+function goHome() {
+  document.getElementById('home-page').style.display = 'block';
+  const fr = document.getElementById('merchant-frame');
+  fr.classList.remove('show');
+  fr.src = '';
+  document.getElementById('tb-back').style.display = 'none';
+  document.getElementById('tb-title').textContent = 'POS';
+  setActiveNav('nb-home');
+}
+
+function goMerchant(url, title) {
+  closeDrawer();
+  document.getElementById('home-page').style.display = 'none';
+  const fr = document.getElementById('merchant-frame');
+  fr.src = url;
+  fr.classList.add('show');
+  document.getElementById('tb-back').style.display = 'flex';
+  document.getElementById('tb-title').textContent = title || 'POS';
+  setActiveNav('');
+  // forward token
+  fr.onload = () => {
+    if (S.token) fr.contentWindow?.postMessage({type:'viiv_token',token:S.token},'*');
+  };
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nbtn').forEach(b => b.classList.toggle('active', b.id === id));
+}
+
+// ── DRAWER ──
+function openDrawer()  { document.getElementById('drawer').classList.add('open'); }
+function closeDrawer() { document.getElementById('drawer').classList.remove('open'); }
+</script>
 </body>
 </html>
