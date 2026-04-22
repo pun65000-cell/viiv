@@ -1,424 +1,331 @@
-/* VIIV Superboard Living Dashboard — app.js (isolated logic)
-   v1.12 — no timer leaks, no SPA dependency
+/* VIIV Living Dashboard — app.js v2
+   Isolated from SPA. Token via postMessage from parent.
 */
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
+// ─── STATE ────────────────────────────────────────────────────────────
 const S = {
-  load: 'low',       // 'low' | 'mid' | 'high'
+  load: 'low',   // low | mid | high
   token: null,
-  staffData: [
-    { id: 'SR', name: 'สุรศักดิ์' },
-    { id: 'PK', name: 'พีรกร' },
-    { id: 'NO', name: 'น้องออย' },
-    { id: 'TN', name: 'ทนง' },
-    { id: 'KT', name: 'กัต' },
-  ],
-  staffActive: [true, true, true, false, true],
-  staffLastActive: [Date.now(), Date.now(), Date.now() - 46 * 60000, Date.now(), Date.now()],
-  kpi: {
-    todaySales: 0, todayOrders: 0,
-    monthSales: 0, monthOrders: 0,
-    staffOnline: 4,
-    affiliateToday: 12400, affiliateMonth: 289000, clicksToday: 184, clicksMonth: 4200, commission: 8.5,
-    chatToday: 47, chatMonth: 820, closedMonth: 156, conversion: 19, aiReply: 78,
-    postsToday: 12, hookLatest: 'กาแฟอร่อยหยุดไม่ได้', postsQueue: 3, postsBuilding: 2, viewsMonth: 142000,
-  },
-  totalToday: 0,
-  totalOrders: 0,
-  popOpen: false,
   timers: [],
-  walkBots: [],
-  flowDots: [],
-  loadAiCount: { low: 4, mid: 6, high: 8 },
+  walkers: [],
+  dots: [],
+  staffData: [
+    { id:'ส', name:'สุรศักดิ์' },
+    { id:'ส', name:'สมชาย' },
+    { id:'ว', name:'วรรณา' },
+    { id:'น', name:'น้องออย' },
+    { id:'ป', name:'ปรีชา' },
+  ],
+  staffIdle: [0, 0, 0, 46*60000, 0],   // ms since last active (>45m = away)
+  kpi: {
+    todaySales:0, todayOrders:0, monthSales:0, monthOrders:0,
+    staffOnline:4,
+    affToday:2800, affMonth:42000, clicksToday:95, clicksMonth:2100, comm:8,
+    chatToday:16, chatMonth:480, closedMonth:52, conv:32, aiReply:8,
+    postsToday:18, hookLatest:'เปิดเผยความลับ...', building:3, queue:5, views:28000,
+  },
 };
 
-// ─── TICKER DATA ──────────────────────────────────────────────────────────────
+const LOAD_AI = { low:4, mid:6, high:8 };
+
 const TICKERS = {
-  pos: [
-    '🧾 ออเดอร์ใหม่ #1042 — เมนูพิเศษ ×2',
-    '💳 ชำระ QR ฿380 เรียบร้อย',
-    '🧾 โต๊ะ 3 สั่งเพิ่ม ×3 รายการ',
-    '✅ บิล #1041 ปิดแล้ว',
-    '👤 สมาชิกใหม่ลงทะเบียน',
-  ],
-  aff: [
-    '🔗 คลิก affiliate ใหม่ 12 ครั้ง',
-    '💰 Commission +฿340 จากยอดขาย',
-    '📊 Conversion rate วันนี้ 9.8%',
-    '🛒 ออเดอร์จาก affiliate #A-281',
-  ],
-  chat: [
-    '💬 แชทใหม่ 3 บทสนทนา',
-    '🤖 AI ตอบอัตโนมัติ 89%',
-    '📱 LINE OA: ส่งโปรโมชั่นแล้ว',
-    '🎯 ปิดขายผ่านแชท ×2 รายการ',
-  ],
-  auto: [
-    '🎬 คลิปใหม่อัปโหลด TikTok สำเร็จ',
-    '📝 Hook: "เปิดลับสูตรพิเศษ..." กำลังสร้าง',
-    '📅 Scheduler: 3 โพสรออยู่',
-    '🔥 วิวสะสมวันนี้ +4,200',
-  ],
+  pos:  ['🔔 ลูกค้า สมหญิง ชำระแล้ว','🧾 ออเดอร์ใหม่ #1042 — เมนูพิเศษ ×2','✅ บิล #1041 ปิดแล้ว','👤 สมาชิกใหม่ลงทะเบียน','💳 ชำระ QR ฿380'],
+  aff:  ['🔔 Commission ฿340 เข้า','🔗 คลิกใหม่ 12 ครั้ง','📊 Conversion วันนี้ 9.8%','🛒 ออเดอร์จาก affiliate #A-281'],
+  chat: ['💬 แชทใหม่ 3 บทสนทนา','🤖 AI ปิดการขาย ฿2,100','📱 LINE OA: ส่งโปรฯ แล้ว','🎯 มีสต็อก?'],
+  auto: ['🎬 สร้างคลิป "5 ไอเดีย" สำเร็จ','📝 Hook: เปิดเผยความลับ... กำลังสร้าง','📅 Scheduler: 5 โพสรออยู่','🔥 วิวสะสมวันนี้ +4,200'],
 };
+const tIdx = { pos:0, aff:0, chat:0, auto:0 };
 
-const tickers = { pos: 0, aff: 0, chat: 0, auto: 0 };
+// ─── UTILS ────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmtB = n => '฿' + Number(n).toLocaleString('th-TH',{maximumFractionDigits:0});
 
-// ─── UTILS ─────────────────────────────────────────────────────────────────────
-function fmt(n) {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return String(Math.round(n));
-}
-
-function fmtBaht(n) {
-  return '฿' + Number(n).toLocaleString('th-TH', { maximumFractionDigits: 0 });
-}
+function addTimer(fn, ms) { const id = setInterval(fn, ms); S.timers.push(id); return id; }
+function clearTimers() { S.timers.forEach(clearInterval); S.timers = []; }
 
 function log(msg) {
-  const el = document.getElementById('vLogArea');
-  if (!el) return;
-  const ts = new Date().toTimeString().slice(0, 5);
-  el.innerHTML = `[${ts}] ${msg}\n` + el.innerHTML;
+  const el = $('log-box'); if (!el) return;
+  const t = new Date().toTimeString().slice(0,5);
+  el.innerHTML = `[${t}] ${msg}\n` + el.innerHTML;
 }
 
-function addTimer(fn, ms) {
-  const id = setInterval(fn, ms);
-  S.timers.push(id);
-  return id;
-}
-
-function clearAllTimers() {
-  S.timers.forEach(clearInterval);
-  S.timers = [];
-}
-
-// ─── TOKEN ─────────────────────────────────────────────────────────────────────
-window.addEventListener('message', function (e) {
-  if (e.data && e.data.type === 'viiv_token') {
+// ─── TOKEN ────────────────────────────────────────────────────────────
+window.addEventListener('message', e => {
+  if (e.data?.type === 'viiv_token') {
     S.token = e.data.token;
     log('token received');
     fetchSales();
   }
 });
 
-// ─── API ───────────────────────────────────────────────────────────────────────
+// ─── API ──────────────────────────────────────────────────────────────
 async function fetchSales() {
   if (!S.token) return;
   try {
     const res = await fetch('/api/pos/bills/list?limit=200', {
-      headers: { Authorization: 'Bearer ' + S.token },
+      headers: { Authorization: 'Bearer ' + S.token }
     });
     if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    const today = new Date().toISOString().slice(0, 10);
-    let todaySales = 0, todayOrders = 0, monthSales = 0, monthOrders = 0;
-    const thisMonth = new Date().toISOString().slice(0, 7);
-    (data.data || data || []).forEach(bill => {
-      if (bill.status === 'void') return;
-      const d = (bill.created_at || '').slice(0, 10);
-      const m = (bill.created_at || '').slice(0, 7);
-      const amt = parseFloat(bill.total || 0);
-      if (m === thisMonth) { monthSales += amt; monthOrders++; }
-      if (d === today)     { todaySales += amt; todayOrders++; }
+    const body = await res.json();
+    const today = new Date().toISOString().slice(0,10);
+    const month = new Date().toISOString().slice(0,7);
+    let ts=0,to=0,ms=0,mo=0;
+    (body.data || body || []).forEach(b => {
+      if (b.status === 'void') return;
+      const amt = parseFloat(b.total || 0);
+      const d = (b.created_at||'').slice(0,10);
+      const m = (b.created_at||'').slice(0,7);
+      if (m===month) { ms+=amt; mo++; }
+      if (d===today) { ts+=amt; to++; }
     });
-    S.kpi.todaySales = todaySales;
-    S.kpi.todayOrders = todayOrders;
-    S.kpi.monthSales = monthSales;
-    S.kpi.monthOrders = monthOrders;
-    updatePOSCard();
-    updateHub();
-    log('API OK — today: ' + fmtBaht(todaySales));
-  } catch (err) {
-    log('API err: ' + err.message);
-  }
+    S.kpi.todaySales=ts; S.kpi.todayOrders=to;
+    S.kpi.monthSales=ms; S.kpi.monthOrders=mo;
+    renderPOS(); renderHub(); log('API OK — ' + fmtB(ts));
+  } catch(e) { log('API err: '+e.message); }
 }
 
-// ─── STAFF ─────────────────────────────────────────────────────────────────────
-function buildStaff(containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
+// ─── STAFF ────────────────────────────────────────────────────────────
+function renderStaff(containerId) {
+  const el = $(containerId); if (!el) return;
   el.innerHTML = '';
-  S.staffData.forEach((s, i) => {
-    const idle = Date.now() - S.staffLastActive[i];
-    const away = idle > 45 * 60000;
-    const div = document.createElement('div');
-    div.className = 'vAvatar' + (away ? ' away' : '');
-    div.title = s.name + (away ? ' (away)' : ' (online)');
-    div.textContent = s.id;
-    div.setAttribute('data-idx', i);
-    el.appendChild(div);
+  let online = 0;
+  S.staffData.forEach((s,i) => {
+    const away = S.staffIdle[i] > 45*60000;
+    if (!away) online++;
+    const d = document.createElement('div');
+    d.className = 'av' + (away?' away':'');
+    d.title = s.name + (away?' (away)':' (online)');
+    d.textContent = s.id;
+    el.appendChild(d);
   });
-  const onlineCount = S.staffData.reduce((acc, _, i) => {
-    const idle = Date.now() - S.staffLastActive[i];
-    return acc + (idle <= 45 * 60000 ? 1 : 0);
-  }, 0);
-  S.kpi.staffOnline = onlineCount;
+  S.kpi.staffOnline = online;
+}
+function renderAllStaff() {
+  ['staff-pos','staff-aff','staff-chat','staff-auto'].forEach(renderStaff);
 }
 
-function refreshAllStaff() {
-  ['vStaff-pos', 'vStaff-aff', 'vStaff-chat', 'vStaff-auto'].forEach(buildStaff);
-}
-
-// ─── AI MINI BOTS ──────────────────────────────────────────────────────────────
-function buildAiMini(containerId, count) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
+// ─── AI MINI BOTS ─────────────────────────────────────────────────────
+const BOT_COLORS = ['vc-b','vc-g','vc-o','vc-p'];
+function renderBots(containerId, count) {
+  const el = $(containerId); if (!el) return;
   el.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const bot = document.createElement('div');
-    bot.className = 'vBot';
-    bot.style.animationDelay = (i * 0.25) + 's';
-    bot.innerHTML = `<div class="vBot-head"></div><div class="vBot-body"></div>`;
-    el.appendChild(bot);
+  for (let i=0; i<count; i++) {
+    const c = BOT_COLORS[i % BOT_COLORS.length];
+    const d = document.createElement('div');
+    d.className = `bm ${c}`;
+    d.style.animationDelay = (i*0.22)+'s';
+    d.innerHTML = `<div class="bh"></div><div class="bb"></div>`;
+    el.appendChild(d);
   }
 }
 
-function buildAITeam() {
-  const count = S.loadAiCount[S.load];
-  const row = document.getElementById('vAIBotRow');
-  if (!row) return;
+// ─── AI TEAM (large, with names) ──────────────────────────────────────
+const AI_NAMES = ['AIControl','AI Support','AI POS','AI แชท','AI Post','AI SEO','AI Aff','AI Hub'];
+const LG_COLORS = ['lc-b','lc-g','lc-o','lc-p','lc-b','lc-g','lc-o','lc-p'];
+function renderAITeam() {
+  const count = LOAD_AI[S.load];
+  const row = $('ai-bot-row'); if (!row) return;
   row.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const bot = document.createElement('div');
-    bot.className = 'vBotLg';
-    bot.style.animationDelay = (i * 0.2) + 's';
-    bot.innerHTML = `<div class="vBotLg-head"></div><div class="vBotLg-body"></div>`;
-    row.appendChild(bot);
+  for (let i=0; i<count; i++) {
+    const d = document.createElement('div');
+    d.className = `bl ${LG_COLORS[i]}`;
+    d.style.animationDelay = (i*0.2)+'s';
+    d.innerHTML = `<div class="blh"></div><div class="blb"></div><div class="bn">${AI_NAMES[i]||'AI'}</div>`;
+    row.appendChild(d);
   }
-  const countEl = document.getElementById('vAICount');
-  if (countEl) countEl.textContent = count + ' AI ONLINE';
+  const u = $('ai-units');
+  if (u) u.textContent = count + ' units';
 }
 
-// ─── WALK BOTS (on X lines) ───────────────────────────────────────────────────
-function getXLinePoints() {
-  const body = document.getElementById('vDashBody');
-  if (!body) return [];
-  const rect = body.getBoundingClientRect();
-  const W = rect.width, H = rect.height;
-  const headerH = 48;
-  // Line 1: top-left → bottom-right
-  // Line 2: top-right → bottom-left
+// ─── X LINES ──────────────────────────────────────────────────────────
+// Returns absolute coords of both diagonals in viewport (below header)
+function getLines() {
+  const hh = 46;
+  const W = window.innerWidth;
+  const H = window.innerHeight - hh;
   return [
-    { x1: 0, y1: headerH, x2: W, y2: headerH + H },
-    { x1: W, y1: headerH, x2: 0, y2: headerH + H },
+    { x1:0,      y1:hh,    x2:W, y2:hh+H },   // TL → BR
+    { x1:W,      y1:hh,    x2:0, y2:hh+H },   // TR → BL
   ];
 }
 
-function clearWalkBots() {
-  S.walkBots.forEach(b => b.remove());
-  S.walkBots = [];
-}
-
-function spawnWalkBot(lineIdx) {
-  const lines = getXLinePoints();
-  if (!lines.length) return;
-  const line = lines[lineIdx % 2];
-  const bot = document.createElement('div');
-  bot.className = 'vWalkBot';
-  bot.innerHTML = `<div class="vWalkBot-head"></div><div class="vWalkBot-body"></div>`;
-  document.body.appendChild(bot);
-  S.walkBots.push(bot);
-
-  const reverse = Math.random() > 0.5;
-  const duration = S.load === 'high' ? 4000 : S.load === 'mid' ? 6000 : 9000;
-  const start = performance.now();
-
-  function animate(now) {
-    if (!bot.isConnected) return;
-    let t = (now - start) / duration;
-    if (t > 1) { bot.remove(); S.walkBots = S.walkBots.filter(b => b !== bot); return; }
-    if (reverse) t = 1 - t;
-    const x = line.x1 + (line.x2 - line.x1) * t;
-    const y = line.y1 + (line.y2 - line.y1) * t;
-    bot.style.left = (x - 8) + 'px';
-    bot.style.top  = (y - 20) + 'px';
-    requestAnimationFrame(animate);
-  }
-  requestAnimationFrame(animate);
-}
-
-function manageWalkBots() {
-  const max = S.loadAiCount[S.load];
-  if (S.walkBots.length < max / 2) {
-    spawnWalkBot(Math.floor(Math.random() * 2));
-  }
-}
-
-// ─── FLOW DOTS ─────────────────────────────────────────────────────────────────
-function spawnFlowDot() {
-  const lines = getXLinePoints();
-  if (!lines.length) return;
-  const line = lines[Math.floor(Math.random() * 2)];
-  const dot = document.createElement('div');
-  dot.className = 'vFlowDot';
-  document.body.appendChild(dot);
-  S.flowDots.push(dot);
-
-  const reverse = Math.random() > 0.5;
-  const duration = 1500 + Math.random() * 2000;
-  const start = performance.now();
-
-  function animate(now) {
-    if (!dot.isConnected) return;
-    let t = (now - start) / duration;
-    if (t > 1) { dot.remove(); S.flowDots = S.flowDots.filter(d => d !== dot); return; }
-    if (reverse) t = 1 - t;
-    const x = line.x1 + (line.x2 - line.x1) * t;
-    const y = line.y1 + (line.y2 - line.y1) * t;
-    dot.style.left = (x - 3) + 'px';
-    dot.style.top  = (y - 3) + 'px';
-    requestAnimationFrame(animate);
-  }
-  requestAnimationFrame(animate);
-}
-
-// ─── TICKER ────────────────────────────────────────────────────────────────────
-function rotateTicker(cardKey) {
-  const el = document.getElementById('vTicker-' + cardKey);
-  if (!el) return;
-  const inner = el.querySelector('.vTickerInner');
-  if (!inner) return;
-  inner.classList.add('fade-out');
-  setTimeout(() => {
-    const arr = TICKERS[cardKey];
-    tickers[cardKey] = (tickers[cardKey] + 1) % arr.length;
-    inner.textContent = arr[tickers[cardKey]];
-    inner.classList.remove('fade-out');
-    inner.classList.add('fade-in');
-    setTimeout(() => inner.classList.remove('fade-in'), 300);
-  }, 300);
-}
-
-function setupTickers() {
-  const delays = { pos: 2000, aff: 3500, chat: 2800, auto: 4200 };
-  Object.keys(delays).forEach(k => {
-    addTimer(() => rotateTicker(k), delays[k] + Math.random() * 1500);
-  });
-}
-
-// ─── UPDATE CARD CONTENT ──────────────────────────────────────────────────────
-function updatePOSCard() {
-  const elSales  = document.getElementById('vPOSSales');
-  const elOrders = document.getElementById('vKPI-pos-orders');
-  const elMsales = document.getElementById('vKPI-pos-msales');
-  const elMorder = document.getElementById('vKPI-pos-morder');
-  const elStaff  = document.getElementById('vKPI-pos-staff');
-  if (elSales)  elSales.innerHTML  = fmtBaht(S.kpi.todaySales) + ' <span>วันนี้</span>';
-  if (elOrders) elOrders.textContent = S.kpi.todayOrders;
-  if (elMsales) elMsales.textContent = fmtBaht(S.kpi.monthSales);
-  if (elMorder) elMorder.textContent = S.kpi.monthOrders;
-  if (elStaff)  elStaff.textContent  = S.kpi.staffOnline + ' คน';
-}
-
-function updateHub() {
-  const total  = document.getElementById('vHubTotal');
-  const orders = document.getElementById('vHubOrders');
-  if (total)  total.textContent  = fmtBaht(S.kpi.todaySales);
-  if (orders) orders.textContent = 'ออเดอร์ ' + S.kpi.todayOrders;
-}
-
-// ─── CLOCK ─────────────────────────────────────────────────────────────────────
-function updateClock() {
-  const el = document.getElementById('vClock');
-  if (!el) return;
-  const now = new Date();
-  el.textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-
-// ─── LOAD LEVEL ───────────────────────────────────────────────────────────────
-function setLoad(level) {
-  S.load = level;
-  // update buttons
-  document.querySelectorAll('[data-load]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.load === level);
-  });
-  buildAITeam();
-  log('Load set: ' + level);
-}
-
-// ─── POPUP ─────────────────────────────────────────────────────────────────────
-function togglePopup() {
-  const el = document.getElementById('vPopup');
-  if (!el) return;
-  S.popOpen = !S.popOpen;
-  el.classList.toggle('open', S.popOpen);
-}
-
-function resetDash() {
-  S.staffLastActive = S.staffLastActive.map(() => Date.now());
-  refreshAllStaff();
-  updatePOSCard();
-  updateHub();
-  fetchSales();
-  log('Dashboard reset');
-}
-
-// ─── X LINE SVG ───────────────────────────────────────────────────────────────
 function drawXLines() {
-  const svg = document.getElementById('vXLines');
-  if (!svg) return;
-  const W = svg.offsetWidth || window.innerWidth;
-  const H = svg.offsetHeight || window.innerHeight - 48;
+  const svg = $('xsvg'); if (!svg) return;
+  const hh = 46;
+  const W = window.innerWidth;
+  const H = window.innerHeight - hh;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = `
     <line x1="0" y1="0" x2="${W}" y2="${H}"
-      stroke="rgba(201,168,76,0.12)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      stroke="rgba(201,168,76,0.18)" stroke-width="1.5" stroke-dasharray="7 5"/>
     <line x1="${W}" y1="0" x2="0" y2="${H}"
-      stroke="rgba(201,168,76,0.12)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      stroke="rgba(201,168,76,0.18)" stroke-width="1.5" stroke-dasharray="7 5"/>
   `;
 }
 
-// ─── BOOT ─────────────────────────────────────────────────────────────────────
+// ─── WALKING BOTS ─────────────────────────────────────────────────────
+const WB_COLORS = ['wb-b','wb-g','wb-o','wb-p'];
+function spawnWalker() {
+  const max = LOAD_AI[S.load];
+  if (S.walkers.length >= max) return;
+  const lines = getLines();
+  const line = lines[Math.floor(Math.random()*2)];
+  const rev  = Math.random() > 0.5;
+  const dur  = S.load==='high' ? 4500 : S.load==='mid' ? 6500 : 9000;
+  const col  = WB_COLORS[Math.floor(Math.random()*4)];
+
+  const el = document.createElement('div');
+  el.className = `wbot ${col}`;
+  el.innerHTML = `<div class="wbh"></div><div class="wbb"></div>`;
+  document.body.appendChild(el);
+  S.walkers.push(el);
+
+  const t0 = performance.now();
+  function tick(now) {
+    if (!el.isConnected) return;
+    let p = (now-t0)/dur;
+    if (p >= 1) { el.remove(); S.walkers = S.walkers.filter(w=>w!==el); return; }
+    if (rev) p = 1-p;
+    el.style.left = (line.x1 + (line.x2-line.x1)*p - 7) + 'px';
+    el.style.top  = (line.y1 + (line.y2-line.y1)*p - 13) + 'px';
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ─── FLOW DOTS ────────────────────────────────────────────────────────
+function spawnDot() {
+  const lines = getLines();
+  const line = lines[Math.floor(Math.random()*2)];
+  const rev  = Math.random() > 0.5;
+  const dur  = 1200 + Math.random()*2000;
+
+  const el = document.createElement('div');
+  el.className = 'fdot';
+  document.body.appendChild(el);
+  S.dots.push(el);
+
+  const t0 = performance.now();
+  function tick(now) {
+    if (!el.isConnected) return;
+    let p = (now-t0)/dur;
+    if (p >= 1) { el.remove(); S.dots = S.dots.filter(d=>d!==el); return; }
+    if (rev) p = 1-p;
+    el.style.left = (line.x1 + (line.x2-line.x1)*p - 3.5) + 'px';
+    el.style.top  = (line.y1 + (line.y2-line.y1)*p - 3.5) + 'px';
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ─── TICKER ───────────────────────────────────────────────────────────
+function rotateTicker(key) {
+  const el = $('ticker-'+key); if (!el) return;
+  el.classList.add('out');
+  setTimeout(() => {
+    const arr = TICKERS[key];
+    tIdx[key] = (tIdx[key]+1) % arr.length;
+    el.textContent = arr[tIdx[key]];
+    el.classList.remove('out');
+  }, 300);
+}
+function startTickers() {
+  const delays = { pos:2000, aff:3600, chat:2700, auto:4300 };
+  Object.keys(delays).forEach(k => {
+    // initial text
+    const el = $('ticker-'+k);
+    if (el) el.textContent = TICKERS[k][0];
+    addTimer(() => rotateTicker(k), delays[k] + Math.random()*1000);
+  });
+}
+
+// ─── RENDER CARDS ─────────────────────────────────────────────────────
+function renderPOS() {
+  const s = $('pos-sales');   if (s) s.innerHTML = fmtB(S.kpi.todaySales)+'<small> ยอดขายวันนี้</small>';
+  const b = $('pos-badge');   if (b) b.textContent = fmtB(S.kpi.todaySales);
+  const o = $('pos-orders');  if (o) o.textContent = S.kpi.todayOrders;
+  const ms= $('pos-msales');  if (ms) ms.textContent = fmtB(S.kpi.monthSales);
+  const mo= $('pos-morder');  if (mo) mo.textContent = S.kpi.monthOrders;
+  const st= $('pos-staff');   if (st) st.textContent = S.kpi.staffOnline + ' คน';
+}
+function renderHub() {
+  const t = $('hub-total');  if (t) t.textContent = fmtB(S.kpi.todaySales);
+  const o = $('hub-orders'); if (o) o.textContent = S.kpi.todayOrders + ' orders';
+}
+
+// ─── CLOCK ────────────────────────────────────────────────────────────
+function tick() {
+  const el = $('clock'); if (!el) return;
+  el.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ─── LOAD LEVEL ───────────────────────────────────────────────────────
+function setLoad(lv) {
+  S.load = lv;
+  document.querySelectorAll('[data-lv]').forEach(b => b.classList.toggle('on', b.dataset.lv===lv));
+  renderAITeam();
+  log('Load: ' + lv);
+}
+
+// ─── POPUP ────────────────────────────────────────────────────────────
+function togglePopup() {
+  const p = $('popup'); if (!p) return;
+  p.classList.toggle('open');
+}
+function resetDash() {
+  S.staffIdle = S.staffIdle.map(()=>0);
+  renderAllStaff();
+  fetchSales();
+  log('Reset OK');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────
 function init() {
-  clearAllTimers();
+  clearTimers();
+
+  // date badge
+  const db = $('date-badge');
+  if (db) db.textContent = new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
 
   // clock
-  updateClock();
-  addTimer(updateClock, 1000);
+  tick(); addTimer(tick, 1000);
 
   // staff
-  refreshAllStaff();
-  addTimer(refreshAllStaff, 30000);
+  renderAllStaff(); addTimer(renderAllStaff, 30000);
 
-  // AI mini bots per card
-  buildAiMini('vAI-pos', 3);
-  buildAiMini('vAI-aff', 3);
-  buildAiMini('vAI-chat', 4);
-  buildAiMini('vAI-auto', 6);
+  // bot mini per card
+  renderBots('bots-pos', 2);
+  renderBots('bots-aff', 3);
+  renderBots('bots-chat',4);
+  renderBots('bots-auto',6);
 
-  // AI team (hub)
-  buildAITeam();
+  // ai team
+  renderAITeam();
 
-  // draw X lines
+  // X lines
   drawXLines();
   window.addEventListener('resize', drawXLines);
 
   // tickers
-  setupTickers();
+  startTickers();
 
-  // walk bots
-  addTimer(manageWalkBots, 2000);
+  // walkers & dots
+  addTimer(spawnWalker, 2200);
+  addTimer(spawnDot,    700);
 
-  // flow dots
-  addTimer(spawnFlowDot, 800);
-
-  // API polling
+  // api
   fetchSales();
   addTimer(fetchSales, 30000);
 
-  // initial KPI render
-  updatePOSCard();
-  updateHub();
+  // initial render
+  renderPOS(); renderHub();
 
-  log('Dashboard v1.12 init OK');
+  log('Dashboard v2 init OK');
 }
 
-// ─── EXPOSE GLOBALS ───────────────────────────────────────────────────────────
-window.vDash = { setLoad, togglePopup, resetDash, log, fetchSales };
+// expose
+window.vDash = { setLoad, togglePopup, resetDash, fetchSales };
 
-// boot when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+document.readyState === 'loading'
+  ? document.addEventListener('DOMContentLoaded', init)
+  : init();
