@@ -65,7 +65,7 @@ body{margin:0;padding:0;}
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 if(!TOKEN){ setTimeout(function(){ TOKEN=localStorage.getItem('viiv_token')||''; },300); }
-var _bill=null, _store=null, _form=1;
+var _bill=null, _store=null, _form=1, _banks=[];
 
 function fmt(n){ return (parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2}); }
 function buildBankBlock(store, banks){
@@ -93,7 +93,6 @@ function fmtDateTime(d){ return d?new Date(d).toLocaleString('th-TH'):''; }
 window.loadData = async function loadData(bid){
   var status=document.getElementById('printStatus');
   if(status) status.textContent='กำลังโหลด...';
-  var _banks=[];
   try{
     var [bRes,sRes,bankRes]=await Promise.all([
       fetch(API+'/api/pos/bills/detail/'+bid,{headers:{'Authorization':'Bearer '+TOKEN}}),

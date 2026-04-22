@@ -1,203 +1,76 @@
 nohup: ignoring input
-INFO:     Started server process [2480236]
+INFO:     Started server process [2616745]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     104.23.229.20:0 - "GET /api/.env HTTP/1.1" 404 Not Found
-INFO:     104.23.229.20:0 - "GET /api/config.php HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/info HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/.env.back HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/.env.example HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/.env.sample HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/.env.save HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/debug HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/docs/ HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/env HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/info.php HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/internal/ HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/keys HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/private/ HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/src/.env HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/debug HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v2/.env HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1 HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/service HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/system/info HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/gateway HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/command HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin/user HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin/user/password HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin/user/status HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin/auth HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin/role HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin/role/id HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/admin HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/sms-sender HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/finchat/contact/manager HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/finchat/privilege-api/forwarder HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/finchat/privilege-api/forwarder/event HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/finchat/open-api HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/upload HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/savefile HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/files HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/files.remote.share HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/netdisk/download HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/.git/config HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/finchat/open-api/auth/token HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/account/oauth/token HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/account/oauth/ticket HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/tokens HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/login HTTP/1.1" 405 Method Not Allowed
-INFO:     104.23.229.106:0 - "GET /api/auth HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/authentication HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/auth/v1/pin/verify HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/register HTTP/1.1" 405 Method Not Allowed
-INFO:     104.23.229.106:0 - "GET /api/resetpassword HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/config.json HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/secrets.json HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/user HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/workflows HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/executions HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/v1/credentials HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/auth/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/users/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/data/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/webhook/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/serverless/%2A HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/credentials HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /API/.env HTTP/1.1" 404 Not Found
-INFO:     172.71.232.29:0 - "GET /API/common.js HTTP/1.1" 404 Not Found
-INFO:     172.71.232.75:0 - "GET /API/config.js HTTP/1.1" 404 Not Found
-INFO:     104.23.229.13:0 - "GET /API/config/common.js HTTP/1.1" 404 Not Found
-INFO:     172.71.134.216:0 - "GET /API/config/constants.js HTTP/1.1" 404 Not Found
-INFO:     172.71.127.131:0 - "GET /API/config/database.js HTTP/1.1" 404 Not Found
-INFO:     172.71.122.90:0 - "GET /API/constants.js HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /Api/.env HTTP/1.1" 404 Not Found
-INFO:     172.71.119.50:0 - "GET /api/common.js HTTP/1.1" 404 Not Found
-INFO:     172.71.122.232:0 - "GET /api/config.js HTTP/1.1" 404 Not Found
-INFO:     172.68.151.156:0 - "GET /api/config/common.js HTTP/1.1" 404 Not Found
-INFO:     141.101.96.29:0 - "GET /api/config/constants.js HTTP/1.1" 404 Not Found
-INFO:     172.71.232.25:0 - "GET /api/constant.js HTTP/1.1" 404 Not Found
-INFO:     172.71.232.52:0 - "GET /api/constants.js HTTP/1.1" 404 Not Found
-INFO:     172.68.151.167:0 - "GET /api/env.js HTTP/1.1" 404 Not Found
-INFO:     172.71.135.2:0 - "GET /api/node/common.js HTTP/1.1" 404 Not Found
-INFO:     172.71.126.167:0 - "GET /api/node/config.js HTTP/1.1" 404 Not Found
-INFO:     172.71.127.86:0 - "GET /api/node/constant.js HTTP/1.1" 404 Not Found
-INFO:     172.71.119.38:0 - "GET /api/node/constants.js HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/phpinfo.php HTTP/1.1" 404 Not Found
-INFO:     172.71.127.156:0 - "GET /api/server.js HTTP/1.1" 404 Not Found
-INFO:     104.23.229.106:0 - "GET /api/settings.py HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     40.124.186.100:46160 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     45.135.193.118:34476 - "GET / HTTP/1.0" 404 Not Found
-INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.233.12.14:39238 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.233.12.14:39254 - "GET /login HTTP/1.1" 404 Not Found
-INFO:     172.233.12.14:39268 - "GET /AGENTS.md HTTP/1.1" 404 Not Found
-INFO:     140.238.99.210:50002 - "GET / HTTP/1.1" 404 Not Found
-INFO:     3.131.220.121:35264 - "GET / HTTP/1.1" 404 Not Found
-INFO:     3.131.220.121:35278 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.147:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     172.68.44.147:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 401 Unauthorized
 WARNING:  Invalid HTTP request received.
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     16.58.56.214:39562 - "GET / HTTP/1.1" 404 Not Found
-INFO:     16.58.56.214:50938 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     141.101.104.94:0 - "GET /.env HTTP/1.1" 404 Not Found
-INFO:     172.69.166.95:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     108.162.226.188:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     64.62.156.24:16804 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     64.62.156.37:38321 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-INFO:     64.62.156.29:26327 - "GET /?format=json HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-WARNING:  Invalid HTTP request received.
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57096 - "HEAD /uploads/store/qr/qr_ten_1_new_1776745214.png HTTP/1.1" 200 OK
+INFO:     162.158.108.124:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.124:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.124:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
