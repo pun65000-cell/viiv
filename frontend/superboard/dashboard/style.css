@@ -263,15 +263,44 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
     min-height:auto;width:100%;
   }
   .card{min-height:auto;flex-shrink:0;width:100%;}
+  /* Hub — เปลี่ยนเป็น summary card แนวนอนบนมือถือ */
   #hub{
-    height:clamp(150px,45vw,220px);
     flex-shrink:0;width:100%;
-    display:flex;align-items:center;justify-content:center;
+    height:auto;min-height:0;
+    display:block;
   }
   #hub-ring{
-    width:clamp(130px,40vw,200px);
-    height:clamp(130px,40vw,200px);
+    display:none;
   }
+  #hub::after{
+    content:'';display:none;
+  }
+  #hub-content{
+    position:relative;inset:auto;
+    animation:none;transform:none;
+    display:flex;flex-direction:row;
+    align-items:center;justify-content:space-between;
+    background:var(--card);
+    border:1.5px solid var(--bdr);
+    border-radius:var(--r);
+    padding:14px 18px;
+    gap:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
+  }
+  .hub-title{
+    font-family:'Chakra Petch',sans-serif;
+    font-size:var(--fs-xs);color:var(--gold-d);
+    letter-spacing:.18em;text-transform:uppercase;
+    margin-bottom:2px;
+  }
+  .hub-sub{font-size:var(--fs-xs);color:var(--muted);}
+  .hub-lbl{font-size:var(--fs-xs);color:var(--muted);display:none;}
+  .hub-total{
+    font-family:'Chakra Petch',sans-serif;
+    font-size:var(--fs-xl);font-weight:700;color:var(--gold);
+    line-height:1;
+  }
+  .hub-ord{font-size:var(--fs-xs);color:var(--muted);margin-top:2px;}
   #ai-team{
     flex-shrink:0;width:100%;
     height:auto;max-height:none;
