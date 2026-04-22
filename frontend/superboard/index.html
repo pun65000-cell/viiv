@@ -17,7 +17,7 @@
   </script>
 <style>
 /* === CONTENT FONT SCALE === */
-#sbContent, #sbContent * { font-size: 15px !important; }
+#sbContent:not(.home-fullscreen), #sbContent:not(.home-fullscreen) * { font-size: 15px !important; }
 #sbContent th { font-size: 13px !important; }
 #sbContent .pos-tab, #sbContent .pos-sub-tab { font-size: 13px !important; }
 </style>
@@ -197,6 +197,8 @@ window.sbNav = function(page){
   document.querySelectorAll('.sb-nav-item').forEach(function(el){ el.classList.toggle('active', el.dataset.page===page); });
   closeDD();
   var c = document.getElementById('sbContent');
+  if(page==='home'){c.classList.add('home-fullscreen');}
+  else{c.classList.remove('home-fullscreen');}
   c.innerHTML = '<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-spinner"></div><div class="spa-loader-title">กำลังโหลด</div></div></div>';
   var el=document.getElementById('sbContent');
     if(page==='home'){el.classList.add('home-fullscreen');}
