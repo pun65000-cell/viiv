@@ -185,8 +185,12 @@ app.include_router(pos_partners.router)
 from app.api import pos_receive
 from app.api import pos_line
 from app.api import pos_bank
+from modulechat.api import routes as chat_routes
+from modulepost.api import routes as post_routes
 from app.api import pos_line_settings
 app.include_router(pos_receive.router)
 app.include_router(pos_line.router, prefix="/api/line")
 app.include_router(pos_line_settings.router, prefix="/api/pos/line")
 app.include_router(pos_bank.router, prefix="/api/pos/bank")
+app.include_router(chat_routes.router, prefix="/api/chat")
+app.include_router(post_routes.router, prefix="/api/post")
