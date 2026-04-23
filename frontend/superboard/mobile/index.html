@@ -198,6 +198,13 @@ html, body {
 #toast.show { opacity: 1; }
 
 /* ── PULL TO REFRESH ── */
+#ptr-zone {
+  position:fixed;
+  top:var(--top-h); left:0; right:0;
+  height:40px;
+  z-index:190;
+  /* โปร่งใส แต่รับ touch events */
+}
 #ptr {
   position:fixed; top:calc(var(--top-h) - 50px); left:0; right:0;
   height:50px; display:flex; align-items:center; justify-content:center;
@@ -220,6 +227,8 @@ html, body {
 
 <!-- PULL TO REFRESH -->
 <div id="ptr"><div id="ptr-icon">↻</div></div>
+<!-- touch zone overlay — บาง 40px ใต้ topbar รับ swipe down -->
+<div id="ptr-zone"></div>
 
 <!-- LOADING -->
 <div id="loading">
@@ -425,22 +434,15 @@ init();
   const ptr = document.getElementById('ptr');
   const ptrIcon = document.getElementById('ptr-icon');
 
-  // ใช้ document level เพราะ iframe กิน touch events
-  // ตรวจจาก topbar area (swipe ลงจาก header)
-  let lastTouchTarget = null;
+  // ptr-zone overlay รับ touch events แทน iframe
+  const zone = document.getElementById('ptr-zone');
 
-  document.addEventListener('touchstart', e=>{
-    lastTouchTarget = e.target;
+  zone.addEventListener('touchstart', e=>{
     startY = e.touches[0].clientY;
-    pulling = false;
-    // เริ่ม pull เฉพาะเมื่อ touch บน topbar หรือ ptr zone
-    const topH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h'))||50;
-    if (startY < topH + 20) {
-      pulling = true;
-    }
+    pulling = true;
   }, {passive:true});
 
-  document.addEventListener('touchmove', e=>{
+  zone.addEventListener('touchmove', e=>{
     if (!pulling) return;
     const dy = e.touches[0].clientY - startY;
     if (dy > 5) {
@@ -451,14 +453,13 @@ init();
     }
   }, {passive:true});
 
-  document.addEventListener('touchend', e=>{
+  zone.addEventListener('touchend', e=>{
     if (!pulling) return;
     pulling = false;
     const dy = e.changedTouches[0].clientY - startY;
     if (dy >= threshold) {
       ptrIcon.classList.add('spin');
       ptrIcon.style.opacity = '1';
-      // reload active iframe
       const iframe = document.querySelector('.page.active');
       if (iframe && iframe.tagName==='IFRAME' && iframe.src) {
         const src = iframe.src;
