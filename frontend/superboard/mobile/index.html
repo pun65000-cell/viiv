@@ -307,6 +307,12 @@ window.addEventListener('message', function(e) {
     hideLoading();
   }
 
+  // back จาก child iframe
+  if (e.data.type === 'viiv_back') {
+    goPage('home');
+    return;
+  }
+
   // badge update จาก child iframe
   if (e.data.type === 'viiv_badge') {
     setBadge(e.data.module, e.data.count);
@@ -388,6 +394,15 @@ function hideLoading() {
 }
 
 // ── INIT ───────────────────────────────────────
+// ── ANDROID BACK BUTTON ──
+history.pushState({shell:'viiv'}, '');
+window.addEventListener('popstate', ()=>{
+  // กด back → กลับ home เสมอ
+  goPage('home');
+  // push state ใหม่เพื่อ intercept ครั้งต่อไป
+  setTimeout(()=>history.pushState({shell:'viiv'},''), 100);
+});
+
 function init() {
   // load home iframe immediately
   const home = document.getElementById('page-home');
@@ -410,26 +425,29 @@ init();
   const ptr = document.getElementById('ptr');
   const ptrIcon = document.getElementById('ptr-icon');
 
+  // ใช้ document level เพราะ iframe กิน touch events
+  // ตรวจจาก topbar area (swipe ลงจาก header)
+  let lastTouchTarget = null;
+
   document.addEventListener('touchstart', e=>{
-    // เริ่ม pull เฉพาะเมื่ออยู่บน scroll top
-    const iframe = document.querySelector('.page.active');
-    if (iframe) {
-      try {
-        const scrollY = iframe.contentWindow?.scrollY || 0;
-        if (scrollY > 0) return;
-      } catch(e) {}
-    }
+    lastTouchTarget = e.target;
     startY = e.touches[0].clientY;
-    pulling = true;
+    pulling = false;
+    // เริ่ม pull เฉพาะเมื่อ touch บน topbar หรือ ptr zone
+    const topH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h'))||50;
+    if (startY < topH + 20) {
+      pulling = true;
+    }
   }, {passive:true});
 
   document.addEventListener('touchmove', e=>{
     if (!pulling) return;
     const dy = e.touches[0].clientY - startY;
-    if (dy > 10) {
+    if (dy > 5) {
       ptr.classList.add('visible');
-      const rotate = Math.min(dy / threshold * 180, 360);
-      ptrIcon.style.transform = `rotate(${rotate}deg)`;
+      const pct = Math.min(dy / threshold, 1);
+      ptrIcon.style.transform = `rotate(${pct * 360}deg)`;
+      ptrIcon.style.opacity = String(pct);
     }
   }, {passive:true});
 
@@ -438,27 +456,25 @@ init();
     pulling = false;
     const dy = e.changedTouches[0].clientY - startY;
     if (dy >= threshold) {
-      // trigger refresh
       ptrIcon.classList.add('spin');
+      ptrIcon.style.opacity = '1';
+      // reload active iframe
+      const iframe = document.querySelector('.page.active');
+      if (iframe && iframe.tagName==='IFRAME' && iframe.src) {
+        const src = iframe.src;
+        iframe.src = '';
+        setTimeout(()=>{ iframe.src = src; }, 100);
+      }
       setTimeout(()=>{
-        // reload active iframe
-        const iframe = document.querySelector('.page.active');
-        if (iframe && iframe.tagName==='IFRAME') {
-          const src = iframe.src;
-          iframe.src = '';
-          setTimeout(()=>{ iframe.src=src; }, 50);
-        }
-        // reload summary data
-        if (window.vDash?.fetchSales) window.vDash.fetchSales();
-        setTimeout(()=>{
-          ptr.classList.remove('visible');
-          ptrIcon.classList.remove('spin');
-          ptrIcon.style.transform='';
-        }, 1200);
-      }, 300);
+        ptr.classList.remove('visible');
+        ptrIcon.classList.remove('spin');
+        ptrIcon.style.transform='';
+        ptrIcon.style.opacity='';
+      }, 1000);
     } else {
       ptr.classList.remove('visible');
       ptrIcon.style.transform='';
+      ptrIcon.style.opacity='';
     }
   }, {passive:true});
 })();
