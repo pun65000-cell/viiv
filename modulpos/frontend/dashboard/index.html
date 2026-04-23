@@ -271,16 +271,14 @@ window.addEventListener('message', e => {
 });
 
 // ── BACK BUTTON (Android) ──
-// Push state เพื่อ intercept back button
-history.pushState({pos:'home'}, '');
+// ถ้าอยู่ใน shell iframe → ส่ง message ขึ้นไปให้ parent จัดการ
 window.addEventListener('popstate', e => {
-  if (S.history.length > 0) {
-    // มี history → กลับหน้าก่อน
+  if (S.inIframe) {
+    window.parent.postMessage({type:'viiv_back'}, '*');
+  } else if (S.history.length > 0) {
     goBack();
-    // push state ใหม่เพื่อ intercept ครั้งต่อไป
     history.pushState({pos:'page'}, '');
   } else {
-    // ไม่มี history → อยู่หน้าหลักแล้ว push กลับเพื่อไม่ให้ออก
     history.pushState({pos:'home'}, '');
   }
 });
