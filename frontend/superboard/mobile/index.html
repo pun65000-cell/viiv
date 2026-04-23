@@ -13,7 +13,7 @@
 :root {
   --gold:   #c9a84c;
   --gold-d: #8a6820;
-  --gold-a: rgba(201,168,76,.16);
+  --gold-a: rgba(201,168,76,.13);
   --bg:     #f7f3eb;
   --bg2:    #efe9d8;
   --card:   #fffdf8;
@@ -23,7 +23,7 @@
   --green:  #2aaa58;
   --orange: #d86820;
   --blue:   #3878cc;
-  --nav-h:  58px;
+  --nav-h:  60px;
   --top-h:  52px;
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
@@ -46,7 +46,7 @@ html, body {
   background: var(--card);
   border-bottom: 1px solid var(--bdr);
   display: flex; align-items: center;
-  padding: 0 16px; gap: 10px;
+  padding: 0 12px; gap: 8px;
   z-index: 200;
 }
 .tb-logo {
@@ -60,7 +60,7 @@ html, body {
   font-size: 13px; color: var(--muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.tb-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.tb-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 #tb-clock {
   font-family: 'Chakra Petch', sans-serif;
   font-size: 13px; color: var(--txt); font-weight: 600;
@@ -79,6 +79,46 @@ html, body {
 }
 #tb-notif .dot.show { display: block; }
 
+/* ── PROFILE BUTTON ── */
+#tb-profile-wrap { position: relative; }
+#tb-profile-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 13px; font-weight: 700; color: #1a1200;
+  cursor: pointer; flex-shrink: 0;
+  overflow: hidden;
+  transition: box-shadow .15s;
+}
+#tb-profile-btn:active { box-shadow: 0 0 0 3px var(--gold-a); }
+#tb-profile-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+#profile-dropdown {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: var(--card);
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(35,25,8,.14);
+  z-index: 500; overflow: hidden;
+}
+#profile-dropdown.open { display: block; }
+.pd-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--bdr);
+}
+.pd-name { font-size: 14px; font-weight: 700; color: var(--txt); }
+.pd-role { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.pd-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; font-size: 13px; color: var(--txt);
+  cursor: pointer; transition: background .1s;
+}
+.pd-item:active { background: var(--bg2); }
+.pd-item.danger { color: var(--orange); }
+
 /* ── PAGE AREA ── */
 #pages {
   position: fixed;
@@ -88,7 +128,6 @@ html, body {
   overflow: hidden;
 }
 
-/* each page = iframe fills full area */
 .page {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
@@ -100,43 +139,43 @@ html, body {
   opacity: 1; pointer-events: auto;
 }
 
-/* ── BOTTOM NAV ── */
+/* ── BOTTOM NAV — light theme (matches PC) ── */
 #nav {
   position: fixed;
   left: 0; right: 0;
   bottom: 0;
   height: calc(var(--nav-h) + var(--safe-b));
   padding-bottom: var(--safe-b);
-  background: #1a1206;
-  border-top: 1.5px solid rgba(201,168,76,.35);
+  background: var(--card);
+  border-top: 1.5px solid var(--bdr);
   display: flex; align-items: stretch;
   z-index: 200;
-  box-shadow: 0 -4px 20px rgba(0,0,0,.25);
+  box-shadow: 0 -2px 12px rgba(35,25,8,.07);
 }
 
 .nav-btn {
   flex: 1;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 2px; cursor: pointer;
+  gap: 3px; cursor: pointer;
   background: none; border: none;
   padding: 6px 2px 4px;
   position: relative;
   transition: background .15s;
   -webkit-tap-highlight-color: transparent;
   min-width: 0;
+  border-radius: 0;
 }
-.nav-btn:active { background: rgba(201,168,76,.10); }
+.nav-btn:active { background: var(--gold-a); }
 
 .nav-icon {
   font-size: 20px; line-height: 1;
   transition: transform .2s;
-  filter: grayscale(1) brightness(1.8);
 }
 .nav-label {
-  font-family: 'Chakra Petch', sans-serif;
-  font-size: 8px; color: rgba(201,168,76,.45);
-  letter-spacing: .04em; text-transform: uppercase;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: .01em;
   transition: color .2s;
   white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; max-width: 100%;
@@ -152,14 +191,15 @@ html, body {
 .nav-badge.show { display: block; }
 
 /* active state */
-.nav-btn.active .nav-icon  { filter: none; transform: translateY(-2px); }
-.nav-btn.active .nav-label { color: var(--gold); }
+.nav-btn.active { background: var(--gold-a); }
+.nav-btn.active .nav-icon  { transform: translateY(-2px); }
+.nav-btn.active .nav-label { color: var(--gold); font-weight: 700; }
 .nav-btn.active::after {
   content: '';
-  position: absolute; top: 0; left: 15%; right: 15%;
-  height: 2px;
+  position: absolute; top: 0; left: 20%; right: 20%;
+  height: 2.5px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  border-radius: 0 0 2px 2px;
+  border-radius: 0 0 3px 3px;
 }
 
 /* ── LOADING SCREEN ── */
@@ -203,7 +243,6 @@ html, body {
   top:var(--top-h); left:0; right:0;
   height:40px;
   z-index:190;
-  /* โปร่งใส แต่รับ touch events */
 }
 #ptr {
   position:fixed; top:calc(var(--top-h) - 50px); left:0; right:0;
@@ -212,22 +251,127 @@ html, body {
 }
 #ptr-icon {
   width:32px; height:32px; border-radius:50%;
-  background:#1a1206; border:1.5px solid rgba(201,168,76,.4);
+  background:var(--card); border:1.5px solid var(--bdr);
   display:flex; align-items:center; justify-content:center;
-  font-size:16px; opacity:0; transition:opacity .2s;
-  animation:none;
+  font-size:16px; color:var(--gold); opacity:0; transition:opacity .2s;
+  box-shadow: 0 2px 8px rgba(35,25,8,.12);
 }
 #ptr-icon.spin { animation:spin .6s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
 #ptr.visible { top:calc(var(--top-h) + 4px); }
 #ptr.visible #ptr-icon { opacity:1; }
+
+/* ── PROFILE MODAL ── */
+#profile-modal {
+  display:none; position:fixed; inset:0;
+  background:rgba(35,25,8,.5);
+  z-index:9999; align-items:flex-end; justify-content:center;
+  padding-bottom: var(--safe-b);
+}
+#profile-modal.open { display:flex; }
+.pm-sheet {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 520px;
+  padding: 0 0 24px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  animation: sheetUp .25s ease;
+}
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.pm-handle {
+  display:flex; justify-content:center; padding:10px 0 4px;
+}
+.pm-handle-bar {
+  width:36px; height:4px; border-radius:2px;
+  background: var(--bdr);
+}
+.pm-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 8px 18px 14px;
+  border-bottom: 1px solid var(--bdr);
+}
+.pm-title { font-size:16px; font-weight:700; color:var(--txt); }
+.pm-close {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--bg2); border:none;
+  font-size:14px; color:var(--muted);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.pm-body { padding:16px 18px; display:flex; flex-direction:column; gap:12px; }
+.pm-avatar-row {
+  display:flex; align-items:center; gap:14px;
+  padding-bottom:12px; border-bottom:1px solid var(--bdr);
+}
+.pm-avatar {
+  width:64px; height:64px; border-radius:50%;
+  background:var(--gold); border:2.5px solid var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; font-weight:700; color:#1a1200;
+  overflow:hidden; flex-shrink:0; cursor:pointer;
+  position:relative;
+}
+.pm-avatar img { width:100%; height:100%; object-fit:cover; }
+.pm-avatar-edit {
+  position:absolute; bottom:0; right:0;
+  width:20px; height:20px; border-radius:50%;
+  background:var(--gold); border:2px solid var(--card);
+  font-size:10px; display:flex; align-items:center; justify-content:center;
+}
+.pm-avatar-info { flex:1; }
+.pm-status-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:2px 10px; border-radius:20px;
+  font-size:11px; font-weight:700;
+  background:#dcfce7; color:#166534;
+}
+.pm-status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; display:inline-block; }
+.pm-role-lbl { font-size:11px; color:var(--muted); margin-top:4px; }
+
+.pm-section-lbl {
+  font-size:11px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.04em;
+  margin-top:4px;
+}
+.pm-field {
+  display:flex; flex-direction:column; gap:3px;
+}
+.pm-field label { font-size:12px; font-weight:600; color:var(--muted); }
+.pm-field input {
+  height:40px; padding:0 12px;
+  border:1.5px solid var(--bdr); border-radius:9px;
+  background:var(--bg); color:var(--txt);
+  font-family:'Sarabun',sans-serif; font-size:14px;
+  outline:none; transition:border-color .15s;
+}
+.pm-field input:focus { border-color:var(--gold); background:var(--card); }
+.pm-field input[readonly] { color:var(--muted); background:var(--bg2); }
+.pm-row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pm-hint { font-size:10.5px; color:var(--muted); margin-top:2px; }
+.pm-divider { height:1px; background:var(--bdr); margin:4px 0; }
+.pm-actions {
+  display:flex; gap:10px; padding:0 18px;
+  margin-top:4px;
+}
+.pm-btn {
+  flex:1; height:42px; border-radius:10px;
+  font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; border:none; transition:opacity .15s;
+}
+.pm-btn:active { opacity:.8; }
+.pm-btn-cancel {
+  background:var(--bg2); color:var(--muted);
+  border:1px solid var(--bdr);
+}
+.pm-btn-save {
+  background:var(--gold); color:#1a1200;
+}
 </style>
 </head>
 <body>
 
 <!-- PULL TO REFRESH -->
 <div id="ptr"><div id="ptr-icon">↻</div></div>
-<!-- touch zone overlay — บาง 40px ใต้ topbar รับ swipe down -->
 <div id="ptr-zone"></div>
 
 <!-- LOADING -->
@@ -244,13 +388,24 @@ html, body {
   <div class="tb-right">
     <div id="tb-clock">--:--</div>
     <div id="tb-notif">🔔<div class="dot" id="notif-dot"></div></div>
+    <div id="tb-profile-wrap">
+      <div id="tb-profile-btn" onclick="toggleProfileDD()">A</div>
+      <div id="profile-dropdown">
+        <div class="pd-header">
+          <div class="pd-name" id="pd-name">Admin</div>
+          <div class="pd-role" id="pd-role">ผู้ดูแลระบบ</div>
+        </div>
+        <div class="pd-item" onclick="openProfileModal()">⚙ ตั้งค่าโปรไฟล์</div>
+        <div class="pd-item danger" onclick="doLogout()">⏻ ออกจากระบบ</div>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- PAGES (iframes) -->
 <div id="pages">
   <iframe class="page active" id="page-home" src="" data-src="/superboard/dashboard/index.html" title="Dashboard"></iframe>
-  <iframe class="page"        id="page-pos"  src="" data-src="/modulpos/dashboard/index.html"       title="POS"></iframe>
+  <iframe class="page"        id="page-pos"  src="" data-src="/modulpos/dashboard/index.html"   title="POS"></iframe>
   <iframe class="page"        id="page-chat" src="" data-src="/superboard/pages/chat.html"       title="Chat"></iframe>
   <iframe class="page"        id="page-post" src="" data-src="/superboard/pages/autopost.html"   title="AutoPost"></iframe>
   <iframe class="page"        id="page-more" src="" data-src="/superboard/pages/settings.html"   title="Settings"></iframe>
@@ -285,17 +440,97 @@ html, body {
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- PROFILE MODAL (bottom sheet) -->
+<div id="profile-modal" onclick="onModalBg(event)">
+  <div class="pm-sheet" id="pm-sheet">
+    <div class="pm-handle"><div class="pm-handle-bar"></div></div>
+    <div class="pm-header">
+      <div class="pm-title">โปรไฟล์ของฉัน</div>
+      <button class="pm-close" onclick="closeProfileModal()">✕</button>
+    </div>
+    <div class="pm-body">
+      <!-- Avatar row -->
+      <div class="pm-avatar-row">
+        <div class="pm-avatar" id="pm-avatar" onclick="document.getElementById('pm-avatar-input').click()">
+          A
+          <div class="pm-avatar-edit">✎</div>
+          <input type="file" id="pm-avatar-input" accept="image/*" style="display:none" onchange="previewAvatar(this)">
+        </div>
+        <div class="pm-avatar-info">
+          <div class="pm-status-badge" id="pm-status-badge">
+            <span class="pm-status-dot"></span> Admin · Online
+          </div>
+          <div class="pm-role-lbl" id="pm-role-lbl"></div>
+        </div>
+      </div>
+
+      <!-- ข้อมูลทั่วไป -->
+      <div class="pm-section-lbl">ข้อมูลส่วนตัว</div>
+      <div class="pm-row2">
+        <div class="pm-field">
+          <label>ชื่อ</label>
+          <input type="text" id="pm-first-name" placeholder="ชื่อ">
+        </div>
+        <div class="pm-field">
+          <label>นามสกุล</label>
+          <input type="text" id="pm-last-name" placeholder="นามสกุล">
+        </div>
+      </div>
+      <div class="pm-row2">
+        <div class="pm-field">
+          <label>เบอร์โทร</label>
+          <input type="tel" id="pm-phone" placeholder="0812345678">
+        </div>
+        <div class="pm-field">
+          <label>อีเมล</label>
+          <input type="email" id="pm-email" placeholder="email@example.com">
+        </div>
+      </div>
+      <div class="pm-field">
+        <label>ตำแหน่ง / สิทธิ์</label>
+        <input type="text" id="pm-role-field" readonly>
+        <div class="pm-hint">ปรับได้เฉพาะผู้ดูแลระบบ</div>
+      </div>
+
+      <div class="pm-divider"></div>
+
+      <!-- เปลี่ยนรหัสผ่าน -->
+      <div class="pm-section-lbl">เปลี่ยนรหัสผ่าน</div>
+      <div class="pm-field">
+        <label>รหัสผ่านปัจจุบัน</label>
+        <input type="password" id="pm-pw-old" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="pm-row2">
+        <div class="pm-field">
+          <label>รหัสผ่านใหม่</label>
+          <input type="password" id="pm-pw-new" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="pm-field">
+          <label>ยืนยันรหัสผ่าน</label>
+          <input type="password" id="pm-pw-confirm" placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="pm-hint">เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยนรหัสผ่าน</div>
+    </div>
+
+    <div class="pm-actions">
+      <button class="pm-btn pm-btn-cancel" onclick="closeProfileModal()">ยกเลิก</button>
+      <button class="pm-btn pm-btn-save" onclick="saveProfile()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── STATE ──────────────────────────────────────
 const S = {
   token: null,
   currentPage: 'home',
-  loaded: {},   // track which iframes already loaded
+  loaded: {},
 };
 
 // ── CLOCK ──────────────────────────────────────
 function tick() {
-  const e = document.getElementById('tb-clock');
+  var e = document.getElementById('tb-clock');
   if (e) e.textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 }
 tick(); setInterval(tick, 1000);
@@ -304,81 +539,52 @@ tick(); setInterval(tick, 1000);
 window.addEventListener('message', function(e) {
   if (!e.data) return;
 
-  // token จาก superboard
   if (e.data.type === 'viiv_token') {
     S.token = e.data.token;
     S.tenantId = e.data.tenant_id;
-    if (e.data.shop_name) {
-      document.getElementById('tb-shop').textContent = e.data.shop_name;
-    }
-    // forward token ไปยัง active iframe
+    if (e.data.shop_name) document.getElementById('tb-shop').textContent = e.data.shop_name;
     broadcastToken();
     hideLoading();
   }
-
-  // back จาก child iframe
-  if (e.data.type === 'viiv_back') {
-    goPage('home');
-    return;
-  }
-
-  // badge update จาก child iframe
-  if (e.data.type === 'viiv_badge') {
-    setBadge(e.data.module, e.data.count);
-  }
-
-  // toast จาก child
-  if (e.data.type === 'viiv_toast') {
-    showToast(e.data.msg);
-  }
+  if (e.data.type === 'viiv_back') { goPage('home'); return; }
+  if (e.data.type === 'viiv_badge') { setBadge(e.data.module, e.data.count); }
+  if (e.data.type === 'viiv_toast') { showToast(e.data.msg); }
 });
 
 // ── BROADCAST TOKEN ────────────────────────────
 function broadcastToken() {
   if (!S.token) return;
   document.querySelectorAll('.page').forEach(function(iframe) {
-    try {
-      iframe.contentWindow.postMessage({ type: 'viiv_token', token: S.token }, '*');
-    } catch(e) {}
+    try { iframe.contentWindow.postMessage({ type: 'viiv_token', token: S.token }, '*'); } catch(e) {}
   });
 }
 
 // ── PAGE NAVIGATION ────────────────────────────
 function goPage(name) {
   if (S.currentPage === name) return;
-
-  // hide current
-  const cur = document.getElementById('page-' + S.currentPage);
-  if (cur) { cur.classList.remove('active'); }
-
-  // deactivate nav
+  var cur = document.getElementById('page-' + S.currentPage);
+  if (cur) cur.classList.remove('active');
   document.querySelectorAll('.nav-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.page === name);
   });
-
-  // show new page
-  const next = document.getElementById('page-' + name);
+  var next = document.getElementById('page-' + name);
   if (next) {
-    // lazy load iframe
     if (!S.loaded[name]) {
-      const src = next.dataset.src;
+      var src = next.dataset.src;
       if (src) { next.src = src; S.loaded[name] = true; }
     }
     next.classList.add('active');
-    // send token to newly activated iframe
     setTimeout(function() {
-      try {
-        next.contentWindow.postMessage({ type: 'viiv_token', token: S.token }, '*');
-      } catch(e) {}
+      try { next.contentWindow.postMessage({ type: 'viiv_token', token: S.token }, '*'); } catch(e) {}
     }, 300);
   }
-
   S.currentPage = name;
+  closeAllDD();
 }
 
 // ── BADGE ──────────────────────────────────────
 function setBadge(module, count) {
-  const el = document.getElementById('badge-' + module);
+  var el = document.getElementById('badge-' + module);
   if (!el) return;
   if (count > 0) {
     el.textContent = count > 99 ? '99+' : count;
@@ -391,93 +597,196 @@ function setBadge(module, count) {
 
 // ── TOAST ──────────────────────────────────────
 function showToast(msg) {
-  const el = document.getElementById('toast');
+  var el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   setTimeout(function() { el.classList.remove('show'); }, 2500);
 }
 
 // ── LOADING ────────────────────────────────────
 function hideLoading() {
-  const el = document.getElementById('loading');
+  var el = document.getElementById('loading');
   if (el) { el.classList.add('hide'); setTimeout(function() { el.remove(); }, 500); }
 }
 
-// ── INIT ───────────────────────────────────────
-// ── ANDROID BACK BUTTON ──
-history.pushState({shell:'viiv'}, '');
-window.addEventListener('popstate', ()=>{
-  // กด back → กลับ home เสมอ
-  goPage('home');
-  // push state ใหม่เพื่อ intercept ครั้งต่อไป
-  setTimeout(()=>history.pushState({shell:'viiv'},''), 100);
+// ── DROPDOWN ───────────────────────────────────
+function toggleProfileDD() {
+  document.getElementById('profile-dropdown').classList.toggle('open');
+}
+function closeAllDD() {
+  document.getElementById('profile-dropdown').classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#tb-profile-wrap')) closeAllDD();
 });
 
+// ── PROFILE MODAL ──────────────────────────────
+function openProfileModal() {
+  closeAllDD();
+  var p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+  document.getElementById('pm-first-name').value = p.first_name || '';
+  document.getElementById('pm-last-name').value  = p.last_name  || '';
+  document.getElementById('pm-phone').value      = p.phone      || '';
+  document.getElementById('pm-email').value      = p.email      || '';
+  document.getElementById('pm-role-field').value = p.role       || '—';
+  document.getElementById('pm-pw-old').value     = '';
+  document.getElementById('pm-pw-new').value     = '';
+  document.getElementById('pm-pw-confirm').value = '';
+
+  // avatar
+  var av = document.getElementById('pm-avatar');
+  if (p.avatar_url) {
+    av.innerHTML = '<img src="' + p.avatar_url + '"><div class="pm-avatar-edit">✎</div><input type="file" id="pm-avatar-input" accept="image/*" style="display:none" onchange="previewAvatar(this)">';
+  } else {
+    av.innerHTML = (p.first_name || 'A').charAt(0).toUpperCase() + '<div class="pm-avatar-edit">✎</div><input type="file" id="pm-avatar-input" accept="image/*" style="display:none" onchange="previewAvatar(this)">';
+  }
+
+  // role label
+  var badge = document.getElementById('pm-status-badge');
+  var active = p.is_active !== false;
+  badge.style.background = active ? '#dcfce7' : '#fee2e2';
+  badge.style.color      = active ? '#166534' : '#991b1b';
+  badge.innerHTML = '<span class="pm-status-dot" style="background:' + (active ? '#22c55e' : '#ef4444') + '"></span> ' + (p.role || 'Admin') + ' · ' + (active ? 'Online' : 'Offline');
+  document.getElementById('pm-role-lbl').textContent = p.role || '';
+
+  document.getElementById('profile-modal').classList.add('open');
+}
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.remove('open');
+}
+function onModalBg(e) {
+  if (e.target === document.getElementById('profile-modal')) closeProfileModal();
+}
+function previewAvatar(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var av = document.getElementById('pm-avatar');
+    av.innerHTML = '<img src="' + e.target.result + '"><div class="pm-avatar-edit">✎</div><input type="file" id="pm-avatar-input" accept="image/*" style="display:none" onchange="previewAvatar(this)">';
+  };
+  reader.readAsDataURL(inp.files[0]);
+}
+function saveProfile() {
+  var pwNew     = document.getElementById('pm-pw-new').value.trim();
+  var pwConfirm = document.getElementById('pm-pw-confirm').value.trim();
+  var pwOld     = document.getElementById('pm-pw-old').value.trim();
+
+  if (pwNew || pwConfirm) {
+    if (!pwOld) { showToast('กรุณากรอกรหัสผ่านปัจจุบัน'); return; }
+    if (pwNew !== pwConfirm) { showToast('รหัสผ่านใหม่ไม่ตรงกัน'); return; }
+    if (pwNew.length < 6)    { showToast('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  }
+
+  var _old = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+  var p = {
+    first_name: document.getElementById('pm-first-name').value.trim(),
+    last_name:  document.getElementById('pm-last-name').value.trim(),
+    phone:      document.getElementById('pm-phone').value.trim(),
+    email:      document.getElementById('pm-email').value.trim(),
+    role:       _old.role || '',
+    status:     _old.status || 'online',
+    is_active:  _old.is_active !== false,
+  };
+  var img = document.querySelector('#pm-avatar img');
+  if (img) p.avatar_url = img.src;
+
+  localStorage.setItem('viiv_profile', JSON.stringify(p));
+  _applyProfileUI(p);
+  closeProfileModal();
+  showToast('✅ บันทึกโปรไฟล์แล้ว');
+}
+
+function _applyProfileUI(p) {
+  // update topbar profile button
+  var btn = document.getElementById('tb-profile-btn');
+  if (p.avatar_url) {
+    btn.innerHTML = '<img src="' + p.avatar_url + '">';
+  } else {
+    btn.textContent = (p.first_name || 'A').charAt(0).toUpperCase();
+  }
+  // update dropdown header
+  document.getElementById('pd-name').textContent = (p.first_name ? p.first_name + ' ' + (p.last_name || '') : 'Admin').trim();
+  document.getElementById('pd-role').textContent = p.role || 'ผู้ดูแลระบบ';
+}
+
+// ── LOGOUT ─────────────────────────────────────
+function doLogout() {
+  if (confirm('ออกจากระบบ?')) {
+    localStorage.removeItem('viiv_token');
+    window.location.href = '/superboard/login.html';
+  }
+}
+
+// ── ANDROID BACK BUTTON ──
+history.pushState({ shell: 'viiv' }, '');
+window.addEventListener('popstate', function() {
+  goPage('home');
+  setTimeout(function() { history.pushState({ shell: 'viiv' }, ''); }, 100);
+});
+
+// ── INIT ───────────────────────────────────────
 function init() {
-  // load home iframe immediately
-  const home = document.getElementById('page-home');
+  var home = document.getElementById('page-home');
   if (home && home.dataset.src) {
     home.src = home.dataset.src;
     S.loaded['home'] = true;
     home.onload = function() {
       broadcastToken();
-      // ถ้าไม่มี token ภายใน 3 วินาที ให้ hide loading ไปก่อน
       setTimeout(hideLoading, 3000);
     };
   }
+  // load saved profile
+  var p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+  if (p.first_name || p.avatar_url) _applyProfileUI(p);
 }
-
 init();
 
 // ── PULL TO REFRESH ──
 (function(){
-  let startY=0, pulling=false, threshold=65;
-  const ptr = document.getElementById('ptr');
-  const ptrIcon = document.getElementById('ptr-icon');
+  var startY = 0, pulling = false, threshold = 65;
+  var ptr     = document.getElementById('ptr');
+  var ptrIcon = document.getElementById('ptr-icon');
+  var zone    = document.getElementById('ptr-zone');
 
-  // ptr-zone overlay รับ touch events แทน iframe
-  const zone = document.getElementById('ptr-zone');
+  zone.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY; pulling = true;
+  }, { passive: true });
 
-  zone.addEventListener('touchstart', e=>{
-    startY = e.touches[0].clientY;
-    pulling = true;
-  }, {passive:true});
-
-  zone.addEventListener('touchmove', e=>{
+  zone.addEventListener('touchmove', function(e) {
     if (!pulling) return;
-    const dy = e.touches[0].clientY - startY;
+    var dy = e.touches[0].clientY - startY;
     if (dy > 5) {
       ptr.classList.add('visible');
-      const pct = Math.min(dy / threshold, 1);
-      ptrIcon.style.transform = `rotate(${pct * 360}deg)`;
+      var pct = Math.min(dy / threshold, 1);
+      ptrIcon.style.transform = 'rotate(' + (pct * 360) + 'deg)';
       ptrIcon.style.opacity = String(pct);
     }
-  }, {passive:true});
+  }, { passive: true });
 
-  zone.addEventListener('touchend', e=>{
+  zone.addEventListener('touchend', function(e) {
     if (!pulling) return;
     pulling = false;
-    const dy = e.changedTouches[0].clientY - startY;
+    var dy = e.changedTouches[0].clientY - startY;
     if (dy >= threshold) {
       ptrIcon.classList.add('spin');
       ptrIcon.style.opacity = '1';
-      const iframe = document.querySelector('.page.active');
-      if (iframe && iframe.tagName==='IFRAME' && iframe.src) {
-        const src = iframe.src;
+      var iframe = document.querySelector('.page.active');
+      if (iframe && iframe.tagName === 'IFRAME' && iframe.src) {
+        var src = iframe.src;
         iframe.src = '';
-        setTimeout(()=>{ iframe.src = src; }, 100);
+        setTimeout(function() { iframe.src = src; }, 100);
       }
-      setTimeout(()=>{
+      setTimeout(function() {
         ptr.classList.remove('visible');
         ptrIcon.classList.remove('spin');
-        ptrIcon.style.transform='';
-        ptrIcon.style.opacity='';
+        ptrIcon.style.transform = '';
+        ptrIcon.style.opacity = '';
       }, 1000);
     } else {
       ptr.classList.remove('visible');
-      ptrIcon.style.transform='';
-      ptrIcon.style.opacity='';
+      ptrIcon.style.transform = '';
+      ptrIcon.style.opacity = '';
     }
-  }, {passive:true});
+  }, { passive: true });
 })();
 </script>
 </body>
