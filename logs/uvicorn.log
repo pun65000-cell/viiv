@@ -74,3 +74,68 @@ INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/pos/bills/detail/bill_1776325555_gm4q HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.70.100.27:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.69.58.91:0 - "POST / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     104.22.64.9:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.70.179.113:0 - "POST / HTTP/1.1" 404 Not Found
+INFO:     104.22.66.38:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     172.69.176.28:0 - "GET /api/pos/receive/list?limit=50 HTTP/1.1" 401 Unauthorized
+INFO:     172.69.176.28:0 - "GET /api/pos/receive/list?limit=20 HTTP/1.1" 401 Unauthorized
+INFO:     165.245.218.96:25377 - "GET / HTTP/1.0" 404 Not Found
+INFO:     46.101.254.243:43510 - "GET /query?q=SHOW+DIAGNOSTICS HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     94.231.206.108:47671 - "GET / HTTP/1.1" 404 Not Found
+INFO:     94.231.206.109:59413 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     152.32.156.136:57434 - "GET / HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36406 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36414 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36430 - "GET /sitemap.xml HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36434 - "GET /sse HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36440 - "GET /mcp HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36448 - "GET /mcp-sse HTTP/1.1" 404 Not Found
+INFO:     152.32.156.136:36460 - "GET /get_server_info HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:45452 - "POST / HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:45468 - "POST /_next HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:45476 - "POST /api HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:45492 - "POST /_next/server HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:45496 - "POST /app HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:45498 - "POST /api/route HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     91.230.168.245:35931 - "GET / HTTP/1.1" 404 Not Found
+INFO:     195.184.76.152:51855 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     45.135.193.118:49504 - "GET / HTTP/1.0" 404 Not Found
+INFO:     198.235.24.201:65358 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     205.210.31.134:63846 - "GET /metrics HTTP/1.1" 404 Not Found
+INFO:     172.71.164.207:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.70.248.41:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.70.248.45:0 - "GET /apple-touch-icon.png HTTP/1.1" 404 Not Found
