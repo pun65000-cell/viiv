@@ -5,16 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="theme-color" content="#1a1206"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=1142"/>
 <title>VIIV</title>
-<style>
-/* page transition */
-#page-container { transition: opacity .15s; }
-#page-container.loading { opacity: 0; }
-</style>
 </head>
 <body>
 
@@ -23,7 +18,7 @@
   <!-- TOPBAR -->
   <header id="topbar">
     <div id="tb-back" onclick="Router.back()">←</div>
-    <div id="tb-logo">VIIV</div>
+    <div id="tb-logo">○ ViiV</div>
     <div id="tb-title" style="display:none"></div>
     <div class="tb-right">
       <span id="tb-clock"></span>
@@ -39,19 +34,19 @@
   <!-- BOTTOM NAVBAR -->
   <nav id="navbar">
     <button class="nb-btn active" data-page="home" onclick="Router.go('home')">
-      <span class="nb-icon">🏠</span><span class="nb-label">หน้าหลัก</span>
+      <span class="nb-icon">⊡</span><span class="nb-label">โฮม</span>
     </button>
-    <button class="nb-btn" data-page="billing" onclick="Router.go('billing')">
-      <span class="nb-icon">🧾</span><span class="nb-label">ออกบิล</span>
+    <button class="nb-btn" data-page="pos" onclick="Router.go('pos')">
+      <span class="nb-icon">🖥</span><span class="nb-label">POS</span>
     </button>
-    <button class="nb-btn" data-page="orders" onclick="Router.go('orders')">
-      <span class="nb-icon">📋</span><span class="nb-label">ออเดอร์</span>
+    <button class="nb-btn" data-page="chat" onclick="Router.go('chat')">
+      <span class="nb-icon">💬</span><span class="nb-label">Chat</span>
     </button>
-    <button class="nb-btn" data-page="products" onclick="Router.go('products')">
-      <span class="nb-icon">📦</span><span class="nb-label">สินค้า</span>
+    <button class="nb-btn" data-page="autopost" onclick="Router.go('autopost')">
+      <span class="nb-icon">📲</span><span class="nb-label">AutoPost</span>
     </button>
     <button class="nb-btn" data-page="more" onclick="Router.go('more')">
-      <span class="nb-icon">⋯</span><span class="nb-label">เพิ่มเติม</span>
+      <span class="nb-icon">⚙️</span><span class="nb-label">จัดการ</span>
     </button>
   </nav>
 
@@ -64,15 +59,24 @@
   <div id="sheet-content"></div>
 </div>
 
-<script src="/pwa/js/router.js"></script>
-<script src="/pwa/js/app.js"></script>
-<script src="/pwa/pages/home.js"></script>
-<script src="/pwa/pages/orders.js"></script>
-<script src="/pwa/pages/products.js"></script>
-<script src="/pwa/pages/members.js"></script>
-<script src="/pwa/pages/more.js"></script>
-<script src="/pwa/pages/billing.js"></script>
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="/pwa/js/router.js?v=1144"></script>
+<script src="/pwa/js/app.js?v=1144"></script>
+<script src="/pwa/pages/home.js?v=1144"></script>
+<script src="/pwa/pages/pos.js?v=1144"></script>
+<script src="/pwa/pages/billing.js?v=1144"></script>
+<script src="/pwa/pages/orders.js?v=1144"></script>
+<script src="/pwa/pages/products.js?v=1144"></script>
+<script src="/pwa/pages/members.js?v=1144"></script>
+<script src="/pwa/pages/chat.js?v=1144"></script>
+<script src="/pwa/pages/autopost.js?v=1144"></script>
+<script src="/pwa/pages/more.js?v=1144"></script>
 <script>
+
+App.init();
+Router.init();
 
 function openSheet(content) {
   document.getElementById('sheet-content').innerHTML = content;
@@ -84,13 +88,11 @@ function closeSheet() {
   document.getElementById('sheet').classList.remove('show');
 }
 
-// register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/pwa/sw.js').catch(()=>{});
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
 }
-
-App.init();
-Router.go('home');
 </script>
 </body>
 </html>

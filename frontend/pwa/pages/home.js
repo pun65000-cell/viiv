@@ -1,9 +1,203 @@
-/* VIIV PWA — home.js */
-Router.register('home', {
-  title: 'home',
-  async load(params) {
+/* VIIV PWA — home.js (Living Dashboard Mobile) */
+(function() {
+  let _destroyed = false;
+  let _refreshHandler = null;
+  let _timers = [];
+
+  const TICKERS = {
+    pos:  ['🔔 ลูกค้าชำระแล้ว', '🧾 ออเดอร์ใหม่เข้า', '✅ บิลปิดแล้ว', '👤 สมาชิกใหม่'],
+    chat: ['💬 แชทใหม่ 3 บทสนทนา', '🤖 AI ปิดการขาย ฿2,100', '📱 LINE OA: ส่งโปรฯ', '🎯 มีสต็อก?'],
+    aff:  ['🔔 Commission เข้า', '🔗 คลิกใหม่ 12 ครั้ง', '📊 Conversion 9.8%', '🛒 order ใหม่'],
+    post: ['🎬 คลิปสำเร็จ', '📝 Hook กำลังสร้าง...', '📅 Scheduler: 5 โพส', '🔥 วิว +4,200'],
+  };
+  const _ti = {pos:0, chat:0, aff:0, post:0};
+
+  Router.register('home', {
+    title: 'VIIV',
+    async load(params) {
+      _destroyed = false;
+      _clearTimers();
+      _refreshHandler = () => _reload();
+      document.addEventListener('viiv:refresh', _refreshHandler);
+      await _reload();
+    },
+    destroy() {
+      _destroyed = true;
+      _clearTimers();
+      if (_refreshHandler) { document.removeEventListener('viiv:refresh', _refreshHandler); _refreshHandler = null; }
+    }
+  });
+
+  function _clearTimers() { _timers.forEach(clearInterval); _timers = []; }
+
+  async function _reload() {
     const c = document.getElementById('page-container');
-    c.innerHTML = '<div class="p" style="text-align:center;padding:40px;color:var(--muted);">Loading home...</div>';
-  },
-  destroy() {}
-});
+    c.innerHTML = _skeleton();
+    try {
+      const pos = await App.api('/api/pos-mobile/summary');
+      if (_destroyed) return;
+      c.innerHTML = _html(pos);
+      _startTickers();
+      _startClock();
+    } catch(e) {
+      if (_destroyed) return;
+      c.innerHTML = _html({});
+      _startTickers();
+      _startClock();
+    }
+  }
+
+  function _skeleton() {
+    return `<div class="ld-wrap">
+      ${Array(4).fill('<div class="ld-card skeleton-card" style="height:160px;margin-bottom:10px"></div>').join('')}
+    </div>`;
+  }
+
+  function _html(pos) {
+    const ts = _fmt(pos?.today_sales  ?? 0);
+    const to = pos?.today_orders ?? 0;
+    const ms = _fmt(pos?.month_sales  ?? 0);
+    const mo = pos?.month_orders ?? 0;
+    const lw = pos?.low_stock ?? 0;
+
+    return `<div class="ld-wrap">
+
+      <!-- HUB STRIP -->
+      <div class="ld-hub">
+        <div class="ld-hub-left">
+          <div class="ld-hub-title">CONCORE</div>
+          <div class="ld-hub-sub">Multi-Agent Platform</div>
+        </div>
+        <div class="ld-hub-right">
+          <div class="ld-hub-total" id="hub-total">฿${ts}</div>
+          <div class="ld-hub-ord" id="hub-orders">${to} orders วันนี้</div>
+        </div>
+        <div class="ld-hub-date">${_shortDate()}</div>
+      </div>
+
+      <!-- POS MODULE -->
+      <div class="ld-card ld-card-pos" onclick="Router.go('pos')">
+        <div class="ld-card-badge" id="pos-badge">฿${ts}</div>
+        <div class="ld-card-label">🖥 POS MODULE</div>
+        <div class="ld-card-amount" id="pos-sales">฿${ts} <small>ยอดขายวันนี้</small></div>
+        <div class="ld-ticker">
+          <span class="ld-t-ico">🔔</span>
+          <span class="ld-t-txt" id="ticker-pos">${TICKERS.pos[0]}</span>
+        </div>
+        <div class="ld-kpi">
+          <div class="ld-kb"><div class="ld-kl">ออเดอร์วันนี้</div><div class="ld-kv ld-bl" id="pos-orders">${to}</div></div>
+          <div class="ld-kb"><div class="ld-kl">ยอด/เดือน</div><div class="ld-kv ld-gd" id="pos-msales">฿${ms}</div></div>
+          <div class="ld-kb"><div class="ld-kl">ออเดอร์/เดือน</div><div class="ld-kv" id="pos-morder">${mo}</div></div>
+          <div class="ld-kb"><div class="ld-kl">สต็อกใกล้หมด</div><div class="ld-kv ${lw>0?'ld-warn':''}" id="pos-stock">${lw > 0 ? '⚠ '+lw : '✓ ปกติ'}</div></div>
+        </div>
+        <div class="ld-strow">
+          <span class="ld-st ld-st-g">●POS ทำงาน</span>
+          <span class="ld-st ld-st-b">●AI Active</span>
+          <span class="ld-st ld-st-gd">●Payment</span>
+        </div>
+      </div>
+
+      <!-- CHAT & SHOWROOM -->
+      <div class="ld-card ld-card-chat" onclick="Router.go('chat')">
+        <div class="ld-card-badge">◌</div>
+        <div class="ld-card-label">💬 CHAT &amp; SHOWROOM</div>
+        <div class="ld-card-amount">— <small>LINE · FB · IG</small></div>
+        <div class="ld-ticker">
+          <span class="ld-t-ico">🔔</span>
+          <span class="ld-t-txt" id="ticker-chat">${TICKERS.chat[0]}</span>
+        </div>
+        <div class="ld-kpi">
+          <div class="ld-kb"><div class="ld-kl">แชท/เดือน</div><div class="ld-kv ld-bl">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">ปิดขาย</div><div class="ld-kv ld-gd">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">Conversion</div><div class="ld-kv">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">AI ตอบ</div><div class="ld-kv">—</div></div>
+        </div>
+        <div class="ld-strow">
+          <span class="ld-st ld-st-g">●Chat Live</span>
+          <span class="ld-st ld-st-b">●AI Auto Reply</span>
+          <span class="ld-st ld-st-gd">●LINE OA</span>
+        </div>
+      </div>
+
+      <!-- POS-AFFILIATE -->
+      <div class="ld-card ld-card-aff" onclick="Router.go('more')">
+        <div class="ld-card-badge">฿—</div>
+        <div class="ld-card-label">🔗 POS-AFFILIATE</div>
+        <div class="ld-card-amount">— <small>คลิก × % = ยอดวันนี้</small></div>
+        <div class="ld-ticker">
+          <span class="ld-t-ico">🔔</span>
+          <span class="ld-t-txt" id="ticker-aff">${TICKERS.aff[0]}</span>
+        </div>
+        <div class="ld-kpi">
+          <div class="ld-kb"><div class="ld-kl">คลิกวันนี้</div><div class="ld-kv ld-bl">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">ยอด/เดือน</div><div class="ld-kv ld-gd">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">คลิก/เดือน</div><div class="ld-kv">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">% Commission</div><div class="ld-kv">—</div></div>
+        </div>
+        <div class="ld-strow">
+          <span class="ld-st ld-st-g">●Affiliate Active</span>
+          <span class="ld-st ld-st-b">●Tracking On</span>
+          <span class="ld-st ld-st-gd">●Payout</span>
+        </div>
+      </div>
+
+      <!-- AUTO POST -->
+      <div class="ld-card ld-card-post" onclick="Router.go('autopost')">
+        <div class="ld-card-badge">↗</div>
+        <div class="ld-card-label">📲 AUTO POST MODULE</div>
+        <div class="ld-card-amount">— <small>คลิปโพสวันนี้</small></div>
+        <div class="ld-ticker">
+          <span class="ld-t-ico">🔔</span>
+          <span class="ld-t-txt" id="ticker-post">${TICKERS.post[0]}</span>
+        </div>
+        <div class="ld-kpi">
+          <div class="ld-kb"><div class="ld-kl">Hook ล่าสุด</div><div class="ld-kv" style="font-size:10px;line-height:1.3">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">กำลังสร้าง</div><div class="ld-kv ld-bl">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">คิวรอ</div><div class="ld-kv">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">วิว/เดือน</div><div class="ld-kv ld-gd">—</div></div>
+        </div>
+        <div class="ld-strow">
+          <span class="ld-st ld-st-g">●Auto Creating</span>
+          <span class="ld-st ld-st-b">●Scheduler</span>
+          <span class="ld-st ld-st-o">●TikTok</span>
+          <span class="ld-st ld-st-gd">●IG Reels</span>
+        </div>
+      </div>
+
+      <div style="height:20px"></div>
+    </div>`;
+  }
+
+  // ── Ticker animation ──
+  function _startTickers() {
+    const delays = {pos:2200, chat:2700, aff:3600, post:4100};
+    Object.keys(delays).forEach(key => {
+      const id = setInterval(() => {
+        if (_destroyed) return;
+        const el = document.getElementById('ticker-'+key);
+        if (!el) return;
+        el.classList.add('ld-out');
+        setTimeout(() => {
+          _ti[key] = (_ti[key]+1) % TICKERS[key].length;
+          el.textContent = TICKERS[key][_ti[key]];
+          el.classList.remove('ld-out');
+        }, 280);
+      }, delays[key] + Math.random()*600);
+      _timers.push(id);
+    });
+  }
+
+  // ── Clock in hub ──
+  function _startClock() {
+    const tick = () => {
+      if (_destroyed) return;
+      const el = document.getElementById('hub-total');
+      // ไม่ต้องแสดง clock ใน hub-total แค่ leave ยอดขาย
+    };
+  }
+
+  function _fmt(n) { return Number(n||0).toLocaleString('th-TH', {maximumFractionDigits:0}); }
+  function _shortDate() {
+    return new Date().toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
+  }
+})();
