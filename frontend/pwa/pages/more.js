@@ -87,11 +87,7 @@
         return;
       }
       if (action === 'logout') {
-        if (typeof Profile !== 'undefined') Profile.logout();
-        else if (confirm('ออกจากระบบ?')) {
-          localStorage.removeItem('viiv_token');
-          window.location.href = '/superboard/';
-        }
+        Auth.logout();
         return;
       }
       if (url) window.open(url, '_blank');

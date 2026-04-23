@@ -122,18 +122,19 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/router.js?v=1154"></script>
-<script src="/pwa/js/app.js?v=1154"></script>
-<script src="/pwa/pages/home.js?v=1154"></script>
-<script src="/pwa/pages/pos.js?v=1154"></script>
-<script src="/pwa/pages/billing.js?v=1154"></script>
-<script src="/pwa/pages/orders.js?v=1154"></script>
-<script src="/pwa/pages/products.js?v=1154"></script>
-<script src="/pwa/pages/members.js?v=1154"></script>
-<script src="/pwa/pages/chat.js?v=1154"></script>
-<script src="/pwa/pages/autopost.js?v=1154"></script>
-<script src="/pwa/pages/affiliate.js?v=1154"></script>
-<script src="/pwa/pages/more.js?v=1154"></script>
+<script src="/pwa/js/auth.js?v=1160"></script>
+<script src="/pwa/js/router.js?v=1160"></script>
+<script src="/pwa/js/app.js?v=1160"></script>
+<script src="/pwa/pages/home.js?v=1160"></script>
+<script src="/pwa/pages/pos.js?v=1160"></script>
+<script src="/pwa/pages/billing.js?v=1160"></script>
+<script src="/pwa/pages/orders.js?v=1160"></script>
+<script src="/pwa/pages/products.js?v=1160"></script>
+<script src="/pwa/pages/members.js?v=1160"></script>
+<script src="/pwa/pages/chat.js?v=1160"></script>
+<script src="/pwa/pages/autopost.js?v=1160"></script>
+<script src="/pwa/pages/affiliate.js?v=1160"></script>
+<script src="/pwa/pages/more.js?v=1160"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -214,12 +215,7 @@ const Profile = {
     document.getElementById('pd-name').textContent = name;
     document.getElementById('pd-role').textContent = p.role || 'ผู้ดูแลระบบ';
   },
-  logout() {
-    if (confirm('ออกจากระบบ?')) {
-      localStorage.removeItem('viiv_token');
-      window.location.href = '/superboard/';
-    }
-  },
+  logout() { Auth.logout(); },
   init() {
     const p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
     if (p.first_name || p.avatar_url) this._applyUI(p);
