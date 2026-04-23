@@ -1,0 +1,15 @@
+{
+  "name": "VIIV Platform",
+  "short_name": "VIIV",
+  "description": "AI-Powered Sales Automation",
+  "start_url": "/pwa/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f3eb",
+  "theme_color": "#1a1206",
+  "icons": [
+    { "src": "/superboard/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/superboard/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "categories": ["business", "productivity"]
+}

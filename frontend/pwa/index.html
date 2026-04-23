@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#1a1206"/>
+<link rel="manifest" href="/pwa/manifest.json"/>
+<link rel="stylesheet" href="/pwa/css/app.css"/>
+<title>VIIV</title>
+<style>
+/* page transition */
+#page-container { transition: opacity .15s; }
+#page-container.loading { opacity: 0; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div id="tb-back" onclick="Router.back()">←</div>
+    <div id="tb-logo">VIIV</div>
+    <div id="tb-title" style="display:none"></div>
+    <div class="tb-right">
+      <span id="tb-clock"></span>
+    </div>
+  </header>
+
+  <!-- PULL TO REFRESH -->
+  <div id="ptr"><div id="ptr-spinner"></div></div>
+
+  <!-- PAGE CONTENT -->
+  <main id="page-container"></main>
+
+  <!-- BOTTOM NAVBAR -->
+  <nav id="navbar">
+    <button class="nb-btn active" data-page="home" onclick="Router.go('home')">
+      <span class="nb-icon">🏠</span><span class="nb-label">หน้าหลัก</span>
+    </button>
+    <button class="nb-btn" data-page="billing" onclick="Router.go('billing')">
+      <span class="nb-icon">🧾</span><span class="nb-label">ออกบิล</span>
+    </button>
+    <button class="nb-btn" data-page="orders" onclick="Router.go('orders')">
+      <span class="nb-icon">📋</span><span class="nb-label">ออเดอร์</span>
+    </button>
+    <button class="nb-btn" data-page="products" onclick="Router.go('products')">
+      <span class="nb-icon">📦</span><span class="nb-label">สินค้า</span>
+    </button>
+    <button class="nb-btn" data-page="more" onclick="Router.go('more')">
+      <span class="nb-icon">⋯</span><span class="nb-label">เพิ่มเติม</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- BOTTOM SHEET OVERLAY -->
+<div id="sheet-overlay" class="sheet-overlay" onclick="closeSheet()"></div>
+<div id="sheet" class="sheet">
+  <div class="sheet-handle"></div>
+  <div id="sheet-content"></div>
+</div>
+
+<script src="/pwa/js/router.js"></script>
+<script src="/pwa/js/app.js"></script>
+<script src="/pwa/pages/home.js"></script>
+<script src="/pwa/pages/orders.js"></script>
+<script src="/pwa/pages/products.js"></script>
+<script src="/pwa/pages/members.js"></script>
+<script src="/pwa/pages/more.js"></script>
+<script src="/pwa/pages/billing.js"></script>
+<script>
+
+function openSheet(content) {
+  document.getElementById('sheet-content').innerHTML = content;
+  document.getElementById('sheet-overlay').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+}
+
+// register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/pwa/sw.js').catch(()=>{});
+}
+
+App.init();
+Router.go('home');
+</script>
+</body>
+</html>
