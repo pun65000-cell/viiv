@@ -48,7 +48,7 @@
     { icon:'🧾', label:'ออกบิล',    action:()=> Router.go('billing')  },
     { icon:'⚡', label:'ขายด่วน',   action:()=> Router.go('billing')  },
     { icon:'📋', label:'ออเดอร์',   action:()=> Router.go('orders')   },
-    { icon:'👥', label:'ลูกค้า',    action:()=> Router.go('members')  },
+    { icon:'👥', label:'สมาชิก',    action:()=> Router.go('members')  },
     { icon:'📦', label:'สินค้า',    action:()=> Router.go('products') },
     { icon:'📊', label:'ยอดขาย',    action:()=> _openSalesSheet()     },
     { icon:'🔍', label:'ค้นหาบิล',  action:()=> Router.go('orders')   },
