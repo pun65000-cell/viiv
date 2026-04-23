@@ -46,6 +46,12 @@ const Router = {
   },
 
   async _render(page, params) {
+    // destroy previous page — clears timers & event listeners (prevents PTR overlap)
+    const prevId = Router.current;
+    if (prevId && prevId !== page.id && Router.pages[prevId]?.destroy) {
+      Router.pages[prevId].destroy();
+    }
+
     Router.current = page.id;
     Router._currentParams = params;
 
@@ -84,7 +90,7 @@ const Router = {
     Router.back = Router.back.bind(this);
     Router._render = Router._render.bind(this);
     // Android back button
-    window.addEventListener('popstate', async e => {
+    window.addEventListener('popstate', async () => {
       if (Router.stack.length > 0) {
         const prev = Router.stack.pop();
         if (prev?.id) await Router._render(Router.pages[prev.id], prev.params || {});

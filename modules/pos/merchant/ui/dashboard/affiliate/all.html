@@ -390,7 +390,10 @@ function loadProducts(cb){
   .catch(function(){_products=[];if(cb)cb();});
 }
 
+  var _inited=false;
   function _tok_all(e){
+    if(_inited) return;
+    _inited=true;
     if(e.detail&&e.detail.token) TOKEN=e.detail.token;
     renderShell();renderAll();
   }

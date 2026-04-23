@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=1142"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=1154"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -22,6 +22,17 @@
     <div id="tb-title" style="display:none"></div>
     <div class="tb-right">
       <span id="tb-clock"></span>
+      <div id="tb-profile-wrap">
+        <div id="tb-profile-btn" onclick="Profile.toggleDD()">A</div>
+        <div id="tb-profile-dd">
+          <div class="pd-header">
+            <div class="pd-name" id="pd-name">Admin</div>
+            <div class="pd-role" id="pd-role">ผู้ดูแลระบบ</div>
+          </div>
+          <div class="pd-item" onclick="Profile.openSheet()">⚙ แก้ไขโปรไฟล์</div>
+          <div class="pd-item danger" onclick="Profile.logout()">⏻ ออกจากระบบ</div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -46,10 +57,59 @@
       <span class="nb-icon">📲</span><span class="nb-label">AutoPost</span>
     </button>
     <button class="nb-btn" data-page="more" onclick="Router.go('more')">
-      <span class="nb-icon">⚙️</span><span class="nb-label">จัดการ</span>
+      <span class="nb-icon" style="font-size:22px;line-height:1">☰</span><span class="nb-label">เมนู</span>
     </button>
   </nav>
 
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal" onclick="Profile.onBg(event)">
+  <div class="pm-sheet">
+    <div class="pm-handle"><div class="pm-handle-bar"></div></div>
+    <div class="pm-header">
+      <div class="pm-title">โปรไฟล์ของฉัน</div>
+      <button class="pm-close" onclick="Profile.closeSheet()">✕</button>
+    </div>
+    <div class="pm-body">
+      <div class="pm-avatar-row">
+        <div class="pm-avatar" id="pm-avatar" onclick="document.getElementById('pm-avatar-inp').click()">
+          A<div class="pm-avatar-edit">✎</div>
+          <input type="file" id="pm-avatar-inp" accept="image/*" style="display:none" onchange="Profile.previewAvatar(this)">
+        </div>
+        <div>
+          <div class="pm-status-badge" id="pm-badge"><span class="pm-status-dot"></span> Admin · Online</div>
+          <div class="pm-role-lbl" id="pm-role-lbl"></div>
+        </div>
+      </div>
+      <div class="pm-section-lbl">ข้อมูลส่วนตัว</div>
+      <div class="pm-row2">
+        <div class="pm-field"><label>ชื่อ</label><input type="text" id="pm-fname" placeholder="ชื่อ"></div>
+        <div class="pm-field"><label>นามสกุล</label><input type="text" id="pm-lname" placeholder="นามสกุล"></div>
+      </div>
+      <div class="pm-row2">
+        <div class="pm-field"><label>เบอร์โทร</label><input type="tel" id="pm-phone" placeholder="0812345678"></div>
+        <div class="pm-field"><label>อีเมล</label><input type="email" id="pm-email" placeholder="email@example.com"></div>
+      </div>
+      <div class="pm-field">
+        <label>ตำแหน่ง / สิทธิ์</label>
+        <input type="text" id="pm-role" readonly>
+        <div class="pm-hint">ปรับได้เฉพาะผู้ดูแลระบบ</div>
+      </div>
+      <div class="pm-divider"></div>
+      <div class="pm-section-lbl">เปลี่ยนรหัสผ่าน</div>
+      <div class="pm-field"><label>รหัสผ่านปัจจุบัน</label><input type="password" id="pm-pw-old" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="pm-row2">
+        <div class="pm-field"><label>รหัสผ่านใหม่</label><input type="password" id="pm-pw-new" placeholder="••••••••" autocomplete="new-password"></div>
+        <div class="pm-field"><label>ยืนยันรหัสผ่าน</label><input type="password" id="pm-pw-cf" placeholder="••••••••" autocomplete="new-password"></div>
+      </div>
+      <div class="pm-hint">เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยนรหัสผ่าน</div>
+    </div>
+    <div class="pm-actions">
+      <button class="pm-btn pm-btn-cancel" onclick="Profile.closeSheet()">ยกเลิก</button>
+      <button class="pm-btn pm-btn-save" onclick="Profile.save()">บันทึก</button>
+    </div>
+  </div>
 </div>
 
 <!-- BOTTOM SHEET OVERLAY -->
@@ -62,21 +122,117 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/router.js?v=1144"></script>
-<script src="/pwa/js/app.js?v=1144"></script>
-<script src="/pwa/pages/home.js?v=1144"></script>
-<script src="/pwa/pages/pos.js?v=1144"></script>
-<script src="/pwa/pages/billing.js?v=1144"></script>
-<script src="/pwa/pages/orders.js?v=1144"></script>
-<script src="/pwa/pages/products.js?v=1144"></script>
-<script src="/pwa/pages/members.js?v=1144"></script>
-<script src="/pwa/pages/chat.js?v=1144"></script>
-<script src="/pwa/pages/autopost.js?v=1144"></script>
-<script src="/pwa/pages/more.js?v=1144"></script>
+<script src="/pwa/js/router.js?v=1154"></script>
+<script src="/pwa/js/app.js?v=1154"></script>
+<script src="/pwa/pages/home.js?v=1154"></script>
+<script src="/pwa/pages/pos.js?v=1154"></script>
+<script src="/pwa/pages/billing.js?v=1154"></script>
+<script src="/pwa/pages/orders.js?v=1154"></script>
+<script src="/pwa/pages/products.js?v=1154"></script>
+<script src="/pwa/pages/members.js?v=1154"></script>
+<script src="/pwa/pages/chat.js?v=1154"></script>
+<script src="/pwa/pages/autopost.js?v=1154"></script>
+<script src="/pwa/pages/affiliate.js?v=1154"></script>
+<script src="/pwa/pages/more.js?v=1154"></script>
 <script>
+
+// ── PROFILE ──────────────────────────────────────────────────────────────────
+const Profile = {
+  toggleDD() {
+    document.getElementById('tb-profile-dd').classList.toggle('open');
+  },
+  closeDD() {
+    document.getElementById('tb-profile-dd').classList.remove('open');
+  },
+  openSheet() {
+    this.closeDD();
+    const p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+    document.getElementById('pm-fname').value = p.first_name || '';
+    document.getElementById('pm-lname').value  = p.last_name  || '';
+    document.getElementById('pm-phone').value  = p.phone      || '';
+    document.getElementById('pm-email').value  = p.email      || '';
+    document.getElementById('pm-role').value   = p.role       || '—';
+    document.getElementById('pm-pw-old').value = '';
+    document.getElementById('pm-pw-new').value = '';
+    document.getElementById('pm-pw-cf').value  = '';
+    // avatar
+    const av = document.getElementById('pm-avatar');
+    const inp = '<div class="pm-avatar-edit">✎</div><input type="file" id="pm-avatar-inp" accept="image/*" style="display:none" onchange="Profile.previewAvatar(this)">';
+    if (p.avatar_url) av.innerHTML = '<img src="' + p.avatar_url + '">' + inp;
+    else av.innerHTML = (p.first_name || 'A').charAt(0).toUpperCase() + inp;
+    // badge
+    const badge = document.getElementById('pm-badge');
+    badge.innerHTML = '<span class="pm-status-dot"></span> ' + (p.role || 'Admin') + ' · Online';
+    document.getElementById('pm-role-lbl').textContent = p.role || '';
+    document.getElementById('profile-modal').classList.add('open');
+  },
+  closeSheet() {
+    document.getElementById('profile-modal').classList.remove('open');
+  },
+  onBg(e) {
+    if (e.target === document.getElementById('profile-modal')) this.closeSheet();
+  },
+  previewAvatar(inp) {
+    if (!inp.files || !inp.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const av = document.getElementById('pm-avatar');
+      const after = '<div class="pm-avatar-edit">✎</div><input type="file" id="pm-avatar-inp" accept="image/*" style="display:none" onchange="Profile.previewAvatar(this)">';
+      av.innerHTML = '<img src="' + e.target.result + '">' + after;
+    };
+    reader.readAsDataURL(inp.files[0]);
+  },
+  save() {
+    const pwNew = document.getElementById('pm-pw-new').value.trim();
+    const pwCf  = document.getElementById('pm-pw-cf').value.trim();
+    const pwOld = document.getElementById('pm-pw-old').value.trim();
+    if (pwNew || pwCf) {
+      if (!pwOld) { App.toast('กรุณากรอกรหัสผ่านปัจจุบัน'); return; }
+      if (pwNew !== pwCf) { App.toast('รหัสผ่านใหม่ไม่ตรงกัน'); return; }
+      if (pwNew.length < 6) { App.toast('รหัสผ่านใหม่อย่างน้อย 6 ตัว'); return; }
+    }
+    const old = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+    const p = {
+      first_name: document.getElementById('pm-fname').value.trim(),
+      last_name:  document.getElementById('pm-lname').value.trim(),
+      phone:      document.getElementById('pm-phone').value.trim(),
+      email:      document.getElementById('pm-email').value.trim(),
+      role:       old.role || '',
+    };
+    const img = document.querySelector('#pm-avatar img');
+    if (img) p.avatar_url = img.src;
+    localStorage.setItem('viiv_profile', JSON.stringify(p));
+    this._applyUI(p);
+    this.closeSheet();
+    App.toast('✅ บันทึกโปรไฟล์แล้ว');
+  },
+  _applyUI(p) {
+    const btn = document.getElementById('tb-profile-btn');
+    if (p.avatar_url) btn.innerHTML = '<img src="' + p.avatar_url + '">';
+    else btn.textContent = (p.first_name || 'A').charAt(0).toUpperCase();
+    const name = (p.first_name ? p.first_name + ' ' + (p.last_name || '') : 'Admin').trim();
+    document.getElementById('pd-name').textContent = name;
+    document.getElementById('pd-role').textContent = p.role || 'ผู้ดูแลระบบ';
+  },
+  logout() {
+    if (confirm('ออกจากระบบ?')) {
+      localStorage.removeItem('viiv_token');
+      window.location.href = '/superboard/';
+    }
+  },
+  init() {
+    const p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+    if (p.first_name || p.avatar_url) this._applyUI(p);
+  }
+};
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#tb-profile-wrap')) Profile.closeDD();
+});
 
 App.init();
 Router.init();
+Profile.init();
 
 function openSheet(content) {
   document.getElementById('sheet-content').innerHTML = content;

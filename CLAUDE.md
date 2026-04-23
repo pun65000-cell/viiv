@@ -1,5 +1,5 @@
-VIIV POS Project Bible v1.14
-> Updated: 2026-04-23 | ต่อจาก v1.13
+VIIV POS Project Bible v1.16
+> Updated: 2026-04-23 | ต่อจาก v1.15
 ---
 1. โครงสร้างระบบ
 Stack: FastAPI (Python 3.12) + Supabase/PostgreSQL + Caddy + Uvicorn port 8000  
@@ -45,7 +45,7 @@ sudoers (ไม่ถาม password):
 `sudo systemctl restart caddy`
 `sudo cp /tmp/Caddyfile.new /etc/caddy/Caddyfile`
 ---
-4. File Structure (v1.14)
+4. File Structure (v1.15)
 ```
 /home/viivadmin/viiv/
 ├── .env
@@ -65,25 +65,28 @@ sudoers (ไม่ถาม password):
 │   │   │   ├── index.html
 │   │   │   ├── style.css
 │   │   │   └── app.js
-│   │   ├── mobile/              Superboard Mobile Shell (OLD - iframe based)
-│   │   │   └── index.html
+│   │   ├── mobile/              Superboard Mobile Shell (light theme v1.15)
+│   │   │   └── index.html       ✅ light nav + profile button + bottom-sheet
 │   │   └── pages/
-│   └── pwa/                     NEW v1.14 — PWA Shell (no iframe)
+│   └── pwa/                     PWA Shell (no iframe) — Phase 1 ✅ Done
 │       ├── index.html           App shell หลัก
 │       ├── manifest.json        PWA installable
 │       ├── sw.js               Service Worker / offline cache
 │       ├── css/
-│       │   └── app.css          Design system ทั้งหมด
+│       │   └── app.css          Design system v1.15 (full overhaul)
 │       ├── js/
 │       │   ├── router.js        SPA navigation + back button
 │       │   └── app.js           Token, PTR, utils, toast
 │       └── pages/
-│           ├── home.js          หน้าหลัก (WIP)
-│           ├── billing.js       ออกบิล (WIP)
-│           ├── orders.js        ออเดอร์ (WIP)
-│           ├── products.js      สินค้า (WIP)
-│           ├── members.js       ลูกค้า (WIP)
-│           └── more.js          เพิ่มเติม (WIP)
+│           ├── home.js          หน้าหลัก ✅ Living Dashboard + menu grid
+│           ├── billing.js       ออกบิล ✅ search, items, sticky total, payment sheet
+│           ├── orders.js        ออเดอร์ ✅ list + filters + status badges
+│           ├── products.js      สินค้า ✅ list + search + stock display
+│           ├── members.js       ลูกค้า ✅ list + search + tier badges
+│           ├── more.js          เพิ่มเติม ✅ drawer menu + module links
+│           ├── pos.js           ขายด่วน (Phase 2)
+│           ├── chat.js          แชท (Phase 2)
+│           └── autopost.js      AutoPost (Phase 2)
 ├── modulpos/                    POS Mobile (iframe-based, legacy)
 │   ├── api/routes.py
 │   └── frontend/dashboard/index.html
@@ -328,6 +331,22 @@ Rule 20 — iframe Pull-to-refresh
 Rule 21 — PWA Pull-to-refresh
 ต้องเช็ค `container.scrollTop === 0` ก่อน start pull  
 touch listener ต้องอยู่บน `#page-container` (native scroll element)
+Rule 22 — Token Sync: PWA app.js ห้าม removeItem localStorage (เหตุการณ์ 2026-04-23)
+ปัญหา: `app.js Api()` เมื่อได้รับ 401 เดิมรัน `localStorage.removeItem('viiv_token')` แล้วใช้ dev token ภายใน  
+→ Merchant Dashboard (ที่อ่าน localStorage โดยตรง) สูญเสีย token → ทุก API พัง 401 ทันที  
+แก้แล้ว: เปลี่ยนจาก removeItem เป็น setItem(dev token) เพื่อ sync กลับ localStorage เสมอ  
+ห้ามรัน `localStorage.removeItem('viiv_token')` ยกเว้น explicit logout เท่านั้น  
+Rule 23 — Merchant Dashboard ต้องมี token bootstrap (เหตุการณ์ 2026-04-23)
+`dashboard.html` ต้องมี dev token fallback ใน bootstrap script:  
+```javascript
+if(!localStorage.getItem('viiv_token')) { localStorage.setItem('viiv_token', DEV_TOKEN); }
+```  
+และทุก `/merchant/*` handler ใน Caddyfile ต้องมี `header Cache-Control "no-store, no-cache, must-revalidate"`  
+ถ้าไม่มี: Cloudflare cache dashboard เก่า → fix ใหม่ไม่มีผล  
+Rule 24 — Token Architecture ปัจจุบัน (dev) vs Production
+Dev: hardcoded token `ten_1/usr_1` ใน app.js + dashboard.html (ใช้ได้ชั่วคราว)  
+Production ต้องทำ: refresh token flow + httpOnly cookie หรือ centralized auth module  
+ห้าม deploy hardcoded dev token ให้ลูกค้าจริงใช้ — ต้องแก้ก่อน go-live  
 Rule 12-15 (จาก v1.12)
 Rule 12: SPA font override → iframe isolation
 Rule 13: ห้ามใช้ regex กับ HTML
@@ -371,46 +390,58 @@ Database migration → รัน staging ก่อน ถ้า OK ค่อย 
 Static files → update ได้ตลอดไม่กระทบ
 Uploads → symlink ใช้ร่วมกัน: `ln -s /viiv/uploads /viiv-green/uploads`
 ---
-14. Pending / TODO (v1.14)
+14. Pending / TODO (v1.15)
 #	Item	Priority
-1	PWA home.js — dashboard + ยอดขาย + menu grid	High
-2	PWA billing.js — ออกบิล responsive (หัวใจ)	High
-3	PWA orders.js — รายการออเดอร์	High
-4	PWA products.js — รายการสินค้า	High
-5	PWA members.js — รายชื่อลูกค้า	High
-6	PWA more.js — drawer เมนูเพิ่มเติม	High
-7	Blue-Green setup — สร้าง viiv-green + scripts	Medium
-8	Chat Module — connect LINE webhook จริง	Medium
-9	pos_line.py — Webhook + pending-uid	High
-10	Dashboard API — ยอดแชท, Affiliate, AutoPost จริง	Medium
-11	PWA Phase 2 — payment, shipping, products CRUD	Medium
-12	PWA Phase 3 — receive, settings	Future
-13	Capacitor.js — wrap เป็น APK/IPA	Future
-14	AI Chat Interface — shell สั่งงานด้วยแชท	Future
+1	✅ PWA Phase 1 — home, pos, billing, orders, products, members, more	Done
+2	✅ Mobile Shell — light theme nav + profile button	Done
+3	✅ Order detail view — bill info + markPaid + void	Done
+4	pos_line.py — Webhook + pending-uid	High
+5	PWA billing — discount, VAT, doc type (invoice/receipt)	High
+6	PWA orders/shipping — shipping status update	Medium
+7	PWA products/create — เพิ่มสินค้าใหม่	Medium
+8	PWA members — add member form	Medium
+9	Blue-Green setup — สร้าง viiv-green + scripts	Medium
+10	Chat Module — connect LINE webhook จริง	Medium
+11	Dashboard API — ยอดแชท, Affiliate, AutoPost จริง	Medium
+12	PWA Phase 2 — easysale, affiliate, finance	Medium
+13	PWA Phase 3 — receive, settings	Future
+14	Capacitor.js — wrap เป็น APK/IPA	Future
+15	AI Chat Interface — shell สั่งงานด้วยแชท	Future
 ---
-15. Resolved in v1.14
-Mobile Architecture Decision
-✅ วิเคราะห์ข้อเสีย iframe — 18 ปัญหา list ครบ
-✅ เลือก Responsive-first — 95% single file, 5% mobile exception
-✅ PWA Shell สร้างแล้ว — no iframe, native PTR, SPA router
-PWA Foundation
-✅ manifest.json — Add to Home Screen
-✅ sw.js — Service Worker offline cache
-✅ app.css — Design system fluid, clamp(), no fixed px
-✅ router.js — SPA navigation + Android back button
-✅ app.js — Token, PTR native, utils, toast
-✅ page stubs — home, billing, orders, products, members, more
-✅ Caddy — serve /pwa/ path
-Bug Fixes (v1.13 → v1.14)
-✅ Pull-to-refresh — เปลี่ยนจาก iframe เป็น PWA native
-✅ Back button หน้าว่าง — modulpos delegate to parent shell
-✅ viewport scale — minimum-scale=1 ป้องกัน auto zoom
-✅ Service Worker warning — แยก sw.js PWA ออกจาก legacy
+15. Resolved in v1.15
+PWA Phase 1 Complete (2026-04-23)
+✅ home.js — Living Dashboard + module cards (POS/Chat/Aff/AutoPost) + tickers
+✅ pos.js — POS Hub: summary card + menu grid + recent bills
+✅ billing.js — ออกบิล: product search + cart + qty control + payment sheet → API save
+✅ orders.js — Order list (tabs: all/paid/pending/voided) + **bill detail view**
+✅ products.js — Product list + search + stock badge (สีตามจำนวน)
+✅ members.js — Member list + search + credit/PV display
+✅ more.js — Navigation drawer (การขาย, สินค้า/ลูกค้า, ข้อมูลทั่วไป)
+✅ app.css — Design system overhaul (fluid clamp, tokens, components)
+Order Detail View (v1.15)
+✅ orders.js handles params.id → detail mode
+✅ Bill header: bill_no, status badge, date, staff, customer
+✅ Items list with qty × price subtotal
+✅ Financial summary: subtotal, discount, VAT, total, payment method
+✅ markPaid action (pending → paid) via update-status API
+✅ Void action with reason sheet → void API
+✅ After billing.js creates bill → auto-navigate to detail (receipt)
+Mobile Shell (v1.15)
+✅ Light theme bottom nav (var(--card) ไม่ใช่ #1a1206)
+✅ Profile avatar button top-right
+✅ Profile bottom-sheet: ชื่อ/นามสกุล/เบอร์/อีเมล/เปลี่ยนรหัสผ่าน
+Resolved in v1.14
+✅ วิเคราะห์ข้อเสีย iframe 18 ปัญหา, เลือก PWA approach
+✅ PWA shell: manifest.json, sw.js, app.css, router.js, app.js
+✅ Caddy serve /pwa/ path
+✅ Pull-to-refresh native, back button, viewport scale
 ---
 16. Git Restore Points
 Commit	Description
 `f3adb9c`	Superboard Dashboard Live4/4 (safe point)
-latest	PWA shell + modulpos/chat/post + Living Dashboard
+`ab5ec4d`	PWA shell foundation (PTR, router, design system)
+`c778e1d`	PWA Phase 1 complete (all core pages)
+`c91cfec`	Mobile shell light theme + profile button ← latest safe point
 ```bash
 git log --oneline -15
 git checkout f3adb9c -- frontend/superboard/pages/home.html
@@ -487,8 +518,8 @@ APIs: /api/pos/bills/*, /api/pos/products/list,
       /api/pos/store/settings
 ```
 ---
-Project Bible v1.14 — Updated 2026-04-23  
-ต่อจาก v1.13 | VIIV Development Team
+Project Bible v1.15 — Updated 2026-04-23  
+ต่อจาก v1.14 | VIIV Development Team
 
 ## วิธีทำงานร่วมกับ Claude Code
 
@@ -496,4 +527,19 @@ Project Bible v1.14 — Updated 2026-04-23
 - ใช้ virtual env: `source /home/viivadmin/viiv/.venv/bin/activate`
 - ห้ามแก้ไฟล์ production โดยไม่บอกก่อน
 - หลังแก้โค้ดให้ restart server ด้วย command จาก Section 2 เสมอ
-- Version ปัจจุบัน: v1.14
+- Version ปัจจุบัน: v1.15
+
+
+
+
+## Context การทำงานปัจจุบัน
+
+### Architecture จริง
+- Auth หลัก: Superboard (m.viiv.me/superboard/mobile/)
+- PWA (/pwa/) รับ token จาก Superboard ผ่าน postMessage
+- PWA ไม่มี login หน้าตัวเอง — token มาจาก parent เสมอ
+
+### งานที่กำลังทำ (v1.15)
+- Phase 1 เสร็จแล้ว — home, pos, billing, orders (+ detail), products, members, more
+- ถัดไป: billing เพิ่ม discount/VAT/doc-type, orders shipping, products/members CRUD
+- ไฟล์ที่ใช้จริง: frontend/pwa/ (ไม่ใช่ app1-5.js)

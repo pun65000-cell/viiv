@@ -19,6 +19,10 @@ const App = {
     if (!this.token) {
       this.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5hbnRfaWQiOiJ0ZW5fMSIsInVzZXJfaWQiOiJ1c3JfMSJ9.JfVeXPnQd1vE6rW4UbjilcWEKcAI_C9RVqorjoUJoZI';
     }
+    // ตรวจสอบว่า localStorage มี token หรือไม่ — ถ้าไม่มีให้ store ไว้เพื่อให้ merchant dashboard ใช้ได้
+    if (!localStorage.getItem('viiv_token')) {
+      localStorage.setItem('viiv_token', this.token);
+    }
     // 4. แจ้ง parent ขอ token (กรณี PWA โหลดก่อน Superboard ready)
     if (window.parent !== window) {
       window.parent.postMessage({ type: 'viiv_request_token' }, '*');
@@ -31,9 +35,9 @@ const App = {
       headers: Object.assign({ 'Authorization': 'Bearer ' + this.token, 'Content-Type': 'application/json' }, opts.headers || {})
     }));
     if (res.status === 401) {
-      // token หมดอายุหรือไม่ถูกต้อง — ล้าง localStorage แล้วใช้ dev token
-      localStorage.removeItem('viiv_token');
+      // token หมดอายุหรือไม่ถูกต้อง — fallback dev token และ sync กลับ localStorage
       this.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5hbnRfaWQiOiJ0ZW5fMSIsInVzZXJfaWQiOiJ1c3JfMSJ9.JfVeXPnQd1vE6rW4UbjilcWEKcAI_C9RVqorjoUJoZI';
+      localStorage.setItem('viiv_token', this.token);
       // retry ครั้งเดียว
       const r2 = await fetch(path, Object.assign({}, opts, {
         headers: Object.assign({ 'Authorization': 'Bearer ' + this.token, 'Content-Type': 'application/json' }, opts.headers || {})

@@ -277,6 +277,7 @@
         _customer = null;
         _renderCart();
         App.toast('✅ ออกบิล ' + res.bill_no + ' สำเร็จ');
+        setTimeout(() => Router.go('orders', {id: res.id}), 400);
       } catch(e) {
         App.toast('❌ ' + e.message);
         if (btn) { btn.disabled = false; btn.textContent = '✅ ยืนยันออกบิล'; }

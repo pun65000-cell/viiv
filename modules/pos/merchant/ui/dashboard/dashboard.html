@@ -242,12 +242,27 @@
 </div>
 
 <script type="module">
-// รับ token จาก URL param (bookmarklet/dev)
+// ── TOKEN BOOTSTRAP ──────────────────────────────────────────────────────────
 (function(){
+  var DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5hbnRfaWQiOiJ0ZW5fMSIsInVzZXJfaWQiOiJ1c3JfMSJ9.JfVeXPnQd1vE6rW4UbjilcWEKcAI_C9RVqorjoUJoZI';
+  // 1. URL param override (bookmarklet / link with ?token=)
   var p = new URLSearchParams(location.search);
   var t = p.get('token');
-  if(t) localStorage.setItem('viiv_token', t);
+  if(t) { localStorage.setItem('viiv_token', t); return; }
+  // 2. ถ้า localStorage ว่างให้ใช้ dev token ทันที (เปิดตรงหน้า/ไม่มี session)
+  if(!localStorage.getItem('viiv_token')) {
+    localStorage.setItem('viiv_token', DEV_TOKEN);
+  }
+  window.VIIV_TOKEN = localStorage.getItem('viiv_token');
 })();
+
+// รับ token จาก Superboard parent ผ่าน postMessage
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'viiv_token' && e.data.token) {
+    localStorage.setItem('viiv_token', e.data.token);
+    window.VIIV_TOKEN = e.data.token;
+  }
+});
 
 const PAGES = {
   dashboard: { title:'Dashboard', tabs: null, render: renderDashboard },
@@ -338,7 +353,12 @@ function loadSubPage(el, file) {
         document.head.appendChild(clone);
       });
       // inject VIIV_TOKEN ให้ sub-page script เห็นก่อนรัน
-      window.VIIV_TOKEN = localStorage.getItem('viiv_token') || '';
+      // ถ้า localStorage ว่างให้ใช้ window.VIIV_TOKEN ที่รับจาก postMessage (ถ้ามี)
+      var _storedTok = localStorage.getItem('viiv_token') || window.VIIV_TOKEN || '';
+      if (_storedTok && !localStorage.getItem('viiv_token')) {
+        localStorage.setItem('viiv_token', _storedTok);
+      }
+      window.VIIV_TOKEN = _storedTok;
       window._tokenReadyFired = false;
       // โหลดชื่อร้านทันทีที่มี token
       if(window.VIIV_TOKEN && !window._storeLoaded){
