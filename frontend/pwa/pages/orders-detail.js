@@ -194,7 +194,7 @@
             if (l.status) parts.push('💰 ' + _esc(l.status));
             if (l.shipping) parts.push('🚚 ' + _esc(l.shipping));
             if (l.note) parts.push('📝 ' + _esc(l.note));
-            if (l.user) parts.push('👤 ' + _esc(l.user));
+            if (l.by) parts.push('👤 ' + _esc(l.by));
             return `<div style="padding:4px 0;border-bottom:1px solid var(--bdr)">${parts.join(' ')}</div>`;
           }).join('')}
         </div>

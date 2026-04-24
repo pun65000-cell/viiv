@@ -22,3 +22,5 @@ INFO:     167.94.146.59:57644 - "POST /jsonrpc HTTP/1.1" 404 Not Found
 INFO:     167.94.146.59:57658 - "POST / HTTP/1.1" 404 Not Found
 WARNING:  Invalid HTTP request received.
 INFO:     167.94.146.59:15560 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     172.70.189.36:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
+INFO:     172.70.189.36:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
