@@ -327,8 +327,15 @@ function renderDashboard(el) {
   loadSubPage(el,'dashboard/main.html');
 }
 
+let _loadAbort = null;
+let _loadToken = 0;
+
 function loadSubPage(el, file) {
-  // ซ่อน card header เพราะ sub-page มี header ของตัวเอง
+  // abort request เก่า
+  if (_loadAbort) { _loadAbort.abort(); }
+  _loadAbort = new AbortController();
+  const _myToken = ++_loadToken;
+
   el.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div>';
   // inject global CSS ถ้ายังไม่มี
   if(!document.getElementById('viiv-global-css')){
@@ -337,9 +344,10 @@ function loadSubPage(el, file) {
     gl.href='/merchant/global.css?v='+Date.now();
     document.head.appendChild(gl);
   }
-  fetch(file + '?v=' + Date.now())
+  fetch(file + '?v=' + Date.now(), { signal: _loadAbort.signal })
     .then(function(r){ return r.text(); })
     .then(function(html){
+      if (_myToken !== _loadToken) return;
       // parse HTML ด้วย DOMParser เพื่อรักษา script tags
       // cleanup named token handlers จากหน้าก่อน ก่อน inject HTML ใหม่
       Object.keys(window).forEach(function(k){
@@ -428,7 +436,10 @@ function loadSubPage(el, file) {
         });
       }
     })
-    .catch(function(){ el.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>'; });
+    .catch(function(e){
+      if (e && e.name === 'AbortError') return;
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">โหลดหน้าไม่ได้</div>';
+    });
 }
 
 function renderPlaceholder(el, page) {
