@@ -7,6 +7,44 @@
   let _mode = 'list'; // 'list' | 'detail'
   let _detailId = null;
 
+  const SHIP_LABEL = {
+    scheduled:'กำหนดส่ง', shipped_no_recipient:'ส่งไม่มีผู้รับ',
+    shipped_cod:'ส่ง+เก็บเงิน', shipped_collect:'ส่ง+วางบิล',
+    bill_check:'วางบิลเช็ค', chargeback:'ชะลอจ่ายรอเคลม',
+    received_payment:'รับชำระแล้ว', overdue:'หนี้ค้างชำระ',
+    delivery:'จัดส่ง Delivery'
+  };
+  const SHIP_COLOR = {
+    scheduled:'#fef9c3:#713f12',
+    shipped_no_recipient:'#ffedd5:#7c2d12',
+    shipped_cod:'#dbeafe:#1e40af',
+    shipped_collect:'#d1fae5:#065f46',
+    received_payment:'#d1fae5:#064e3b',
+    overdue:'#fee2e2:#7f1d1d'
+  };
+
+  const FIN_STATUS = [
+    {id:'pending',  label:'รอชำระเงิน',   bg:'#fef9c3', color:'#713f12'},
+    {id:'paid',     label:'จ่ายแล้ว',       bg:'#d1fae5', color:'#065f46'},
+    {id:'partial',  label:'ชำระบางส่วน',   bg:'#ede9fe', color:'#4c1d95'},
+    {id:'credit',   label:'เครดิต',         bg:'#dbeafe', color:'#1e40af'},
+    {id:'voided',   label:'ยกเลิก',         bg:'#fee2e2', color:'#991b1b'},
+  ];
+
+  const SHIP_STATUS = [
+    {id:'scheduled',           label:'กำหนดส่ง',        bg:'#fef9c3', color:'#713f12'},
+    {id:'shipped_no_recipient',label:'ส่งไม่มีผู้รับ',   bg:'#ffedd5', color:'#7c2d12'},
+    {id:'shipped_cod',         label:'ส่ง+เก็บเงิน',     bg:'#dbeafe', color:'#1e40af'},
+    {id:'shipped_collect',     label:'ส่ง+วางบิล',       bg:'#d1fae5', color:'#065f46'},
+    {id:'bill_check',          label:'วางบิลเช็ค',       bg:'#ede9fe', color:'#4c1d95'},
+    {id:'chargeback',          label:'ชะลอจ่ายรอเคลม',  bg:'#fee2e2', color:'#991b1b'},
+    {id:'received_payment',    label:'รับชำระแล้ว',      bg:'#d1fae5', color:'#064e3b'},
+    {id:'overdue',             label:'หนี้ค้างชำระ',     bg:'#fee2e2', color:'#7f1d1d'},
+  ];
+
+  const LOCK_SHIP = ['received_payment','overdue'];
+  const LOCK_FIN_FROM_PAID = ['pending','draft','credit'];
+
   Router.register('orders', {
     title: 'ออเดอร์',
     async load(params) {
@@ -79,6 +117,11 @@
     const ST = {paid:'tag-green',pending:'tag-yellow',voided:'tag-red',deleted:'tag-red',draft:'tag-yellow'};
     const TH = {paid:'ชำระแล้ว',pending:'ค้างชำระ',voided:'ยกเลิก',deleted:'ลบแล้ว',draft:'ร่าง'};
     const st = b.status || 'pending';
+    let badges = `<span class="tag ${ST[st]||'tag-yellow'}">${TH[st]||st}</span>`;
+    if (b.shipping_status) {
+      const [bg, cl] = (SHIP_COLOR[b.shipping_status] || '#f3f4f6:#374151').split(':');
+      badges += ` <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${bg};color:${cl}">${SHIP_LABEL[b.shipping_status]||b.shipping_status}</span>`;
+    }
     return `<div class="list-item" style="margin-bottom:8px" onclick="Router.go('orders',{id:'${b.id}'})">
       <div class="li-left">
         <div class="li-title">${_esc(b.bill_no)}</div>
@@ -86,7 +129,7 @@
       </div>
       <div class="li-right">
         <div class="li-amount">฿${_fmt(b.total||0)}</div>
-        <span class="tag ${ST[st]||'tag-yellow'}">${TH[st]||st}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end">${badges}</div>
       </div>
     </div>`;
   }
@@ -147,8 +190,9 @@
     const PM = {cash:'💵 เงินสด',transfer:'🏦 โอนเงิน',credit_card:'💳 บัตรเครดิต',qr:'📱 QR Code'};
     const st = b.status || 'pending';
     const canVoid = st === 'paid' || st === 'pending';
+    const isShip = b.source !== 'pos';
 
-    return `<div style="max-width:768px;margin:0 auto;padding:0 0 80px">
+    let html = `<div style="max-width:768px;margin:0 auto;padding:0 0 80px">
 
       <!-- BACK + ACTIONS TOPBAR -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px">
@@ -225,18 +269,67 @@
           <span>รับเงิน / ทอน</span>
           <span>฿${_fmt(b.paid_amount)} / ฿${_fmt(b.paid_amount - b.total)}</span>
         </div>` : ''}
+      </div>`;
+
+    // ─── FINANCIAL STATUS SECTION ───
+    html += `<div style="margin:12px 14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">สถานะการเงิน</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${FIN_STATUS.map(s => {
+          const active = s.id === st;
+          const locked = st === 'paid' && LOCK_FIN_FROM_PAID.includes(s.id);
+          const dis = locked ? 'pointer-events:none;opacity:0.4;' : '';
+          return `<button onclick="OrdersPage.setFinStatus('${b.id}','${s.id}')"
+            style="${dis}display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:2px solid ${active?s.color:'var(--bdr)'};background:${active?s.bg:'var(--card)'};color:${active?s.color:'var(--muted)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer"
+            ${locked?'disabled':''}>${active?'●':''} ${s.label}</button>`;
+        }).join('')}
       </div>
-
-      <!-- ACTIONS -->
-      ${st === 'pending' ? `
-      <div style="margin:0 14px">
-        <button onclick="OrdersPage.markPaid('${b.id}')"
-          style="width:100%;background:var(--gold);color:#000;border:none;border-radius:12px;padding:14px;font-size:var(--fs-md);font-weight:800;cursor:pointer">
-          ✅ บันทึกชำระเงิน
-        </button>
-      </div>` : ''}
-
+      <textarea id="fin-note" rows="2" placeholder="หมายเหตุการชำระ (ถ้ามี)..."
+        style="width:100%;box-sizing:border-box;margin-top:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:var(--fs-xs);resize:none;outline:none">${_esc(b.payment_note||'')}</textarea>
     </div>`;
+
+    // ─── SHIPPING STATUS SECTION (only for non-POS) ───
+    if (isShip) {
+      const ss = b.shipping_status || '';
+      html += `<div style="margin:12px 14px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">สถานะจัดส่ง</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${SHIP_STATUS.map(s => {
+            const active = s.id === ss;
+            const locked = LOCK_SHIP.includes(ss) && s.id !== ss;
+            const dis = locked ? 'pointer-events:none;opacity:0.4;' : '';
+            return `<button onclick="OrdersPage.setShipStatus('${b.id}','${s.id}')"
+              style="${dis}display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:2px solid ${active?s.color:'var(--bdr)'};background:${active?s.bg:'var(--card)'};color:${active?s.color:'var(--muted)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer"
+              ${locked?'disabled':''}>${active?'●':''} ${s.label}</button>`;
+          }).join('')}
+        </div>
+        <input id="ship-note" placeholder="เลขพัสดุ / หมายเหตุ" value="${_esc(b.ship_note||'')}"
+          style="width:100%;box-sizing:border-box;margin-top:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-xs);outline:none"/>
+        ${ss === 'scheduled' ? `<input id="ship-scheduled-at" type="datetime-local" value="${_dtLocal(b.scheduled_at)}"
+          style="width:100%;box-sizing:border-box;margin-top:6px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-xs);outline:none"/>` : ''}
+      </div>`;
+    }
+
+    // ─── ACTIVITY LOG ───
+    const logs = _parseLogs(b.activity_log);
+    if (logs.length) {
+      html += `<div style="margin:12px 14px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">ประวัติกิจกรรม</div>
+        <div style="background:var(--card);border-radius:10px;border:1px solid var(--bdr);padding:10px 12px;font-size:var(--fs-xs);color:var(--muted)">
+          ${logs.slice().reverse().slice(0,5).map(l => {
+            const parts = [];
+            parts.push(`<span style="color:var(--txt)">${App.fmtDate(l.at)} ${App.fmtTime(l.at)}</span>`);
+            if (l.status) parts.push('💰 ' + _esc(l.status));
+            if (l.shipping) parts.push('🚚 ' + _esc(l.shipping));
+            if (l.note) parts.push('📝 ' + _esc(l.note));
+            return `<div style="padding:4px 0;border-bottom:1px solid var(--bdr)">${parts.join(' ')}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    html += `</div>`;
+    return html;
   }
 
   function _parseItems(raw) {
@@ -244,24 +337,51 @@
     try { return typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return []; }
   }
 
+  function _parseLogs(raw) {
+    if (!raw) return [];
+    try { return typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []); } catch { return []; }
+  }
+
+  function _dtLocal(iso) {
+    if (!iso) return '';
+    try { return new Date(iso).toISOString().slice(0,16); } catch { return ''; }
+  }
+
   // ─────────────────────── PUBLIC API ───────────────────────
 
   window.OrdersPage = {
     tab(id) { _tab = id; _q = ''; _reloadList(); },
 
-    async markPaid(id) {
-      const btn = document.querySelector(`[onclick="OrdersPage.markPaid('${id}')"]`);
-      if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+    async setFinStatus(id, status) {
       try {
         await App.api('/api/pos/bills/update-status/' + id, {
           method: 'POST',
-          body: JSON.stringify({ status: 'paid' })
+          body: JSON.stringify({ status })
         });
-        App.toast('✅ บันทึกชำระเงินแล้ว');
+        App.toast('บันทึกสถานะการเงินแล้ว');
         await _loadDetail(id);
       } catch(e) {
         App.toast('❌ ' + e.message);
-        if (btn) { btn.disabled = false; btn.textContent = '✅ บันทึกชำระเงิน'; }
+      }
+    },
+
+    async setShipStatus(id, shipping_status) {
+      const noteEl = document.getElementById('ship-note');
+      const schedEl = document.getElementById('ship-scheduled-at');
+      const body = { shipping_status };
+      if (noteEl) body.ship_note = noteEl.value;
+      if (shipping_status === 'scheduled' && schedEl && schedEl.value) {
+        body.scheduled_at = new Date(schedEl.value).toISOString();
+      }
+      try {
+        await App.api('/api/pos/bills/update-status/' + id, {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+        App.toast('บันทึกสถานะจัดส่งแล้ว');
+        await _loadDetail(id);
+      } catch(e) {
+        App.toast('❌ ' + e.message);
       }
     },
 
@@ -290,7 +410,7 @@
           body: JSON.stringify({ void_type: 'cancel', reason })
         });
         closeSheet();
-        App.toast('✅ ยกเลิกบิลแล้ว');
+        App.toast('ยกเลิกบิลแล้ว');
         await _loadDetail(id);
       } catch(e) {
         App.toast('❌ ' + e.message);

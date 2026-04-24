@@ -264,7 +264,7 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.20
+Version:      v1.25
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
 Git latest:   bd7d709 — fix(shipping): null guard 3 จุด (sh-track-popup, dv-note-wrap, od-delivery-popup)
@@ -295,6 +295,12 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.25]
+✅ orders.js — แก้ shipping status id ผิด + ตรวจ ship_note auth:
+   debt → overdue (4 จุด: SHIP_LABEL, SHIP_COLOR, SHIP_STATUS, LOCK_SHIP)
+   ship_note/เลขพัสดุ: ยืนยันใช้ App.api() แล้ว (ไม่ต้องแก้)
+   ไฟล์: frontend/pwa/pages/orders.js
+
 [2026-04-24 v1.24]
 ✅ shipping.html — null guard เพิ่มเติม 3 จุด:
    shOpenTracking: sh-track-popup
