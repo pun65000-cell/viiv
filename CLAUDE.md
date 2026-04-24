@@ -1,5 +1,5 @@
-VIIV POS Project Bible v1.16
-> Updated: 2026-04-23 | ต่อจาก v1.15
+VIIV POS Project Bible v1.17
+> Updated: 2026-04-24 | ต่อจาก v1.16
 ---
 1. โครงสร้างระบบ
 Stack: FastAPI (Python 3.12) + Supabase/PostgreSQL + Caddy + Uvicorn port 8000  
@@ -45,7 +45,7 @@ sudoers (ไม่ถาม password):
 `sudo systemctl restart caddy`
 `sudo cp /tmp/Caddyfile.new /etc/caddy/Caddyfile`
 ---
-4. File Structure (v1.15)
+4. File Structure (v1.17)
 ```
 /home/viivadmin/viiv/
 ├── .env
@@ -81,10 +81,11 @@ sudoers (ไม่ถาม password):
 │           ├── home.js          หน้าหลัก ✅ Living Dashboard + menu grid
 │           ├── billing.js       ออกบิล ✅ search, items, sticky total, payment sheet
 │           ├── orders.js        ออเดอร์ ✅ list + filters + status badges
-│           ├── products.js      สินค้า ✅ list + search + stock display
-│           ├── members.js       ลูกค้า ✅ list + search + tier badges
+│           ├── products.js      สินค้า ✅ CRUD + image upload + receive history
+│           ├── members.js       สมาชิก ✅ list + search + tier badges
+│           ├── store.js         สโตร์ ✅ คลัง + ตัดสต็อก + พิมพ์ป้าย
 │           ├── more.js          เพิ่มเติม ✅ drawer menu + module links
-│           ├── pos.js           ขายด่วน (Phase 2)
+│           ├── pos.js           POS Hub ✅ summary + 9-menu grid
 │           ├── chat.js          แชท (Phase 2)
 │           └── autopost.js      AutoPost (Phase 2)
 ├── modulpos/                    POS Mobile (iframe-based, legacy)
@@ -390,50 +391,60 @@ Database migration → รัน staging ก่อน ถ้า OK ค่อย 
 Static files → update ได้ตลอดไม่กระทบ
 Uploads → symlink ใช้ร่วมกัน: `ln -s /viiv/uploads /viiv-green/uploads`
 ---
-14. Pending / TODO (v1.15)
+14. Pending / TODO (v1.17)
 #	Item	Priority
 1	✅ PWA Phase 1 — home, pos, billing, orders, products, members, more	Done
-2	✅ Mobile Shell — light theme nav + profile button	Done
+2	✅ Mobile Shell — refactor clean + token broadcast	Done
 3	✅ Order detail view — bill info + markPaid + void	Done
-4	pos_line.py — Webhook + pending-uid	High
-5	PWA billing — discount, VAT, doc type (invoice/receipt)	High
-6	PWA orders/shipping — shipping status update	Medium
-7	PWA products/create — เพิ่มสินค้าใหม่	Medium
-8	PWA members — add member form	Medium
-9	Blue-Green setup — สร้าง viiv-green + scripts	Medium
-10	Chat Module — connect LINE webhook จริง	Medium
-11	Dashboard API — ยอดแชท, Affiliate, AutoPost จริง	Medium
-12	PWA Phase 2 — easysale, affiliate, finance	Medium
-13	PWA Phase 3 — receive, settings	Future
-14	Capacitor.js — wrap เป็น APK/IPA	Future
-15	AI Chat Interface — shell สั่งงานด้วยแชท	Future
+4	✅ modulpos/api/routes.py — fix field names (min_alert, pay_method, track_stock)	Done
+5	✅ products.js v3 — image upload, stock_back, qr_url, receive history	Done
+6	✅ app.css — fix #page-container transparent overlap bug	Done
+7	✅ pos.js — ออกบิล→sub-sheet, slot 7 ค้นหาบิล→สโตร์	Done
+8	✅ store.js — คลังสินค้า, ตัดสต็อก, พิมพ์ป้าย (QR/ราคา)	Done
+9	pos_line.py — Webhook + pending-uid	High
+10	PWA billing — discount, VAT, doc type (invoice/receipt)	High
+11	PWA orders/shipping — shipping status update	Medium
+12	PWA members — add/edit member form	Medium
+13	Blue-Green setup — สร้าง viiv-green + scripts	Medium
+14	Chat Module — connect LINE webhook จริง	Medium
+15	Dashboard API — ยอดแชท, Affiliate, AutoPost จริง	Medium
+16	PWA Phase 2 — easysale, affiliate, finance	Medium
+17	PWA Phase 3 — receive, settings	Future
+18	Capacitor.js — wrap เป็น APK/IPA	Future
+19	AI Chat Interface — shell สั่งงานด้วยแชท	Future
 ---
-15. Resolved in v1.15
-PWA Phase 1 Complete (2026-04-23)
-✅ home.js — Living Dashboard + module cards (POS/Chat/Aff/AutoPost) + tickers
-✅ pos.js — POS Hub: summary card + menu grid + recent bills
-✅ billing.js — ออกบิล: product search + cart + qty control + payment sheet → API save
-✅ orders.js — Order list (tabs: all/paid/pending/voided) + **bill detail view**
-✅ products.js — Product list + search + stock badge (สีตามจำนวน)
-✅ members.js — Member list + search + credit/PV display
-✅ more.js — Navigation drawer (การขาย, สินค้า/ลูกค้า, ข้อมูลทั่วไป)
-✅ app.css — Design system overhaul (fluid clamp, tokens, components)
-Order Detail View (v1.15)
-✅ orders.js handles params.id → detail mode
-✅ Bill header: bill_no, status badge, date, staff, customer
-✅ Items list with qty × price subtotal
-✅ Financial summary: subtotal, discount, VAT, total, payment method
-✅ markPaid action (pending → paid) via update-status API
-✅ Void action with reason sheet → void API
-✅ After billing.js creates bill → auto-navigate to detail (receipt)
-Mobile Shell (v1.15)
-✅ Light theme bottom nav (var(--card) ไม่ใช่ #1a1206)
-✅ Profile avatar button top-right
-✅ Profile bottom-sheet: ชื่อ/นามสกุล/เบอร์/อีเมล/เปลี่ยนรหัสผ่าน
+15. Resolved in v1.16 / v1.17
+Resolved in v1.17 (2026-04-24)
+✅ app.css — #page-container ขาด background: var(--bg) → หน้าสินค้า/สมาชิกมองเห็น POS hub ซ้อนอยู่ด้านหลัง (fixed)
+✅ pos.js — tile "ออกบิล" เปิด bottom sheet ย่อย: [ออกบิลใหม่] [ค้นหาบิล]
+✅ pos.js — slot 7 เปลี่ยนจาก "ค้นหาบิล" → "🏪 สโตร์" (Router.go('store'))
+✅ store.js — หน้าใหม่ 3 tabs:
+  · คลังสินค้า: list ทั้งหมด + search + category chips + tap → quick-adjust sheet (set/add/sub, front/back)
+  · ตัดสต็อก: search-first UX → เลือกสินค้า → ปรับ qty + คลัง + หมายเหตุ
+  · พิมพ์ป้าย: เลือกสินค้า + qty → QR Code / ป้ายราคา → ขนาด 40×25/50×30/60×40 → preview → print via hidden iframe
+✅ more.js — เพิ่ม "🏪 สโตร์" ใน section โมดูล, bump version v1.16
+✅ index.html — เพิ่ม store.js, bump asset version → v=1164
+
+Resolved in v1.16 (2026-04-24)
+✅ modulpos/api/routes.py — แก้ 3 field name bugs:
+  · summary: min_stock → min_alert (ทำให้ /summary ไม่พัง 500)
+  · bills_recent: payment_method → pay_method
+  · products/list: is_active/category_id/unit → status='active'/category/sku/track_stock
+✅ frontend/superboard/mobile/index.html — clean refactor (484 lines): token broadcast, lazy iframe, PTR overlay, back button
+✅ products.js v3 — complete rewrite:
+  · Tab สินค้า: status filter chips (ทั้งหมด/จำหน่าย/หยุดขาย), category chips, image upload (📷+URL), track_stock toggle, stock_back, qr_url, description
+  · Tab รับสินค้า: เปลี่ยนจาก inline form → history list + bottom sheet form + camera capture image
+  · Fix field names: vat_type → vat, min_stock_alert → min_alert
+
+Resolved in v1.15 (2026-04-23)
+✅ PWA Phase 1 complete: home, billing, orders (+ detail), products, members, more, pos hub
+✅ app.css Design system overhaul
+✅ Order detail: markPaid, void, receipt view
+✅ Mobile Shell light theme + profile bottom-sheet
+
 Resolved in v1.14
-✅ วิเคราะห์ข้อเสีย iframe 18 ปัญหา, เลือก PWA approach
+✅ วิเคราะห์ข้อเสีย iframe → เลือก PWA approach
 ✅ PWA shell: manifest.json, sw.js, app.css, router.js, app.js
-✅ Caddy serve /pwa/ path
 ✅ Pull-to-refresh native, back button, viewport scale
 ---
 16. Git Restore Points
@@ -441,7 +452,11 @@ Commit	Description
 `f3adb9c`	Superboard Dashboard Live4/4 (safe point)
 `ab5ec4d`	PWA shell foundation (PTR, router, design system)
 `c778e1d`	PWA Phase 1 complete (all core pages)
-`c91cfec`	Mobile shell light theme + profile button ← latest safe point
+`c91cfec`	Mobile shell light theme + profile button
+`ae6cd1e`	PWA Phase 1: checkpoint before limit reset
+`266fb3e`	PWA สินค้า v3: complete products page with all CRUD + receive history
+`4774970`	Mobile shell cleanup + fix modulpos API field names
+`7c8d386`	PWA สโตร์ page + ออกบิล sub-menu + overlap fix ← latest safe point
 ```bash
 git log --oneline -15
 git checkout f3adb9c -- frontend/superboard/pages/home.html
@@ -518,8 +533,8 @@ APIs: /api/pos/bills/*, /api/pos/products/list,
       /api/pos/store/settings
 ```
 ---
-Project Bible v1.15 — Updated 2026-04-23  
-ต่อจาก v1.14 | VIIV Development Team
+Project Bible v1.17 — Updated 2026-04-24  
+ต่อจาก v1.16 | VIIV Development Team
 
 ## วิธีทำงานร่วมกับ Claude Code
 
@@ -527,10 +542,7 @@ Project Bible v1.15 — Updated 2026-04-23
 - ใช้ virtual env: `source /home/viivadmin/viiv/.venv/bin/activate`
 - ห้ามแก้ไฟล์ production โดยไม่บอกก่อน
 - หลังแก้โค้ดให้ restart server ด้วย command จาก Section 2 เสมอ
-- Version ปัจจุบัน: v1.15
-
-
-
+- Version ปัจจุบัน: v1.17
 
 ## Context การทำงานปัจจุบัน
 
@@ -539,7 +551,38 @@ Project Bible v1.15 — Updated 2026-04-23
 - PWA (/pwa/) รับ token จาก Superboard ผ่าน postMessage
 - PWA ไม่มี login หน้าตัวเอง — token มาจาก parent เสมอ
 
-### งานที่กำลังทำ (v1.15)
-- Phase 1 เสร็จแล้ว — home, pos, billing, orders (+ detail), products, members, more
-- ถัดไป: billing เพิ่ม discount/VAT/doc-type, orders shipping, products/members CRUD
-- ไฟล์ที่ใช้จริง: frontend/pwa/ (ไม่ใช่ app1-5.js)
+### สถานะ PWA Pages (v1.17)
+| ไฟล์ | สถานะ | หมายเหตุ |
+|---|---|---|
+| home.js | ✅ Done | Living Dashboard + module cards |
+| pos.js | ✅ Done | POS Hub + 9-menu + ออกบิล sub-sheet |
+| billing.js | ✅ Done | ออกบิล + cart + payment sheet |
+| orders.js | ✅ Done | list + filters + detail (markPaid/void) |
+| products.js | ✅ Done | CRUD + image upload + receive history |
+| members.js | ✅ Done | list + search + tier |
+| store.js | ✅ Done | คลัง + ตัดสต็อก + พิมพ์ป้าย |
+| more.js | ✅ Done | navigation drawer |
+| chat.js | 🚧 Phase 2 | placeholder |
+| autopost.js | 🚧 Phase 2 | placeholder |
+
+### งานถัดไป (Priority)
+1. **High** — PWA billing: เพิ่ม discount, VAT, doc type (invoice/receipt)
+2. **High** — pos_line.py: LINE Webhook + pending-uid
+3. **Medium** — PWA orders: shipping status update
+4. **Medium** — PWA members: add/edit member form
+5. **Medium** — Dashboard API: ยอดแชท, Affiliate, AutoPost จริง (ไม่ใช่ mock)
+6. **Medium** — PWA Phase 2: easysale, affiliate, finance
+
+### ไฟล์ที่ใช้จริง
+- Backend: `app/api/pos_*.py` (ไม่ใช่ modulpos/api/routes.py ที่เป็น legacy)
+- Frontend: `frontend/pwa/` (ไม่ใช่ modulpos/frontend/)
+- Asset version ปัจจุบัน: `?v=1164`
+
+### Rule 25 — products.js field names ที่ถูกต้อง (v1.16)
+API ใช้ชื่อ field ดังนี้ — ห้ามใช้ชื่อเก่าที่พัง:
+- `vat` (ไม่ใช่ `vat_type`)
+- `min_alert` (ไม่ใช่ `min_stock_alert` หรือ `min_stock`)
+- `stock_back` สำหรับคลังหลังร้าน
+- `track_stock` (boolean) ควบคุมการนับสต็อก
+- `pay_method` ใน bills (ไม่ใช่ `payment_method`)
+- `category` ใน products (ไม่ใช่ `category_id`)
