@@ -264,10 +264,10 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.18
+Version:      v1.20
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   (pending) store.js v1.19 — Tab3 partner + Tab5 bundle
+Git latest:   74a8fe1 — fix(dashboard): restore page + sub-tab from URL hash on reload
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,20 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.20]
+✅ dashboard.html — restore page + sub-tab from URL hash on reload:
+   navigate(key, tabIndex) stores hash as #key/tabIndex
+   renderTabs(page, key, activeIdx) restores correct sub-tab
+   DOMContentLoaded: hashchange + init both parse hash.split('/') → [key, tabStr]
+   sidebar nav click passes tabIndex=0 explicitly
+   git: 74a8fe1
+
+✅ router.js v1.168 — 3 fixes:
+   popstate uses e.state?.page + e.state?.params||{}
+   back() calls history.back() (was history.go(-1))
+   init() parses location.hash, history.replaceState with correct page key
+   index.html bump router.js ?v=1168
+
 [2026-04-24 v1.18]
 ✅ store.js v1.19 — Tab3+Tab5 fix:
    Tab3 รับสินค้า: partner search(GET /api/pos/partners/list) + create partner inline + required validation + product table(#|สินค้า|ราคารับ|จำนวน|คลัง|รวม) + auto-total + history
