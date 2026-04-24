@@ -264,17 +264,17 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.27
+Version:      v1.28
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   9dc70f8 — feat(orders): shipping section redesign with dynamic extra fields and photo upload
+Git latest:   8cf3e6f — feat(orders): split into 3 files + fix ship state/cod/updated_by
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
 home.js	✅ Done	Living Dashboard + module cards + tickers
 pos.js	✅ Done	POS Hub + 9-menu + ออกบิล sub-sheet + สโตร์ slot
 billing.js	✅ Done	ออกบิล + cart + payment sheet
-orders.js	✅ Done	list + filters + detail + ship extra-fields + photo upload
+orders.js / orders-detail.js / orders-upload.js	✅ Done	split 3 files: list, detail+status, upload-slip helper
 products.js	✅ Done	CRUD + image upload + receive history
 members.js	✅ Done	list + search + tier badges
 store.js	✅ Done v1.19	Tab3 รับสินค้า: partner required + search + create mini-form + product table + validate | Tab5 ชุดสินค้า: full form + SKU check + cost auto-calc + CRUD + add-item picker
@@ -295,6 +295,16 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.28]
+✅ orders split 3 files + 3 bug fixes (v1171):
+   - orders.js → list + search + filter เท่านั้น
+   - orders-detail.js → detail, fin/ship status, void, _loadDetail (reset state on load)
+   - orders-upload.js → OrdersUpload.slip(file) standalone helper
+   - Fix: reset _shipBillId/_shipStatus = null ทุกครั้งที่โหลด bill ใหม่
+   - Fix: shipped_cod เพิ่ม photo upload + หมายเหตุ ใน _shipExtraHtml
+   - Fix: setShipStatus() เพิ่ม updated_by payload; activity log แสดง 👤 l.user
+   ไฟล์: orders.js, orders-detail.js (ใหม่), orders-upload.js (ใหม่), index.html
+
 [2026-04-24 v1.27]
 ✅ orders.js — shipping section redesign (v1170):
    - Section background #f0ede6, border 1.5px solid #d4c9b0
