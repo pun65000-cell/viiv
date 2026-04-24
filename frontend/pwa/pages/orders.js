@@ -6,6 +6,8 @@
   let _q = '';
   let _mode = 'list'; // 'list' | 'detail'
   let _detailId = null;
+  let _shipBillId = null;
+  let _shipStatus = null;
 
   const SHIP_LABEL = {
     scheduled:'กำหนดส่ง', shipped_no_recipient:'ส่งไม่มีผู้รับ',
@@ -272,8 +274,8 @@
       </div>`;
 
     // ─── FINANCIAL STATUS SECTION ───
-    html += `<div style="margin:12px 14px">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">สถานะการเงิน</div>
+    html += `<div style="margin:12px 14px;padding:14px;background:#faf8f3;border-radius:14px;border:1px solid var(--bdr)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--txt)">💰 สถานะการเงิน</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         ${FIN_STATUS.map(s => {
           const active = s.id === st;
@@ -291,22 +293,22 @@
     // ─── SHIPPING STATUS SECTION (only for non-POS) ───
     if (isShip) {
       const ss = b.shipping_status || '';
-      html += `<div style="margin:12px 14px">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px">สถานะจัดส่ง</div>
+      _shipBillId = b.id;
+      _shipStatus = ss || null;
+      html += `<div style="margin:12px 14px;padding:14px;background:#f0ede6;border-radius:14px;border:1.5px solid #d4c9b0">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--txt)">🚚 สถานะจัดส่ง</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           ${SHIP_STATUS.map(s => {
             const active = s.id === ss;
             const locked = LOCK_SHIP.includes(ss) && s.id !== ss;
             const dis = locked ? 'pointer-events:none;opacity:0.4;' : '';
-            return `<button onclick="OrdersPage.setShipStatus('${b.id}','${s.id}')"
+            return `<button onclick="OrdersPage.selectShipStatus('${b.id}','${s.id}')"
               style="${dis}display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:2px solid ${active?s.color:'var(--bdr)'};background:${active?s.bg:'var(--card)'};color:${active?s.color:'var(--muted)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer"
               ${locked?'disabled':''}>${active?'●':''} ${s.label}</button>`;
           }).join('')}
         </div>
-        <input id="ship-note" placeholder="เลขพัสดุ / หมายเหตุ" value="${_esc(b.ship_note||'')}"
-          style="width:100%;box-sizing:border-box;margin-top:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-xs);outline:none"/>
-        ${ss === 'scheduled' ? `<input id="ship-scheduled-at" type="datetime-local" value="${_dtLocal(b.scheduled_at)}"
-          style="width:100%;box-sizing:border-box;margin-top:6px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-xs);outline:none"/>` : ''}
+        <div id="ship-extra-fields" style="margin-top:8px">${_shipExtraHtml(ss, b)}</div>
+        ${b.ship_photo_url ? `<div style="margin-top:10px"><img src="${_esc(b.ship_photo_url)}" alt="รูปพัสดุ" style="max-width:100%;border-radius:8px;border:1px solid var(--bdr)"/></div>` : ''}
       </div>`;
     }
 
@@ -347,6 +349,36 @@
     try { return new Date(iso).toISOString().slice(0,16); } catch { return ''; }
   }
 
+  function _shipExtraHtml(status, b) {
+    const S = 'width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-xs);outline:none;margin-top:6px';
+    const T = S + ';resize:none';
+    const LB = 'display:block;font-size:var(--fs-xs);color:var(--muted);margin-top:8px';
+    let f = '';
+    if (status === 'scheduled') {
+      f = `<input id="ship-scheduled-at" type="datetime-local" value="${_dtLocal(b?.scheduled_at)}" style="${S}"/>`;
+    } else if (status === 'shipped_no_recipient' || status === 'shipped_collect') {
+      f = `<label style="${LB}">รูปภาพ</label>
+        <input id="ship-photo" type="file" accept="image/*" style="${S}"/>
+        <textarea id="ship-note" rows="2" placeholder="หมายเหตุ" style="${T}">${_esc(b?.ship_note||'')}</textarea>`;
+    } else if (status === 'bill_check') {
+      f = `<label style="${LB}">รูปภาพเช็ค</label>
+        <input id="ship-photo" type="file" accept="image/*" style="${S}"/>
+        <input id="check-bank" placeholder="ธนาคาร" value="${_esc(b?.check_bank||'')}" style="${S}"/>
+        <input id="check-number" placeholder="เลขเช็ค" value="${_esc(b?.check_number||'')}" style="${S}"/>
+        <input id="check-payee" placeholder="สั่งจ่ายชื่อ" value="${_esc(b?.check_payee||'')}" style="${S}"/>
+        <input id="check-date" type="date" value="${_esc(b?.check_date||'')}" style="${S}"/>
+        <textarea id="ship-note" rows="2" placeholder="หมายเหตุ" style="${T}">${_esc(b?.ship_note||'')}</textarea>`;
+    } else if (status === 'chargeback' || status === 'overdue') {
+      f = `<textarea id="ship-note" rows="2" placeholder="หมายเหตุ" style="${T}">${_esc(b?.ship_note||'')}</textarea>`;
+    } else {
+      f = `<input id="ship-note" placeholder="เลขพัสดุ / หมายเหตุ" value="${_esc(b?.ship_note||'')}" style="${S}"/>`;
+    }
+    return f + `<button onclick="OrdersPage.setShipStatus()"
+      style="width:100%;margin-top:10px;background:var(--gold);color:#000;border:none;border-radius:10px;padding:11px;font-size:var(--fs-xs);font-weight:700;cursor:pointer">
+      บันทึกสถานะจัดส่ง
+    </button>`;
+  }
+
   // ─────────────────────── PUBLIC API ───────────────────────
 
   window.OrdersPage = {
@@ -365,15 +397,52 @@
       }
     },
 
-    async setShipStatus(id, shipping_status) {
-      const noteEl = document.getElementById('ship-note');
-      const schedEl = document.getElementById('ship-scheduled-at');
-      const body = { shipping_status };
-      if (noteEl) body.ship_note = noteEl.value;
-      if (shipping_status === 'scheduled' && schedEl && schedEl.value) {
-        body.scheduled_at = new Date(schedEl.value).toISOString();
-      }
+    selectShipStatus(id, status) {
+      _shipBillId = id;
+      _shipStatus = status;
+      const el = document.getElementById('ship-extra-fields');
+      if (el) el.innerHTML = _shipExtraHtml(status, null);
+    },
+
+    async setShipStatus() {
+      const id = _shipBillId;
+      const status = _shipStatus;
+      if (!id || !status) { App.toast('กรุณาเลือกสถานะก่อน'); return; }
+      const btn = document.querySelector('[onclick="OrdersPage.setShipStatus()"]');
+      if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
       try {
+        let photoUrl = null;
+        const photoEl = document.getElementById('ship-photo');
+        if (photoEl && photoEl.files && photoEl.files[0]) {
+          const fd = new FormData();
+          fd.append('file', photoEl.files[0]);
+          const resp = await fetch('/api/pos/bills/upload-slip', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + App.token },
+            body: fd
+          });
+          if (!resp.ok) { const t = await resp.text(); throw new Error('อัปโหลดไม่ได้: ' + t); }
+          const data = await resp.json();
+          photoUrl = data.url;
+        }
+        const body = { shipping_status: status };
+        const noteEl = document.getElementById('ship-note');
+        if (noteEl) body.ship_note = noteEl.value;
+        if (status === 'scheduled') {
+          const schedEl = document.getElementById('ship-scheduled-at');
+          if (schedEl && schedEl.value) body.scheduled_at = new Date(schedEl.value).toISOString();
+        }
+        if (status === 'bill_check') {
+          const bankEl = document.getElementById('check-bank');
+          const numEl = document.getElementById('check-number');
+          const payeeEl = document.getElementById('check-payee');
+          const dateEl = document.getElementById('check-date');
+          if (bankEl) body.check_bank = bankEl.value;
+          if (numEl) body.check_number = numEl.value;
+          if (payeeEl) body.check_payee = payeeEl.value;
+          if (dateEl) body.check_date = dateEl.value;
+        }
+        if (photoUrl) body.ship_photo_url = photoUrl;
         await App.api('/api/pos/bills/update-status/' + id, {
           method: 'POST',
           body: JSON.stringify(body)
@@ -382,6 +451,7 @@
         await _loadDetail(id);
       } catch(e) {
         App.toast('❌ ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'บันทึกสถานะจัดส่ง'; }
       }
     },
 
