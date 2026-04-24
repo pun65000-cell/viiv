@@ -36,13 +36,7 @@ const Router = {
       await Router.go('home', {}, { replace: true });
       return;
     }
-    const prev = Router.stack.pop();
-    if (prev?.id) {
-      history.replaceState({ page: prev.id }, '', `#${prev.id}`);
-      await Router._render(Router.pages[prev.id], prev.params || {});
-    } else {
-      await Router.go('home', {}, { replace: true });
-    }
+    history.back();
   },
 
   async _render(page, params) {
@@ -90,22 +84,20 @@ const Router = {
     Router.back = Router.back.bind(this);
     Router._render = Router._render.bind(this);
     // Android back button
-    window.addEventListener('popstate', async () => {
-      if (Router.stack.length > 0) {
-        const prev = Router.stack.pop();
-        if (prev?.id) await Router._render(Router.pages[prev.id], prev.params || {});
-        else await Router._render(Router.pages['home'], {});
+    window.addEventListener('popstate', async (e) => {
+      const id = e.state?.page;
+      const params = e.state?.params || {};
+      if (id && Router.pages[id]) {
+        await Router._render(Router.pages[id], params);
       } else {
         await Router._render(Router.pages['home'], {});
-        history.pushState({ page: 'home' }, '', '#home');
       }
     });
 
     // initial state
-    history.replaceState({ page: 'home' }, '', '#home');
-    // render initial page
-    const hash = location.hash.replace('#','') || 'home';
+    const hash = location.hash.replace('#', '') || 'home';
     const startPage = Router.pages[hash] ? hash : 'home';
+    history.replaceState({ page: startPage, params: {} }, '', '#' + startPage);
     Router.go(startPage, {}, { replace: true });
   }
 };
