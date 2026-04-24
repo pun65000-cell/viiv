@@ -264,10 +264,10 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.28
+Version:      v1.29
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   8cf3e6f — feat(orders): split into 3 files + fix ship state/cod/updated_by
+Git latest:   5fcc2c9 — fix(orders): highlight selected ship status button on selectShipStatus()
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,12 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.29]
+✅ orders-detail.js — ship button highlight fix:
+   - เพิ่ม data-ship-id="${s.id}" ใน button แต่ละปุ่ม
+   - selectShipStatus() loop [data-ship-id] → update border/bg/color/textContent
+   ไฟล์: frontend/pwa/pages/orders-detail.js
+
 [2026-04-24 v1.28]
 ✅ orders split 3 files + 3 bug fixes (v1171):
    - orders.js → list + search + filter เท่านั้น
