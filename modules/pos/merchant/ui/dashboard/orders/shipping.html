@@ -357,9 +357,10 @@ window.odOpenDelivery=function(bid){
   document.getElementById('dv-note-wrap').style.display='none';
   document.getElementById('od-delivery-popup').style.display='flex';
 };
-document.getElementById('dv-platform').addEventListener('change',function(){
+var _dvPlatEl=document.getElementById('dv-platform');
+if(_dvPlatEl)_dvPlatEl.addEventListener('change',function(){
   var noteWrap=document.getElementById('dv-note-wrap');
-  noteWrap.style.display=this.value.includes('เอกชน')?'block':'none';
+  if(noteWrap)noteWrap.style.display=this.value.includes('เอกชน')?'block':'none';
 });
 function dvSave(){
   if(!_dvBid)return;
