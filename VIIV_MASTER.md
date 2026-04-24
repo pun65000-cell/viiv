@@ -267,7 +267,7 @@ Current State
 Version:      v1.20
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   9d6a218 — fix(dashboard): settings/members/affiliate use render fn, remove duplicate finance
+Git latest:   3908b0b — feat(dashboard): split products→สินค้า + store เมนูใหม่
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,14 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.22]
+✅ dashboard.html — แยก products/store เป็น 2 เมนู:
+   products (5 tabs): ทั้งหมด/สร้างสินค้า/รับสินค้า/หมวดหมู่/จัดการสินค้า
+   store (6 tabs): all/bundle/adjust/print/label/importexport (ใต้ products/warehouse/)
+   sidebar: 🏪 สโตร์ ใต้ ⊞ สินค้า
+   DOMContentLoaded bind อัตโนมัติ (querySelectorAll a[data-page])
+   git: 3908b0b
+
 [2026-04-24 v1.21]
 ✅ dashboard.html — PAGES config refactor:
    affiliate, members, settings: tabs[]→tabs:null + render:loadSubPage (ไม่โชว์ tab bar ที่ไม่จำเป็น)
