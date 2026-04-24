@@ -433,13 +433,15 @@ function renderPlaceholder(el, page) {
     </div>`;
 }
 
-function renderTabs(page) {
+function renderTabs(page, key, activeIdx) {
+  if (activeIdx === undefined) activeIdx = 0;
   const body = document.getElementById('cardBody');
   if (!page.tabs || !page.tabs.length) {
     if (page.render) page.render(body, page);
     else body.innerHTML = '<div style="text-align:center;padding:60px;color:#aaa;">Coming soon</div>';
     return;
   }
+  const startIdx = (activeIdx >= 0 && activeIdx < page.tabs.length) ? activeIdx : 0;
   const tabBar = document.createElement('div');
   tabBar.style.cssText = 'display:flex;gap:4px;padding:0 0 12px 0;border-bottom:1px solid var(--border,#e5e5e5);margin-bottom:0;flex-wrap:wrap;';
   const contentEl = document.createElement('div');
@@ -449,34 +451,24 @@ function renderTabs(page) {
   page.tabs.forEach(function(tab, i) {
     const btn = document.createElement('button');
     btn.textContent = tab.label;
-    btn.className = 'pos-tab' + (i === 0 ? ' active' : '');
-    btn.style.cssText = 'padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:'+(i===0?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(i===0?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;';
+    btn.className = 'pos-tab' + (i === startIdx ? ' active' : '');
+    btn.style.cssText = 'padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:'+(i===startIdx?'var(--accent,#e8b93e)':'#f0ede8')+';color:'+(i===startIdx?'#1a1200':'var(--text,#1f2937)')+';transition:.15s;';
     btn.addEventListener('click', function() {
-      tabBar.querySelectorAll('.pos-tab').forEach(b => {
-        b.classList.remove('active');
-        b.style.background = '#f0ede8';
-        b.style.color = 'var(--text,#1f2937)';
-        b.style.fontSize = '11px';
-        b.style.padding = '5px 10px';
-      });
-      btn.classList.add('active');
-      btn.style.background = 'var(--accent,#e8b93e)';
-      btn.style.color = '#1a1200';
-      loadSubPage(contentEl, tab.file);
+      navigate(key, i);
     });
     tabBar.appendChild(btn);
-    if (i === 0) loadSubPage(contentEl, tab.file);
+    if (i === startIdx) loadSubPage(contentEl, tab.file);
   });
 }
-function navigate(key) {
+function navigate(key, tabIndex) {
+  if (tabIndex === undefined) tabIndex = 0;
   const page = PAGES[key];
   if (!page) return;
-  location.hash = key;
+  location.hash = key + (tabIndex > 0 ? '/' + tabIndex : '');
   document.querySelectorAll('#navMenu a').forEach(a => {
     a.classList.toggle('active', a.dataset.page === key);
   });
-
-  renderTabs(page);
+  renderTabs(page, key, tabIndex);
 }
 
 function goViiv()    { window.open('https://viiv.me', '_blank'); }
@@ -489,17 +481,21 @@ function doLogout()  {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#navMenu a[data-page]').forEach(a => {
-    a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.page); });
+    a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.page, 0); });
   });
-  // restore page จาก hash
+  // restore page + sub-tab จาก hash
   window.addEventListener('hashchange', () => {
-    const key = location.hash.replace('#','') || 'dashboard';
-    if (PAGES[key]) navigate(key);
+    const hash = location.hash.replace('#', '') || 'dashboard';
+    const [key, tabStr] = hash.split('/');
+    const tabIndex = parseInt(tabStr) || 0;
+    if (PAGES[key]) navigate(key, tabIndex);
   });
 
   // restore จาก hash หรือเริ่มที่ dashboard
-  const initPage = location.hash.replace('#','') || 'dashboard';
-  navigate(PAGES[initPage] ? initPage : 'dashboard');
+  const hash = location.hash.replace('#', '') || 'dashboard';
+  const [initKey, initTabStr] = hash.split('/');
+  const initTab = parseInt(initTabStr) || 0;
+  navigate(PAGES[initKey] ? initKey : 'dashboard', initTab);
 });
 
 window.goViiv   = goViiv;
