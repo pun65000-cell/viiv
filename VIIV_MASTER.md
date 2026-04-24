@@ -267,7 +267,7 @@ Current State
 Version:      v1.20
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   9789e03 — fix(dashboard): AbortController + version token in loadSubPage
+Git latest:   bd7d709 — fix(shipping): null guard 3 จุด (sh-track-popup, dv-note-wrap, od-delivery-popup)
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,12 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.24]
+✅ shipping.html — null guard เพิ่มเติม 3 จุด:
+   shOpenTracking: sh-track-popup
+   odOpenDelivery: dv-note-wrap, od-delivery-popup
+   git: bd7d709
+
 [2026-04-24 v1.23]
 ✅ dashboard.html — race condition fix ใน loadSubPage():
    _loadAbort (AbortController) abort request เก่าทุกครั้งที่เรียกใหม่
