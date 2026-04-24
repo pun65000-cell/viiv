@@ -15,10 +15,10 @@
     {id:'scheduled',           label:'กำหนดส่ง',        bg:'#fef9c3', color:'#713f12'},
     {id:'shipped_no_recipient',label:'ส่งไม่มีผู้รับ',   bg:'#ffedd5', color:'#7c2d12'},
     {id:'shipped_cod',         label:'ส่ง+เก็บเงิน',     bg:'#dbeafe', color:'#1e40af'},
-    {id:'shipped_collect',     label:'ส่ง+วางบิล',       bg:'#d1fae5', color:'#065f46'},
+    {id:'shipped_collect',     label:'ส่ง+วางบิล',       bg:'#dbeafe', color:'#1e40af'},
     {id:'bill_check',          label:'วางบิลเช็ค',       bg:'#ede9fe', color:'#4c1d95'},
     {id:'chargeback',          label:'ชะลอจ่ายรอเคลม',  bg:'#fee2e2', color:'#991b1b'},
-    {id:'received_payment',    label:'รับชำระแล้ว',      bg:'#d1fae5', color:'#064e3b'},
+    {id:'received_payment',    label:'รับชำระแล้ว',      bg:'#bbf7d0', color:'#166534'},
     {id:'overdue',             label:'หนี้ค้างชำระ',     bg:'#fee2e2', color:'#7f1d1d'},
   ];
 
