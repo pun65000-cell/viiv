@@ -21,7 +21,7 @@
     scheduled:'#fef9c3:#713f12',
     shipped_no_recipient:'#ffedd5:#7c2d12',
     shipped_cod:'#dbeafe:#1e40af',
-    shipped_collect:'#d1fae5:#065f46',
+    shipped_collect:'#cffafe:#0e7490',
     received_payment:'#bbf7d0:#166534',
     overdue:'#fee2e2:#7f1d1d'
   };
