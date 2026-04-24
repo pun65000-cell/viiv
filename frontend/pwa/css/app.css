@@ -257,6 +257,7 @@ input, textarea { font-family: inherit; }
   bottom: calc(var(--navbar-h) + var(--safe-bot));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: var(--bg);
   overscroll-behavior: contain;
   max-width: 768px;
   margin: 0 auto;

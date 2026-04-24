@@ -45,13 +45,13 @@
   }
 
   const MENUS = [
-    { icon:'🧾', label:'ออกบิล',    action:()=> Router.go('billing')  },
+    { icon:'🧾', label:'ออกบิล',    action:()=> _openBillingSheet()   },
     { icon:'⚡', label:'ขายด่วน',   action:()=> Router.go('billing')  },
     { icon:'📋', label:'ออเดอร์',   action:()=> Router.go('orders')   },
     { icon:'👥', label:'สมาชิก',    action:()=> Router.go('members')  },
     { icon:'📦', label:'สินค้า',    action:()=> Router.go('products') },
     { icon:'📊', label:'ยอดขาย',    action:()=> _openSalesSheet()     },
-    { icon:'🔍', label:'ค้นหาบิล',  action:()=> Router.go('orders')   },
+    { icon:'🏪', label:'สโตร์',     action:()=> Router.go('store')    },
     { icon:'🤝', label:'Affiliate', action:()=> Router.go('affiliate')  },
     { icon:'⋯',  label:'เพิ่มเติม', action:()=> _openMoreSheet()      },
   ];
@@ -157,6 +157,29 @@
       </div>
       <div style="color:var(--muted);font-size:0.75rem">${_timeAgo(m.created_at)}</div>
     </div>`;
+  }
+
+  function _openBillingSheet() {
+    openSheet(`
+      <div style="padding:0 0 12px">
+        <div class="pm-title" style="padding:0 16px 12px;font-size:var(--fs-lg);font-weight:700">ออกบิล</div>
+        <div class="list-item" style="border-bottom:1px solid var(--bdr)" onclick="Router.go('billing');closeSheet()">
+          <div style="font-size:1.25rem;width:28px;text-align:center;flex-shrink:0">🧾</div>
+          <div class="li-left">
+            <div class="li-title">ออกบิลใหม่</div>
+            <div class="li-sub">สร้างบิลขายใหม่</div>
+          </div>
+          <div style="color:var(--muted)">›</div>
+        </div>
+        <div class="list-item" onclick="Router.go('orders');closeSheet()">
+          <div style="font-size:1.25rem;width:28px;text-align:center;flex-shrink:0">🔍</div>
+          <div class="li-left">
+            <div class="li-title">ค้นหาบิล</div>
+            <div class="li-sub">ค้นหาและจัดการบิลที่มีอยู่</div>
+          </div>
+          <div style="color:var(--muted)">›</div>
+        </div>
+      </div>`);
   }
 
   function _openMoreSheet() {

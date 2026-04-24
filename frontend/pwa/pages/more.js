@@ -17,6 +17,7 @@
       label: 'โมดูล',
       items: [
         { icon: '🖥',  label: 'POS',              sub: 'จัดการขาย, ออกบิล, สต็อก',    pwa: 'pos'      },
+        { icon: '🏪',  label: 'สโตร์',            sub: 'คลังสินค้า, ตัดสต็อก, พิมพ์ป้าย', pwa: 'store' },
         { icon: '🤝',  label: 'คู่ค้า',           sub: 'ซัพพลายเออร์, ตัวแทนจำหน่าย', pwa: 'partners' },
         { icon: '💬',  label: 'Chat & Showroom',  sub: 'LINE · Facebook · Instagram',  pwa: 'chat'     },
         { icon: '📲',  label: 'Auto Post',        sub: 'Scheduler · สร้าง Content',    pwa: 'autopost' },
@@ -75,7 +76,7 @@
         </div>`).join('')}
 
       <div style="text-align:center;color:var(--muted);font-size:var(--fs-xs);margin-top:24px;padding-bottom:8px">
-        VIIV Platform v1.15
+        VIIV Platform v1.16
       </div>
     </div>`;
   }
