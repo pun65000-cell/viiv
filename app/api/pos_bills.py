@@ -151,8 +151,7 @@ VALID_SHIPPING = {
     'received_payment','pending_payment','cod'
 }
 
-LOCK_SHIPPING = {'received_payment','debt'}
-COLLECT_NEXT = {'received_payment'}
+LOCK_SHIPPING = {"received_payment"}
 
 @router.post("/update-status/{bid}")
 def update_bill_status(bid: str, payload: dict, authorization: str = Header("")):
@@ -176,7 +175,6 @@ def update_bill_status(bid: str, payload: dict, authorization: str = Header(""))
 
         if bill.shipping_status in LOCK_SHIPPING:
             raise HTTPException(400,f"ไม่สามารถเปลี่ยนสถานะนี้ได้ (ต้องลบบิลเท่านั้น)")
-        if bill.shipping_status == "shipped_collect" and new_shipping and new_shipping not in COLLECT_NEXT:
             raise HTTPException(400,"จัดส่งพร้อมเก็บเงิน → รับชำระเงินแล้ว เท่านั้น")
         if new_status and bill.status == "paid" and new_status in ("pending","draft","credit"):
             raise HTTPException(400,"ไม่สามารถย้อนสถานะจาก paid ได้")

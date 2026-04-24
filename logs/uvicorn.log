@@ -13,3 +13,12 @@ INFO:     172.70.208.27:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 
 INFO:     172.70.208.27:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
 INFO:     172.70.208.27:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
 INFO:     172.70.208.27:0 - "GET /api/pos/bills/detail/bill_1776325555_28zy HTTP/1.1" 200 OK
+INFO:     167.94.146.59:28932 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     167.94.146.59:57532 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     167.94.146.59:57628 - "POST /mcp HTTP/1.1" 404 Not Found
+INFO:     167.94.146.59:57644 - "POST /jsonrpc HTTP/1.1" 404 Not Found
+INFO:     167.94.146.59:57658 - "POST / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     167.94.146.59:15560 - "GET /login HTTP/1.1" 404 Not Found
