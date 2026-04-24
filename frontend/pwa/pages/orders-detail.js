@@ -239,6 +239,10 @@
         <input id="check-payee" placeholder="สั่งจ่ายชื่อ" value="${_esc(b?.check_payee||'')}" style="${S}"/>
         <input id="check-date" type="date" value="${_esc(b?.check_date||'')}" style="${S}"/>
         <textarea id="ship-note" rows="2" placeholder="หมายเหตุ" style="${T}">${_esc(b?.ship_note||'')}</textarea>`;
+    } else if (status === 'received_payment') {
+      f = `<label style="${LB}">รูปสลิป/หลักฐาน *</label>
+        <input id="ship-photo" type="file" accept="image/*" style="${S}"/>
+        <textarea id="ship-note" rows="2" placeholder="หมายเหตุ" style="${T}">${_esc(b?.ship_note||'')}</textarea>`;
     } else if (status === 'chargeback' || status === 'overdue') {
       f = `<textarea id="ship-note" rows="2" placeholder="หมายเหตุ" style="${T}">${_esc(b?.ship_note||'')}</textarea>`;
     } else {
