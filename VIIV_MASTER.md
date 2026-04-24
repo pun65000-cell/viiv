@@ -1,6 +1,6 @@
 VIIV MASTER — CGO Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่กับ CGO ทุกครั้ง**  
-> Version: v1.18 | Updated: 2026-04-24  
+> Version: v1.19 | Updated: 2026-04-24  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -267,7 +267,7 @@ Current State
 Version:      v1.18
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   (pending commit) store.js v1.18 — 7-tab full parity with PC
+Git latest:   (pending) store.js v1.19 — Tab3 partner + Tab5 bundle
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -277,7 +277,7 @@ billing.js	✅ Done	ออกบิล + cart + payment sheet
 orders.js	✅ Done	list + filters + detail (markPaid/void)
 products.js	✅ Done	CRUD + image upload + receive history
 members.js	✅ Done	list + search + tier badges
-store.js	✅ Done v1.18	7 tabs full: คลัง(filter/search/edit-sheet) + สร้าง + รับสินค้า + ตัด/ย้าย + Bundle(placeholder) + พิมพ์(stock/ป้าย) + หมวดหมู่ CRUD
+store.js	✅ Done v1.19	Tab3 รับสินค้า: partner required + search + create mini-form + product table + validate | Tab5 ชุดสินค้า: full form + SKU check + cost auto-calc + CRUD + add-item picker
 more.js	✅ Done	navigation drawer
 chat.js	🚧 Phase 2	placeholder
 autopost.js	🚧 Phase 2	placeholder
@@ -296,7 +296,13 @@ Next Up (ลำดับ Priority)
 ```
 Completed Log
 [2026-04-24 v1.18]
-✅ store.js — Rewrite ครบ 7 tabs (full parity with PC):
+✅ store.js v1.19 — Tab3+Tab5 fix:
+   Tab3 รับสินค้า: partner search(GET /api/pos/partners/list) + create partner inline + required validation + product table(#|สินค้า|ราคารับ|จำนวน|คลัง|รวม) + auto-total + history
+   Tab5 ชุดสินค้า: full form(name/SKU/price/cat/status/desc/img) + items picker + qty edit + cost auto-calc + SKU duplicate block + CRUD (create/update/delete)
+   Backend added: GET/POST /api/pos/products/bundle/create, PUT /bundle/{id}, DELETE /bundle/{id}, GET /check-sku
+   DB migration: bundles + bundle_items tables applied via SQLAlchemy (alembic skip, Supabase permissions)
+
+✅ store.js v1.18 — Rewrite ครบ 7 tabs (full parity with PC):
    Tab1 คลังสินค้า: cards(48px thumb+name+SKU+cat+price/cost/margin+stock front/back+badge)+search+filter(stock/cat)+bottom-sheet edit (form ครบ: name/sku/cat/price/PL/cost/PV/VAT/track_stock/stock/stock_back/min_alert/status/desc/image)+set inactive
    Tab2 สร้างสินค้า: same form+POST create → toast+switch Tab1+reload
    Tab3 รับสินค้า: product picker(search+qty+cost+warehouse) → POST /receive/create + history list
@@ -332,13 +338,14 @@ c91cfec  Mobile shell light theme + profile
 ae6cd1e  PWA Phase 1 checkpoint
 266fb3e  PWA สินค้า v3 complete
 4774970  Mobile shell cleanup + fix modulpos API
-7c8d386  PWA สโตร์ + ออกบิล sub-menu + overlap fix ← LATEST SAFE
+7c8d386  PWA สโตร์ + ออกบิล sub-menu + overlap fix
+890acd6  store.js v1.18 — 7-tab full parity ← LATEST SAFE
 ```
-Known Issues (store.js v1.18)
+Known Issues (store.js v1.19)
 ```
-- Tab5 ชุดสินค้า: รอ backend bundle endpoints (pos_products.py ไม่มี /bundles/*)
 - Tab4 ตัด/ย้าย: ใช้ PUT /products/update แทน dedicated stock-adjust endpoint (ไม่มีใน backend)
-- Tab3 รับสินค้า: receive endpoint อัปเดต stock_qty หน้าร้านเท่านั้น (warehouse='back' ใน DB แต่ code +stock_qty)
+- Tab3 รับสินค้า: pos_receive.py endpoint อัปเดต stock_qty เสมอ ไม่แยก warehouse (backend issue)
+- Tab5 ชุดสินค้า: ยังไม่มี logic ตัดสต็อกเมื่อขายชุด (billing.js ยังไม่รองรับ bundle type)
 ```
 Blockers
 ```

@@ -1,4 +1,4 @@
-/* VIIV PWA — store.js v1.18 (7 tabs: full parity with PC) */
+/* VIIV PWA — store.js v1.19 (Tab3: partner required + Tab5: bundle full) */
 (function () {
   /* ── STATE ───────────────────────────────────────────────────── */
   let _destroyed = false;
@@ -14,6 +14,11 @@
 
   // receive tab
   let _rcvItems = [];
+  let _rcvPartner = null;
+
+  // bundles tab
+  let _bundles = [];
+  let _bndEditItems = null; // temp buffer for bundle items while picking product
 
   // adjust sub-tab
   let _adjTab = 'cut';
@@ -241,96 +246,265 @@ textarea.form-input{resize:vertical}
   async function _renderReceive(body) {
     body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">กำลังโหลด...</div>`;
     let hist = { items: [], total: 0 };
-    try { hist = await App.api('/api/pos/receive/list?limit=20&page=1'); } catch (_) {}
+    let partners = [];
+    try {
+      [hist, partners] = await Promise.all([
+        App.api('/api/pos/receive/list?limit=20&page=1'),
+        App.api('/api/pos/partners/list')
+      ]);
+    } catch (_) {}
 
     _rcvItems = [];
-    body.innerHTML = `
-      <div style="padding:12px">
-        <h3 style="margin:0 0 10px;font-size:15px">รับสินค้าใหม่</h3>
-        <div id="rcv-items"></div>
-        <button class="btn-outline" id="rcv-add" style="width:100%;margin:8px 0 12px">+ เพิ่มสินค้า</button>
-        <div class="form-grid" style="margin-bottom:12px">
-          <div>
-            <label class="form-label">วันที่รับ</label>
-            <input class="form-input" id="rcv-date" type="date" value="${new Date().toISOString().slice(0, 10)}">
-          </div>
-          <div>
-            <label class="form-label">หมายเหตุ</label>
-            <input class="form-input" id="rcv-note" placeholder="หมายเหตุ">
-          </div>
-        </div>
-        <button class="btn-gold" id="rcv-save" style="margin-bottom:20px">บันทึกการรับสินค้า</button>
-        <h3 style="margin:0 0 10px;font-size:15px">ประวัติการรับสินค้า (${hist.total || 0} รายการ)</h3>
-        <div id="rcv-hist">
-          ${(hist.items || []).length === 0
-            ? '<div class="s-empty">ยังไม่มีประวัติ</div>'
-            : (hist.items || []).map(r => `
-                <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:10px;margin-bottom:8px">
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-                    <span style="font-size:12px;color:var(--muted)">${_esc(r.id)}</span>
-                    <span style="font-size:12px;color:var(--muted)">${(r.receive_date || '').slice(0, 10)}</span>
-                  </div>
-                  <div style="font-size:13px;font-weight:600">฿${_fmt(r.total_amount)}</div>
-                  <div style="font-size:11px;color:var(--muted)">${(r.items || []).length} รายการ · ${_esc(r.staff_name || '')} ${r.note ? '· ' + _esc(r.note) : ''}</div>
+    _rcvPartner = null;
+
+    const renderForm = () => {
+      const hasPartner = !!_rcvPartner;
+      const hasItems = _rcvItems.length > 0;
+      const total = _rcvItems.reduce((s, i) => s + (i.qty * i.cost_price), 0);
+
+      body.innerHTML = `
+        <div style="padding:12px">
+          <h3 style="margin:0 0 10px;font-size:15px;font-weight:700">บันทึกรับสินค้า</h3>
+
+          <!-- PARTNER -->
+          <div style="margin-bottom:12px">
+            <label class="form-label">คู่ค้า / ผู้จำหน่าย <span style="color:red">*</span></label>
+            ${hasPartner ? `
+              <div id="rcv-partner-card" style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1.5px solid var(--gold);border-radius:10px;padding:10px 12px">
+                <div>
+                  <div style="font-weight:600;font-size:13px">${_esc(_rcvPartner.company_name)}</div>
+                  <div style="font-size:11px;color:var(--muted)">${_esc(_rcvPartner.partner_code || '')} ${_rcvPartner.phone ? '· ' + _esc(_rcvPartner.phone) : ''}</div>
                 </div>
-              `).join('')}
-        </div>
-      </div>
-    `;
-
-    const renderRcvItems = () => {
-      const el = body.querySelector('#rcv-items');
-      if (!el) return;
-      el.innerHTML = _rcvItems.length === 0
-        ? '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">ยังไม่มีสินค้า</div>'
-        : _rcvItems.map((item, i) => `
-            <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:8px;margin-bottom:6px">
-              <div>
-                <div style="font-weight:600;font-size:13px">${_esc(item.product_name)}</div>
-                <div style="font-size:11px;color:var(--muted)">${_esc(item.sku || '')} · จำนวน ${item.qty} · ต้นทุน ฿${_fmt(item.cost_price)} · ${item.warehouse === 'back' ? 'หลังร้าน' : 'หน้าร้าน'}</div>
+                <button id="rcv-change-partner" class="btn-outline" style="padding:4px 10px;font-size:12px">เปลี่ยน</button>
               </div>
-              <button class="btn-outline" data-ri="${i}" style="padding:4px 10px;font-size:12px">ลบ</button>
+            ` : `
+              <button id="rcv-select-partner" class="btn-outline" style="width:100%;border-style:dashed;color:var(--muted)">🔍 ค้นหาหรือสร้างคู่ค้า</button>
+            `}
+          </div>
+
+          <!-- ITEMS -->
+          <label class="form-label">รายการสินค้า <span style="color:red">*</span></label>
+          <div id="rcv-items-wrap" style="margin-bottom:8px">
+            ${_rcvItems.length === 0
+              ? '<div style="padding:8px 0;font-size:12px;color:var(--muted)">ยังไม่มีสินค้า</div>'
+              : `<div style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:6px">
+                  <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <tr style="background:var(--bg2)"><th style="padding:6px 8px;text-align:left">#</th><th style="text-align:left;padding:6px 4px">สินค้า</th><th style="text-align:right;padding:6px 4px">ราคารับ</th><th style="text-align:center;padding:6px 4px">จำนวน</th><th style="text-align:left;padding:6px 4px">คลัง</th><th style="text-align:right;padding:6px 4px">รวม</th><th></th></tr>
+                    ${_rcvItems.map((item, i) => `
+                      <tr style="border-top:1px solid var(--bdr)">
+                        <td style="padding:6px 8px;color:var(--muted)">${i + 1}</td>
+                        <td style="padding:6px 4px"><div style="font-weight:600">${_esc(item.product_name)}</div><div style="font-size:10px;color:var(--muted)">${_esc(item.sku || '')}</div></td>
+                        <td style="padding:6px 4px;text-align:right">฿${_fmt(item.cost_price)}</td>
+                        <td style="padding:6px 4px;text-align:center">${item.qty}</td>
+                        <td style="padding:6px 4px;font-size:11px">${item.warehouse === 'back' ? 'หลัง' : 'หน้า'}</td>
+                        <td style="padding:6px 4px;text-align:right">฿${_fmt(item.qty * item.cost_price)}</td>
+                        <td style="padding:6px 4px"><button data-ri="${i}" style="background:none;border:none;color:var(--orange);cursor:pointer;font-size:14px">✕</button></td>
+                      </tr>
+                    `).join('')}
+                    <tr style="border-top:1px solid var(--bdr);background:var(--bg2)">
+                      <td colspan="5" style="padding:8px;font-weight:600;font-size:13px">ยอดรวม</td>
+                      <td style="padding:8px;font-weight:700;text-align:right;color:var(--gold)">฿${_fmt(total)}</td><td></td>
+                    </tr>
+                  </table>
+                </div>`}
+          </div>
+          <button class="btn-outline" id="rcv-add" style="width:100%;margin-bottom:12px">+ เพิ่มสินค้า</button>
+
+          <!-- NOTE + DATE -->
+          <div class="form-grid" style="gap:8px;margin-bottom:12px">
+            <div>
+              <label class="form-label">วันที่รับ</label>
+              <input class="form-input" id="rcv-date" type="date" value="${new Date().toISOString().slice(0, 10)}">
             </div>
-          `).join('');
-      el.querySelectorAll('[data-ri]').forEach(b => b.addEventListener('click', () => {
+            <div>
+              <label class="form-label">หมายเหตุ</label>
+              <input class="form-input" id="rcv-note" placeholder="หมายเหตุ (ถ้ามี)">
+            </div>
+          </div>
+
+          <!-- SAVE -->
+          <button class="btn-gold" id="rcv-save" ${!hasPartner || !hasItems ? 'disabled style="opacity:.5;cursor:not-allowed"' : ''} style="margin-bottom:24px">
+            บันทึกการรับสินค้า
+          </button>
+
+          <!-- HISTORY -->
+          <h3 style="margin:0 0 10px;font-size:15px;font-weight:700">ประวัติการรับ (${hist.total || 0} รายการ)</h3>
+          <div>
+            ${(hist.items || []).length === 0
+              ? '<div class="s-empty">ยังไม่มีประวัติ</div>'
+              : (hist.items || []).map(r => `
+                  <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:10px 12px;margin-bottom:8px">
+                    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px">
+                      <div>
+                        <div style="font-weight:600;font-size:13px">${_esc(r.partner_name || '-')}</div>
+                        <div style="font-size:11px;color:var(--muted)">${_esc(r.partner_code || '')} · ${(r.receive_date || '').slice(0,10)}</div>
+                      </div>
+                      <div style="text-align:right">
+                        <div style="font-weight:700;font-size:14px;color:var(--gold)">฿${_fmt(r.total_amount)}</div>
+                        <div style="font-size:11px;color:var(--muted)">${(r.items || []).length} รายการ</div>
+                      </div>
+                    </div>
+                    ${r.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${_esc(r.note)}</div>` : ''}
+                    <div style="font-size:10px;color:var(--muted);margin-top:4px">โดย ${_esc(r.staff_name || '')}</div>
+                  </div>
+                `).join('')}
+          </div>
+        </div>
+      `;
+
+      // bind remove item buttons
+      body.querySelectorAll('[data-ri]').forEach(b => b.addEventListener('click', () => {
         _rcvItems.splice(parseInt(b.dataset.ri), 1);
-        renderRcvItems();
+        renderForm();
       }));
+
+      // bind partner select/change
+      const partnerBtn = body.querySelector('#rcv-select-partner') || body.querySelector('#rcv-change-partner');
+      if (partnerBtn) partnerBtn.addEventListener('click', () => _openPartnerPicker(partners, p => { _rcvPartner = p; renderForm(); }));
+
+      // bind add item
+      body.querySelector('#rcv-add')?.addEventListener('click', () => {
+        _openProductPicker(item => { _rcvItems.push(item); renderForm(); });
+      });
+
+      // bind save
+      body.querySelector('#rcv-save')?.addEventListener('click', async () => {
+        if (!_rcvPartner) { _toast('กรุณาเลือกคู่ค้าก่อน', 'error'); return; }
+        if (_rcvItems.length === 0) { _toast('กรุณาเพิ่มสินค้าก่อน', 'error'); return; }
+        try {
+          await App.api('/api/pos/receive/create', {
+            method: 'POST',
+            body: JSON.stringify({
+              partner_id: _rcvPartner.id,
+              partner_name: _rcvPartner.company_name,
+              partner_code: _rcvPartner.partner_code || '',
+              items: _rcvItems,
+              note: body.querySelector('#rcv-note')?.value || '',
+              receive_date: body.querySelector('#rcv-date')?.value || ''
+            })
+          });
+          _toast('รับสินค้าสำเร็จ', 'success');
+          _rcvItems = []; _rcvPartner = null;
+          const prods = await App.api('/api/pos/products/list');
+          _products = Array.isArray(prods) ? prods : [];
+          await _renderReceive(body);
+        } catch (e) {
+          _toast(e.message || 'เกิดข้อผิดพลาด', 'error');
+        }
+      });
     };
-    renderRcvItems();
 
-    body.querySelector('#rcv-add').addEventListener('click', () => {
-      _openProductPicker(item => { _rcvItems.push(item); renderRcvItems(); });
-    });
-
-    body.querySelector('#rcv-save').addEventListener('click', async () => {
-      if (_rcvItems.length === 0) { _toast('กรุณาเพิ่มสินค้าก่อน', 'error'); return; }
-      try {
-        await App.api('/api/pos/receive/create', {
-          method: 'POST',
-          body: JSON.stringify({
-            items: _rcvItems,
-            note: body.querySelector('#rcv-note')?.value || '',
-            receive_date: body.querySelector('#rcv-date')?.value || ''
-          })
-        });
-        _toast('รับสินค้าสำเร็จ', 'success');
-        const prods = await App.api('/api/pos/products/list');
-        _products = Array.isArray(prods) ? prods : [];
-        await _renderReceive(body);
-      } catch (e) {
-        _toast(e.message || 'เกิดข้อผิดพลาด', 'error');
-      }
-    });
+    renderForm();
   }
 
-  /* ── PRODUCT PICKER (for receive) ───────────────────────────── */
-  function _openProductPicker(onSelect) {
+  /* ── PARTNER PICKER (for receive) ────────────────────────────── */
+  function _openPartnerPicker(partners, onSelect) {
     const sc = document.getElementById('store-sheet-content');
+    let showCreate = false;
+
+    const render = (q = '') => {
+      const f = partners.filter(p =>
+        !q || (p.company_name || '').toLowerCase().includes(q.toLowerCase()) ||
+        (p.partner_code || '').toLowerCase().includes(q.toLowerCase()) ||
+        (p.phone || '').includes(q)
+      );
+      sc.innerHTML = `
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span style="font-weight:700;font-size:15px">เลือกคู่ค้า / ผู้จำหน่าย</span>
+            <button id="pp2-close" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
+          </div>
+          <input class="s-search" id="pp2-q" placeholder="ค้นหาชื่อ / รหัส / เบอร์..." value="${_esc(q)}" style="margin-bottom:8px">
+          <div id="pp2-list" style="max-height:40vh;overflow-y:auto;margin-bottom:10px">
+            ${f.length === 0 ? `<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center">ไม่พบคู่ค้า</div>` :
+              f.map(p => `
+                <div data-pid="${_esc(p.id)}" style="display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;border-bottom:1px solid var(--bdr);cursor:pointer;align-items:center">
+                  <div>
+                    <div style="font-weight:600;font-size:13px">${_esc(p.company_name)}</div>
+                    <div style="font-size:11px;color:var(--muted)">${_esc(p.partner_code || '')} ${p.phone ? '· ' + _esc(p.phone) : ''}</div>
+                  </div>
+                  <span style="font-size:10px;padding:2px 6px;background:var(--bg2);border-radius:6px;color:var(--muted)">${_esc(p.partner_type || '')}</span>
+                </div>
+              `).join('')}
+          </div>
+          ${showCreate ? `
+            <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px">
+              <div style="font-weight:600;font-size:13px;margin-bottom:10px">สร้างคู่ค้าใหม่</div>
+              <div style="display:grid;gap:8px">
+                <div><label class="form-label">ชื่อบริษัท / ร้านค้า *</label><input class="form-input" id="nc-name" placeholder="ชื่อ"></div>
+                <div class="form-grid" style="gap:8px">
+                  <div><label class="form-label">เบอร์โทร</label><input class="form-input" id="nc-phone" placeholder="08x-xxx-xxxx"></div>
+                  <div><label class="form-label">ประเภท</label>
+                    <select class="form-input" id="nc-type">
+                      <option value="supplier">ผู้จำหน่าย</option>
+                      <option value="both">ทั้งสองอย่าง</option>
+                      <option value="customer">ลูกค้า</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+                <button class="btn-outline" id="nc-cancel">ยกเลิก</button>
+                <button class="btn-gold" id="nc-save">สร้าง</button>
+              </div>
+            </div>
+          ` : `
+            <button class="btn-outline" id="pp2-create" style="width:100%;border-style:dashed">+ สร้างคู่ค้าใหม่</button>
+          `}
+        </div>
+      `;
+
+      sc.querySelector('#pp2-close').addEventListener('click', _closeSheet);
+      sc.querySelector('#pp2-q').addEventListener('input', e => render(e.target.value));
+
+      sc.querySelectorAll('[data-pid]').forEach(row => {
+        row.addEventListener('click', () => {
+          const p = partners.find(x => x.id === row.dataset.pid);
+          if (p) { onSelect(p); _closeSheet(); }
+        });
+      });
+
+      if (!showCreate) {
+        sc.querySelector('#pp2-create')?.addEventListener('click', () => { showCreate = true; render(q); });
+      } else {
+        sc.querySelector('#nc-cancel')?.addEventListener('click', () => { showCreate = false; render(q); });
+        sc.querySelector('#nc-save')?.addEventListener('click', async () => {
+          const name = sc.querySelector('#nc-name')?.value?.trim();
+          if (!name) { _toast('กรุณากรอกชื่อ', 'error'); return; }
+          try {
+            const res = await App.api('/api/pos/partners/create', {
+              method: 'POST',
+              body: JSON.stringify({
+                company_name: name,
+                phone: sc.querySelector('#nc-phone')?.value || '',
+                partner_type: sc.querySelector('#nc-type')?.value || 'supplier',
+                entity_type: 'company',
+              })
+            });
+            // reload partners list
+            partners = await App.api('/api/pos/partners/list');
+            const newP = partners.find(p => p.id === res.id) || { id: res.id, company_name: name, partner_code: res.partner_code || '', phone: '' };
+            onSelect(newP);
+            _closeSheet();
+            _toast('สร้างคู่ค้าสำเร็จ', 'success');
+          } catch (e) { _toast(e.message || 'เกิดข้อผิดพลาด', 'error'); }
+        });
+      }
+    };
+
+    render('');
+    _openSheet();
+  }
+
+  /* ── PRODUCT PICKER (shared: receive + bundle) ───────────────── */
+  function _openProductPicker(onSelect, opts = {}) {
+    const sc = document.getElementById('store-sheet-content');
+    const title = opts.title || 'เลือกสินค้า';
+    const showWh = opts.showWarehouse !== false;
     sc.innerHTML = `
       <div style="padding:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <span style="font-weight:600;font-size:15px">เลือกสินค้า</span>
+          <span style="font-weight:700;font-size:15px">${title}</span>
           <button id="pp-close" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
         </div>
         <input class="s-search" id="pp-q" placeholder="ค้นหา..." style="margin-bottom:8px">
@@ -339,15 +513,15 @@ textarea.form-input{resize:vertical}
           <div style="font-size:13px;font-weight:600;margin-bottom:10px" id="pp-sel-name">เลือกสินค้าก่อน</div>
           <div class="form-grid" style="gap:8px">
             <div><label class="form-label">จำนวน</label><input class="form-input" id="pp-qty" type="number" value="1" min="0.01" step="0.01"></div>
-            <div><label class="form-label">ต้นทุน/ชิ้น</label><input class="form-input" id="pp-cost" type="number" value="0" min="0" step="0.01"></div>
-            <div class="full-width"><label class="form-label">คลัง</label>
+            <div><label class="form-label">${opts.costLabel || 'ต้นทุน/ชิ้น'}</label><input class="form-input" id="pp-cost" type="number" value="0" min="0" step="0.01"></div>
+            ${showWh ? `<div class="full-width"><label class="form-label">คลัง</label>
               <select class="form-input" id="pp-wh">
                 <option value="back">หลังร้าน (stock_back)</option>
                 <option value="front">หน้าร้าน (stock_qty)</option>
               </select>
-            </div>
+            </div>` : ''}
           </div>
-          <button class="btn-gold" id="pp-confirm" style="margin-top:12px">เพิ่ม</button>
+          <button class="btn-gold" id="pp-confirm" style="margin-top:12px">${opts.addLabel || 'เพิ่ม'}</button>
         </div>
       </div>
     `;
@@ -359,7 +533,7 @@ textarea.form-input{resize:vertical}
         <div data-pp-pid="${_esc(p.id)}" style="display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px;border-bottom:1px solid var(--bdr);cursor:pointer">
           <div>
             <div style="font-size:13px;font-weight:600">${_esc(p.name)}</div>
-            <div style="font-size:11px;color:var(--muted)">${_esc(p.sku || '')} · ต้นทุน ฿${_fmt(p.cost_price)}</div>
+            <div style="font-size:11px;color:var(--muted)">${_esc(p.sku || '')} · ทุน ฿${_fmt(p.cost_price)}</div>
           </div>
           <div style="font-size:11px;color:var(--muted);text-align:right">สต็อก<br>${p.stock_qty ?? 0}</div>
         </div>
@@ -385,8 +559,10 @@ textarea.form-input{resize:vertical}
       if (qty <= 0) { _toast('กรุณาระบุจำนวน', 'error'); return; }
       onSelect({
         product_id: sel.id, product_name: sel.name, sku: sel.sku,
-        qty, cost_price: parseFloat(sc.querySelector('#pp-cost').value) || 0,
-        warehouse: sc.querySelector('#pp-wh').value
+        cost_price: parseFloat(sc.querySelector('#pp-cost').value) || 0,
+        cost_per_unit: parseFloat(sc.querySelector('#pp-cost').value) || 0,
+        qty,
+        warehouse: sc.querySelector('#pp-wh')?.value || 'back'
       });
       _closeSheet();
     });
@@ -575,12 +751,237 @@ textarea.form-input{resize:vertical}
   }
 
   /* ── TAB 5: ชุดสินค้า ───────────────────────────────────────── */
-  function _renderBundle(body) {
-    body.innerHTML = `<div class="s-empty" style="padding-top:60px">
-      <div style="font-size:2.5rem;margin-bottom:8px">📦</div>
-      <div style="font-size:14px;font-weight:600">ชุดสินค้า (Bundle)</div>
-      <div style="font-size:12px;margin-top:6px">ฟีเจอร์นี้อยู่ระหว่างพัฒนา<br>รอ backend endpoint</div>
-    </div>`;
+  async function _renderBundle(body) {
+    body.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted)">กำลังโหลด...</div>`;
+    try {
+      const res = await App.api('/api/pos/products/bundles');
+      _bundles = Array.isArray(res) ? res : [];
+    } catch (_) { _bundles = []; }
+    _renderBundleList(body);
+  }
+
+  function _renderBundleList(body) {
+    body.innerHTML = `
+      <div style="padding:12px">
+        <button class="btn-gold" id="bnd-create" style="margin-bottom:12px">+ สร้างชุดสินค้าใหม่</button>
+        ${_bundles.length === 0
+          ? '<div class="s-empty" style="padding:30px 0">ยังไม่มีชุดสินค้า</div>'
+          : _bundles.map(b => `
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:8px;align-items:center">
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                    <span style="font-weight:600;font-size:14px">${_esc(b.name)}</span>
+                    <span style="font-size:10px;padding:2px 6px;background:${b.status === 'active' ? '#e6f4ea' : '#f5f5f5'};color:${b.status === 'active' ? '#2aaa58' : '#888'};border-radius:6px">${b.status === 'active' ? 'จำหน่าย' : 'หยุดขาย'}</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--muted)">SKU: ${_esc(b.sku)} ${b.category ? '· ' + _esc(b.category) : ''}</div>
+                  <div style="font-size:13px;margin-top:4px">ราคาขาย <b style="color:var(--gold)">฿${_fmt(b.price)}</b> · ต้นทุน ฿${_fmt(b.cost_price)}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">${(b.items || []).length} รายการในชุด</div>
+                </div>
+                <button class="btn-outline" data-bedit="${_esc(b.id)}" style="padding:6px 12px;font-size:12px">แก้ไข</button>
+              </div>
+            `).join('')}
+      </div>
+    `;
+    body.querySelector('#bnd-create').addEventListener('click', () => _openBundleSheet(null, body));
+    body.querySelectorAll('[data-bedit]').forEach(b => b.addEventListener('click', () => {
+      const bundle = _bundles.find(x => x.id === b.dataset.bedit);
+      if (bundle) _openBundleSheet(bundle, body);
+    }));
+  }
+
+  function _openBundleSheet(bundle, body) {
+    const sc = document.getElementById('store-sheet-content');
+    // use temp buffer if returning from product picker, else use bundle.items
+    let bItems = (_bndEditItems !== null) ? _bndEditItems : (bundle ? JSON.parse(JSON.stringify(bundle.items || [])) : []);
+    _bndEditItems = null;
+
+    const getCatOptions = () => _categories.map(c =>
+      `<option value="${_esc(c.name)}" ${bundle?.category === c.name ? 'selected' : ''}>${_esc(c.name)}</option>`
+    ).join('');
+
+    const renderSheet = () => {
+      const totalCost = bItems.reduce((s, i) => s + (i.qty * i.cost_per_unit), 0);
+      sc.innerHTML = `
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <span style="font-weight:700;font-size:15px">${bundle ? 'แก้ไขชุดสินค้า' : 'สร้างชุดสินค้า'}</span>
+            <button id="bsh-close" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
+          </div>
+
+          <div class="form-grid" style="gap:12px">
+            <div class="full-width">
+              <label class="form-label">ชื่อชุดสินค้า *</label>
+              <input class="form-input" id="bsh-name" value="${_esc(bundle?.name || '')}" placeholder="ชื่อชุดสินค้า">
+            </div>
+            <div>
+              <label class="form-label">รหัส SKU *</label>
+              <div style="display:flex;gap:6px">
+                <input class="form-input" id="bsh-sku" value="${_esc(bundle?.sku || '')}" placeholder="BUNDLE-001" style="flex:1">
+                <button class="btn-outline" id="bsh-check-sku" style="padding:8px 12px;font-size:12px;white-space:nowrap">ตรวจ</button>
+              </div>
+              <div id="bsh-sku-status" style="font-size:11px;margin-top:3px"></div>
+            </div>
+            <div>
+              <label class="form-label">ราคาขาย (บาท) *</label>
+              <input class="form-input" id="bsh-price" type="number" value="${bundle?.price ?? ''}" placeholder="0.00" min="0" step="0.01">
+            </div>
+            <div>
+              <label class="form-label">หมวดหมู่</label>
+              <select class="form-input" id="bsh-cat">
+                <option value="">-- ไม่มี --</option>
+                ${getCatOptions()}
+              </select>
+            </div>
+            <div class="full-width">
+              <label class="form-label">สถานะ</label>
+              <div style="display:flex;gap:16px">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="bsh-status" value="active" ${(bundle?.status || 'active') === 'active' ? 'checked' : ''}> จำหน่าย</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="bsh-status" value="inactive" ${bundle?.status === 'inactive' ? 'checked' : ''}> หยุดขาย</label>
+              </div>
+            </div>
+            <div class="full-width">
+              <label class="form-label">รายละเอียด</label>
+              <textarea class="form-input" id="bsh-desc" rows="2" placeholder="รายละเอียดชุดสินค้า">${_esc(bundle?.description || '')}</textarea>
+            </div>
+            <div class="full-width">
+              <label class="form-label">รูปภาพ URL</label>
+              <input class="form-input" id="bsh-img" value="${_esc(bundle?.image_url || '')}" placeholder="https://...">
+            </div>
+          </div>
+
+          <!-- BUNDLE ITEMS -->
+          <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-weight:600;font-size:13px">สินค้าในชุด</span>
+              <button class="btn-outline" id="bsh-add-item" style="padding:5px 10px;font-size:12px">+ เพิ่มสินค้า</button>
+            </div>
+            <div id="bsh-items">
+              ${bItems.length === 0
+                ? '<div style="font-size:12px;color:var(--muted);padding:8px 0">ยังไม่มีสินค้าในชุด</div>'
+                : bItems.map((item, i) => `
+                    <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:8px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;margin-bottom:6px;font-size:12px">
+                      <div><div style="font-weight:600">${_esc(item.product_name)}</div><div style="color:var(--muted);font-size:10px">${_esc(item.sku || '')}</div></div>
+                      <div style="text-align:center">
+                        <div style="font-size:10px;color:var(--muted)">จำนวน</div>
+                        <input type="number" data-bqty="${i}" value="${item.qty}" min="0.01" step="0.01" style="width:52px;padding:4px;border:1px solid var(--bdr);border-radius:6px;text-align:center;font-size:12px">
+                      </div>
+                      <div style="text-align:center">
+                        <div style="font-size:10px;color:var(--muted)">ทุน/ชิ้น</div>
+                        <div>฿${_fmt(item.cost_per_unit)}</div>
+                      </div>
+                      <button data-bdel="${i}" style="background:none;border:none;color:var(--orange);cursor:pointer;font-size:16px;padding:0 4px">✕</button>
+                    </div>
+                  `).join('')}
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--bdr);margin-top:8px">
+              <span style="font-size:13px;color:var(--muted)">ต้นทุนรวม</span>
+              <span style="font-size:16px;font-weight:700;color:var(--gold)">฿${_fmt(totalCost)}</span>
+            </div>
+          </div>
+
+          <!-- ACTIONS -->
+          <div style="display:grid;grid-template-columns:${bundle ? '1fr 1fr' : '1fr'};gap:8px;margin-top:16px">
+            ${bundle ? `<button class="btn-outline" id="bsh-del" style="color:var(--orange);border-color:var(--orange)">ลบชุดสินค้า</button>` : ''}
+            <button class="btn-gold" id="bsh-save">${bundle ? 'บันทึก' : 'สร้างชุดสินค้า'}</button>
+          </div>
+        </div>
+      `;
+
+      sc.querySelector('#bsh-close').addEventListener('click', () => { _bndEditItems = null; _closeSheet(); });
+
+      // qty change
+      sc.querySelectorAll('[data-bqty]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const i = parseInt(inp.dataset.bqty);
+          bItems[i].qty = parseFloat(inp.value) || 1;
+          renderSheet();
+        });
+      });
+
+      // delete item
+      sc.querySelectorAll('[data-bdel]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          bItems.splice(parseInt(btn.dataset.bdel), 1);
+          renderSheet();
+        });
+      });
+
+      // add item — saves bItems to temp buffer so re-opened sheet restores them
+      sc.querySelector('#bsh-add-item').addEventListener('click', () => {
+        _bndEditItems = [...bItems]; // snapshot current items before opening picker
+        _openProductPicker(item => {
+          _bndEditItems = [..._bndEditItems, { product_id: item.product_id, product_name: item.product_name, sku: item.sku, qty: item.qty, cost_per_unit: item.cost_per_unit }];
+          _closeSheet();
+          _openBundleSheet(bundle, body); // re-open with restored items
+        }, { showWarehouse: false, costLabel: 'ต้นทุน/ชิ้น', addLabel: 'เพิ่มในชุด', title: 'เพิ่มสินค้าในชุด' });
+      });
+
+      // check sku
+      sc.querySelector('#bsh-check-sku').addEventListener('click', async () => {
+        const sku = sc.querySelector('#bsh-sku')?.value?.trim();
+        if (!sku) { _toast('กรุณากรอก SKU ก่อน', 'error'); return; }
+        try {
+          const r = await App.api(`/api/pos/products/check-sku?sku=${encodeURIComponent(sku)}${bundle ? '&pid=' + bundle.id : ''}`);
+          const el = sc.querySelector('#bsh-sku-status');
+          if (r.available) { el.style.color = 'var(--green)'; el.textContent = '✓ SKU นี้ใช้ได้'; }
+          else { el.style.color = 'red'; el.textContent = '✗ ' + (r.message || 'SKU ซ้ำ'); }
+        } catch (_) {}
+      });
+
+      // delete bundle
+      sc.querySelector('#bsh-del')?.addEventListener('click', async () => {
+        if (!confirm(`ลบชุดสินค้า "${bundle.name}" ใช่ไหม?`)) return;
+        try {
+          await App.api(`/api/pos/products/bundle/${bundle.id}`, { method: 'DELETE' });
+          _toast('ลบสำเร็จ', 'success');
+          _bndEditItems = null;
+          const res = await App.api('/api/pos/products/bundles');
+          _bundles = Array.isArray(res) ? res : [];
+          _closeSheet();
+          _renderBundleList(body);
+        } catch (e) { _toast(e.message || 'เกิดข้อผิดพลาด', 'error'); }
+      });
+
+      // save
+      sc.querySelector('#bsh-save').addEventListener('click', async () => {
+        const name = sc.querySelector('#bsh-name')?.value?.trim();
+        const sku = sc.querySelector('#bsh-sku')?.value?.trim();
+        const price = sc.querySelector('#bsh-price')?.value;
+        if (!name) { _toast('กรุณากรอกชื่อชุดสินค้า', 'error'); return; }
+        if (!sku)  { _toast('กรุณากรอก SKU', 'error'); return; }
+        if (!price){ _toast('กรุณากรอกราคาขาย', 'error'); return; }
+
+        // block-check SKU before save
+        try {
+          const skuCheck = await App.api(`/api/pos/products/check-sku?sku=${encodeURIComponent(sku)}${bundle ? '&pid=' + bundle.id : ''}`);
+          if (!skuCheck.available) { _toast(skuCheck.message || 'SKU ซ้ำ — กรุณาใช้รหัสอื่น', 'error'); return; }
+        } catch (_) {}
+
+        const statusEl = sc.querySelector('input[name="bsh-status"]:checked');
+        const payload = {
+          name, sku,
+          price: parseFloat(price) || 0,
+          category: sc.querySelector('#bsh-cat')?.value || '',
+          status: statusEl?.value || 'active',
+          description: sc.querySelector('#bsh-desc')?.value || '',
+          image_url: sc.querySelector('#bsh-img')?.value || '',
+          items: bItems,
+        };
+        try {
+          if (bundle) await App.api(`/api/pos/products/bundle/${bundle.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          else await App.api('/api/pos/products/bundle/create', { method: 'POST', body: JSON.stringify(payload) });
+          _toast(bundle ? 'บันทึกสำเร็จ' : 'สร้างชุดสินค้าสำเร็จ', 'success');
+          _bndEditItems = null;
+          const res = await App.api('/api/pos/products/bundles');
+          _bundles = Array.isArray(res) ? res : [];
+          _closeSheet();
+          _renderBundleList(body);
+        } catch (e) { _toast(e.message || 'เกิดข้อผิดพลาด', 'error'); }
+      });
+    };
+
+    renderSheet();
+    _openSheet();
   }
 
   /* ── TAB 6: พิมพ์ ────────────────────────────────────────────── */

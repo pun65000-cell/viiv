@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import text
 from app.core.db import engine
 from app.core.id_generator import generate_id
-import jwt, os, base64, uuid
+import jwt, os, base64, uuid, string
 
 router = APIRouter(prefix="/api/pos/products", tags=["pos-products"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
@@ -241,3 +241,132 @@ def print_label(payload: dict, authorization: str = Header("")):
 <script>window.addEventListener('load',function(){{window.print();}});</script>
 </body></html>"""
     return HTMLResponse(content=html)
+
+# ── BUNDLE ENDPOINTS ──────────────────────────────────────────────────────────
+
+def _gen_bid():
+    import time, random, string
+    return "bnd_" + str(int(time.time())) + "_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
+
+def _gen_biid():
+    import time, random, string
+    return "bni_" + str(int(time.time())) + "_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
+
+@router.get("/check-sku")
+def check_sku(sku: str, pid: str = "", authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    with engine.connect() as c:
+        row = c.execute(text("SELECT id FROM products WHERE tenant_id=:tid AND sku=:sku"), {"tid": tid, "sku": sku}).fetchone()
+        if row and row[0] != pid:
+            return {"available": False, "message": "รหัสนี้มีอยู่แล้ว"}
+        row2 = c.execute(text("SELECT id FROM bundles WHERE tenant_id=:tid AND sku=:sku"), {"tid": tid, "sku": sku}).fetchone()
+        if row2 and row2[0] != pid:
+            return {"available": False, "message": "รหัสนี้มีอยู่แล้ว"}
+    return {"available": True}
+
+@router.get("/bundles")
+def list_bundles(authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT b.*,
+              (SELECT json_agg(i ORDER BY i.id) FROM bundle_items i WHERE i.bundle_id=b.id) AS items
+            FROM bundles b WHERE b.tenant_id=:tid ORDER BY b.created_at DESC
+        """), {"tid": tid}).fetchall()
+    import json
+    result = []
+    for r in rows:
+        d = dict(r._mapping)
+        if d.get("items") and isinstance(d["items"], str):
+            d["items"] = json.loads(d["items"])
+        elif d.get("items") is None:
+            d["items"] = []
+        result.append(d)
+    return result
+
+@router.post("/bundle/create")
+def create_bundle(payload: dict, authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    name = str(payload.get("name", "")).strip()
+    sku = str(payload.get("sku", "")).strip()
+    if not name: raise HTTPException(400, "กรุณากรอกชื่อชุดสินค้า")
+    if not sku:  raise HTTPException(400, "กรุณากรอกรหัส SKU")
+    with engine.connect() as c:
+        ex = c.execute(text("SELECT id FROM bundles WHERE tenant_id=:tid AND sku=:sku"), {"tid": tid, "sku": sku}).fetchone()
+        if ex: raise HTTPException(400, "รหัส SKU ซ้ำ")
+        ex2 = c.execute(text("SELECT id FROM products WHERE tenant_id=:tid AND sku=:sku"), {"tid": tid, "sku": sku}).fetchone()
+        if ex2: raise HTTPException(400, "รหัส SKU ซ้ำกับสินค้าอื่น")
+    bid = _gen_bid()
+    items = payload.get("items", [])
+    cost = sum(float(i.get("qty", 1)) * float(i.get("cost_per_unit", 0)) for i in items)
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO bundles(id,tenant_id,name,sku,price,cost_price,category,status,description,image_url,updated_at)
+            VALUES(:id,:tid,:name,:sku,:price,:cost,:cat,:status,:desc,:img,NOW())
+        """), {
+            "id": bid, "tid": tid, "name": name, "sku": sku,
+            "price": float(payload.get("price", 0)),
+            "cost": cost,
+            "cat": payload.get("category", ""),
+            "status": payload.get("status", "active"),
+            "desc": payload.get("description", ""),
+            "img": payload.get("image_url", ""),
+        })
+        for item in items:
+            c.execute(text("""
+                INSERT INTO bundle_items(id,bundle_id,tenant_id,product_id,product_name,sku,qty,cost_per_unit)
+                VALUES(:id,:bid,:tid,:pid,:pname,:sku,:qty,:cost)
+            """), {
+                "id": _gen_biid(), "bid": bid, "tid": tid,
+                "pid": item.get("product_id", ""),
+                "pname": item.get("product_name", ""),
+                "sku": item.get("sku", ""),
+                "qty": float(item.get("qty", 1)),
+                "cost": float(item.get("cost_per_unit", 0)),
+            })
+    return {"id": bid, "message": "สร้างชุดสินค้าสำเร็จ"}
+
+@router.put("/bundle/{bid}")
+def update_bundle(bid: str, payload: dict, authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    name = str(payload.get("name", "")).strip()
+    sku = str(payload.get("sku", "")).strip()
+    if not name: raise HTTPException(400, "กรุณากรอกชื่อชุดสินค้า")
+    if not sku:  raise HTTPException(400, "กรุณากรอกรหัส SKU")
+    with engine.connect() as c:
+        ex = c.execute(text("SELECT id FROM bundles WHERE tenant_id=:tid AND sku=:sku AND id!=:bid"), {"tid": tid, "sku": sku, "bid": bid}).fetchone()
+        if ex: raise HTTPException(400, "รหัส SKU ซ้ำ")
+    items = payload.get("items", [])
+    cost = sum(float(i.get("qty", 1)) * float(i.get("cost_per_unit", 0)) for i in items)
+    with engine.begin() as c:
+        c.execute(text("""
+            UPDATE bundles SET name=:name,sku=:sku,price=:price,cost_price=:cost,
+              category=:cat,status=:status,description=:desc,image_url=:img,updated_at=NOW()
+            WHERE id=:id AND tenant_id=:tid
+        """), {
+            "id": bid, "tid": tid, "name": name, "sku": sku,
+            "price": float(payload.get("price", 0)), "cost": cost,
+            "cat": payload.get("category", ""), "status": payload.get("status", "active"),
+            "desc": payload.get("description", ""), "img": payload.get("image_url", ""),
+        })
+        c.execute(text("DELETE FROM bundle_items WHERE bundle_id=:bid AND tenant_id=:tid"), {"bid": bid, "tid": tid})
+        for item in items:
+            c.execute(text("""
+                INSERT INTO bundle_items(id,bundle_id,tenant_id,product_id,product_name,sku,qty,cost_per_unit)
+                VALUES(:id,:bid,:tid,:pid,:pname,:sku,:qty,:cost)
+            """), {
+                "id": _gen_biid(), "bid": bid, "tid": tid,
+                "pid": item.get("product_id", ""),
+                "pname": item.get("product_name", ""),
+                "sku": item.get("sku", ""),
+                "qty": float(item.get("qty", 1)),
+                "cost": float(item.get("cost_per_unit", 0)),
+            })
+    return {"message": "อัปเดตสำเร็จ"}
+
+@router.delete("/bundle/{bid}")
+def delete_bundle(bid: str, authorization: str = Header("")):
+    tid = get_tenant(authorization)
+    with engine.begin() as c:
+        c.execute(text("DELETE FROM bundles WHERE id=:id AND tenant_id=:tid"), {"id": bid, "tid": tid})
+    return {"message": "deleted"}
