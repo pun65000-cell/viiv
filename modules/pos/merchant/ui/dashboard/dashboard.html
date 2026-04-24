@@ -266,9 +266,9 @@ window.addEventListener('message', function(e) {
 
 const PAGES = {
   dashboard: { title:'Dashboard', tabs: null, render: renderDashboard },
-  affiliate:  { title:'Affiliate', tabs:[
-    { label:'Affiliate', file:'affiliate/all.html' },
-  ]},
+  affiliate:  { title:'Affiliate', tabs: null, render: function(el) {
+    loadSubPage(el, 'affiliate/all.html');
+  }},
   easysale:   { title:'EasySale', tabs:[
     { label:'POS ขายสินค้า',   file:'easysale/pos.html' },
     { label:'เว็บแคตตาล็อก', file:'easysale/catalog.html' },
@@ -286,15 +286,9 @@ const PAGES = {
     { label:'ติดตามการชำระเงิน',file:'orders/payment.html' },
     { label:'ติดตามการจัดส่ง',  file:'orders/shipping.html' },
   ]},
-  members:   { title:'สมาชิกร้านค้า', tabs:[
-    { label:'สมาชิกทั้งหมด', file:'members/all.html' },
-    { label:'VIP',            file:'members/vip.html' },
-  ]},
-  finance:   { title:'บัญชีการเงิน', tabs:[
-    { label:'ภาพรวม',   file:'finance/overview.html' },
-    { label:'รายรับ',   file:'finance/income.html' },
-    { label:'รายจ่าย',  file:'finance/expense.html' },
-  ]},
+  members:   { title:'สมาชิกร้านค้า', tabs: null, render: function(el) {
+    loadSubPage(el, 'members/all.html');
+  }},
   sales: { title:'ยอดขาย', tabs:[
     { label:'ยอดขายวันนี้',    file:'sales/today.html' },
     { label:'ค้นหายอดขาย',    file:'sales/search.html?v=1776406936' },
@@ -314,7 +308,9 @@ const PAGES = {
     { label:'รายรับ',  file:'finance/income.html'   },
     { label:'รายจ่าย', file:'finance/expense.html'  },
   ]},
-  settings:  { title:'จัดการร้านค้า', tabs:[{ label:'จัดการร้านค้า', file:'settings/store.html?v=1776743318' }]},
+  settings:  { title:'จัดการร้านค้า', tabs: null, render: function(el) {
+    loadSubPage(el, 'settings/store.html?v=1776743318');
+  }},
 };
 
 function renderDashboard(el) {
