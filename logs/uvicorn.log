@@ -90,3 +90,16 @@ INFO:     172.71.124.209:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
 INFO:     172.71.124.209:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
 INFO:     172.71.124.209:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
