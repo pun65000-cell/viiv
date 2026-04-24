@@ -267,7 +267,7 @@ Current State
 Version:      v1.20
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   3908b0b — feat(dashboard): split products→สินค้า + store เมนูใหม่
+Git latest:   9789e03 — fix(dashboard): AbortController + version token in loadSubPage
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,13 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.23]
+✅ dashboard.html — race condition fix ใน loadSubPage():
+   _loadAbort (AbortController) abort request เก่าทุกครั้งที่เรียกใหม่
+   _loadToken / _myToken token guard: .then() ตรวจก่อน render ถ้าไม่ตรง → return
+   catch AbortError → return เงียบ (ไม่แสดง error)
+   git: 9789e03
+
 [2026-04-24 v1.22]
 ✅ dashboard.html — แยก products/store เป็น 2 เมนู:
    products (5 tabs): ทั้งหมด/สร้างสินค้า/รับสินค้า/หมวดหมู่/จัดการสินค้า
