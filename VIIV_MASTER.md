@@ -1,13 +1,16 @@
 VIIV MASTER — CGO Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่กับ CGO ทุกครั้ง**  
-> Version: v1.19 | Updated: 2026-04-24  
+> Version: v1.31 | Updated: 2026-04-24  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
 บทบาท
-CGO (Claude.ai Pro) = ผู้กำหนดทิศทาง, architecture, spec, token budget
-Claude Code (API) = executor เขียนโค้ดตาม spec ที่ CGO กำหนด
-เจ้าของโปรเจกต์ = ส่ง spec ให้ CGO → CGO แปลงเป็น task → Claude Code implement
+```
+CGO (subscription1)  = Claude.ai Pro — ผู้กำหนดทิศทาง, architecture, spec, token budget
+CTO (subscription2)  = Claude.ai Pro — review, validate, second opinion (ถามได้อิสระ)
+Execute              = Claude Code (API) — executor เขียนโค้ดตาม spec ที่ CGO กำหนด
+เจ้าของโปรเจกต์      = ส่ง spec ให้ CGO → CGO แปลงเป็น task → Claude Code implement
+```
 Daily Workflow
 ```
 เช้า:     copy VIIV_MASTER.md ทั้งไฟล์ → เปิดแชทใหม่ → CGO เก็ต context 100%
@@ -163,13 +166,35 @@ Caddy:               ~44 MB
 PostgreSQL:          ~28 MB
 Production total:    ~180 MB
 ```
+Module Architecture (v1.31)
+```
+Module       Blue (prod)  Green (staging)  Path
+───────────  ───────────  ───────────────  ─────────────────────────────
+concore      :8000        :9000            /home/viivadmin/viiv/
+modulpos     :8001        :9001            /home/viivadmin/modulpos/      (future)
+moduleai     :8002        :9002            /home/viivadmin/moduleai/      (future)
+modulebot    :8003        :9003            /home/viivadmin/modulebot/     (future)
+```
+moduleai — AI Engine
+```
+Framework:      LiteLLM + Raw Anthropic SDK (ไม่ใช่ LangChain)
+Model routing:  basic→haiku, pro→sonnet, enterprise→opus
+Session memory: Redis (per tenant session)
+Pattern:        streaming SSE for chat, async queue for autopost, pre-cache RAG for POS bot
+```
+modulebot — Bot Engine
+```
+Bot ≠ AI  (bot = rule-based flow, AI = ถามจาก moduleai เมื่อจำเป็น)
+Flow:     Q&A tree → self-learning (บันทึก unmatched questions)
+Scope:    LINE/Facebook webhook → structured replies
+```
 Blue-Green Deployment
 ```
-Blue (production):  /home/viivadmin/viiv/       port 8000
-Green (staging):    /home/viivadmin/viiv-green/  port 8001
+Blue (production):  /home/viivadmin/viiv/       ports 8000-8003
+Green (staging):    /home/viivadmin/viiv-green/  ports 9000-9003
 ```
 ```bash
-# swap.sh
+# swap.sh (concore only — ทำทีละ module)
 kill $(lsof -ti:8000) 2>/dev/null && sleep 1
 cd /home/viivadmin/viiv-green && source .venv/bin/activate
 nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > logs/uvicorn.log 2>&1 &
@@ -195,13 +220,17 @@ Confirmed Architecture Decisions
 2	Feature Flag: guard ทั้ง Frontend (UX) + Backend API (Security)	v1.16
 3	Feature Flag timing: ทำหลัง PWA Phase 2 เสร็จ ก่อน Blue/Green	v1.16
 4	UX locked/feature: กดแล้วขึ้น "ต้องการแพ็คเกจ Pro — ดูแพ็คเกจ →"	v1.16
-5	LangChain: ใช้จริง (Chat + AutoPost + POS Bot ต้องการ 80% ของโปรเจกต์)	v1.16
+5	AI Framework: LiteLLM + Raw Anthropic SDK (เปลี่ยนจาก LangChain — v1.31)	v1.31
 6	AI Tier: haiku (basic) / sonnet (pro) / opus (enterprise)	v1.16
 7	AI Cost: token budget per tenant + hard limit + soft warning 80%	v1.16
 8	AI Latency: POS=pre-cache, Chat=streaming SSE, AutoPost=async queue	v1.16
 9	POS Bot scope: Help Only (อธิบาย/query) — ห้าม action v1.16 ยันไป	v1.16
 10	Claude Code model: haiku default, sonnet complex, opus ห้าม	v1.17
 11	Memory system: CLAUDE.md (server) + VIIV_MASTER.md (CGO daily)	v1.17
+12	Module split: concore/modulpos/moduleai/modulebot แยก port	v1.31
+13	Bot ≠ AI: modulebot = rule-based Q&A, เรียก moduleai เมื่อจำเป็น	v1.31
+14	Session memory: Redis (per tenant) ใน moduleai	v1.31
+15	Priority 1 (ก่อน deploy module ใหม่): health check + circuit breaker + quota table	v1.31
 Feature Flag Schema (ยืนยันใช้แบบนี้)
 ```json
 {
@@ -264,10 +293,10 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.30
+Version:      v1.31
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   fix(orders-detail): l.by activity log + received_payment photo validate
+Git latest:   docs: update VIIV_MASTER.md v1.31 CTO briefing
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +324,16 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.31]
+✅ VIIV_MASTER.md — CTO Briefing v1.19 updates:
+   - Section [A]: เพิ่ม CGO=subscription1, CTO=subscription2, Execute=Claude Code API
+   - Section [B]: เพิ่ม Module Architecture (concore:8000-8003 vs 9000-9003 Blue/Green)
+   - Section [B]: เพิ่ม moduleai spec (LiteLLM + Anthropic SDK, Redis session, tier routing)
+   - Section [B]: เพิ่ม modulebot spec (Bot≠AI, Q&A flow, self-learning)
+   - Section [C] Decision #5: LangChain → LiteLLM + Raw Anthropic SDK
+   - Section [C] เพิ่ม Decision #12-15: module split, bot≠AI, Redis, Priority 1 checklist
+   - Section [F]: อัปเดต Roadmap เดือน 2-3 เปลี่ยน LangChain → moduleai LiteLLM
+
 [2026-04-24 v1.30]
 ✅ orders-detail.js (v1173) — 2 fixes:
    - activity log: เปลี่ยน l.user → l.by (ตรงกับ field จริงใน backend)
@@ -458,9 +497,9 @@ Blockers
   Blue/Green setup + deploy
 
 เดือน 2-3:
-  LangChain foundation
-  POS Help Bot (pre-cache RAG)
-  Chat Module AI (streaming SSE)
+  moduleai: LiteLLM + Anthropic SDK foundation, Redis session memory
+  POS Help Bot (pre-cache RAG) — haiku tier
+  Chat Module AI (streaming SSE) — sonnet tier
 
 เดือน 3-4:
   AutoPost AI (async queue)
