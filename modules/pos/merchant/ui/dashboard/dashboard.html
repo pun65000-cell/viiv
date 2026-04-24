@@ -205,7 +205,10 @@
         <span class="nav-icon">⚡</span> EasySale
       </a>
       <a href="#" data-page="products">
-        <span class="nav-icon">⊞</span> สินค้า/สโตร์
+        <span class="nav-icon">⊞</span> สินค้า
+      </a>
+      <a href="#" data-page="store">
+        <span class="nav-icon">🏪</span> สโตร์
       </a>
       <a href="#" data-page="orders">
         <span class="nav-icon">≡</span> คำสั่งซื้อ
@@ -273,13 +276,20 @@ const PAGES = {
     { label:'POS ขายสินค้า',   file:'easysale/pos.html' },
     { label:'เว็บแคตตาล็อก', file:'easysale/catalog.html' },
   ]},
-  products:  { title:'สินค้า/สโตร์', tabs:[
-    { label:'ทั้งหมด',     file:'products/all.html' },
-    { label:'สร้างสินค้า', file:'products/create.html' },
-    { label:'รับสินค้า',   file:'products/receive.html?v=1776583341' },
-    { label:'คลังสินค้า',  file:'products/warehouse.html' },
-    { label:'หมวดหมู่',    file:'products/category.html' },
-    { label:'จัดการสินค้า',file:'products/manage.html' },
+  products:  { title:'สินค้า', tabs:[
+    { label:'ทั้งหมด',      file:'products/all.html' },
+    { label:'สร้างสินค้า',  file:'products/create.html' },
+    { label:'รับสินค้า',    file:'products/receive.html?v=1776583341' },
+    { label:'หมวดหมู่',     file:'products/category.html' },
+    { label:'จัดการสินค้า', file:'products/manage.html' },
+  ]},
+  store:     { title:'สโตร์', tabs:[
+    { label:'ทั้งหมด',        file:'products/warehouse/all.html' },
+    { label:'สร้างชุดสินค้า', file:'products/warehouse/bundle.html' },
+    { label:'ตัด/ย้าย',       file:'products/warehouse/adjust.html' },
+    { label:'พิมพ์สต็อก',    file:'products/warehouse/print.html' },
+    { label:'พิมพ์ป้าย',     file:'products/warehouse/label.html' },
+    { label:'นำเข้า/ส่งออก', file:'products/warehouse/importexport.html' },
   ]},
   orders:    { title:'คำสั่งซื้อ', tabs:[
     { label:'ติดตามคำสั่งซื้อ',  file:'orders/all.html' },
