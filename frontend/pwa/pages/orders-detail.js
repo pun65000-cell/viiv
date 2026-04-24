@@ -172,6 +172,7 @@
             const locked = LOCK_SHIP.includes(ss) && s.id !== ss;
             const dis = locked ? 'pointer-events:none;opacity:0.4;' : '';
             return `<button onclick="OrdersPage.selectShipStatus('${b.id}','${s.id}')"
+              data-ship-id="${s.id}"
               style="${dis}display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:2px solid ${active?s.color:'var(--bdr)'};background:${active?s.bg:'var(--card)'};color:${active?s.color:'var(--muted)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer"
               ${locked?'disabled':''}>${active?'●':''} ${s.label}</button>`;
           }).join('')}
@@ -275,6 +276,15 @@
     selectShipStatus(id, status) {
       _shipBillId = id;
       _shipStatus = status;
+      document.querySelectorAll('[data-ship-id]').forEach(btn => {
+        const active = btn.dataset.shipId === status;
+        const s = SHIP_STATUS.find(x => x.id === btn.dataset.shipId);
+        if (!s) return;
+        btn.style.border = active ? '2px solid ' + s.color : '2px solid var(--bdr)';
+        btn.style.background = active ? s.bg : 'var(--card)';
+        btn.style.color = active ? s.color : 'var(--muted)';
+        btn.textContent = (active ? '● ' : '') + s.label;
+      });
       const el = document.getElementById('ship-extra-fields');
       if (el) el.innerHTML = _shipExtraHtml(status, null);
     },
