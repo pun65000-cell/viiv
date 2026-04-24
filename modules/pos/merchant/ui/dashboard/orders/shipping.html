@@ -301,7 +301,7 @@ window.clFilter=function(){
 };
 
 window.shOpenTracking=function(){
-  document.getElementById('sh-track-popup').style.display='flex';
+  var p=document.getElementById('sh-track-popup'); if(p) p.style.display='flex';
 };
 
 window.blFilter=function(){
@@ -354,8 +354,8 @@ window.odOpenDelivery=function(bid){
   var b=_bills.find(function(x){return x.id===bid;});
   document.getElementById('dv-tracking').value=b&&b.ship_note?b.ship_note:'';
   document.getElementById('dv-platform').value='ไปรษณีย์ไทย';
-  document.getElementById('dv-note-wrap').style.display='none';
-  document.getElementById('od-delivery-popup').style.display='flex';
+  var w=document.getElementById('dv-note-wrap'); if(w) w.style.display='none';
+  var d=document.getElementById('od-delivery-popup'); if(d) d.style.display='flex';
 };
 var _dvPlatEl=document.getElementById('dv-platform');
 if(_dvPlatEl)_dvPlatEl.addEventListener('change',function(){
