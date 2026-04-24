@@ -34,11 +34,19 @@ const App = {
           'Content-Type': 'application/json'
         }, opts.headers || {})
       }));
-      if (!r2.ok) throw new Error(r2.status + ' ' + r2.statusText);
+      if (!r2.ok) {
+        let msg = r2.status + ' ' + r2.statusText;
+        try { const d = await r2.json(); if (d && d.detail) msg = d.detail; } catch(_) {}
+        throw new Error(msg);
+      }
       return r2.json();
     }
 
-    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+    if (!res.ok) {
+      let msg = res.status + ' ' + res.statusText;
+      try { const d = await res.json(); if (d && d.detail) msg = d.detail; } catch(_) {}
+      throw new Error(msg);
+    }
     return res.json();
   },
 
