@@ -264,17 +264,17 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.26
+Version:      v1.27
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   bd7d709 — fix(shipping): null guard 3 จุด (sh-track-popup, dv-note-wrap, od-delivery-popup)
+Git latest:   9dc70f8 — feat(orders): shipping section redesign with dynamic extra fields and photo upload
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
 home.js	✅ Done	Living Dashboard + module cards + tickers
 pos.js	✅ Done	POS Hub + 9-menu + ออกบิล sub-sheet + สโตร์ slot
 billing.js	✅ Done	ออกบิล + cart + payment sheet
-orders.js	✅ Done	list + filters + detail (markPaid/void)
+orders.js	✅ Done	list + filters + detail + ship extra-fields + photo upload
 products.js	✅ Done	CRUD + image upload + receive history
 members.js	✅ Done	list + search + tier badges
 store.js	✅ Done v1.19	Tab3 รับสินค้า: partner required + search + create mini-form + product table + validate | Tab5 ชุดสินค้า: full form + SKU check + cost auto-calc + CRUD + add-item picker
@@ -295,6 +295,17 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.27]
+✅ orders.js — shipping section redesign (v1170):
+   - Section background #f0ede6, border 1.5px solid #d4c9b0
+   - div#ship-extra-fields ใต้ปุ่ม grid → render ด้วย _shipExtraHtml(status, b)
+   - selectShipStatus(id, status) → re-render fields ตาม status ที่เลือก (ไม่ save ทันที)
+   - Extra fields: scheduled→datetime, shipped_no_recipient/collect→photo+note,
+     bill_check→photo+bank+check_no+payee+date+note, chargeback/overdue→note, else→note
+   - setShipStatus() → upload POST /api/pos/bills/upload-slip ก่อน แล้ว update-status
+   - แสดง b.ship_photo_url ถ้ามี
+   ไฟล์: frontend/pwa/pages/orders.js, frontend/pwa/index.html (?v=1170)
+
 [2026-04-24 v1.26]
 ✅ app.js — App.api() อ่าน response body ก่อน throw เพื่อแสดง detail จาก backend:
    !res.ok → read JSON → ถ้ามี d.detail ใช้เป็น error message แทน statusText
