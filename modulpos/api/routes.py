@@ -48,7 +48,8 @@ async def summary(authorization: str = Header("")):
         # stock ต่ำ
         r3 = c.execute(text("""
             SELECT COUNT(*) FROM products
-            WHERE tenant_id=:tid AND stock_qty <= stock_floor AND track_stock=true
+            WHERE tenant_id=:tid AND track_stock=true AND min_alert > 0
+            AND stock_qty <= min_alert
         """), {"tid":tid}).fetchone()
     return {
         "today_orders": r[0] if r else 0,
@@ -65,7 +66,7 @@ async def bills_recent(limit: int = 20, authorization: str = Header("")):
     with engine.connect() as c:
         rows = c.execute(text("""
             SELECT id, bill_no, total, status, created_at,
-                   customer_name
+                   customer_name, pay_method
             FROM bills WHERE tenant_id=:tid
             ORDER BY created_at DESC LIMIT :limit
         """), {"tid":tid,"limit":limit}).fetchall()
@@ -77,8 +78,8 @@ async def products(authorization: str = Header("")):
     tid = auth["tenant_id"]
     with engine.connect() as c:
         rows = c.execute(text("""
-            SELECT id, name, price, stock_qty,
-                   category, image_url, sku, stock_floor
+            SELECT id, name, price, stock_qty, sku,
+                   category, image_url, status, track_stock
             FROM products WHERE tenant_id=:tid AND status='active'
             ORDER BY name
         """), {"tid":tid}).fetchall()
