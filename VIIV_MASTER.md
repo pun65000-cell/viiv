@@ -267,7 +267,7 @@ Current State
 Version:      v1.20
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   74a8fe1 — fix(dashboard): restore page + sub-tab from URL hash on reload
+Git latest:   c09d998 — fix(shipping): null guard addEventListener on dv-platform element
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,12 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.20b]
+✅ shipping.html — null guard fix:
+   line 360: document.getElementById('dv-platform').addEventListener → เพิ่ม null guard (_dvPlatEl && ...)
+   เพิ่ม guard ให้ dv-note-wrap ด้วย
+   git: c09d998
+
 [2026-04-24 v1.20]
 ✅ dashboard.html — restore page + sub-tab from URL hash on reload:
    navigate(key, tabIndex) stores hash as #key/tabIndex
