@@ -22,7 +22,7 @@
     shipped_no_recipient:'#ffedd5:#7c2d12',
     shipped_cod:'#dbeafe:#1e40af',
     shipped_collect:'#d1fae5:#065f46',
-    received_payment:'#d1fae5:#064e3b',
+    received_payment:'#bbf7d0:#166534',
     overdue:'#fee2e2:#7f1d1d'
   };
 
