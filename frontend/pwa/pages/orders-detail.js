@@ -194,7 +194,7 @@
             if (l.status) parts.push('💰 ' + _esc(l.status));
             if (l.shipping) parts.push('🚚 ' + _esc(l.shipping));
             if (l.note) parts.push('📝 ' + _esc(l.note));
-            if (l.user) parts.push('👤 ' + _esc(l.user));
+            if (l.by) parts.push('👤 ' + _esc(l.by));
             return `<div style="padding:4px 0;border-bottom:1px solid var(--bdr)">${parts.join(' ')}</div>`;
           }).join('')}
         </div>
@@ -293,6 +293,13 @@
       const id = _shipBillId;
       const status = _shipStatus;
       if (!id || !status) { App.toast('กรุณาเลือกสถานะก่อน'); return; }
+      if (status === 'received_payment') {
+        const p = document.getElementById('ship-photo');
+        if (!p || !p.files || !p.files[0]) {
+          App.toast('❌ กรุณาแนบรูปหลักฐานก่อนรับชำระ');
+          return;
+        }
+      }
       const btn = document.querySelector('[onclick="OrdersPage.setShipStatus()"]');
       if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
       try {
