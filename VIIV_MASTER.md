@@ -267,7 +267,7 @@ Current State
 Version:      v1.20
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-24
-Git latest:   c09d998 — fix(shipping): null guard addEventListener on dv-platform element
+Git latest:   9d6a218 — fix(dashboard): settings/members/affiliate use render fn, remove duplicate finance
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -295,6 +295,12 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-24 v1.21]
+✅ dashboard.html — PAGES config refactor:
+   affiliate, members, settings: tabs[]→tabs:null + render:loadSubPage (ไม่โชว์ tab bar ที่ไม่จำเป็น)
+   ลบ finance duplicate (ตัวที่ 2 ใน PAGES overwrite ตัวแรก ทำให้ฟีเจอร์หาย)
+   git: 9d6a218
+
 [2026-04-24 v1.20b]
 ✅ shipping.html — null guard fix:
    line 360: document.getElementById('dv-platform').addEventListener → เพิ่ม null guard (_dvPlatEl && ...)
