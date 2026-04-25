@@ -1,7 +1,268 @@
 <body>
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:10px;color:#6b7280;">
-  <div style="font-size:32px;opacity:.25;">🧾</div>
-  <div style="font-size:14px;">ใบส่งของ</div>
-  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,185,62,.1);border:1px solid rgba(232,185,62,.4);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;color:#e8b93e;">⏳ Coming Soon</div>
+<div class="dv-wrap">
+  <div class="dv-toolbar">
+    <input id="dvSearch" class="dv-search" placeholder="ค้นหา เลขบิล / ชื่อลูกค้า..." oninput="dvRender()"/>
+    <div class="dv-filters">
+      <button class="dv-fbtn active" data-s="" onclick="dvSetFilter(this,'')">ทั้งหมด</button>
+      <button class="dv-fbtn" data-s="scheduled" onclick="dvSetFilter(this,'scheduled')">กำหนดส่ง</button>
+      <button class="dv-fbtn" data-s="delivery" onclick="dvSetFilter(this,'delivery')">กำลังส่ง</button>
+      <button class="dv-fbtn" data-s="shipped_cod" onclick="dvSetFilter(this,'shipped_cod')">COD</button>
+    </div>
+    <span id="dvCount" class="dv-count"></span>
+  </div>
+  <div id="dvList" class="dv-list"><div class="dv-empty">กำลังโหลด...</div></div>
 </div>
+
+<!-- Detail / Status Modal -->
+<div id="dvModal" class="dv-ov" style="display:none;" onclick="if(event.target===this)dvClose()">
+  <div class="dv-modal">
+    <div class="dv-modal-hd">
+      <div id="dvMTitle" style="font-size:15px;font-weight:700;"></div>
+      <button onclick="dvClose()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#6b7280;line-height:1;">✕</button>
+    </div>
+    <div id="dvMBody" class="dv-modal-body"></div>
+  </div>
+</div>
+
+<div id="dvToast" class="dv-toast" style="display:none;"></div>
+
+<style>
+.dv-wrap{padding:4px 0;box-sizing:border-box;}
+.dv-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.dv-search{flex:1;min-width:180px;padding:8px 14px;border:1.5px solid var(--accent,#e8b93e);border-radius:8px;font-size:13px;outline:none;background:#fffbf0;box-sizing:border-box;}
+.dv-filters{display:flex;gap:6px;flex-wrap:wrap;}
+.dv-fbtn{padding:6px 12px;border:1px solid var(--border,#e5e5e5);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:#f3f4f6;color:#374151;transition:all .15s;}
+.dv-fbtn.active{background:var(--accent,#e8b93e);color:#1a1200;border-color:var(--accent,#e8b93e);}
+.dv-count{font-size:12px;color:#9ca3af;white-space:nowrap;}
+.dv-list{display:flex;flex-direction:column;gap:8px;}
+.dv-empty{text-align:center;padding:40px;color:#9ca3af;font-size:13px;}
+.dv-card{background:#fff;border:1px solid var(--border,#e5e5e5);border-radius:12px;padding:14px 16px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+.dv-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08);border-color:var(--accent,#e8b93e);}
+.dv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.dv-card-no{font-size:13px;font-weight:700;color:#1f2937;}
+.dv-card-total{font-size:14px;font-weight:700;color:var(--accent,#e8b93e);}
+.dv-card-meta{font-size:12px;color:#6b7280;margin-bottom:6px;}
+.dv-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.dv-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.dv-badge.scheduled{background:#fef9c3;color:#713f12;}
+.dv-badge.delivery{background:#e0f2fe;color:#0369a1;}
+.dv-badge.shipped_cod{background:#dbeafe;color:#1e40af;}
+.dv-badge.shipped_collect{background:#d1fae5;color:#065f46;}
+.dv-badge.shipped_no_recipient{background:#ffedd5;color:#7c2d12;}
+.dv-badge.bill_check{background:#ede9fe;color:#4c1d95;}
+.dv-badge.chargeback{background:#fee2e2;color:#991b1b;}
+.dv-note-tag{font-size:11px;color:#0369a1;font-weight:600;background:#e0f2fe;padding:2px 8px;border-radius:12px;}
+.dv-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;overflow-y:auto;}
+.dv-modal{background:#fff;border-radius:14px;width:min(560px,100%);box-shadow:0 8px 32px rgba(0,0,0,.18);margin:auto;}
+.dv-modal-hd{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f0ede8;}
+.dv-modal-body{padding:20px;}
+.dv-meta{font-size:12px;color:#6b7280;line-height:1.9;margin-bottom:14px;}
+.dv-sec-label{font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;}
+.dv-status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.dv-sbtn{padding:8px 6px;font-size:12px;border:1.5px solid #d1d5db;border-radius:8px;cursor:pointer;background:#fff;text-align:center;transition:all .12s;}
+.dv-sbtn:hover{border-color:var(--accent,#e8b93e);background:rgba(232,185,62,.06);}
+.dv-sbtn.active{background:var(--accent,#e8b93e);color:#1a1200;border-color:#c9a130;font-weight:700;}
+.dv-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.dv-field label{font-size:11px;font-weight:600;color:#374151;}
+.dv-input{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;width:100%;box-sizing:border-box;}
+.dv-input:focus{border-color:var(--accent,#e8b93e);}
+.dv-log{max-height:140px;overflow-y:auto;font-size:11px;color:#6b7280;margin-bottom:14px;padding-top:10px;border-top:1px solid #f0ede8;}
+.dv-log-row{padding:3px 0;border-bottom:1px solid #f5f3ee;}
+.dv-actions{display:flex;gap:8px;justify-content:flex-end;padding-top:14px;border-top:1px solid #f0ede8;}
+.dv-btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.dv-btn-primary{background:var(--accent,#e8b93e);color:#1a1200;}
+.dv-btn-ghost{background:#f3f4f6;color:#374151;border:1px solid #d1d5db;}
+.dv-btn:disabled{opacity:.5;cursor:not-allowed;}
+.dv-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:99999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.18);}
+</style>
+
+<script>
+(function(){
+'use strict';
+var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+
+var SHIPPED_GROUP=['scheduled','shipped_no_recipient','shipped_cod','shipped_collect','delivery','bill_check','chargeback'];
+var ALL_SHIP_STATUS=['scheduled','delivery','shipped_cod','shipped_collect','shipped_no_recipient','bill_check','chargeback','received_payment','pending_payment','cod'];
+var SHIP_LABEL={
+  scheduled:'กำหนดส่ง',delivery:'จัดส่ง Delivery',shipped_cod:'ส่ง+วางบิล',
+  shipped_collect:'ส่ง+เก็บเงิน',shipped_no_recipient:'ส่งไม่มีผู้รับ',
+  bill_check:'วางบิลเช็ค',chargeback:'ชะลอจ่าย',
+  received_payment:'รับชำระแล้ว',pending_payment:'รอชำระ',cod:'COD'
+};
+
+var _bills=[];var _filter='';var _pendingShip=null;var _activeBid=null;
+
+function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
+function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
+function fmtDt(s){
+  if(!s)return'-';var d=new Date(s);if(isNaN(d))return s;
+  return d.toLocaleDateString('th',{day:'2-digit',month:'short',year:'2-digit'})+' '+d.toLocaleTimeString('th',{hour:'2-digit',minute:'2-digit'});
+}
+function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,color){
+  var t=document.getElementById('dvToast');if(!t)return;
+  t.textContent=msg;t.style.background=color||'#1f2937';t.style.color='#fff';t.style.display='block';
+  clearTimeout(toast._t);toast._t=setTimeout(function(){t.style.display='none';},3000);
+}
+function badgeHtml(s){
+  return s?'<span class="dv-badge '+(s||'')+'">'+h(SHIP_LABEL[s]||s)+'</span>':'';
+}
+
+function loadBills(){
+  if(!TOKEN)return;
+  fetch(API+'/api/pos/bills/list',{headers:authH()})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var all=Array.isArray(d)?d:[];
+    _bills=all.filter(function(b){
+      return SHIPPED_GROUP.indexOf(b.shipping_status)>=0;
+    });
+    dvRender();
+  })
+  .catch(function(){document.getElementById('dvList').innerHTML='<div class="dv-empty">โหลดข้อมูลไม่สำเร็จ</div>';});
+}
+
+window.dvSetFilter=function(btn,s){
+  document.querySelectorAll('.dv-fbtn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');_filter=s;dvRender();
+};
+
+window.dvRender=function(){
+  var q=(document.getElementById('dvSearch').value||'').toLowerCase();
+  var list=_bills.filter(function(b){
+    if(_filter&&b.shipping_status!==_filter)return false;
+    if(q&&!(b.bill_no||'').toLowerCase().includes(q)&&!(b.customer_name||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  var cnt=document.getElementById('dvCount');
+  if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
+  var el=document.getElementById('dvList');
+  if(!list.length){el.innerHTML='<div class="dv-empty">ไม่มีรายการจัดส่ง</div>';return;}
+  el.innerHTML=list.map(function(b){
+    var schedHtml=b.scheduled_at
+      ?'<span class="dv-badge" style="background:#f0fdf4;color:#166534;">กำหนดส่ง '+fmtDt(b.scheduled_at)+'</span>'
+      :'';
+    var noteHtml=b.ship_note?'<span class="dv-note-tag">'+h(b.ship_note)+'</span>':'';
+    return '<div class="dv-card" onclick="dvOpen(\''+h(b.id)+'\')">'+
+      '<div class="dv-card-top">'+
+        '<div>'+
+          '<div class="dv-card-no">'+h(b.bill_no)+'</div>'+
+          '<div style="font-size:12px;color:#6b7280;margin-top:2px;">'+h(b.customer_name||'-')+'</div>'+
+        '</div>'+
+        '<div class="dv-card-total">'+fmt(b.total)+'</div>'+
+      '</div>'+
+      '<div class="dv-card-meta">'+fmtDt(b.created_at)+'</div>'+
+      '<div class="dv-badges">'+badgeHtml(b.shipping_status)+schedHtml+noteHtml+'</div>'+
+    '</div>';
+  }).join('');
+};
+
+window.dvOpen=function(bid){
+  _activeBid=bid;_pendingShip=null;
+  var b=_bills.find(function(x){return x.id===bid;});
+  if(!b){
+    fetch(API+'/api/pos/bills/detail/'+bid,{headers:authH()})
+    .then(function(r){return r.json();}).then(function(d){_renderModal(d);});
+    return;
+  }
+  _renderModal(b);
+};
+
+function _renderModal(b){
+  _activeBid=b.id;
+  var LOCK=b.shipping_status==='received_payment';
+  document.getElementById('dvMTitle').innerHTML=h(b.bill_no)+' '+badgeHtml(b.shipping_status);
+
+  var statusBtns=ALL_SHIP_STATUS.map(function(s){
+    var isCur=b.shipping_status===s;
+    return '<button class="dv-sbtn'+(isCur?' active':'')+'" data-s="'+s+'" onclick="dvPickStatus(this)" '+
+      (LOCK&&!isCur?'disabled style="opacity:.4;cursor:not-allowed;"':'')+'>'+h(SHIP_LABEL[s]||s)+'</button>';
+  }).join('');
+
+  var logs='<div class="dv-empty" style="padding:10px 0;">ไม่มีประวัติ</div>';
+  var alog=b.activity_log||[];
+  if(typeof alog==='string'){try{alog=JSON.parse(alog);}catch(e){alog=[];}}
+  if(alog.length){
+    logs=alog.slice().reverse().slice(0,8).map(function(l){
+      return '<div class="dv-log-row">'+fmtDt(l.at)+
+        (l.shipping?' · '+l.shipping:'')+
+        (l.status?' · '+l.status:'')+
+        (l.note?' · '+l.note:'')+'</div>';
+    }).join('');
+  }
+
+  document.getElementById('dvMBody').innerHTML=
+    '<div class="dv-meta">'+
+      'ลูกค้า: <b>'+h(b.customer_name||'-')+'</b><br>'+
+      'วันที่: '+fmtDt(b.created_at)+'<br>'+
+      'ยอดสุทธิ: <b style="color:var(--accent,#e8b93e);">'+fmt(b.total)+'</b><br>'+
+      (b.scheduled_at?'กำหนดส่ง: '+fmtDt(b.scheduled_at)+'<br>':'')+
+    '</div>'+
+    '<div class="dv-sec-label">สถานะการจัดส่ง</div>'+
+    '<div class="dv-status-grid">'+statusBtns+'</div>'+
+    '<div class="dv-field">'+
+      '<label>เลขพัสดุ / หมายเหตุการส่ง</label>'+
+      '<input id="dvNote" class="dv-input" value="'+h(b.ship_note||'')+'" placeholder="เลขพัสดุ หรือ หมายเหตุ..."/>'+
+    '</div>'+
+    '<div class="dv-sec-label" style="margin-top:4px;">ประวัติ</div>'+
+    '<div class="dv-log">'+logs+'</div>'+
+    '<div class="dv-actions">'+
+      '<button class="dv-btn dv-btn-ghost" onclick="dvClose()">ปิด</button>'+
+      '<button id="dvSaveBtn" class="dv-btn dv-btn-primary" onclick="dvSave()">บันทึกสถานะ</button>'+
+    '</div>';
+
+  document.getElementById('dvModal').style.display='flex';
+  document.getElementById('dvModal').scrollTop=0;
+}
+
+window.dvPickStatus=function(btn){
+  _pendingShip=btn.dataset.s;
+  document.querySelectorAll('.dv-status-grid .dv-sbtn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+};
+
+window.dvSave=function(){
+  if(!_activeBid){dvClose();return;}
+  var note=document.getElementById('dvNote');
+  var payload={};
+  if(_pendingShip)payload.shipping_status=_pendingShip;
+  if(note&&note.value.trim())payload.ship_note=note.value.trim();
+  if(!Object.keys(payload).length){dvClose();return;}
+
+  var btn=document.getElementById('dvSaveBtn');
+  if(btn)btn.disabled=true;
+
+  fetch(API+'/api/pos/bills/update-status/'+_activeBid,{
+    method:'POST',headers:authH(),body:JSON.stringify(payload)
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(btn)btn.disabled=false;
+    if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}
+    toast('บันทึกแล้ว','#16a34a');
+    dvClose();
+    loadBills();
+  }).catch(function(){
+    if(btn)btn.disabled=false;
+    toast('เชื่อมต่อไม่ได้','#ef4444');
+  });
+};
+
+window.dvClose=function(){
+  document.getElementById('dvModal').style.display='none';
+  _activeBid=null;_pendingShip=null;
+};
+
+(function(){
+  window.removeEventListener('viiv_token_ready',window._dv_tok);
+  window._dv_tok=function(e){
+    if(e.detail&&e.detail.token)TOKEN=e.detail.token;
+    loadBills();
+  };
+  window.addEventListener('viiv_token_ready',window._dv_tok);
+  var _t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  if(_t)window._dv_tok({detail:{token:_t}});
+})();
+})();
+</script>
 </body>
