@@ -7,6 +7,7 @@ from datetime import datetime
 
 router = APIRouter(prefix="/api/pos/bills", tags=["pos-bills"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
+MIGRATION_MODE = os.getenv("MIGRATION_MODE", "")
 
 def get_tenant_user(authorization=""):
     try:
@@ -135,6 +136,26 @@ def save_draft(payload: dict, authorization: str = Header("")):
                  "items":json.dumps(items),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"total":total,
                  "pm":payload.get("pay_method","cash"),"note":payload.get("note",""),"sched":sched,"uid":uid})
     return {"ok":True,"draft_id":bid}
+
+@router.post("/finalize-draft/{bid}")
+def finalize_draft(bid: str, authorization: str = Header("")):
+    tid, uid = get_tenant_user(authorization)
+    with engine.begin() as c:
+        row = c.execute(text(
+            "SELECT id, bill_no, status FROM bills WHERE id=:id AND tenant_id=:tid"
+        ), {"id": bid, "tid": tid}).fetchone()
+        if not row:
+            raise HTTPException(404, "ไม่พบบิล")
+        if row.status != "draft":
+            raise HTTPException(400, f"สถานะปัจจุบัน '{row.status}' ไม่ใช่ draft")
+        if not str(row.bill_no).startswith("DRAFT-"):
+            raise HTTPException(400, "bill_no ไม่ใช่ DRAFT format")
+        bill_no, inv_no, _ = gen_bill_no(tid, c)
+        c.execute(text(
+            "UPDATE bills SET bill_no=:bno, inv_no=:ino, status='pending', updated_at=NOW() "
+            "WHERE id=:id AND tenant_id=:tid"
+        ), {"bno": bill_no, "ino": inv_no, "id": bid, "tid": tid})
+    return {"ok": True, "bill_no": bill_no, "inv_no": inv_no}
 
 @router.get("/list")
 def list_bills(authorization: str = Header(""), status: str = "", doc_type: str = "", q: str = "", source: str = ""):
@@ -341,15 +362,19 @@ def void_log(authorization: str = Header("")):
 
 @router.post("/migrate")
 def migrate_bill(payload: dict, authorization: str = Header("")):
-    """รับบิลเก่าจาก localStorage มาเก็บใน DB"""
+    """รับบิลเก่าจาก localStorage มาเก็บใน DB — ต้องตั้ง MIGRATION_MODE=1 ใน env"""
+    if not MIGRATION_MODE:
+        raise HTTPException(403, "migrate endpoint disabled — set MIGRATION_MODE=1 to enable")
     tid, uid = get_tenant_user(authorization)
-    import json as _json
-    # ถ้ามี bill_no นี้แล้วให้ skip
-    bill_no = payload.get("id","")
+    legacy_ref = payload.get("id","")
+    # ensure legacy_ref column exists
+    with engine.begin() as c:
+        c.execute(text("ALTER TABLE bills ADD COLUMN IF NOT EXISTS legacy_ref text"))
+    # skip ถ้า legacy_ref นี้ migrate ไปแล้ว
     with engine.connect() as c:
-        ex = c.execute(text("SELECT id FROM bills WHERE tenant_id=:tid AND (bill_no=:bno OR id=:bno)"),
-                       {"tid":tid,"bno":bill_no}).fetchone()
-        if ex: return {"message":"already exists","bill_no":bill_no}
+        ex = c.execute(text("SELECT id FROM bills WHERE tenant_id=:tid AND legacy_ref=:ref"),
+                       {"tid":tid,"ref":legacy_ref}).fetchone()
+        if ex: return {"message":"already exists","legacy_ref":legacy_ref}
     items = payload.get("items",[])
     sub = sum(float(i.get("qty",1))*float(i.get("price",0)) for i in items)
     dv = float(payload.get("discount",0))
@@ -360,35 +385,36 @@ def migrate_bill(payload: dict, authorization: str = Header("")):
     total = float(payload.get("total",after+after*vr/100))
     bid = generate_id("bill")
     with engine.begin() as c:
+        bill_no, inv_no, _ = gen_bill_no(tid, c)
         c.execute(text("""
             INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,
               customer_name,customer_code,customer_data,items,
               subtotal,discount,discount_type,vat_rate,vat_amount,total,
-              pay_method,paid_amount,note,void_reason,created_by,created_at,updated_at)
+              pay_method,paid_amount,note,void_reason,legacy_ref,created_by,created_at,updated_at)
             VALUES(:id,:tid,:bno,:ino,:dt,:st,
               :cn,:cc,:cd,:items,
               :sub,:disc,:dtype,:vr,:va,:total,
-              :pm,:paid,:note,:voidr,:uid,:cat,NOW())
+              :pm,:paid,:note,:voidr,:ref,:uid,:cat,NOW())
         """),{
             "id":bid,"tid":tid,
-            "bno":bill_no,
-            "ino":bill_no.replace("BILL","INV") if "BILL" in bill_no else "",
+            "bno":bill_no,"ino":inv_no,
             "dt":payload.get("doc_type","receipt"),
             "st":payload.get("status","paid"),
             "cn":payload.get("customer",""),
             "cc":payload.get("customer_code","") or (payload.get("customer_data") or {}).get("code",""),
-            "cd":_json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
-            "items":_json.dumps(items),
+            "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
+            "items":json.dumps(items),
             "sub":sub,"disc":disc,"dtype":dt,"vr":vr,
             "va":after*vr/100,"total":total,
             "pm":payload.get("pay_method","cash"),
             "paid":float(payload.get("paid",0)),
             "note":payload.get("note",""),
             "voidr":payload.get("void_reason",""),
+            "ref":legacy_ref,
             "uid":uid,
             "cat":payload.get("created_at","NOW()")
         })
-    return {"message":"migrated","bill_no":bill_no,"id":bid}
+    return {"message":"migrated","bill_no":bill_no,"legacy_ref":legacy_ref,"id":bid}
 
 
 import shutil, uuid

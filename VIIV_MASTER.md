@@ -213,6 +213,16 @@ tail -f /home/viivadmin/viiv/logs/uvicorn.log
 17  API key only บน server — Pro subscription ใช้กับ chat เท่านั้น  v1.34
 18  reserve bill: stock_reserved กัน stock ไม่หัก stock_qty จริง     v1.34
 19  LOCK_SHIPPING = received_payment เท่านั้น (ลบ debt ออก)          v1.34
+20  billing_statements table ใหม่ แยกจาก bills                       v1.36
+21  statement.js แยกไฟล์จาก HTML fix dashboard innerHTML inject       v1.36
+22  Pro subscription ห้ามแก้ loadSubPage/dashboard mechanism          v1.36
+23  model selection per task: haiku=CSS/debug, sonnet=multi-file      v1.36
+24  3-mode system: delivered/cheque/appointment รวม negotiation_note  v1.37
+25  upload flow 2-step: POST upload-slip → PATCH record               v1.37
+26  bill_no standard: BILL-YYYY-XXXXXX เท่านั้น (server gen_bill_no()) v1.42
+27  finalize-draft: DRAFT-{random} → gen_bill_no() ก่อน confirm      v1.42
+28  /migrate disabled by default: MIGRATION_MODE=1 เปิดชั่วคราวเท่านั้น v1.42
+29  legacy_ref field: เก็บ original client id ไว้เพื่อ traceability  v1.42
 ```
 ---
 [D] KNOWN RULES & ISSUES
@@ -244,6 +254,8 @@ Rule 34 — ก่อนส่ง spec ทุกครั้ง ให้ Claude
 Rule 45 — CGO ห้าม debug ทีละบรรทัดเอง → วิเคราะห์ root cause แล้วส่ง spec ให้ Claude Code
 Rule 46 — CTO + Claude Code ใช้ Pro บัญชีเดียวกัน → นับ limit รวม แจ้ง CGO ที่ 80%
 Rule 47 — billing/create.html: init ด้วย polling window.VIIV_TOKEN แทน _tok_ pattern (event อาจ fire ก่อน bind)
+Rule 48 — bill_no ต้องมาจาก gen_bill_no() เสมอ ห้าม client ส่งมาตรงๆ
+Rule 49 — DRAFT- prefix = ยังไม่ finalize ห้าม expose ลูกค้า → ต้องผ่าน /finalize-draft ก่อน
 ```
 ---
 [E] PROGRESS
