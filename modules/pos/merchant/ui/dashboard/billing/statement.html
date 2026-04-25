@@ -80,10 +80,13 @@ body{background:#fef9ee;font-family:'Sarabun',sans-serif;font-size:13px;color:#1
   <div class="st-list-panel">
     <div class="st-toolbar">
       <div class="st-toolbar-title">&#x1F4CB; &#x0E43;&#x0E1A;&#x0E27;&#x0E32;&#x0E07;&#x0E1A;&#x0E34;&#x0E25;</div>
-      <input id="stSearch" class="st-search" placeholder="&#x0E04;&#x0E49;&#x0E19;&#x0E2B;&#x0E32;..." oninput="window.stRender&&stRender()"/>
+      <input id="stSearch" class="st-search" placeholder="&#x0E04;&#x0E49;&#x0E19;&#x0E2B;&#x0E32; run_id / &#x0E04;&#x0E39;&#x0E48;&#x0E04;&#x0E49;&#x0E32; / &#x0E40;&#x0E25;&#x0E02;&#x0E1A;&#x0E34;&#x0E25;..." oninput="window.stSearchInput&&stSearchInput()"/>
       <div class="st-actions">
         <button class="st-btn st-btn-primary" onclick="window.stOpenSelector&&stOpenSelector()">+ &#x0E2A;&#x0E23;&#x0E49;&#x0E32;&#x0E07;&#x0E43;&#x0E2B;&#x0E21;&#x0E48;</button>
         <button class="st-btn st-btn-ghost" onclick="window.stLoad&&stLoad()">&#x21BB; &#x0E23;&#x0E35;&#x0E40;&#x0E1F;&#x0E23;&#x0E0A;</button>
+      </div>
+      <div id="stSearchBar" style="display:none;">
+        <button id="stCreateFromSearchBtn" class="st-btn st-btn-primary" style="width:100%;" onclick="window.stCreateFromSearch&&stCreateFromSearch()" disabled>&#x2795; &#x0E2A;&#x0E23;&#x0E49;&#x0E32;&#x0E07;&#x0E43;&#x0E1A;&#x0E27;&#x0E32;&#x0E07;&#x0E1A;&#x0E34;&#x0E25;&#x0E08;&#x0E32;&#x0E01;&#x0E17;&#x0E35;&#x0E48;&#x0E40;&#x0E25;&#x0E37;&#x0E2D;&#x0E01;</button>
       </div>
     </div>
     <div id="stCount" class="st-count"></div>
