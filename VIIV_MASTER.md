@@ -515,3 +515,37 @@ NEXT UP:
 4. 🟡 MED  — PWA members: add/edit form
 
 Version: v1.38 | Updated: 2026-04-25
+
+[v1.39 UPDATE — 2026-04-25]
+
+SQL MIGRATION (รันใน Supabase แล้ว):
+  ALTER TABLE billing_statements
+  RENAME COLUMN partner_id TO member_id;
+
+COMPLETED v1.39:
+✅ TASK 1 — สร้างใหม่ต้องเลือกสมาชิกก่อน — selector modal: ค้นหา member → dropdown autocomplete → เลือก → โหลดบิล → เลือกบิล → ยืนยัน
+✅ TASK 2 — backend: GET /unpaid-bills?member_id= filter customer_id + NOT EXISTS subquery exclude บิลที่อยู่ใน billing_statements แล้ว; POST /create รับ member_id query members table สร้าง snapshot
+✅ TASK 3 — SQL migration: RENAME partner_id → member_id (รันแล้ว)
+✅ TASK 4 — VIIV_MASTER.md v1.39
+
+KEY CHANGES:
+- stOpenSelector: reset state เท่านั้น ไม่เรียก API
+- stSearchMembers: debounce 300ms → /api/pos/members/list?q= → dropdown
+- stSelectMember: set _selectedMember → แสดง info → fetch /unpaid-bills?member_id=
+- _updateConfirmBtn: enable เมื่อ _selectedMember && _selectedBills.length > 0
+- stConfirmBills: ตรวจ _selectedMember ก่อน, แสดง member info block (ไม่ใช่ dropdown)
+- stCreate: ส่ง member_id แทน partner_id
+- stCancelForm: reset _selectedMember = null
+
+FILES CHANGED:
+- app/api/pos_statements.py (GET /list JOIN members, GET /unpaid-bills member_id param + NOT EXISTS, POST /create member snapshot)
+- modules/pos/merchant/ui/dashboard/billing/statement.html (full rewrite — member-first create flow)
+- modules/pos/merchant/ui/dashboard/billing/statement.js (sync กับ statement.html)
+
+NEXT UP:
+1. 🔴 HIGH — verify statement ทุก flow ทำงานถูกต้อง
+2. 🔴 HIGH — PWA billing: discount, VAT, doc type
+3. 🔴 HIGH — pos_line.py: LINE Webhook
+4. 🟡 MED  — PWA members: add/edit form
+
+Version: v1.39 | Updated: 2026-04-25

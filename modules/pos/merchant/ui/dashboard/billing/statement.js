@@ -4,8 +4,9 @@ window.stRender=function(){};
 'use strict';
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
-var _statements=[],_unpaidBills=[],_partners=[],_selectedBills=[],_activeId=null,_mode=null,_activeStmt=null,_currentMode='delivered';
+var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_activeStmt=null,_currentMode='delivered';
 var _stTotal=0,_stSelectedIds=[],_stNet=0,_stVat=0,_stDisc=0;
+var _selectedMember=null,_memberResults=[],_memberTimer=null;
 var SL={pending:'รอชำระ',partial:'ชำระบางส่วน',paid:'ชำระแล้ว',cancelled:'ยกเลิก'};
 function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
 function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
@@ -126,6 +127,7 @@ window.stOpen=function(id){
 };
 window.stSave=function(){
   if(!_activeId)return;
+  if(_stNet!==undefined&&_mode==='new'&&_stNet<=0){toast('ยอดสุทธิต้องมากกว่า 0','#ef4444');return;}
   var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;
   var payload={};
   var st=document.getElementById('stStatus');if(st)payload.status=st.value;
@@ -280,7 +282,7 @@ function _renderHistoryList(list){
 window.stCloseHistory=function(){var m=document.getElementById('stHistoryModal');if(m)m.style.display='none';};
 window.stFilterHistory=function(){if(window._historyData)_renderHistoryList(window._historyData);};
 window.stCancelForm=function(){
-  _activeId=null;_mode=null;_activeStmt=null;_currentMode='delivered';
+  _activeId=null;_mode=null;_activeStmt=null;_currentMode='delivered';_selectedMember=null;
   document.getElementById('stFormTitle').textContent='เลือกใบวางบิลจากรายการ';
   document.getElementById('stFormBody').innerHTML='<div class="st-placeholder"><div class="st-placeholder-icon">&#x1F4C4;</div><div>เลือกรายการจากซ้าย หรือสร้างใหม่</div></div>';
   document.getElementById('stActionBar').style.display='none';
@@ -291,19 +293,69 @@ window.stCancelForm=function(){
   stRender();
 };
 window.stOpenSelector=function(){
-  _selectedBills=[];
+  _selectedBills=[];_selectedMember=null;_memberResults=[];
+  clearTimeout(_memberTimer);
+  var ms=document.getElementById('stMemberSearch');if(ms)ms.value='';
+  var md=document.getElementById('stMemberDropdown');if(md){md.style.display='none';md.innerHTML='';}
+  var si=document.getElementById('stSelectedMemberInfo');if(si){si.style.display='none';si.innerHTML='';}
+  var bs=document.getElementById('stBillSection');if(bs)bs.style.display='none';
+  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
+  var bsrch=document.getElementById('stBillSearch');if(bsrch)bsrch.value='';
+  document.getElementById('stSelectedCount').textContent='เลือก 0 รายการ';
+  _updateConfirmBtn();
   document.getElementById('stSelectorModal').style.display='flex';
-  document.getElementById('stBillSearch').value='';
-  document.getElementById('stBillList').innerHTML='<div class="st-empty">กำลังโหลด...</div>';
-  Promise.all([
-    fetch(API+'/api/pos/statements/unpaid-bills',{headers:authH()}).then(function(r){return r.json();}),
-    fetch(API+'/api/pos/partners/list',{headers:authH()}).then(function(r){return r.json();})
-  ]).then(function(res){
-    _unpaidBills=Array.isArray(res[0])?res[0]:[];
-    _partners=Array.isArray(res[1])?res[1]:[];
-    stRenderBills();
-  }).catch(function(){document.getElementById('stBillList').innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
+window.stSearchMembers=function(){
+  clearTimeout(_memberTimer);
+  var q=(document.getElementById('stMemberSearch').value||'').trim();
+  var dd=document.getElementById('stMemberDropdown');
+  if(!q){if(dd)dd.style.display='none';return;}
+  _memberTimer=setTimeout(function(){
+    fetch(API+'/api/pos/members/list?q='+encodeURIComponent(q)+'&limit=20',{headers:authH()})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      _memberResults=(d&&Array.isArray(d.members))?d.members:[];
+      if(!dd)return;
+      if(!_memberResults.length){dd.innerHTML='<div class="st-member-result" style="color:#9ca3af;">ไม่พบสมาชิก</div>';dd.style.display='block';return;}
+      dd.innerHTML=_memberResults.map(function(m,i){
+        return '<div class="st-member-result" data-idx="'+i+'" onclick="stSelectMember(\''+h(m.id)+'\')">'+
+          '<b>'+h(m.name)+'</b>'+(m.code?' <span style="color:#9ca3af;">('+h(m.code)+')</span>':'')+
+          (m.phone?' &middot; '+h(m.phone):'')+
+        '</div>';
+      }).join('');
+      dd.style.display='block';
+    })
+    .catch(function(){if(dd){dd.innerHTML='<div class="st-member-result" style="color:#ef4444;">โหลดไม่สำเร็จ</div>';dd.style.display='block';}});
+  },300);
+};
+window.stSelectMember=function(mid){
+  var m=_memberResults.find(function(x){return x.id===mid;});
+  if(!m)return;
+  _selectedMember=m;_selectedBills=[];
+  var dd=document.getElementById('stMemberDropdown');if(dd)dd.style.display='none';
+  var ms=document.getElementById('stMemberSearch');if(ms)ms.value=m.name+(m.code?' ('+m.code+')':'');
+  var si=document.getElementById('stSelectedMemberInfo');
+  if(si){
+    si.innerHTML='<div style="font-weight:700;color:#1f2937;margin-bottom:2px;">'+h(m.name)+'</div>'+
+      (m.code?'<div style="color:#6b7280;">รหัส: '+h(m.code)+'</div>':'')+
+      (m.phone?'<div style="color:#374151;">&#x1F4DE; '+h(m.phone)+'</div>':'')+
+      (m.address?'<div style="color:#374151;font-size:11px;">'+h(m.address)+'</div>':'');
+    si.style.display='block';
+  }
+  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
+  var bs=document.getElementById('stBillSection');if(bs)bs.style.display='block';
+  var bsrch=document.getElementById('stBillSearch');if(bsrch)bsrch.value='';
+  document.getElementById('stSelectedCount').textContent='เลือก 0 รายการ';
+  _updateConfirmBtn();
+  fetch(API+'/api/pos/statements/unpaid-bills?member_id='+encodeURIComponent(mid),{headers:authH()})
+  .then(function(r){return r.json();})
+  .then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();})
+  .catch(function(){var el=document.getElementById('stBillList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
+};
+function _updateConfirmBtn(){
+  var btn=document.getElementById('stConfirmBillsBtn');
+  if(btn)btn.disabled=!(_selectedMember&&_selectedBills.length>0);
+}
 window.stFilterBills=function(){stRenderBills();};
 function stRenderBills(){
   var q=(document.getElementById('stBillSearch').value||'').toLowerCase();
@@ -322,22 +374,26 @@ window.stToggleBill=function(el){
   var bid=String(el.dataset.bid);var idx=_selectedBills.indexOf(bid);
   if(idx>=0)_selectedBills.splice(idx,1);else _selectedBills.push(bid);
   document.getElementById('stSelectedCount').textContent='เลือก '+_selectedBills.length+' รายการ';
+  _updateConfirmBtn();
   stRenderBills();
 };
 window.stConfirmBills=function(){
+  if(!_selectedMember){toast('กรุณาเลือกสมาชิกก่อน','#ef4444');return;}
   if(!_selectedBills.length){toast('กรุณาเลือกบิลอย่างน้อย 1 รายการ','#ef4444');return;}
   stCloseSelector();
   var selected=_unpaidBills.filter(function(b){return _selectedBills.indexOf(String(b.id))>=0;});
   var total=selected.reduce(function(s,b){return s+parseFloat(b.total||0);},0);
   _stTotal=total;_stSelectedIds=_selectedBills.slice();_mode='new';_activeId=null;
   document.getElementById('stFormTitle').textContent='สร้างใบวางบิลใหม่';
-  var partnerOpts='<option value="">-- ไม่ระบุคู่ค้า --</option>'+_partners.map(function(p){
-    return '<option value="'+h(p.id)+'">'+h(p.company_name+(p.partner_code?' ('+p.partner_code+')':''))+'</option>';
-  }).join('');
+  var m=_selectedMember;
+  var memberInfoHtml='<div class="st-partner-info">'+
+    '<div class="st-partner-name">'+h(m.name)+'</div>'+
+    ((m.code||m.tax_id)?'<div class="st-partner-meta">'+(m.code?'รหัส: '+h(m.code):'')+(m.code&&m.tax_id?' | ':'')+(m.tax_id?'TAX: '+h(m.tax_id):'')+'</div>':'')+
+    (m.address?'<div class="st-partner-addr">'+h(m.address)+'</div>':'')+
+    (m.phone?'<div class="st-partner-phone">&#x1F4DE; '+h(m.phone)+'</div>':'')+
+  '</div>';
   document.getElementById('stFormBody').innerHTML=
-    '<div class="st-section"><div class="st-section-title">คู่ค้า</div>'+
-      '<div class="st-field"><select id="stPartnerId" class="st-input">'+partnerOpts+'</select></div>'+
-    '</div>'+
+    memberInfoHtml+
     '<div class="st-section"><div class="st-section-title">บิลที่เลือก ('+selected.length+' รายการ)</div>'+
       selected.map(function(b){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0ede8;"><span>'+h(b.bill_no)+' &middot; '+h(b.customer_name||'-')+'</span><span style="font-weight:600;">'+fmt(b.total)+'</span></div>';}).join('')+
     '</div>'+
@@ -374,15 +430,15 @@ window.stCalc=function(){
 window.stCreate=function(){
   var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;
   if(_stNet<=0){toast('ยอดสุทธิต้องมากกว่า 0','#ef4444');if(btn)btn.disabled=false;return;}
-  var partnerEl=document.getElementById('stPartnerId');
-  var partner_id=(partnerEl&&partnerEl.value)||null;
+  if(!_selectedMember){toast('ไม่พบข้อมูลสมาชิก','#ef4444');if(btn)btn.disabled=false;return;}
   var payload={
-    bill_ids:_stSelectedIds,total_amt:_stTotal,discount:_stDisc,vat_amt:_stVat,
+    bill_ids:_stSelectedIds,
+    member_id:_selectedMember.id,
+    total_amt:_stTotal,discount:_stDisc,vat_amt:_stVat,
     vat_type:(document.getElementById('stVatType')||{}).value||'none',
     vat_rate:parseFloat((document.getElementById('stVatRate')||{}).value)||0,
     net_amt:_stNet||_stTotal,
-    due_single:(document.getElementById('stDueSingle')||{}).value||null,
-    partner_id:partner_id||undefined
+    due_single:(document.getElementById('stDueSingle')||{}).value||null
   };
   if(!payload.bill_ids.length){toast('ไม่มีบิลที่เลือก','#ef4444');if(btn)btn.disabled=false;return;}
   fetch(API+'/api/pos/statements/create',{method:'POST',headers:authH(),body:JSON.stringify(payload)})

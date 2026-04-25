@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, HTTPException, UploadFile, File
+from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Query
 from sqlalchemy import text
 from app.core.db import engine
 import jwt, os, json, shutil, uuid
@@ -44,15 +44,15 @@ def list_statements(authorization: str = Header("")):
                    bs.created_by, bs.created_at, bs.updated_at, bs.bill_ids, bs.due_dates,
                    bs.cheque_detail, bs.appointment_note, bs.negotiation_note,
                    bs.appointment_dt, bs.partial_amount, bs.slip_url,
-                   COALESCE(bs.partner_name, p.company_name) AS partner_name,
-                   COALESCE(bs.contact_name,  p.contact_name)  AS contact_name,
-                   COALESCE(bs.contact_phone, p.contact_phone) AS contact_phone,
-                   COALESCE(bs.partner_address, p.address)     AS partner_address,
-                   COALESCE(bs.partner_tax_id,  p.tax_id)      AS partner_tax_id,
-                   COALESCE(bs.partner_code,    p.partner_code) AS partner_code,
-                   bs.partner_id
+                   COALESCE(bs.partner_name, m.name)    AS partner_name,
+                   COALESCE(bs.contact_name,  m.name)   AS contact_name,
+                   COALESCE(bs.contact_phone, m.phone)  AS contact_phone,
+                   COALESCE(bs.partner_address, m.address) AS partner_address,
+                   COALESCE(bs.partner_tax_id,  m.tax_id)  AS partner_tax_id,
+                   COALESCE(bs.partner_code,    m.code)    AS partner_code,
+                   bs.member_id
             FROM billing_statements bs
-            LEFT JOIN partners p ON p.id = bs.partner_id AND p.tenant_id = bs.tenant_id
+            LEFT JOIN members m ON m.id = bs.member_id AND m.tenant_id = bs.tenant_id
             WHERE bs.tenant_id=:tid AND bs.status != 'cancelled'
             ORDER BY bs.created_at DESC LIMIT 100
         """), {"tid": tid}).fetchall()
@@ -80,23 +80,43 @@ def list_statements(authorization: str = Header("")):
             "partner_address": r[24],
             "partner_tax_id": r[25],
             "partner_code": r[26],
-            "partner_id": r[27],
+            "member_id": r[27],
         })
     return result
 
 @router.get("/unpaid-bills")
-def unpaid_bills(authorization: str = Header("")):
+def unpaid_bills(member_id: str = Query(""), authorization: str = Header("")):
     tid, _ = get_tenant_user(authorization)
     with engine.connect() as c:
-        rows = c.execute(text("""
-            SELECT id, bill_no, customer_name, total, pay_method,
-                   doc_type, created_at, shipping_status
-            FROM bills
-            WHERE tenant_id=:tid
-              AND status NOT IN ('paid','void','cancelled')
-              AND doc_type IN ('invoice','receipt')
-            ORDER BY created_at DESC LIMIT 200
-        """), {"tid": tid}).fetchall()
+        if member_id:
+            rows = c.execute(text("""
+                SELECT b.id, b.bill_no, b.customer_name, b.total, b.pay_method,
+                       b.doc_type, b.created_at, b.shipping_status
+                FROM bills b
+                WHERE b.tenant_id=:tid
+                  AND b.customer_id=:mid
+                  AND b.status NOT IN ('paid','void','cancelled')
+                  AND b.doc_type IN ('invoice','receipt')
+                  AND NOT EXISTS (
+                    SELECT 1 FROM billing_statements bs2
+                    WHERE bs2.tenant_id=:tid
+                      AND bs2.status != 'cancelled'
+                      AND bs2.bill_ids IS NOT NULL
+                      AND bs2.bill_ids != '[]'
+                      AND bs2.bill_ids::jsonb @> jsonb_build_array(b.id::text)
+                  )
+                ORDER BY b.created_at DESC LIMIT 200
+            """), {"tid": tid, "mid": member_id}).fetchall()
+        else:
+            rows = c.execute(text("""
+                SELECT id, bill_no, customer_name, total, pay_method,
+                       doc_type, created_at, shipping_status
+                FROM bills
+                WHERE tenant_id=:tid
+                  AND status NOT IN ('paid','void','cancelled')
+                  AND doc_type IN ('invoice','receipt')
+                ORDER BY created_at DESC LIMIT 200
+            """), {"tid": tid}).fetchall()
     result = []
     for r in rows:
         result.append({
@@ -126,19 +146,19 @@ def create_statement(payload: dict, authorization: str = Header("")):
     else:
         vat_amt = round(after_disc * vat_rate / 100, 2)
         net_amt = after_disc + vat_amt
-    # Partner snapshot
-    partner_id = payload.get("partner_id") or None
+    # Member snapshot
+    member_id = payload.get("member_id") or None
     partner_name = contact_name = contact_phone = None
     partner_address = partner_tax_id = partner_code = None
-    if partner_id:
+    if member_id:
         with engine.connect() as c:
-            p = c.execute(text(
-                "SELECT company_name, contact_name, contact_phone, address, tax_id, partner_code "
-                "FROM partners WHERE id=:pid AND tenant_id=:tid LIMIT 1"
-            ), {"pid": partner_id, "tid": tid}).fetchone()
-            if p:
-                partner_name, contact_name, contact_phone = p[0], p[1], p[2]
-                partner_address, partner_tax_id, partner_code = p[3], p[4], p[5]
+            m = c.execute(text(
+                "SELECT name, name, phone, address, tax_id, code "
+                "FROM members WHERE id=:mid AND tenant_id=:tid LIMIT 1"
+            ), {"mid": member_id, "tid": tid}).fetchone()
+            if m:
+                partner_name, contact_name, contact_phone = m[0], m[1], m[2]
+                partner_address, partner_tax_id, partner_code = m[3], m[4], m[5]
     with engine.begin() as c:
         run_id = gen_run_id(tid, c)
         c.execute(text("""
@@ -147,13 +167,13 @@ def create_statement(payload: dict, authorization: str = Header("")):
                 vat_amt, vat_type, net_amt, due_dates, due_single,
                 split_pay, status, payment_method, slip_url,
                 cheque_detail, appointment_note, created_by,
-                partner_id, partner_name, contact_name, contact_phone,
+                member_id, partner_name, contact_name, contact_phone,
                 partner_address, partner_tax_id, partner_code
             ) VALUES (
                 :run_id, :tid, :bill_ids, :total_amt, :discount,
                 :vat_amt, :vat_type, :net_amt, :due_dates, :due_single,
                 :split_pay, 'pending', :pm, :slip, :cheque, :appt, :uid,
-                :pid, :pname, :cname, :cphone, :paddr, :ptaxid, :pcode
+                :mid, :pname, :cname, :cphone, :paddr, :ptaxid, :pcode
             )
         """), {
             "run_id": run_id, "tid": tid,
@@ -168,7 +188,7 @@ def create_statement(payload: dict, authorization: str = Header("")):
             "cheque": payload.get("cheque_detail"),
             "appt": payload.get("appointment_note"),
             "uid": uid,
-            "pid": partner_id,
+            "mid": member_id,
             "pname": partner_name, "cname": contact_name, "cphone": contact_phone,
             "paddr": partner_address, "ptaxid": partner_tax_id, "pcode": partner_code,
         })
