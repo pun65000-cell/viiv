@@ -1,105 +1,83 @@
-INFO:     Started server process [3254523]
+nohup: ignoring input
+INFO:     Started server process [3382218]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.154:0 - "GET /api/pos/bills/detail/bill_1776325555_28zy HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "POST /api/pos/bills/update-status/bill_1776325555_28zy HTTP/1.1" 200 OK
-INFO:     172.70.143.214:0 - "GET /api/pos/bills/detail/bill_1776325555_28zy HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "POST /api/pos/bills/update-status/bill_1776325555_28zy HTTP/1.1" 400 Bad Request
-INFO:     172.70.208.27:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.70.208.27:0 - "GET /api/pos/bills/detail/bill_1776325555_28zy HTTP/1.1" 200 OK
-INFO:     167.94.146.59:28932 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.164.90:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35916 - "GET /api/pos/statements/unpaid-bills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35922 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.71.81.223:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.71.81.223:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.71.81.223:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.71.81.223:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     104.22.66.98:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/affiliate/stats HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/affiliate/stats HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.162.160:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.162.160:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.132:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.190.3:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.190.3:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51608 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51616 - "GET /api/pos/statements/unpaid-bills HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/unpaid-bills HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/pos/statements/create HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     64.62.197.227:33870 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     64.62.197.237:25899 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     64.62.197.233:63895 - "GET /?format=json HTTP/1.1" 404 Not Found
 WARNING:  Invalid HTTP request received.
-INFO:     167.94.146.59:57532 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     167.94.146.59:57628 - "POST /mcp HTTP/1.1" 404 Not Found
-INFO:     167.94.146.59:57644 - "POST /jsonrpc HTTP/1.1" 404 Not Found
-INFO:     167.94.146.59:57658 - "POST / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     167.94.146.59:15560 - "GET /login HTTP/1.1" 404 Not Found
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.70.189.36:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     162.159.113.17:0 - "GET /api/.env HTTP/1.1" 404 Not Found
-INFO:     172.70.208.26:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.70.208.26:0 - "GET /api/pos/bills/list?status=&q=admin%40viiv.me HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-INFO:     66.132.224.223:13680 - "GET / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     66.132.224.223:23628 - "POST /mcp HTTP/1.1" 404 Not Found
-INFO:     66.132.224.223:23636 - "POST /jsonrpc HTTP/1.1" 404 Not Found
-INFO:     66.132.224.223:23644 - "POST / HTTP/1.1" 404 Not Found
-WARNING:  Invalid HTTP request received.
-INFO:     66.132.224.223:54496 - "GET /wiki HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_srkg HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     162.158.88.57:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     104.23.175.109:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.23.175.109:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.23.175.109:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.23.175.109:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.23.175.109:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.23.175.109:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.71.124.208:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.71.124.208:0 - "GET /api/pos/bills/detail/bill_1776325555_p64i HTTP/1.1" 200 OK
-INFO:     172.71.124.208:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.71.124.208:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.71.124.208:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.71.124.209:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?status= HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     104.22.66.38:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK

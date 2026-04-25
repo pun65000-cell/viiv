@@ -1,6 +1,6 @@
-VIIV MASTER — CGO Reference
+# VIIV MASTER — CGO Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่กับ CGO ทุกครั้ง**  
-> Version: v1.31 | Updated: 2026-04-24  
+> Version: v1.35 | Updated: 2026-04-25  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -18,6 +18,13 @@ Daily Workflow
 เย็น:     CGO สั่ง Claude Code: "สรุปวันนี้ เพิ่มใน VIIV_MASTER.md Section [E]"
 พรุ่งนี้: copy ไฟล์ใหม่ → เปิดแชท → ทำต่อ
 ```
+Execution Workflow (v1.34)
+```
+→ API      = งานสแกนไฟล์, แก้บัค, rewrite (Claude Code API key)
+→ PRO      = งานเขียนโค้ดยาว, python EOF (Claude Pro อีกบัญชี)
+→ TERMINAL = รันคำสั่งสั้นได้เลย (bash, psql, grep)
+CGO chat ไม่เขียนโค้ดยาว — เขียนแต่ prompt และ spec เท่านั้น
+```
 Model Policy
 ```
 claude-haiku-4-5   → งานทั่วไป (edit, debug, < 100 บรรทัด)
@@ -25,15 +32,28 @@ claude-sonnet-4-6  → complex logic, multi-file, architecture
 claude-opus        → ห้ามใช้ยกเว้น CGO อนุมัติ
 ```
 Token Rules
+```
 Claude Code อ่านเฉพาะไฟล์ที่เกี่ยวกับ task นั้น
 ถ้า task ต้อง read > 3 ไฟล์ → แจ้ง CGO ก่อน แบ่ง task
 ห้าม loop/retry เกิน 3 ครั้งโดยไม่แจ้ง
+ใช้ /compact ก่อนส่ง prompt ใหม่ทุกครั้ง
+Rate limit 30,000 tokens/min → รอ 1 นาทีแล้วส่งใหม่
+```
+API Setup
+```bash
+# ~/.bashrc
+export ANTHROPIC_API_KEY="sk-ant-api03-xxx"
+alias claude-api="claude"
+
+# รัน Claude Code
+cd ~/viiv && claude
+```
 ---
 [B] ARCHITECTURE
 Stack
 ```
 Runtime:   FastAPI Python 3.12
-Database:  Supabase / PostgreSQL
+Database:  Supabase / PostgreSQL (10.1.0.3:5434)
 Proxy:     Caddy
 Server:    Uvicorn port 8000
 Path:      /home/viivadmin/viiv/
@@ -48,14 +68,15 @@ PWA:       รับ token จาก Superboard ผ่าน postMessage
 Fallback:  localStorage.getItem('viiv_token')
 Dev token: ten_1/usr_1 (ชั่วคราว — ห้าม deploy production)
 ```
-File Structure (v1.17)
+File Structure (v1.34)
 ```
 /home/viivadmin/viiv/
 ├── .env
 ├── app/
 │   ├── main.py
 │   └── api/
-│       ├── pos_bills.py, pos_members.py, pos_store.py
+│       ├── pos_bills.py       ✅ reserve flow + complete-reserve + delivery filter
+│       ├── pos_members.py, pos_store.py
 │       ├── pos_products.py, pos_categories.py
 │       ├── pos_affiliate.py, pos_partners.py
 │       ├── pos_receive.py, pos_line.py
@@ -65,6 +86,10 @@ File Structure (v1.17)
 │   ├── superboard/
 │   │   ├── index.html              SPA shell (desktop)
 │   │   ├── dashboard/              Living Dashboard (isolated iframe)
+│   │   │   └── billing/
+│   │   │       ├── reserve.html    ✅ ใบจอง list+edit+จบการขาย
+│   │   │       ├── delivery.html   ✅ กำลังส่ง list+status modal
+│   │   │       └── ...
 │   │   ├── mobile/index.html       ✅ light theme + profile + PTR
 │   │   └── pages/
 │   └── pwa/                        PWA Shell — Phase 1 ✅ Done
@@ -74,16 +99,18 @@ File Structure (v1.17)
 │       ├── css/app.css             Design system v1.17
 │       ├── js/router.js, app.js
 │       └── pages/
-│           ├── home.js      ✅ Living Dashboard + module cards
-│           ├── pos.js       ✅ POS Hub + 9-menu + ออกบิล sub-sheet
-│           ├── billing.js   ✅ ออกบิล + cart + payment sheet
-│           ├── orders.js    ✅ list + filters + detail (markPaid/void)
-│           ├── products.js  ✅ CRUD + image upload + receive history
-│           ├── members.js   ✅ list + search + tier badges
-│           ├── store.js     ✅ 7 tabs: คลัง/สร้าง/รับ/ตัด-ย้าย/Bundle/พิมพ์/หมวดหมู่
-│           ├── more.js      ✅ navigation drawer
-│           ├── chat.js      🚧 Phase 2
-│           └── autopost.js  🚧 Phase 2
+│           ├── home.js             ✅ Living Dashboard + module cards
+│           ├── pos.js              ✅ POS Hub + 9-menu + ออกบิล sub-sheet
+│           ├── billing.js          ✅ ออกบิล + cart + payment sheet
+│           ├── orders.js           ✅ list + filters
+│           ├── orders-detail.js    ✅ detail + fin/ship status + upload
+│           ├── orders-upload.js    ✅ upload slip helper
+│           ├── products.js         ✅ CRUD + image upload + receive history
+│           ├── members.js          ✅ list + search + tier badges
+│           ├── store.js            ✅ 7 tabs
+│           ├── more.js             ✅ navigation drawer
+│           ├── chat.js             🚧 Phase 2
+│           └── autopost.js         🚧 Phase 2
 ├── modulpos/    ← Legacy (อย่าแตะ)
 ├── modulechat/  ← Legacy foundation
 └── modulepost/  ← Legacy foundation
@@ -91,51 +118,53 @@ File Structure (v1.17)
 Working Files (ห้ามสับสน)
 ```
 Backend จริง:  app/api/pos_*.py       ✅
-Frontend จริง: frontend/pwa/          ✅
+Frontend จริง: frontend/pwa/          ✅ (PWA mobile)
+PC Dashboard:  modules/pos/merchant/ui/dashboard/  ✅
 Legacy:        modulpos/ modulechat/ modulepost/  ❌ อย่าแตะ
-Asset version: ?v=1166
+Asset version: ?v=1175 (orders-detail) / ?v=1175 (orders)
+```
+DB Schema (fields สำคัญ)
+```sql
+-- bills table
+doc_type: receipt | reserve | invoice | delivery | creditnote
+status: pending | paid | credit | partial | voided
+shipping_status: scheduled | shipped_no_recipient | shipped_cod |
+                 shipped_collect | bill_check | chargeback |
+                 overdue | delivery | received_payment
+LOCK_SHIPPING = {'received_payment'}  -- เปลี่ยนไม่ได้
+
+-- products table
+stock_qty      numeric(12,2)  -- สต็อกจริง
+stock_back     numeric        -- คลังหลังร้าน
+stock_reserved numeric(12,2)  -- กันไว้สำหรับใบจอง ✅ เพิ่มแล้ว
+track_stock    boolean
+min_alert      numeric
 ```
 API Endpoints
 ```
-/api/pos/bills/*      — bills CRUD
-/api/pos/products/*   — products CRUD
-/api/pos/categories/* — categories CRUD
-/api/pos/members/*    — members CRUD
-/api/pos/partners/*   — partners CRUD
-/api/pos/affiliate/*  — affiliate CRUD
-/api/pos/store/*      — store settings
-/api/pos/bank/*       — bank accounts
-/api/pos/receive/*    — stock receive
-/api/line/*           — LINE webhook
-/api/pos/line/*       — LINE settings
-
-POS Mobile API:
-GET /api/pos-mobile/summary
-GET /api/pos-mobile/bills/recent
-GET /api/pos-mobile/products/list
-GET /api/pos-mobile/members/list
-
-Chat & Post (Foundation):
-GET /api/chat/summary, /live-feed, /sessions
-GET /api/post/summary, /posts, /queue
+/api/pos/bills/*                    — bills CRUD
+  POST /api/pos/bills/complete-reserve/{bid}  ✅ จบการขายใบจอง
+  PATCH /api/pos/bills/update-reserve/{bid}   ✅ แก้ใบจอง + delta stock_reserved
+/api/pos/products/*                 — products CRUD
+/api/pos/categories/*               — categories CRUD
+/api/pos/members/*                  — members CRUD
+/api/pos/partners/*                 — partners CRUD
+/api/pos/affiliate/*                — affiliate CRUD
+/api/pos/store/*                    — store settings
+/api/pos/bank/*                     — bank accounts
+/api/pos/receive/*                  — stock receive
+/api/pos/bills/upload-slip          — upload รูปสลิป
+/api/line/*                         — LINE webhook
+/api/pos/line/*                     — LINE settings
 ```
-Domains & Routing
+Module Architecture (v1.31)
 ```
-concore.viiv.me              → /frontend (Superboard desktop)
-m.viiv.me                    → /superboard/mobile/ (Mobile Shell)
-*.viiv.me/pwa/*              → /frontend/pwa/ (PWA ใหม่)
-*.viiv.me/modulpos/*         → /modulpos/frontend/ (legacy)
-chat.viiv.me                 → /modulechat/frontend/
-post.viiv.me                 → /modulepost/frontend/
-```
-Caddyfile Handles (wildcard block)
-```
-handle /uploads/*   → /home/viivadmin/viiv  (Cache-Control: no-store)
-handle /api/*       → localhost:8000
-handle /merchant/*  → modules/pos/merchant/ui/dashboard
-handle /superboard/*→ frontend/
-handle /pwa/*       → frontend/
-handle /modulpos/*  → modulpos/frontend/
+Module       Blue (prod)  Green (staging)
+───────────  ───────────  ───────────────
+concore      :8000        :9000
+modulpos     :8001        :9001  (future)
+moduleai     :8002        :9002  (future)
+modulebot    :8003        :9003  (future)
 ```
 Quick Commands
 ```bash
@@ -149,386 +178,190 @@ sleep 2 && tail -3 logs/uvicorn.log
 TOKEN=$(python3 -c "import jwt; print(jwt.encode({'tenant_id':'ten_1','user_id':'usr_1'}, '21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c', algorithm='HS256'))")
 curl -s http://localhost:8000/api/pos/partners/list -H "Authorization: Bearer $TOKEN"
 
+# DB query
+psql postgresql://postgres:viiv_secure_123@10.1.0.3:5434/postgres
+
 # Reload Caddy
 sudo systemctl reload caddy
-
-# Check RAM
-ps aux --sort=-%mem | head -8
 
 # Realtime log
 tail -f /home/viivadmin/viiv/logs/uvicorn.log
 ```
-RAM Usage
-```
-VS Code Remote SSH:  ~1,150 MB
-uvicorn:             ~106 MB
-Caddy:               ~44 MB
-PostgreSQL:          ~28 MB
-Production total:    ~180 MB
-```
-Module Architecture (v1.31)
-```
-Module       Blue (prod)  Green (staging)  Path
-───────────  ───────────  ───────────────  ─────────────────────────────
-concore      :8000        :9000            /home/viivadmin/viiv/
-modulpos     :8001        :9001            /home/viivadmin/modulpos/      (future)
-moduleai     :8002        :9002            /home/viivadmin/moduleai/      (future)
-modulebot    :8003        :9003            /home/viivadmin/modulebot/     (future)
-```
-moduleai — AI Engine
-```
-Framework:      LiteLLM + Raw Anthropic SDK (ไม่ใช่ LangChain)
-Model routing:  basic→haiku, pro→sonnet, enterprise→opus
-Session memory: Redis (per tenant session)
-Pattern:        streaming SSE for chat, async queue for autopost, pre-cache RAG for POS bot
-```
-modulebot — Bot Engine
-```
-Bot ≠ AI  (bot = rule-based flow, AI = ถามจาก moduleai เมื่อจำเป็น)
-Flow:     Q&A tree → self-learning (บันทึก unmatched questions)
-Scope:    LINE/Facebook webhook → structured replies
-```
-Blue-Green Deployment
-```
-Blue (production):  /home/viivadmin/viiv/       ports 8000-8003
-Green (staging):    /home/viivadmin/viiv-green/  ports 9000-9003
-```
-```bash
-# swap.sh (concore only — ทำทีละ module)
-kill $(lsof -ti:8000) 2>/dev/null && sleep 1
-cd /home/viivadmin/viiv-green && source .venv/bin/activate
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > logs/uvicorn.log 2>&1 &
-
-# rollback.sh
-kill $(lsof -ti:8000) 2>/dev/null && sleep 1
-cd /home/viivadmin/viiv && source .venv/bin/activate
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > logs/uvicorn.log 2>&1 &
-```
-PWA Architecture
-```
-Pull-to-refresh:  #page-container (native scroll) → touchstart → spinner → dispatch 'viiv:refresh'
-Router:           Router.go('page', params) / Router.back() / Router.register(name, {load, destroy})
-Token flow:       postMessage → App.token → App.api() → localStorage fallback
-Design tokens:    --gold, --bg, --card, --bdr, --txt, --muted
-                  --topbar-h:48px --navbar-h:58px --safe-bot:env(safe-area-inset-bottom)
-```
 ---
 [C] DECISIONS LOG
-Confirmed Architecture Decisions
-#	Decision	ยืนยันเมื่อ
-1	Mobile → PWA (no iframe) แก้ปัญหา PTR/keyboard/swipe	v1.14
-2	Feature Flag: guard ทั้ง Frontend (UX) + Backend API (Security)	v1.16
-3	Feature Flag timing: ทำหลัง PWA Phase 2 เสร็จ ก่อน Blue/Green	v1.16
-4	UX locked/feature: กดแล้วขึ้น "ต้องการแพ็คเกจ Pro — ดูแพ็คเกจ →"	v1.16
-5	AI Framework: LiteLLM + Raw Anthropic SDK (เปลี่ยนจาก LangChain — v1.31)	v1.31
-6	AI Tier: haiku (basic) / sonnet (pro) / opus (enterprise)	v1.16
-7	AI Cost: token budget per tenant + hard limit + soft warning 80%	v1.16
-8	AI Latency: POS=pre-cache, Chat=streaming SSE, AutoPost=async queue	v1.16
-9	POS Bot scope: Help Only (อธิบาย/query) — ห้าม action v1.16 ยันไป	v1.16
-10	Claude Code model: haiku default, sonnet complex, opus ห้าม	v1.17
-11	Memory system: CLAUDE.md (server) + VIIV_MASTER.md (CGO daily)	v1.17
-12	Module split: concore/modulpos/moduleai/modulebot แยก port	v1.31
-13	Bot ≠ AI: modulebot = rule-based Q&A, เรียก moduleai เมื่อจำเป็น	v1.31
-14	Session memory: Redis (per tenant) ใน moduleai	v1.31
-15	Priority 1 (ก่อน deploy module ใหม่): health check + circuit breaker + quota table	v1.31
-Feature Flag Schema (ยืนยันใช้แบบนี้)
-```json
-{
-  "tenant_id": "ten_1",
-  "package": "pro",
-  "features": {
-    "pos.billing": true,
-    "pos.products.create": true,
-    "pos.affiliate": false,
-    "chat.live": false,
-    "ai.assistant": "basic",
-    "ai.tokens_per_month": 50000
-  }
-}
 ```
-AI Quota Tables (ทำทันทีพร้อม Feature Flag)
-```sql
-CREATE TABLE tenant_ai_quota (
-  tenant_id     TEXT PRIMARY KEY,
-  package       TEXT,
-  model_allowed TEXT,
-  tokens_limit  INTEGER,
-  tokens_used   INTEGER DEFAULT 0,
-  reset_date    DATE,
-  warned_80     BOOLEAN DEFAULT false
-);
-
-CREATE TABLE ai_usage_log (
-  id          SERIAL PRIMARY KEY,
-  tenant_id   TEXT,
-  module      TEXT,
-  model       TEXT,
-  tokens_in   INTEGER,
-  tokens_out  INTEGER,
-  created_at  TIMESTAMPTZ DEFAULT now()
-);
+#   Decision                                                          ยืนยันเมื่อ
+1   Mobile → PWA (no iframe)                                          v1.14
+2   Feature Flag: guard Frontend + Backend API                        v1.16
+3   Feature Flag timing: หลัง PWA Phase 2 ก่อน Blue/Green            v1.16
+4   UX locked: "ต้องการแพ็คเกจ Pro — ดูแพ็คเกจ →"                   v1.16
+5   AI Framework: LiteLLM + Raw Anthropic SDK (ไม่ใช่ LangChain)     v1.31
+6   AI Tier: haiku/sonnet/opus                                        v1.16
+7   AI Cost: token budget per tenant + hard limit                     v1.16
+8   AI Latency: POS=pre-cache, Chat=SSE, AutoPost=async               v1.16
+9   POS Bot: Help Only — ห้าม action                                  v1.16
+10  Claude Code model: haiku default, sonnet complex                  v1.17
+11  Memory: CLAUDE.md (server) + VIIV_MASTER.md (CGO daily)          v1.17
+12  Module split: concore/modulpos/moduleai/modulebot                 v1.31
+13  Bot ≠ AI: modulebot = rule-based Q&A                              v1.31
+14  Session memory: Redis (per tenant) ใน moduleai                   v1.31
+15  Priority 1: health check + circuit breaker + quota table          v1.31
+16  CGO workflow: ไม่เขียนโค้ดยาว — เขียนแต่ prompt/spec             v1.34
+17  API key only บน server — Pro subscription ใช้กับ chat เท่านั้น  v1.34
+18  reserve bill: stock_reserved กัน stock ไม่หัก stock_qty จริง     v1.34
+19  LOCK_SHIPPING = received_payment เท่านั้น (ลบ debt ออก)          v1.34
 ```
 ---
 [D] KNOWN RULES & ISSUES
-Rule 16 — Cloudflare Cache 404: `/uploads/` ต้องมี Bypass Cache rule + `concore.viiv.me` block ต้องมี `/uploads/*` handler แยก
-Rule 17 — JS var scope: `var` ใน `try{}` → declare ที่ function scope บนสุด
-Rule 18 — Caddyfile concore block ต้องมี `/uploads/*` handler แยก
-Rule 19 — Mobile iframe back button: `history.pushState()` + `popstate` intercept (แก้แล้ว v1.13)
-Rule 20 — iframe Pull-to-refresh: ทำไม่ได้ → แก้ถาวรด้วย PWA (v1.14)
-Rule 21 — PWA PTR: เช็ค `container.scrollTop === 0` ก่อน start pull
-Rule 22 — ห้าม `localStorage.removeItem('viiv_token')` ยกเว้น explicit logout  
-→ 401 ให้ setItem(dev token) แทน ไม่ใช่ removeItem
-Rule 23 — dashboard.html ต้องมี dev token bootstrap + `/merchant/*` Caddyfile ต้องมี `Cache-Control: no-store`
+```
+Rule 16 — Cloudflare Cache 404: /uploads/ ต้องมี Bypass Cache rule
+Rule 17 — JS var scope: var ใน try{} → declare ที่ function scope บนสุด
+Rule 18 — Caddyfile concore block ต้องมี /uploads/* handler แยก
+Rule 19 — Mobile iframe back button: history.pushState() + popstate intercept
+Rule 20 — iframe PTR: ทำไม่ได้ → แก้ถาวรด้วย PWA
+Rule 21 — PWA PTR: เช็ค container.scrollTop === 0 ก่อน start pull
+Rule 22 — ห้าม localStorage.removeItem('viiv_token') ยกเว้น explicit logout
+Rule 23 — dashboard.html ต้องมี dev token bootstrap + Cache-Control: no-store
 Rule 24 — Dev token (ten_1/usr_1) ชั่วคราว — ห้าม deploy ให้ลูกค้าจริง
 Rule 25 — Field names ที่ถูกต้อง:
-```
-vat          ✅  (ไม่ใช่ vat_type)
-min_alert    ✅  (ไม่ใช่ min_stock_alert)
-stock_back   ✅  คลังหลังร้าน
-track_stock  ✅  boolean
-pay_method   ✅  ใน bills (ไม่ใช่ payment_method)
-category     ✅  ใน products (ไม่ใช่ category_id)
+  vat ✅ | min_alert ✅ | stock_back ✅ | track_stock ✅ | pay_method ✅ | category ✅
+Rule 26 — loadSubPage() ต้องมี AbortController + token guard (race condition fix)
+Rule 27 — sheet handle onclick=closeSheet() ต้องมี เพื่อให้ลากปิด bottom sheet ได้
+Rule 28 — activity log field: l.by (ไม่ใช่ l.user) — backend เก็บ "by": uid
+Rule 29 — received_payment บังคับ upload รูปหลักฐานก่อน setShipStatus()
+Rule 30 — reserve bill: ใช้ stock_reserved ไม่ใช่ stock_qty, complete-reserve จึงหักจริง
+Rule 31 — delivery.html filter client-side จาก bills list (ไม่สร้าง endpoint ใหม่)
+Rule 32 — Claude Code rate limit 30k/min → ถ้าติดให้รอ 1 นาที หรือส่ง prompt สั้นลง
+Rule 33 — python3 EOF
+Rule 34 — ก่อนส่ง spec ทุกครั้ง ให้ Claude Code confirm path ด้วย:
+  ls [path] 2>&1 && echo "PATH OK" || echo "PATH NOT FOUND" อย่าใช้ ! ใน string → ใช้ heredoc << 'EOF' แทน
 ```
 ---
 [E] PROGRESS
 Current State
 ```
-Version:      v1.33
+Version:      v1.34
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
+              PC Dashboard: billing reserve + delivery ✅ Done
 Last updated: 2026-04-25
-Git latest:   feat: delivery.html — กำลังส่ง list with status modal
+Git latest:   delivery.html complete (89bd450)
 ```
 PWA Pages Status
-ไฟล์	สถานะ	หมายเหตุ
-home.js	✅ Done	Living Dashboard + module cards + tickers
-pos.js	✅ Done	POS Hub + 9-menu + ออกบิล sub-sheet + สโตร์ slot
-billing.js	✅ Done	ออกบิล + cart + payment sheet
-orders.js / orders-detail.js / orders-upload.js	✅ Done	split 3 files: list, detail+status, upload-slip helper
-products.js	✅ Done	CRUD + image upload + receive history
-members.js	✅ Done	list + search + tier badges
-store.js	✅ Done v1.19	Tab3 รับสินค้า: partner required + search + create mini-form + product table + validate | Tab5 ชุดสินค้า: full form + SKU check + cost auto-calc + CRUD + add-item picker
-more.js	✅ Done	navigation drawer
-chat.js	🚧 Phase 2	placeholder
-autopost.js	🚧 Phase 2	placeholder
+```
+ไฟล์                                    สถานะ    หมายเหตุ
+home.js                                 ✅ Done  Living Dashboard + module cards
+pos.js                                  ✅ Done  POS Hub + 9-menu + ออกบิล sub-sheet
+billing.js                              ✅ Done  ออกบิล + cart + payment sheet
+orders.js / orders-detail.js / orders-upload.js  ✅ Done  split 3 files
+products.js                             ✅ Done  CRUD + image upload + receive history
+members.js                              ✅ Done  list + search + tier badges
+store.js                                ✅ Done  7 tabs full parity
+more.js                                 ✅ Done  navigation drawer
+chat.js                                 🚧 Phase 2
+autopost.js                             🚧 Phase 2
+```
+PC Dashboard Status
+```
+billing/reserve.html   ✅ Done  ใบจอง list+search+filter+modal+จบการขาย+ยกเลิก
+billing/delivery.html  ✅ Done  กำลังส่ง list+search+filter+status modal+auto-remove
+billing/reserve.html   ⚠️ TODO card size ใหญ่เกิน — ต้องลดขนาด + ปรับ UI แยกจากหน้าค้นหาบิล
+```
 Next Up (ลำดับ Priority)
 ```
-1. 🔴 HIGH  — PWA billing: เพิ่ม discount, VAT, doc type (invoice/receipt)
-2. 🔴 HIGH  — pos_line.py: LINE Webhook + pending-uid
-3. 🟡 MED   — PWA orders: shipping status update
+1. 🔴 HIGH  — delivery.html: ลด card size + ปรับสีพื้น/UI ให้แยกจากหน้ารวมบิล
+2. 🔴 HIGH  — PWA billing: เพิ่ม discount, VAT, doc type (invoice/receipt)
+3. 🔴 HIGH  — pos_line.py: LINE Webhook + pending-uid
 4. 🟡 MED   — PWA members: add/edit member form
-5. 🟡 MED   — Dashboard API: ยอดแชท, Affiliate, AutoPost (ไม่ใช่ mock)
+5. 🟡 MED   — Dashboard API: ยอดแชท, Affiliate, AutoPost (real data)
 6. 🟡 MED   — PWA Phase 2: easysale, affiliate, finance
 7. 🟡 MED   — Feature Flag Schema + AI Quota Tables (DB)
 8. 🟡 MED   — Blue-Green setup: สร้าง viiv-green + scripts
 9. 🔵 FUT   — PWA Phase 3: receive, settings
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
-Completed Log
-[2026-04-25 v1.33]
-✅ delivery.html — กำลังส่ง dashboard ใหม่ทั้งหมด:
-   - filter เฉพาะ shipping_status: scheduled, shipped_*, delivery, bill_check, chargeback
-   - search + filter chip (ทั้งหมด | กำหนดส่ง | กำลังส่ง | COD)
+Completed Today (2026-04-25)
+```
+✅ delivery.html (commit 89bd450):
+   - list filter client-side: scheduled/shipped_*/delivery/bill_check/chargeback
+   - search + filter chip: ทั้งหมด | กำหนดส่ง | กำลังส่ง | COD
    - card: bill_no, ลูกค้า, ยอด, shipping badge, วันกำหนดส่ง, ship_note
-   - modal: status grid + เลขพัสดุ + activity log + POST update-status
-   - card หายออก list อัตโนมัติเมื่อสถานะพ้น shipped group
-   Git: 89bd450
+   - modal: status grid 10 สถานะ + เลขพัสดุ + activity log
+   - auto-remove เมื่อสถานะพ้น shipped group
 
-[2026-04-25 v1.32]
-✅ Reserve Bill System — stock_reserved + complete-reserve flow:
-   - app/api/pos_bills.py: create_bill doc_type=reserve → status=pending, เพิ่ม stock_reserved (ไม่หัก stock_qty)
-   - app/api/pos_bills.py: POST /api/pos/bills/complete-reserve/{bid} → หัก stock_qty จริง + ลด stock_reserved + status=paid/receipt
-   - app/api/pos_bills.py: PATCH /api/pos/bills/update-reserve/{bid} → แก้ลูกค้า/วันรับ/หมายเหตุ/items + คำนวณ stock_reserved delta
-   - app/api/pos_bills.py: void_bill reserve → release stock_reserved (stock_qty ไม่เปลี่ยน)
-   - modules/pos/merchant/ui/dashboard/billing/reserve.html: สร้างใหม่ทั้งหมด — list, search, filter status, detail modal, edit, จบการขาย, ยกเลิก
-   Git: ac5ad6f
+✅ reserve.html (commit ac5ad6f):
+   - list, search, filter status, detail modal, edit, จบการขาย, ยกเลิก
+   - stock_reserved logic: กัน stock ตอนจอง, คืนตอนยกเลิก, หักจริงตอนจบ
 
-[2026-04-24 v1.31]
-✅ VIIV_MASTER.md — CTO Briefing v1.19 updates:
-   - Section [A]: เพิ่ม CGO=subscription1, CTO=subscription2, Execute=Claude Code API
-   - Section [B]: เพิ่ม Module Architecture (concore:8000-8003 vs 9000-9003 Blue/Green)
-   - Section [B]: เพิ่ม moduleai spec (LiteLLM + Anthropic SDK, Redis session, tier routing)
-   - Section [B]: เพิ่ม modulebot spec (Bot≠AI, Q&A flow, self-learning)
-   - Section [C] Decision #5: LangChain → LiteLLM + Raw Anthropic SDK
-   - Section [C] เพิ่ม Decision #12-15: module split, bot≠AI, Redis, Priority 1 checklist
-   - Section [F]: อัปเดต Roadmap เดือน 2-3 เปลี่ยน LangChain → moduleai LiteLLM
+✅ DB Migration:
+   - products.stock_reserved numeric(12,2) DEFAULT 0 ✅ applied
 
-[2026-04-24 v1.30]
-✅ orders-detail.js (v1173) — 2 fixes:
-   - activity log: เปลี่ยน l.user → l.by (ตรงกับ field จริงใน backend)
-   - setShipStatus(): validate รูปหลักฐานก่อน received_payment (ship-photo required)
-   ไฟล์: frontend/pwa/pages/orders-detail.js, frontend/pwa/index.html
+✅ pos_bills.py (commit ac5ad6f, bb827e0):
+   - create_bill reserve: status=pending, เพิ่ม stock_reserved (ไม่หัก stock_qty)
+   - POST /complete-reserve/{bid}: หัก stock_qty + ลด stock_reserved + paid/receipt
+   - PATCH /update-reserve/{bid}: แก้ items + delta stock_reserved
+   - void reserve: release stock_reserved
 
-[2026-04-24 v1.29]
-✅ orders-detail.js — ship button highlight fix:
-   - เพิ่ม data-ship-id="${s.id}" ใน button แต่ละปุ่ม
-   - selectShipStatus() loop [data-ship-id] → update border/bg/color/textContent
-   ไฟล์: frontend/pwa/pages/orders-detail.js
+✅ orders-detail.js (v1175):
+   - received_payment: upload section + บังคับรูปก่อนบันทึก
+   - activity log: l.by แทน l.user
+   - shipped_collect สีฟ้าอมเขียว (#cffafe/#0e7490) แยกจาก shipped_cod
 
-[2026-04-24 v1.28]
-✅ orders split 3 files + 3 bug fixes (v1171):
-   - orders.js → list + search + filter เท่านั้น
-   - orders-detail.js → detail, fin/ship status, void, _loadDetail (reset state on load)
-   - orders-upload.js → OrdersUpload.slip(file) standalone helper
-   - Fix: reset _shipBillId/_shipStatus = null ทุกครั้งที่โหลด bill ใหม่
-   - Fix: shipped_cod เพิ่ม photo upload + หมายเหตุ ใน _shipExtraHtml
-   - Fix: setShipStatus() เพิ่ม updated_by payload; activity log แสดง 👤 l.user
-   ไฟล์: orders.js, orders-detail.js (ใหม่), orders-upload.js (ใหม่), index.html
+✅ Navigation/Back fix (router.js v1168):
+   - popstate ใช้ e.state แทน Router.stack
+   - back() → history.back()
+   - init() restore จาก hash จริง
 
-[2026-04-24 v1.27]
-✅ orders.js — shipping section redesign (v1170):
-   - Section background #f0ede6, border 1.5px solid #d4c9b0
-   - div#ship-extra-fields ใต้ปุ่ม grid → render ด้วย _shipExtraHtml(status, b)
-   - selectShipStatus(id, status) → re-render fields ตาม status ที่เลือก (ไม่ save ทันที)
-   - Extra fields: scheduled→datetime, shipped_no_recipient/collect→photo+note,
-     bill_check→photo+bank+check_no+payee+date+note, chargeback/overdue→note, else→note
-   - setShipStatus() → upload POST /api/pos/bills/upload-slip ก่อน แล้ว update-status
-   - แสดง b.ship_photo_url ถ้ามี
-   ไฟล์: frontend/pwa/pages/orders.js, frontend/pwa/index.html (?v=1170)
+✅ Caddy fix:
+   - concore.viiv.me /pwa/* → try_files → index.html (reload บน mobile ถูกต้อง)
 
-[2026-04-24 v1.26]
-✅ app.js — App.api() อ่าน response body ก่อน throw เพื่อแสดง detail จาก backend:
-   !res.ok → read JSON → ถ้ามี d.detail ใช้เป็น error message แทน statusText
-   ครอบทั้ง path ปกติ และ 401-retry path
-   ไฟล์: frontend/pwa/js/app.js
-
-[2026-04-24 v1.25]
-✅ orders.js — แก้ shipping status id ผิด + ตรวจ ship_note auth:
-   debt → overdue (4 จุด: SHIP_LABEL, SHIP_COLOR, SHIP_STATUS, LOCK_SHIP)
-   ship_note/เลขพัสดุ: ยืนยันใช้ App.api() แล้ว (ไม่ต้องแก้)
-   ไฟล์: frontend/pwa/pages/orders.js
-
-[2026-04-24 v1.24]
-✅ shipping.html — null guard เพิ่มเติม 3 จุด:
-   shOpenTracking: sh-track-popup
-   odOpenDelivery: dv-note-wrap, od-delivery-popup
-   git: bd7d709
-
-[2026-04-24 v1.23]
-✅ dashboard.html — race condition fix ใน loadSubPage():
-   _loadAbort (AbortController) abort request เก่าทุกครั้งที่เรียกใหม่
-   _loadToken / _myToken token guard: .then() ตรวจก่อน render ถ้าไม่ตรง → return
-   catch AbortError → return เงียบ (ไม่แสดง error)
-   git: 9789e03
-
-[2026-04-24 v1.22]
-✅ dashboard.html — แยก products/store เป็น 2 เมนู:
-   products (5 tabs): ทั้งหมด/สร้างสินค้า/รับสินค้า/หมวดหมู่/จัดการสินค้า
-   store (6 tabs): all/bundle/adjust/print/label/importexport (ใต้ products/warehouse/)
-   sidebar: 🏪 สโตร์ ใต้ ⊞ สินค้า
-   DOMContentLoaded bind อัตโนมัติ (querySelectorAll a[data-page])
-   git: 3908b0b
-
-[2026-04-24 v1.21]
-✅ dashboard.html — PAGES config refactor:
-   affiliate, members, settings: tabs[]→tabs:null + render:loadSubPage (ไม่โชว์ tab bar ที่ไม่จำเป็น)
-   ลบ finance duplicate (ตัวที่ 2 ใน PAGES overwrite ตัวแรก ทำให้ฟีเจอร์หาย)
-   git: 9d6a218
-
-[2026-04-24 v1.20b]
-✅ shipping.html — null guard fix:
-   line 360: document.getElementById('dv-platform').addEventListener → เพิ่ม null guard (_dvPlatEl && ...)
-   เพิ่ม guard ให้ dv-note-wrap ด้วย
-   git: c09d998
-
-[2026-04-24 v1.20]
-✅ dashboard.html — restore page + sub-tab from URL hash on reload:
-   navigate(key, tabIndex) stores hash as #key/tabIndex
-   renderTabs(page, key, activeIdx) restores correct sub-tab
-   DOMContentLoaded: hashchange + init both parse hash.split('/') → [key, tabStr]
-   sidebar nav click passes tabIndex=0 explicitly
-   git: 74a8fe1
-
-✅ router.js v1.168 — 3 fixes:
-   popstate uses e.state?.page + e.state?.params||{}
-   back() calls history.back() (was history.go(-1))
-   init() parses location.hash, history.replaceState with correct page key
-   index.html bump router.js ?v=1168
-
-[2026-04-24 v1.18]
-✅ store.js v1.19 — Tab3+Tab5 fix:
-   Tab3 รับสินค้า: partner search(GET /api/pos/partners/list) + create partner inline + required validation + product table(#|สินค้า|ราคารับ|จำนวน|คลัง|รวม) + auto-total + history
-   Tab5 ชุดสินค้า: full form(name/SKU/price/cat/status/desc/img) + items picker + qty edit + cost auto-calc + SKU duplicate block + CRUD (create/update/delete)
-   Backend added: GET/POST /api/pos/products/bundle/create, PUT /bundle/{id}, DELETE /bundle/{id}, GET /check-sku
-   DB migration: bundles + bundle_items tables applied via SQLAlchemy (alembic skip, Supabase permissions)
-
-✅ store.js v1.18 — Rewrite ครบ 7 tabs (full parity with PC):
-   Tab1 คลังสินค้า: cards(48px thumb+name+SKU+cat+price/cost/margin+stock front/back+badge)+search+filter(stock/cat)+bottom-sheet edit (form ครบ: name/sku/cat/price/PL/cost/PV/VAT/track_stock/stock/stock_back/min_alert/status/desc/image)+set inactive
-   Tab2 สร้างสินค้า: same form+POST create → toast+switch Tab1+reload
-   Tab3 รับสินค้า: product picker(search+qty+cost+warehouse) → POST /receive/create + history list
-   Tab4 ตัด/ย้าย: sub-tabs ตัดสต็อก(wh+stepper+PUT update) + ย้ายระหว่างคลัง(direction+stepper+PUT update)
-   Tab5 ชุดสินค้า: placeholder (รอ backend endpoint)
-   Tab6 พิมพ์: พิมพ์สต็อก(A4 window.print) + พิมพ์ป้าย(checkbox select+ขนาด+เนื้อหา+window.print)
-   Tab7 หมวดหมู่: GET/POST/PUT/DELETE /api/pos/categories/* + create/edit bottom-sheet + delete confirm
-✅ index.html — bump store.js ?v=1165 → ?v=1166
-✅ VIIV_MASTER.md — updated to v1.18
-
-[2026-04-24 v1.17]
-✅ app.css — fix #page-container transparent overlap bug (เพิ่ม background: var(--bg))
-✅ pos.js — tile "ออกบิล" → bottom sheet ย่อย [ออกบิลใหม่][ค้นหาบิล]
-✅ pos.js — slot 7 เปลี่ยนจาก "ค้นหาบิล" → "🏪 สโตร์"
-✅ store.js — หน้าใหม่ 3 tabs: คลังสินค้า, ตัดสต็อก, พิมพ์ป้าย
-✅ more.js — เพิ่ม "🏪 สโตร์" ใน section โมดูล
-✅ index.html — เพิ่ม store.js, bump ?v=1164
-[2026-04-24 v1.16]
-✅ modulpos/api/routes.py — fix field names: min_alert, pay_method, track_stock
-✅ superboard/mobile/index.html — clean refactor 484 lines: token broadcast, lazy iframe, PTR, back button
-✅ products.js v3 — complete rewrite: status filter, category chips, image upload, stock_back, qr_url, receive history
-[2026-04-23 v1.15]
-✅ PWA Phase 1 complete: home, billing, orders (+detail), products, members, more, pos hub
-✅ app.css Design system overhaul
-✅ Order detail: markPaid, void, receipt view
-✅ Mobile Shell light theme + profile bottom-sheet
+✅ dashboard.html fixes:
+   - Sub-tab restore from hash (#page/tabIndex)
+   - Race condition: AbortController + token guard
+   - Products/Store แยกเป็น 2 เมนูใน sidebar
+   - Sheet handle → closeSheet() onclick
+```
 Git Restore Points
 ```
 f3adb9c  Superboard Dashboard Live4/4 (safe)
 ab5ec4d  PWA shell foundation
 c778e1d  PWA Phase 1 complete
-c91cfec  Mobile shell light theme + profile
-ae6cd1e  PWA Phase 1 checkpoint
-266fb3e  PWA สินค้า v3 complete
-4774970  Mobile shell cleanup + fix modulpos API
-7c8d386  PWA สโตร์ + ออกบิล sub-menu + overlap fix
-890acd6  store.js v1.18 — 7-tab full parity ← LATEST SAFE
+890acd6  store.js v1.18 — 7-tab full parity
+ac5ad6f  reserve bill system
+89bd450  delivery.html ← LATEST
 ```
-Known Issues (store.js v1.19)
+Known Issues
 ```
-- Tab4 ตัด/ย้าย: ใช้ PUT /products/update แทน dedicated stock-adjust endpoint (ไม่มีใน backend)
-- Tab3 รับสินค้า: pos_receive.py endpoint อัปเดต stock_qty เสมอ ไม่แยก warehouse (backend issue)
-- Tab5 ชุดสินค้า: ยังไม่มี logic ตัดสต็อกเมื่อขายชุด (billing.js ยังไม่รองรับ bundle type)
-```
-Blockers
-```
-(ไม่มีในปัจจุบัน)
+- delivery.html: card size ใหญ่เกิน ต้องปรับ UI
+- Tab4 ตัด/ย้าย: ใช้ PUT /products/update แทน dedicated endpoint
+- Tab3 รับสินค้า: pos_receive.py ไม่แยก warehouse
+- Tab5 ชุดสินค้า: billing.js ยังไม่รองรับ bundle type
 ```
 ---
 [F] ROADMAP
 ```
 ตอนนี้ (Phase 2):
+  PC Dashboard: delivery.html UI fix
   PWA billing: discount/VAT/doc-type
   pos_line.py: LINE webhook
-  PWA orders: shipping
   PWA members: CRUD
 
 เดือน 1-2:
-  Feature Flag (Backend middleware + Frontend UX)
-  AI Quota Tables (DB schema)
-  Blue/Green setup + deploy
+  Feature Flag (Backend + Frontend)
+  AI Quota Tables
+  Blue/Green setup
 
 เดือน 2-3:
-  moduleai: LiteLLM + Anthropic SDK foundation, Redis session memory
-  POS Help Bot (pre-cache RAG) — haiku tier
-  Chat Module AI (streaming SSE) — sonnet tier
+  moduleai: LiteLLM + Anthropic SDK + Redis
+  POS Help Bot (haiku)
+  Chat Module AI (sonnet SSE)
 
 เดือน 3-4:
   AutoPost AI (async queue)
-  PWA Phase 3: receive, settings
+  PWA Phase 3
 
-อนาคต (v2.x):
-  Capacitor.js → APK + IPA
-  App Store / Play Store
-
-อนาคตไกล (v3.x):
-  AI Chat Interface ("ออกบิล 3 รายการให้ลูกค้าสมชาย")
+อนาคต:
+  Capacitor.js → APK/IPA
+  AI Chat Interface
 ```
 ---
 > **CGO Note:** ไฟล์นี้ = source of truth สำหรับทุก session  
