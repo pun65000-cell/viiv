@@ -47,7 +47,8 @@ def create_bill(payload: dict, authorization: str = Header("")):
     tid, uid = get_tenant_user(authorization)
     items = payload.get("items", [])
     if not items: raise HTTPException(400, "กรุณาเพิ่มสินค้า")
-    status = payload.get("status", "paid")
+    doc_type = payload.get("doc_type","receipt")
+    status = "pending" if doc_type == "reserve" else payload.get("status", "paid")
     with engine.begin() as c:
         items_snap = []
         for item in items:
@@ -72,13 +73,18 @@ def create_bill(payload: dict, authorization: str = Header("")):
         sched = payload.get("scheduled_at")
         c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,vat_type,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
             VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:vtype,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
-            {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":payload.get("doc_type","receipt"),"st":status,
+            {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":doc_type,"st":status,
              "src":src,"ship":ship_st,"sched":sched,
              "cid":(payload.get("customer_data") or {}).get("id"),"cn":payload.get("customer",""),"cc":payload.get("customer_code",""),
              "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
              "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"vtype":vat_type,"total":total,
              "pm":payload.get("pay_method","cash"),"paid":float(payload.get("paid",0)),"note":payload.get("note",""),"uid":uid})
-        if status=="paid":
+        if doc_type == "reserve":
+            for item in items_snap:
+                p = c.execute(text("SELECT track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
+                if p and p[0]:
+                    c.execute(text("UPDATE products SET stock_reserved=COALESCE(stock_reserved,0)+:qty,updated_at=NOW() WHERE id=:id"),{"qty":item["qty"],"id":item["id"]})
+        elif status=="paid":
             for item in items_snap:
                 p = c.execute(text("SELECT stock_qty,track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
                 if p and p[1]:
@@ -238,7 +244,13 @@ def void_bill(bid: str, payload: dict, authorization: str = Header("")):
         if bill.status in ("voided","deleted"): raise HTTPException(400,"บิลนี้ถูกยกเลิกแล้ว")
         c.execute(text("INSERT INTO bill_void_log(id,tenant_id,bill_id,bill_no,void_type,void_reason,items_snapshot,total,voided_by) VALUES(:id,:tid,:bid,:bno,:vt,:vr,:items,:total,:uid)"),
             {"id":generate_id("vlog"),"tid":tid,"bid":bid,"bno":bill.bill_no,"vt":void_type,"vr":reason,"items":bill.items,"total":bill.total,"uid":uid})
-        if void_type=="delete_with_return":
+        if bill.doc_type == "reserve" and bill.status == "pending":
+            rv_items = json.loads(bill.items) if isinstance(bill.items,str) else bill.items
+            for item in rv_items:
+                p = c.execute(text("SELECT track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
+                if p and p[0]:
+                    c.execute(text("UPDATE products SET stock_reserved=GREATEST(0,COALESCE(stock_reserved,0)-:qty),updated_at=NOW() WHERE id=:id"),{"qty":float(item["qty"]),"id":item["id"]})
+        elif void_type=="delete_with_return":
             items = json.loads(bill.items) if isinstance(bill.items,str) else bill.items
             for item in items:
                 p = c.execute(text("SELECT stock_qty,track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
@@ -250,6 +262,75 @@ def void_bill(bid: str, payload: dict, authorization: str = Header("")):
         new_st = "voided" if void_type=="cancel" else "deleted"
         c.execute(text("UPDATE bills SET status=:st,void_reason=:vr,voided_by=:uid,voided_at=NOW(),updated_at=NOW() WHERE id=:id"),{"st":new_st,"vr":reason,"uid":uid,"id":bid})
     return {"message":"ยกเลิกสำเร็จ","void_type":void_type}
+
+@router.post("/complete-reserve/{bid}")
+def complete_reserve(bid: str, payload: dict = {}, authorization: str = Header("")):
+    from datetime import datetime, timezone
+    tid, uid = get_tenant_user(authorization)
+    with engine.begin() as c:
+        bill = c.execute(text("SELECT * FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
+        if not bill: raise HTTPException(404,"ไม่พบบิล")
+        if bill.doc_type != "reserve": raise HTTPException(400,"ไม่ใช่ใบจอง")
+        if bill.status != "pending": raise HTTPException(400,f"สถานะ {bill.status} ไม่สามารถจบการขายได้")
+        items = json.loads(bill.items) if isinstance(bill.items,str) else bill.items
+        for item in items:
+            p = c.execute(text("SELECT stock_qty,track_stock,stock_reserved FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
+            if p and p[1]:
+                qb=float(p[0] or 0); qa=qb-float(item["qty"])
+                qr=max(0,float(p[2] or 0)-float(item["qty"]))
+                c.execute(text("UPDATE products SET stock_qty=:q,stock_reserved=:qr,updated_at=NOW() WHERE id=:id"),{"q":qa,"qr":qr,"id":item["id"]})
+                c.execute(text("INSERT INTO stock_log(id,tenant_id,product_id,sku,product_name,action,qty_before,qty_change,qty_after,ref_bill_id,ref_bill_no,created_by) VALUES(:id,:tid,:pid,:sku,:name,'reserve_complete',:qb,:qc,:qa,:bid,:bno,:uid)"),
+                    {"id":generate_id("slog"),"tid":tid,"pid":item["id"],"sku":item.get("sku",""),"name":item.get("name",""),"qb":qb,"qc":-float(item["qty"]),"qa":qa,"bid":bid,"bno":bill.bill_no,"uid":uid})
+        existing_log = bill.activity_log or []
+        if isinstance(existing_log,str): existing_log=json.loads(existing_log)
+        existing_log.append({"at":datetime.now(timezone.utc).isoformat(),"by":uid,"action":"reserve_complete","status":"pending → paid"})
+        pay_method = payload.get("pay_method") or bill.pay_method or "cash"
+        paid = float(payload.get("paid") or bill.total or 0)
+        c.execute(text("UPDATE bills SET status='paid',doc_type='receipt',pay_method=:pm,paid_amount=:paid,activity_log=:alog,updated_at=NOW() WHERE id=:id"),
+            {"pm":pay_method,"paid":paid,"alog":json.dumps(existing_log),"id":bid})
+    return {"ok":True,"bill_id":bid,"bill_no":bill.bill_no}
+
+@router.patch("/update-reserve/{bid}")
+def update_reserve(bid: str, payload: dict, authorization: str = Header("")):
+    tid, uid = get_tenant_user(authorization)
+    with engine.begin() as c:
+        bill = c.execute(text("SELECT * FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
+        if not bill: raise HTTPException(404,"ไม่พบบิล")
+        if bill.doc_type != "reserve": raise HTTPException(400,"ไม่ใช่ใบจอง")
+        if bill.status != "pending": raise HTTPException(400,"ไม่สามารถแก้ไขได้")
+        sets, params = [], {"id":bid}
+        if "customer" in payload: sets.append("customer_name=:cn"); params["cn"]=payload["customer"]
+        if "customer_data" in payload: sets.append("customer_data=:cd"); params["cd"]=json.dumps(payload["customer_data"]) if payload["customer_data"] else None
+        if "scheduled_at" in payload: sets.append("scheduled_at=:sched"); params["sched"]=payload["scheduled_at"]
+        if "note" in payload: sets.append("note=:note"); params["note"]=payload["note"]
+        if "items" in payload:
+            new_items = payload["items"]
+            old_items = json.loads(bill.items) if isinstance(bill.items,str) else bill.items
+            old_map = {i["id"]:float(i["qty"]) for i in old_items}
+            new_map = {i["id"]:float(i.get("qty",1)) for i in new_items}
+            for pid in set(old_map)|set(new_map):
+                delta = new_map.get(pid,0)-old_map.get(pid,0)
+                if delta != 0:
+                    p = c.execute(text("SELECT track_stock FROM products WHERE id=:id AND tenant_id=:tid"),{"id":pid,"tid":tid}).fetchone()
+                    if p and p[0]:
+                        if delta > 0:
+                            c.execute(text("UPDATE products SET stock_reserved=COALESCE(stock_reserved,0)+:d,updated_at=NOW() WHERE id=:id"),{"d":delta,"id":pid})
+                        else:
+                            c.execute(text("UPDATE products SET stock_reserved=GREATEST(0,COALESCE(stock_reserved,0)+:d),updated_at=NOW() WHERE id=:id"),{"d":delta,"id":pid})
+            sub = sum(float(i.get("qty",1))*float(i.get("price",0)) for i in new_items)
+            disc = float(bill.discount or 0); after = max(0,sub-disc)
+            vr = int(bill.vat_rate or 0); vat_type = bill.vat_type or "included"
+            if vr==0: va=0; total=after
+            elif vat_type=="included": va=round(after-after/(1+vr/100),2); total=after
+            else: va=round(after*vr/100,2); total=after+va
+            sets.append("items=:items"); params["items"]=json.dumps(new_items)
+            sets.append("subtotal=:sub"); params["sub"]=sub
+            sets.append("vat_amount=:va"); params["va"]=va
+            sets.append("total=:total"); params["total"]=total
+        if not sets: return {"ok":True}
+        sets.append("updated_at=NOW()")
+        c.execute(text(f"UPDATE bills SET {','.join(sets)} WHERE id=:id"),params)
+    return {"ok":True}
 
 @router.get("/void-log")
 def void_log(authorization: str = Header("")):
