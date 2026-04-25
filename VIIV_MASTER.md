@@ -438,14 +438,7 @@ GIT RESTORE POINTS เพิ่ม:
 89bd450  delivery.html UI patch
 [pending] statement.html+js complete — commit ยังไม่ได้ทำ
 
-Version: v1.36 | Updated: 2026-04-25
 
-Model Policy
-claude-haiku-4-5   → งานทั่วไป (edit, debug, CSS, < 100 บรรทัด)
-claude-sonnet-4-6  → complex logic, multi-file, architecture
-claude-opus        → ห้ามใช้ยกเว้น CGO อนุมัติ
-❌ FORBIDDEN: claude-sonnet-4-7, claude-haiku-4-6 หรือ version อื่น
----
 
 [v1.37 UPDATE — 2026-04-25]
 
@@ -487,3 +480,38 @@ GIT RESTORE POINTS:
 [pending] statement v1.37 — commit หลัง verify
 
 Version: v1.37 | Updated: 2026-04-25
+
+---
+
+[v1.38 UPDATE — 2026-04-25]
+
+SQL MIGRATION (รันใน Supabase แล้ว):
+  ALTER TABLE billing_statements
+  ADD COLUMN IF NOT EXISTS partner_id text,
+  ADD COLUMN IF NOT EXISTS partner_name text,
+  ADD COLUMN IF NOT EXISTS contact_name text,
+  ADD COLUMN IF NOT EXISTS contact_phone text,
+  ADD COLUMN IF NOT EXISTS partner_address text,
+  ADD COLUMN IF NOT EXISTS partner_tax_id text,
+  ADD COLUMN IF NOT EXISTS partner_code text;
+
+COMPLETED v1.38:
+✅ TASK 1 — card + search — แสดง partner_name, contact_name, partner_code ใน card + กรองใน search
+✅ TASK 2 — form header — st-partner-info block (name/code/tax_id/addr/phone) + snapshot ใน POST /create
+✅ TASK 3 — ปุ่มพิมพ์ — stPrint() fetch bank/list + /{sid}/bills → print window HTML template + ลายเซ็น
+✅ TASK 4 — action bar — ซ้าย: ประวัติ/ชำระบางส่วน/ชำระแล้ว | ขวา: ลบ(ซ่อน)/ยกเลิก/บันทึก
+✅ btn-delete — แสดงเฉพาะ mode=edit, guard status=paid
+✅ TASK 5 — VIIV_MASTER.md v1.38
+
+FILES CHANGED:
+- modules/pos/merchant/ui/dashboard/billing/statement.html (full rewrite)
+- modules/pos/merchant/ui/dashboard/billing/statement.js (sync)
+- app/api/pos_statements.py (GET /list JOIN partners, POST /create snapshot, GET /{sid}/bills)
+
+NEXT UP:
+1. 🔴 HIGH — verify statement ทุก flow ทำงานถูกต้อง
+2. 🔴 HIGH — PWA billing: discount, VAT, doc type
+3. 🔴 HIGH — pos_line.py: LINE Webhook
+4. 🟡 MED  — PWA members: add/edit form
+
+Version: v1.38 | Updated: 2026-04-25

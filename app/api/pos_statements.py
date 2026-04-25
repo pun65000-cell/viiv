@@ -39,14 +39,22 @@ def list_statements(authorization: str = Header("")):
     tid, _ = get_tenant_user(authorization)
     with engine.connect() as c:
         rows = c.execute(text("""
-            SELECT id, run_id, total_amt, discount, vat_amt, net_amt,
-                   status, payment_method, due_single, split_pay,
-                   created_by, created_at, updated_at, bill_ids, due_dates,
-                   cheque_detail, appointment_note, negotiation_note,
-                   appointment_dt, partial_amount, slip_url
-            FROM billing_statements
-            WHERE tenant_id=:tid AND status != 'cancelled'
-            ORDER BY created_at DESC LIMIT 100
+            SELECT bs.id, bs.run_id, bs.total_amt, bs.discount, bs.vat_amt, bs.net_amt,
+                   bs.status, bs.payment_method, bs.due_single, bs.split_pay,
+                   bs.created_by, bs.created_at, bs.updated_at, bs.bill_ids, bs.due_dates,
+                   bs.cheque_detail, bs.appointment_note, bs.negotiation_note,
+                   bs.appointment_dt, bs.partial_amount, bs.slip_url,
+                   COALESCE(bs.partner_name, p.company_name) AS partner_name,
+                   COALESCE(bs.contact_name,  p.contact_name)  AS contact_name,
+                   COALESCE(bs.contact_phone, p.contact_phone) AS contact_phone,
+                   COALESCE(bs.partner_address, p.address)     AS partner_address,
+                   COALESCE(bs.partner_tax_id,  p.tax_id)      AS partner_tax_id,
+                   COALESCE(bs.partner_code,    p.partner_code) AS partner_code,
+                   bs.partner_id
+            FROM billing_statements bs
+            LEFT JOIN partners p ON p.id = bs.partner_id AND p.tenant_id = bs.tenant_id
+            WHERE bs.tenant_id=:tid AND bs.status != 'cancelled'
+            ORDER BY bs.created_at DESC LIMIT 100
         """), {"tid": tid}).fetchall()
     result = []
     for r in rows:
@@ -66,6 +74,13 @@ def list_statements(authorization: str = Header("")):
             "appointment_dt": str(r[18]) if r[18] else None,
             "partial_amount": float(r[19]) if r[19] else None,
             "slip_url": r[20],
+            "partner_name": r[21],
+            "contact_name": r[22],
+            "contact_phone": r[23],
+            "partner_address": r[24],
+            "partner_tax_id": r[25],
+            "partner_code": r[26],
+            "partner_id": r[27],
         })
     return result
 
@@ -111,6 +126,19 @@ def create_statement(payload: dict, authorization: str = Header("")):
     else:
         vat_amt = round(after_disc * vat_rate / 100, 2)
         net_amt = after_disc + vat_amt
+    # Partner snapshot
+    partner_id = payload.get("partner_id") or None
+    partner_name = contact_name = contact_phone = None
+    partner_address = partner_tax_id = partner_code = None
+    if partner_id:
+        with engine.connect() as c:
+            p = c.execute(text(
+                "SELECT company_name, contact_name, contact_phone, address, tax_id, partner_code "
+                "FROM partners WHERE id=:pid AND tenant_id=:tid LIMIT 1"
+            ), {"pid": partner_id, "tid": tid}).fetchone()
+            if p:
+                partner_name, contact_name, contact_phone = p[0], p[1], p[2]
+                partner_address, partner_tax_id, partner_code = p[3], p[4], p[5]
     with engine.begin() as c:
         run_id = gen_run_id(tid, c)
         c.execute(text("""
@@ -118,11 +146,14 @@ def create_statement(payload: dict, authorization: str = Header("")):
                 run_id, tenant_id, bill_ids, total_amt, discount,
                 vat_amt, vat_type, net_amt, due_dates, due_single,
                 split_pay, status, payment_method, slip_url,
-                cheque_detail, appointment_note, created_by
+                cheque_detail, appointment_note, created_by,
+                partner_id, partner_name, contact_name, contact_phone,
+                partner_address, partner_tax_id, partner_code
             ) VALUES (
                 :run_id, :tid, :bill_ids, :total_amt, :discount,
                 :vat_amt, :vat_type, :net_amt, :due_dates, :due_single,
-                :split_pay, 'pending', :pm, :slip, :cheque, :appt, :uid
+                :split_pay, 'pending', :pm, :slip, :cheque, :appt, :uid,
+                :pid, :pname, :cname, :cphone, :paddr, :ptaxid, :pcode
             )
         """), {
             "run_id": run_id, "tid": tid,
@@ -137,6 +168,9 @@ def create_statement(payload: dict, authorization: str = Header("")):
             "cheque": payload.get("cheque_detail"),
             "appt": payload.get("appointment_note"),
             "uid": uid,
+            "pid": partner_id,
+            "pname": partner_name, "cname": contact_name, "cphone": contact_phone,
+            "paddr": partner_address, "ptaxid": partner_tax_id, "pcode": partner_code,
         })
     return {"ok": True, "run_id": run_id}
 
@@ -201,6 +235,31 @@ async def upload_slip(sid: int, file: UploadFile = File(...), authorization: str
             "UPDATE billing_statements SET slip_url=:url, updated_at=NOW() WHERE id=:id AND tenant_id=:tid"
         ), {"url": slip_url, "id": sid, "tid": tid})
     return {"slip_url": slip_url}
+
+@router.get("/{sid}/bills")
+def statement_bills(sid: int, authorization: str = Header("")):
+    tid, _ = get_tenant_user(authorization)
+    with engine.connect() as c:
+        row = c.execute(text(
+            "SELECT bill_ids FROM billing_statements WHERE id=:id AND tenant_id=:tid"
+        ), {"id": sid, "tid": tid}).fetchone()
+        if not row:
+            raise HTTPException(404, "ไม่พบรายการ")
+        bill_ids = row[0] if isinstance(row[0], list) else json.loads(row[0] or "[]")
+        if not bill_ids:
+            return []
+        params = {"tid": tid}
+        placeholders = []
+        for i, bid in enumerate(bill_ids):
+            k = f"b{i}"
+            params[k] = str(bid)
+            placeholders.append(f":{k}")
+        rows = c.execute(text(
+            f"SELECT id::text, bill_no, customer_name, total, created_at "
+            f"FROM bills WHERE id::text IN ({','.join(placeholders)}) AND tenant_id=:tid"
+        ), params).fetchall()
+    return [{"id": r[0], "bill_no": r[1], "customer_name": r[2],
+             "total": float(r[3] or 0), "created_at": str(r[4])} for r in rows]
 
 @router.delete("/{sid}")
 def delete_statement(sid: int, authorization: str = Header("")):
