@@ -1,6 +1,6 @@
 # VIIV MASTER — CGO Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่กับ CGO ทุกครั้ง**  
-> Version: v1.35 | Updated: 2026-04-25  
+> Version: v1.36 | Updated: 2026-04-25  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -233,6 +233,9 @@ Rule 30 — reserve bill: ใช้ stock_reserved ไม่ใช่ stock_qty,
 Rule 31 — delivery.html filter client-side จาก bills list (ไม่สร้าง endpoint ใหม่)
 Rule 32 — Claude Code rate limit 30k/min → ถ้าติดให้รอ 1 นาที หรือส่ง prompt สั้นลง
 Rule 33 — python3 EOF
+Rule 35 — statement.html ต้องเป็น standalone HTML ห้ามแก้ loadSubPage() ใน dashboard.html
+Rule 36 — ระบุชื่อไฟล์เป้าหมายใน prompt ทุกครั้ง ห้าม Claude Code อ่านไฟล์ที่ไม่เกี่ยว
+Rule 37 — Pro subscription ห้ามแก้ dashboard loading mechanism — เสี่ยง regression ทุกเมนู
 Rule 34 — ก่อนส่ง spec ทุกครั้ง ให้ Claude Code confirm path ด้วย:
   ls [path] 2>&1 && echo "PATH OK" || echo "PATH NOT FOUND" อย่าใช้ ! ใน string → ใช้ heredoc << 'EOF' แทน
 ```
@@ -243,8 +246,8 @@ Current State
 Version:      v1.34
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
               PC Dashboard: billing reserve + delivery ✅ Done
-Last updated: 2026-04-25
-Git latest:   delivery.html complete (89bd450)
+Last updated: 2026-04-25 (v1.36)
+Git latest:   statement [1][2][3] partner/cheque/history (2026-04-25, 03ab628)
 ```
 PWA Pages Status
 ```
@@ -281,6 +284,16 @@ Next Up (ลำดับ Priority)
 ```
 Completed Today (2026-04-25)
 ```
+✅ statement.html + statement.js (commit 03ab628) — Task [1][2][3]:
+   - [1] CARD: search + card แสดง partner_name · contact_name
+   - [2] CHEQUE: bank select 15 ธนาคาร + payee/payer/cheque_no/due_date + clear btn
+         cheque_detail บันทึกเป็น JSON {bank,payee,payer,cheque_no,due_date}
+   - [3] RIGHT PANEL: 2-action btn (วางบิลแล้ว → due_single / วางบิลเก็บเช็ค → cheque fields)
+         stPickAction แทน stPickPm; _activeStmt closure var
+         ประวัติ btn → stHistoryModal fetching pending statements + search
+   - Fixed corrupted <option> ใน stConfirmBills VAT select
+   - statement.js inner IIFE synced กับ statement.html
+
 ✅ delivery.html (commit 89bd450):
    - list filter client-side: scheduled/shipped_*/delivery/bill_check/chargeback
    - search + filter chip: ทั้งหมด | กำหนดส่ง | กำลังส่ง | COD
@@ -367,3 +380,55 @@ Known Issues
 > **CGO Note:** ไฟล์นี้ = source of truth สำหรับทุก session  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน  
 > Version bump ทุกครั้งที่มี decision หรือ progress ใหม่
+
+[v1.36 ADDITIONS]
+billing_statements table: DB + 5 endpoints (list, unpaid-bills, create, record, delete)
+statement.html + statement.js: ใบวางบิล list+create+cheque+delete
+cheque fields: dropdown ธนาคาร, ผู้สั่ง, ผู้รับ, เลขเช็ค, วันดิว
+delivery.html UI patch: #fef9ee, border-left amber, compact card
+path fix: frontend/superboard → modules/pos/merchant/ui/dashboard
+
+[v1.36 UPDATE — 2026-04-25]
+
+PATH FIX:
+modules/pos/merchant/ui/dashboard/billing/delivery.html ✅
+modules/pos/merchant/ui/dashboard/billing/reserve.html ✅
+modules/pos/merchant/ui/dashboard/billing/statement.html ✅ NEW
+modules/pos/merchant/ui/dashboard/billing/statement.js ✅ NEW
+
+COMPLETED v1.36:
+✅ delivery.html UI patch — background #fef9ee, border-left amber, padding 10px 14px, ซ่อนวันที่
+✅ DB migration — CREATE TABLE billing_statements (id, run_id, tenant_id, bill_ids, total_amt, discount, vat_amt, vat_type, net_amt, due_dates, due_single, split_pay, status, payment_method, slip_url, cheque_detail, appointment_note, created_by, recorded_by)
+✅ pos_statements.py — 5 endpoints: GET /list, GET /unpaid-bills, POST /create, PATCH /record/{id}, DELETE /{id}
+✅ registered ใน main.py
+✅ statement.html + statement.js — list เรียงใหม่สุดบนสุด, filter ไม่แสดง paid, checkbox แสดงทั้งหมด, ค้นหา run_id/ชื่อ, cheque dropdown ธนาคาร+ผู้สั่ง+ผู้รับ+เลขเช็ค+วันดิว, ปุ่มลบ soft delete
+✅ JS แยกไฟล์ statement.js — fix dashboard innerHTML inject SyntaxError
+
+RULES เพิ่ม:
+Rule 34 — ก่อนส่ง spec ทุกครั้ง confirm path: ls [path] 2>&1 && echo "PATH OK"
+Rule 35 — statement.html ต้องเป็น standalone HTML ห้ามแก้ loadSubPage() ใน dashboard.html
+Rule 36 — ระบุชื่อไฟล์เป้าหมายใน prompt ทุกครั้ง ห้าม Claude Code อ่านไฟล์ที่ไม่เกี่ยว
+Rule 37 — Pro subscription ห้ามแก้ dashboard loading mechanism เสี่ยง regression ทุกเมนู
+
+DECISIONS เพิ่ม:
+20 — billing_statements table ใหม่ แยกจาก bills v1.36
+21 — statement.js แยกไฟล์จาก HTML fix dashboard innerHTML inject v1.36
+22 — Pro subscription ห้ามแก้ loadSubPage/dashboard mechanism v1.36
+23 — model selection per task: haiku=CSS/debug/grep, sonnet=multi-file/feature ใหม่ v1.36
+
+KNOWN ISSUES v1.36:
+- statement.js: stRender pattern replace miss ตอน Pro แก้ครั้งสุดท้าย ต้อง verify ก่อน deploy
+- cheque dropdown อาจยัง render ไม่ครบ รอ test รอบถัดไป
+
+NEXT UP (ปรับ priority):
+1. 🔴 HIGH — statement.html: verify cheque fields + stRender fix
+2. 🔴 HIGH — PWA billing: discount, VAT, doc type
+3. 🔴 HIGH — pos_line.py: LINE Webhook + pending-uid
+4. 🟡 MED — PWA members: add/edit form
+5. 🟡 MED — Feature Flag Schema + AI Quota Tables
+
+GIT RESTORE POINTS เพิ่ม:
+89bd450  delivery.html UI patch
+[pending] statement.html+js complete — commit ยังไม่ได้ทำ
+
+Version: v1.36 | Updated: 2026-04-25
