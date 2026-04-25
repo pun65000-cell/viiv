@@ -7,7 +7,7 @@ var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var allProducts=[],allCategories=[],cartItems=[];
 var _selCat='',_searchQ='',_total=0,_selectedMember=null;
-var _esPm='cash';
+var _esPm='cash',_memTimer=null;
 
 function fmt(n){return '฿'+(n||0).toLocaleString('th',{minimumFractionDigits:2});}
 
@@ -148,19 +148,26 @@ function renderCartSummary(){
   mDrop.style.cssText='display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e5e5;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:100;max-height:140px;overflow-y:auto;';
   mInp.addEventListener('input',function(){
     _selectedMember=null;
-    var q=this.value.toLowerCase();if(!q){mDrop.style.display='none';return;}
-    var mems=JSON.parse(localStorage.getItem('viiv_members')||'[]');
-    var found=mems.filter(function(m){return(m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q);}).slice(0,6);
-    mDrop.innerHTML='';
-    if(!found.length)mDrop.innerHTML='<div style="padding:8px 10px;font-size:11px;color:#aaa;">ไม่พบ</div>';
-    else found.forEach(function(m){
-      var d=document.createElement('div');d.style.cssText='padding:6px 10px;cursor:pointer;font-size:11px;display:flex;justify-content:space-between;';
-      d.innerHTML='<span>'+m.name+'</span><span style="color:#9ca3af;">'+(m.code||'')+'</span>';
-      d.addEventListener('mousedown',function(e){e.preventDefault();_selectedMember=m;mInp.value=m.name;mDrop.style.display='none';});
-      d.onmouseover=function(){this.style.background='#fffbf0';};d.onmouseout=function(){this.style.background='';};
-      mDrop.appendChild(d);
-    });
-    mDrop.style.display='block';
+    var q=this.value.trim();
+    clearTimeout(_memTimer);
+    if(!q){mDrop.style.display='none';return;}
+    _memTimer=setTimeout(function(){
+      fetch(API+'/api/pos/members/list?q='+encodeURIComponent(q)+'&limit=6',{headers:{'Authorization':'Bearer '+TOKEN}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var found=data.members||[];
+        mDrop.innerHTML='';
+        if(!found.length){mDrop.innerHTML='<div style="padding:8px 10px;font-size:11px;color:#aaa;">ไม่พบ</div>';}
+        else{found.forEach(function(m){
+          var d=document.createElement('div');d.style.cssText='padding:6px 10px;cursor:pointer;font-size:11px;display:flex;justify-content:space-between;';
+          d.innerHTML='<span>'+(m.name||'')+'</span><span style="color:#9ca3af;">'+(m.code||m.phone||'')+'</span>';
+          d.addEventListener('mousedown',function(e){e.preventDefault();_selectedMember=m;mInp.value=m.name||'';mDrop.style.display='none';});
+          d.onmouseover=function(){this.style.background='#fffbf0';};d.onmouseout=function(){this.style.background='';};
+          mDrop.appendChild(d);
+        });}
+        mDrop.style.display='block';
+      }).catch(function(){mDrop.style.display='none';});
+    },250);
   });
   mInp.addEventListener('blur',function(){setTimeout(function(){mDrop.style.display='none';},200);});
   mWrap.appendChild(mInp);mWrap.appendChild(mDrop);el.appendChild(mWrap);
