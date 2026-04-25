@@ -65,3 +65,4 @@ const Auth = {
     window.location.href = '/superboard/login.html';
   },
 };
+window.Auth = Auth;

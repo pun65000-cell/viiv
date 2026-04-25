@@ -6,7 +6,7 @@ var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_activeStmt=null,_currentMode='delivered';
 var _stTotal=0,_stSelectedIds=[],_stNet=0,_stVat=0,_stDisc=0;
-var _selectedMember=null,_memberResults=[],_memberTimer=null;
+var _selectedMember=null,_memberResults=[],_memberTimer=null,_lockedCustomerId=null;
 var SL={pending:'รอชำระ',partial:'ชำระบางส่วน',paid:'ชำระแล้ว',cancelled:'ยกเลิก'};
 function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
 function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
@@ -33,7 +33,7 @@ window.stLoad=function(){
 window.stRender=function(){
   var q=(document.getElementById('stSearch').value||'').toLowerCase();
   var list=_statements.filter(function(s){
-    return !q||(s.run_id||'').toLowerCase().includes(q)||(s.partner_name||'').toLowerCase().includes(q)||(s.contact_name||'').toLowerCase().includes(q)||(s.partner_code||'').toLowerCase().includes(q);
+    return !q||(s.run_id||'').toLowerCase().includes(q)||(s.customer_name||'').toLowerCase().includes(q)||(s.customer_code||'').toLowerCase().includes(q);
   });
   var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
   var el=document.getElementById('stList');
@@ -44,8 +44,8 @@ window.stRender=function(){
     var bills=Array.isArray(s.bill_ids)?s.bill_ids:JSON.parse(s.bill_ids||'[]');
     return '<div class="st-card '+sc+ac+'" data-sid="'+s.id+'" onclick="stOpen(this.dataset.sid)">'+
       '<div class="st-card-top"><div class="st-card-run">'+h(s.run_id)+'</div><div class="st-card-amt">'+fmt(s.net_amt)+'</div></div>'+
-      '<div class="st-card-meta">'+h(s.partner_name||'-')+' &middot; '+h(s.contact_name||'-')+'</div>'+
-      '<div class="st-card-meta">'+fmtDt(s.created_at)+' &middot; '+bills.length+' บิล'+(s.partner_code?' &middot; '+h(s.partner_code):'')+'</div>'+
+      '<div class="st-card-meta">'+h(s.customer_name||'-')+' &middot; '+h(s.customer_code||'-')+'</div>'+
+      '<div class="st-card-meta">'+fmtDt(s.created_at)+' &middot; '+bills.length+' บิล</div>'+
       '<span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div>';
   }).join('');
 };
@@ -64,12 +64,12 @@ window.stOpen=function(id){
   else _currentMode='delivered';
   stRender();
   var bills=Array.isArray(s.bill_ids)?s.bill_ids:JSON.parse(s.bill_ids||'[]');
-  document.getElementById('stFormTitle').textContent=s.run_id+(s.partner_name?' — '+s.partner_name:'');
+  document.getElementById('stFormTitle').textContent=s.run_id+(s.customer_name?' — '+s.customer_name:'');
   var pb=document.getElementById('stPrintBtn');if(pb)pb.style.display='';
   var notPaid=s.status!=='paid';
   var pBtn=document.getElementById('stPartialBtn');if(pBtn)pBtn.style.display=notPaid?'':'none';
   var pdBtn=document.getElementById('stPaidBtn');if(pdBtn)pdBtn.style.display=notPaid?'':'none';
-  var delBtn=document.getElementById('btn-delete');if(delBtn)delBtn.style.display='';
+  var delBtn=document.getElementById('btn-delete');if(delBtn)delBtn.style.display=notPaid?'':'none';
   var today=new Date();today.setHours(0,0,0,0);
   var dueHtml='';
   if(s.due_single){
@@ -90,12 +90,10 @@ window.stOpen=function(id){
     '</div>';
   }
   var partnerHtml='';
-  if(s.partner_name){
+  if(s.customer_name){
     partnerHtml='<div class="st-partner-info">'+
-      '<div class="st-partner-name">'+h(s.partner_name)+'</div>'+
-      ((s.partner_code||s.partner_tax_id)?'<div class="st-partner-meta">'+(s.partner_code?'รหัส: '+h(s.partner_code):'')+(s.partner_code&&s.partner_tax_id?' | ':'')+(s.partner_tax_id?'TAX: '+h(s.partner_tax_id):'')+'</div>':'')+
-      (s.partner_address?'<div class="st-partner-addr">'+h(s.partner_address)+'</div>':'')+
-      (s.contact_phone?'<div class="st-partner-phone">&#x1F4DE; '+h(s.contact_phone)+'</div>':'')+
+      '<div class="st-partner-name">'+h(s.customer_name)+'</div>'+
+      (s.customer_code?'<div class="st-partner-meta">รหัส: '+h(s.customer_code)+'</div>':'')+
     '</div>';
   }
   var stOpts=['pending','partial','paid'].map(function(v){return '<option value="'+v+'"'+(s.status===v?' selected':'')+'>'+SL[v]+'</option>';}).join('');
@@ -104,8 +102,8 @@ window.stOpen=function(id){
     partnerHtml+
     '<div class="st-section"><div class="st-section-title">ข้อมูลใบวางบิล</div>'+
       '<div class="st-summary">'+
-        '<div class="st-summary-row"><span>คู่ค้า</span><span>'+h(s.partner_name||'-')+'</span></div>'+
-        '<div class="st-summary-row"><span>ผู้ติดต่อ</span><span>'+h(s.contact_name||'-')+'</span></div>'+
+        '<div class="st-summary-row"><span>ลูกค้า</span><span>'+h(s.customer_name||'-')+'</span></div>'+
+        '<div class="st-summary-row"><span>รหัส</span><span>'+h(s.customer_code||'-')+'</span></div>'+
         '<div class="st-summary-row"><span>บิลที่รวม</span><span>'+bills.length+' รายการ</span></div>'+
         '<div class="st-summary-row"><span>ยอดรวม</span><span>'+fmt(s.total_amt)+'</span></div>'+
         '<div class="st-summary-row"><span>ส่วนลด</span><span>-'+fmt(s.discount)+'</span></div>'+
@@ -163,43 +161,83 @@ window.stPrint=function(){
   if(!_activeId||!_activeStmt)return;
   var s=_activeStmt;
   Promise.all([
-    fetch(API+'/api/pos/bank/list',{headers:authH()}).then(function(r){return r.json();}),
-    fetch(API+'/api/pos/statements/'+_activeId+'/bills',{headers:authH()}).then(function(r){return r.json();})
+    fetch(API+'/api/pos/store/settings',{headers:authH()}).then(function(r){return r.json();}).catch(function(){return {};}),
+    fetch(API+'/api/pos/bank/list',{headers:authH()}).then(function(r){return r.json();}).catch(function(){return [];}),
+    fetch(API+'/api/pos/statements/'+_activeId+'/bills',{headers:authH()}).then(function(r){return r.json();}).catch(function(){return [];})
   ]).then(function(res){
-    var banks=Array.isArray(res[0])?res[0]:[];
-    var bills=Array.isArray(res[1])?res[1]:[];
-    var storeName=(window._storeSettings&&window._storeSettings.store_name)||'';
+    var store=res[0]||{};
+    var banks=Array.isArray(res[1])?res[1]:[];
+    var bills=Array.isArray(res[2])?res[2]:[];
     var w=window.open('','_blank','width=820,height=960');
     if(!w)return;
-    w.document.write(_buildPrintHtml(s,bills,banks,storeName));
-    w.document.close();w.focus();setTimeout(function(){w.print();},600);
+    w.document.write(_buildPrintHtml(s,bills,banks,store));
+    w.document.close();w.focus();setTimeout(function(){w.print();},800);
   }).catch(function(){toast('โหลดข้อมูลพิมพ์ไม่สำเร็จ','#ef4444');});
 };
-function _buildPrintHtml(s,bills,banks,storeName){
+function _buildPrintHtml(s,bills,banks,store){
   var fmtP=function(n){return (parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});};
   var hp=function(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   var fmtDp=function(ds){if(!ds)return'-';var d=new Date(ds);return isNaN(d)?ds:d.toLocaleDateString('th',{day:'2-digit',month:'short',year:'numeric'});};
-  var billRows=bills.map(function(b){return '<tr><td>'+hp(b.bill_no)+'</td><td>'+fmtDp(b.created_at)+'</td><td>'+hp(b.customer_name||'-')+'</td><td style="text-align:right;">฿'+fmtP(b.total)+'</td></tr>';}).join('');
-  var bankRows=banks.map(function(bk){return '<div>&#x1F3E6; <b>'+hp(bk.bank_name)+'</b> เลขที่ '+hp(bk.acc_no)+' ชื่อบัญชี: '+hp(bk.acc_name)+'</div>';}).join('');
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบวางบิล '+hp(s.run_id)+'</title>'+
-    '<style>body{font-family:\'Sarabun\',sans-serif;font-size:13px;margin:24px;color:#1f2937;}'+
-    'h2{margin:0 0 4px;font-size:18px;}'+
-    'table{width:100%;border-collapse:collapse;margin:12px 0;}th,td{border:1px solid #ccc;padding:6px 10px;font-size:12px;}th{background:#f5f5f5;text-align:left;}'+
-    '.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #e8b93e;padding-bottom:10px;margin-bottom:14px;}'+
-    '.section{margin:12px 0;font-size:12px;}'+
-    '.totals{text-align:right;font-size:13px;margin:8px 0;}'+
-    '.total-final{font-weight:700;font-size:15px;color:#e8b93e;}'+
-    '.sig{display:flex;justify-content:space-around;margin-top:50px;}'+
-    '.sig-box{text-align:center;border-top:1px solid #333;width:200px;padding-top:6px;font-size:12px;}'+
-    '@media print{@page{margin:15mm}}</style></head><body>'+
-    '<div class="hdr"><div><h2>ใบวางบิล / Statement</h2><div>เลขที่: <b>'+hp(s.run_id)+'</b></div><div>วันที่: '+fmtDp(s.created_at)+'</div><div>กำหนดชำระ: '+fmtDp(s.due_single)+'</div></div>'+
-    '<div style="text-align:right;"><div style="font-size:16px;font-weight:700;">'+hp(storeName)+'</div></div></div>'+
-    '<div class="section"><b>ผู้รับใบวางบิล:</b> '+hp(s.partner_name||'-')+'<br>'+
-    'ที่อยู่: '+hp(s.partner_address||'-')+'<br>เบอร์: '+hp(s.contact_phone||'-')+'<br>รหัสผู้เสียภาษี: '+hp(s.partner_tax_id||'-')+'</div>'+
-    '<table><thead><tr><th>เลขบิล</th><th>วันที่</th><th>ลูกค้า</th><th>ยอด</th></tr></thead><tbody>'+billRows+'</tbody></table>'+
-    '<div class="totals"><div>ยอดรวม: ฿'+fmtP(s.total_amt)+'</div><div>ส่วนลด: -฿'+fmtP(s.discount)+'</div><div>VAT: ฿'+fmtP(s.vat_amt)+'</div><div class="total-final">ยอดสุทธิ: ฿'+fmtP(s.net_amt)+'</div></div>'+
-    (bankRows?'<div class="section"><b>ชำระเงินได้ที่:</b><br>'+bankRows+'</div>':'')+
-    '<div class="sig"><div class="sig-box">ผู้วางบิล</div><div class="sig-box">ผู้รับ</div></div>'+
+  var first=bills[0]||{};
+  var billRows=bills.map(function(b,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+hp(b.bill_no)+'</td><td>'+fmtDp(b.created_at)+'</td><td style="text-align:right;">฿'+fmtP(b.total)+'</td></tr>';
+  }).join('');
+  var bankRows=banks.map(function(bk){
+    return '<tr><td>'+hp(bk.bank_name||'')+'</td><td>'+hp(bk.acc_no||'')+'</td><td>'+hp(bk.acc_name||'')+'</td></tr>';
+  }).join('');
+  var storeAddr=[store.address,store.road,store.subdistrict,store.district,store.province,store.postal_code].filter(Boolean).join(' ');
+  var logoHtml=store.logo_url?'<img src="'+hp(store.logo_url)+'" style="height:48px;margin-bottom:4px;display:block;"/>':(''+'<div style="font-size:18px;font-weight:700;color:#e8b93e;">'+hp(store.store_name||'')+'</div>');
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet"/>'+
+    '<title>ใบวางบิล '+hp(s.run_id)+'</title>'+
+    '<style>'+
+    '@page{size:A4;margin:15mm}'+
+    '@media print{.no-print{display:none}}'+
+    'body{font-family:\'Sarabun\',sans-serif;font-size:13px;color:#1f2937;margin:0;}'+
+    'table{width:100%;border-collapse:collapse;margin:10px 0;}th,td{border:1px solid #d1d5db;padding:6px 10px;font-size:12px;}th{background:#f9fafb;font-weight:700;text-align:left;}'+
+    '.hdr{display:grid;grid-template-columns:1fr 1fr;gap:16px;border-bottom:2px solid #e8b93e;padding-bottom:12px;margin-bottom:14px;}'+
+    '.hdr-l{font-size:12px;line-height:1.8;}'+
+    '.hdr-r{text-align:right;font-size:12px;line-height:1.8;}'+
+    '.doc-title{font-size:20px;font-weight:700;margin-bottom:4px;}'+
+    '.cust{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;margin:12px 0;font-size:12px;}'+
+    '.totals{text-align:right;font-size:13px;margin:10px 0;line-height:2;}'+
+    '.tot-final{font-weight:700;font-size:15px;color:#b45309;}'+
+    '.sig{display:flex;justify-content:space-around;margin-top:60px;}'+
+    '.sig-box{text-align:center;min-width:160px;}'+
+    '.sig-line{border-top:1px solid #333;margin-bottom:6px;font-size:12px;}'+
+    '</style></head><body>'+
+    '<div class="hdr">'+
+      '<div class="hdr-l">'+logoHtml+
+        '<div style="font-size:16px;font-weight:700;">'+hp(store.store_name||'')+'</div>'+
+        (storeAddr?'<div>'+hp(storeAddr)+'</div>':'')+
+        (store.phone?'<div>&#x1F4DE; '+hp(store.phone)+'</div>':'')+
+        (store.tax_id?'<div>TAX ID: '+hp(store.tax_id)+'</div>':'')+
+      '</div>'+
+      '<div class="hdr-r">'+
+        '<div class="doc-title">ใบวางบิล / Statement</div>'+
+        '<div>เลขที่: <b>'+hp(s.run_id)+'</b></div>'+
+        '<div>วันที่: '+fmtDp(s.created_at)+'</div>'+
+        '<div>กำหนดชำระ: <b>'+fmtDp(s.due_single)+'</b></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="cust">'+
+      '<div style="font-weight:700;margin-bottom:4px;">ผู้รับใบวางบิล</div>'+
+      '<div>ชื่อ: '+hp(first.customer_name||'-')+'</div>'+
+      (first.customer_code?'<div>รหัส: '+hp(first.customer_code)+'</div>':'')+
+    '</div>'+
+    '<table><thead><tr><th>#</th><th>เลขบิล</th><th>วันที่</th><th style="text-align:right;">ยอด</th></tr></thead>'+
+    '<tbody>'+billRows+'</tbody></table>'+
+    '<div class="totals">'+
+      '<div>ยอดรวม: ฿'+fmtP(s.total_amt)+'</div>'+
+      '<div>ส่วนลด: -฿'+fmtP(s.discount)+'</div>'+
+      '<div>VAT: ฿'+fmtP(s.vat_amt)+'</div>'+
+      '<div class="tot-final">ยอดสุทธิ: ฿'+fmtP(s.net_amt)+'</div>'+
+    '</div>'+
+    (bankRows?'<table><thead><tr><th>ธนาคาร</th><th>เลขบัญชี</th><th>ชื่อบัญชี</th></tr></thead><tbody>'+bankRows+'</tbody></table>':'')+
+    '<div class="sig">'+
+      '<div class="sig-box"><div class="sig-line">&nbsp;</div>ผู้วางบิล</div>'+
+      '<div class="sig-box"><div class="sig-line">&nbsp;</div>ผู้รับ</div>'+
+    '</div>'+
     '</body></html>';
 }
 window.stOpenPartial=function(){
@@ -270,12 +308,12 @@ window.stShowHistory=function(){
 };
 function _renderHistoryList(list){
   var q=(document.getElementById('stHistorySearch').value||'').toLowerCase();
-  var filtered=list.filter(function(s){return !q||(s.run_id||'').toLowerCase().includes(q)||(s.partner_name||'').toLowerCase().includes(q);});
+  var filtered=list.filter(function(s){return !q||(s.run_id||'').toLowerCase().includes(q)||(s.customer_name||'').toLowerCase().includes(q);});
   var el=document.getElementById('stHistoryList');if(!el)return;
   if(!filtered.length){el.innerHTML='<div class="st-empty">ไม่มีรายการ</div>';return;}
   el.innerHTML=filtered.map(function(s){
     return '<div class="st-bill-row" style="cursor:default;">'+
-      '<div class="st-bill-info"><div class="st-bill-no">'+h(s.run_id)+'</div><div class="st-bill-sub">'+h(s.partner_name||'-')+' &middot; <span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div></div>'+
+      '<div class="st-bill-info"><div class="st-bill-no">'+h(s.run_id)+'</div><div class="st-bill-sub">'+h(s.customer_name||'-')+' &middot; <span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div></div>'+
       '<div style="text-align:right;"><div class="st-bill-amt">'+fmt(s.net_amt)+'</div><div style="font-size:10px;color:#9ca3af;">กำหนดชำระ: '+fmtDt(s.due_single)+'</div></div></div>';
   }).join('');
 }
@@ -293,107 +331,85 @@ window.stCancelForm=function(){
   stRender();
 };
 window.stOpenSelector=function(){
-  _selectedBills=[];_selectedMember=null;_memberResults=[];
-  clearTimeout(_memberTimer);
+  _selectedBills=[];_selectedMember=null;_lockedCustomerId=null;
   var ms=document.getElementById('stMemberSearch');if(ms)ms.value='';
-  var md=document.getElementById('stMemberDropdown');if(md){md.style.display='none';md.innerHTML='';}
   var si=document.getElementById('stSelectedMemberInfo');if(si){si.style.display='none';si.innerHTML='';}
-  var bs=document.getElementById('stBillSection');if(bs)bs.style.display='none';
-  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
-  var bsrch=document.getElementById('stBillSearch');if(bsrch)bsrch.value='';
+  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">พิมพ์เพื่อค้นหาบิล...</div>';
   document.getElementById('stSelectedCount').textContent='เลือก 0 รายการ';
   _updateConfirmBtn();
   document.getElementById('stSelectorModal').style.display='flex';
 };
-window.stSearchMembers=function(){
+window.stSearchBillsDirect=function(){
   clearTimeout(_memberTimer);
   var q=(document.getElementById('stMemberSearch').value||'').trim();
-  var dd=document.getElementById('stMemberDropdown');
-  if(!q){if(dd)dd.style.display='none';return;}
+  var bl=document.getElementById('stBillList');
+  if(!q){if(bl)bl.innerHTML='<div class="st-empty">พิมพ์เพื่อค้นหาบิล...</div>';return;}
   _memberTimer=setTimeout(function(){
-    fetch(API+'/api/pos/members/list?q='+encodeURIComponent(q)+'&limit=20',{headers:authH()})
+    if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
+    fetch(API+'/api/pos/statements/unpaid-bills?q='+encodeURIComponent(q),{headers:authH()})
     .then(function(r){return r.json();})
-    .then(function(d){
-      _memberResults=(d&&Array.isArray(d.members))?d.members:[];
-      if(!dd)return;
-      if(!_memberResults.length){dd.innerHTML='<div class="st-member-result" style="color:#9ca3af;">ไม่พบสมาชิก</div>';dd.style.display='block';return;}
-      dd.innerHTML=_memberResults.map(function(m,i){
-        return '<div class="st-member-result" data-idx="'+i+'" onclick="stSelectMember(\''+h(m.id)+'\')">'+
-          '<b>'+h(m.name)+'</b>'+(m.code?' <span style="color:#9ca3af;">('+h(m.code)+')</span>':'')+
-          (m.phone?' &middot; '+h(m.phone):'')+
-        '</div>';
-      }).join('');
-      dd.style.display='block';
-    })
-    .catch(function(){if(dd){dd.innerHTML='<div class="st-member-result" style="color:#ef4444;">โหลดไม่สำเร็จ</div>';dd.style.display='block';}});
-  },300);
-};
-window.stSelectMember=function(mid){
-  var m=_memberResults.find(function(x){return x.id===mid;});
-  if(!m)return;
-  _selectedMember=m;_selectedBills=[];
-  var dd=document.getElementById('stMemberDropdown');if(dd)dd.style.display='none';
-  var ms=document.getElementById('stMemberSearch');if(ms)ms.value=m.name+(m.code?' ('+m.code+')':'');
-  var si=document.getElementById('stSelectedMemberInfo');
-  if(si){
-    si.innerHTML='<div style="font-weight:700;color:#1f2937;margin-bottom:2px;">'+h(m.name)+'</div>'+
-      (m.code?'<div style="color:#6b7280;">รหัส: '+h(m.code)+'</div>':'')+
-      (m.phone?'<div style="color:#374151;">&#x1F4DE; '+h(m.phone)+'</div>':'')+
-      (m.address?'<div style="color:#374151;font-size:11px;">'+h(m.address)+'</div>':'');
-    si.style.display='block';
-  }
-  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
-  var bs=document.getElementById('stBillSection');if(bs)bs.style.display='block';
-  var bsrch=document.getElementById('stBillSearch');if(bsrch)bsrch.value='';
-  document.getElementById('stSelectedCount').textContent='เลือก 0 รายการ';
-  _updateConfirmBtn();
-  fetch(API+'/api/pos/statements/unpaid-bills?member_id='+encodeURIComponent(mid),{headers:authH()})
-  .then(function(r){return r.json();})
-  .then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();})
-  .catch(function(){var el=document.getElementById('stBillList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
+    .then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();})
+    .catch(function(){if(bl)bl.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
+  },400);
 };
 function _updateConfirmBtn(){
   var btn=document.getElementById('stConfirmBillsBtn');
-  if(btn)btn.disabled=!(_selectedMember&&_selectedBills.length>0);
+  if(btn)btn.disabled=!(_selectedBills.length>0);
 }
 window.stFilterBills=function(){stRenderBills();};
 function stRenderBills(){
-  var q=(document.getElementById('stBillSearch').value||'').toLowerCase();
-  var list=_unpaidBills.filter(function(b){return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);});
   var el=document.getElementById('stBillList');
-  if(!list.length){el.innerHTML='<div class="st-empty">ไม่มีบิลค้างชำระ</div>';return;}
-  el.innerHTML=list.map(function(b){
+  if(!_unpaidBills.length){el.innerHTML='<div class="st-empty">ไม่มีบิลค้างชำระ</div>';return;}
+  el.innerHTML=_unpaidBills.map(function(b){
     var sel=_selectedBills.indexOf(String(b.id))>=0;
-    return '<div class="st-bill-row'+(sel?' selected':'')+'" data-bid="'+h(b.id)+'" onclick="stToggleBill(this)">'+
-      '<input type="checkbox" class="st-bill-check" '+(sel?'checked':'')+' onclick="event.stopPropagation();stToggleBill(this.parentElement)">'+
+    var locked=_lockedCustomerId&&b.customer_id&&String(b.customer_id)!==String(_lockedCustomerId);
+    return '<div class="st-bill-row'+(sel?' selected':'')+'" data-bid="'+h(b.id)+'" onclick="'+(locked?'':'stToggleBill(this)')+'" style="'+(locked?'opacity:.45;cursor:not-allowed;':'')+'">'+
+      '<input type="checkbox" class="st-bill-check" '+(sel?'checked':'')+' '+(locked?'disabled':'')+' onclick="event.stopPropagation();'+(locked?'':'stToggleBill(this.parentElement)')+'">'+
       '<div class="st-bill-info"><div class="st-bill-no">'+h(b.bill_no)+'</div><div class="st-bill-sub">'+h(b.customer_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div></div>'+
       '<div class="st-bill-amt">'+fmt(b.total)+'</div></div>';
   }).join('');
 }
 window.stToggleBill=function(el){
   var bid=String(el.dataset.bid);var idx=_selectedBills.indexOf(bid);
-  if(idx>=0)_selectedBills.splice(idx,1);else _selectedBills.push(bid);
+  if(idx>=0){
+    _selectedBills.splice(idx,1);
+    if(!_selectedBills.length){
+      _lockedCustomerId=null;
+      var si=document.getElementById('stSelectedMemberInfo');if(si){si.style.display='none';si.innerHTML='';}
+    }
+  } else {
+    _selectedBills.push(bid);
+    if(!_lockedCustomerId){
+      var b=_unpaidBills.find(function(x){return String(x.id)===bid;});
+      if(b&&b.customer_id){
+        _lockedCustomerId=String(b.customer_id);
+        var si=document.getElementById('stSelectedMemberInfo');
+        if(si){
+          si.innerHTML='<div style="font-weight:700;color:#1f2937;margin-bottom:2px;">'+h(b.customer_name||'-')+'</div>'+
+            (b.customer_code?'<div style="color:#6b7280;">รหัส: '+h(b.customer_code)+'</div>':'');
+          si.style.display='block';
+        }
+      }
+    }
+  }
   document.getElementById('stSelectedCount').textContent='เลือก '+_selectedBills.length+' รายการ';
   _updateConfirmBtn();
   stRenderBills();
 };
 window.stConfirmBills=function(){
-  if(!_selectedMember){toast('กรุณาเลือกสมาชิกก่อน','#ef4444');return;}
   if(!_selectedBills.length){toast('กรุณาเลือกบิลอย่างน้อย 1 รายการ','#ef4444');return;}
   stCloseSelector();
   var selected=_unpaidBills.filter(function(b){return _selectedBills.indexOf(String(b.id))>=0;});
   var total=selected.reduce(function(s,b){return s+parseFloat(b.total||0);},0);
   _stTotal=total;_stSelectedIds=_selectedBills.slice();_mode='new';_activeId=null;
+  var firstBill=selected[0]||{};
   document.getElementById('stFormTitle').textContent='สร้างใบวางบิลใหม่';
-  var m=_selectedMember;
-  var memberInfoHtml='<div class="st-partner-info">'+
-    '<div class="st-partner-name">'+h(m.name)+'</div>'+
-    ((m.code||m.tax_id)?'<div class="st-partner-meta">'+(m.code?'รหัส: '+h(m.code):'')+(m.code&&m.tax_id?' | ':'')+(m.tax_id?'TAX: '+h(m.tax_id):'')+'</div>':'')+
-    (m.address?'<div class="st-partner-addr">'+h(m.address)+'</div>':'')+
-    (m.phone?'<div class="st-partner-phone">&#x1F4DE; '+h(m.phone)+'</div>':'')+
+  var customerInfoHtml='<div class="st-partner-info">'+
+    '<div class="st-partner-name">'+h(firstBill.customer_name||'-')+'</div>'+
+    (firstBill.customer_code?'<div class="st-partner-meta">รหัส: '+h(firstBill.customer_code)+'</div>':'')+
   '</div>';
   document.getElementById('stFormBody').innerHTML=
-    memberInfoHtml+
+    customerInfoHtml+
     '<div class="st-section"><div class="st-section-title">บิลที่เลือก ('+selected.length+' รายการ)</div>'+
       selected.map(function(b){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0ede8;"><span>'+h(b.bill_no)+' &middot; '+h(b.customer_name||'-')+'</span><span style="font-weight:600;">'+fmt(b.total)+'</span></div>';}).join('')+
     '</div>'+
@@ -430,10 +446,8 @@ window.stCalc=function(){
 window.stCreate=function(){
   var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;
   if(_stNet<=0){toast('ยอดสุทธิต้องมากกว่า 0','#ef4444');if(btn)btn.disabled=false;return;}
-  if(!_selectedMember){toast('ไม่พบข้อมูลสมาชิก','#ef4444');if(btn)btn.disabled=false;return;}
   var payload={
     bill_ids:_stSelectedIds,
-    member_id:_selectedMember.id,
     total_amt:_stTotal,discount:_stDisc,vat_amt:_stVat,
     vat_type:(document.getElementById('stVatType')||{}).value||'none',
     vat_rate:parseFloat((document.getElementById('stVatRate')||{}).value)||0,

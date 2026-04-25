@@ -32,9 +32,9 @@
     c.innerHTML = _shell();
     _bindSearch();
     try {
-      const data = await App.api('/api/pos-mobile/products/list');
+      const data = await App.api('/api/pos/products/list');
       if (_destroyed) return;
-      _products = data.products || [];
+      _products = Array.isArray(data) ? data : (data.products || []);
       _renderProducts();
       _renderCart();
     } catch(e) {

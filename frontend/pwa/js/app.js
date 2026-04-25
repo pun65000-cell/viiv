@@ -128,3 +128,4 @@ const App = {
     this.initPTR();
   }
 };
+window.App = App;

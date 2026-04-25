@@ -40,90 +40,76 @@ def list_statements(authorization: str = Header("")):
     with engine.connect() as c:
         rows = c.execute(text("""
             SELECT bs.id, bs.run_id, bs.total_amt, bs.discount, bs.vat_amt, bs.net_amt,
-                   bs.status, bs.payment_method, bs.due_single, bs.split_pay,
-                   bs.created_by, bs.created_at, bs.updated_at, bs.bill_ids, bs.due_dates,
+                   bs.status, bs.payment_method, bs.due_single,
+                   bs.created_by, bs.created_at, bs.bill_ids,
                    bs.cheque_detail, bs.appointment_note, bs.negotiation_note,
                    bs.appointment_dt, bs.partial_amount, bs.slip_url,
-                   COALESCE(bs.partner_name, m.name)    AS partner_name,
-                   COALESCE(bs.contact_name,  m.name)   AS contact_name,
-                   COALESCE(bs.contact_phone, m.phone)  AS contact_phone,
-                   COALESCE(bs.partner_address, m.address) AS partner_address,
-                   COALESCE(bs.partner_tax_id,  m.tax_id)  AS partner_tax_id,
-                   COALESCE(bs.partner_code,    m.code)    AS partner_code,
-                   bs.member_id
+                   (SELECT b.customer_name FROM bills b
+                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_name,
+                   (SELECT b.customer_code FROM bills b
+                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_code,
+                   (SELECT b.customer_data::text FROM bills b
+                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_data
             FROM billing_statements bs
-            LEFT JOIN members m ON m.id = bs.member_id AND m.tenant_id = bs.tenant_id
             WHERE bs.tenant_id=:tid AND bs.status != 'cancelled'
             ORDER BY bs.created_at DESC LIMIT 100
         """), {"tid": tid}).fetchall()
     result = []
     for r in rows:
+        cd = {}
+        try:
+            cd = json.loads(r[20] or "{}") if isinstance(r[20], str) else (r[20] or {})
+        except: pass
         result.append({
             "id": r[0], "run_id": r[1],
             "total_amt": float(r[2] or 0), "discount": float(r[3] or 0),
             "vat_amt": float(r[4] or 0), "net_amt": float(r[5] or 0),
             "status": r[6], "payment_method": r[7],
             "due_single": str(r[8]) if r[8] else None,
-            "split_pay": r[9], "created_by": r[10],
-            "created_at": str(r[11]), "updated_at": str(r[12]),
-            "bill_ids": r[13] if isinstance(r[13], list) else json.loads(r[13] or "[]"),
-            "due_dates": r[14] if isinstance(r[14], list) else json.loads(r[14] or "[]"),
-            "cheque_detail": r[15],
-            "appointment_note": r[16],
-            "negotiation_note": r[17],
-            "appointment_dt": str(r[18]) if r[18] else None,
-            "partial_amount": float(r[19]) if r[19] else None,
-            "slip_url": r[20],
-            "partner_name": r[21],
-            "contact_name": r[22],
-            "contact_phone": r[23],
-            "partner_address": r[24],
-            "partner_tax_id": r[25],
-            "partner_code": r[26],
-            "member_id": r[27],
+            "created_by": r[9], "created_at": str(r[10]),
+            "bill_ids": r[11] if isinstance(r[11], list) else json.loads(r[11] or "[]"),
+            "cheque_detail": r[12],
+            "appointment_note": r[13],
+            "negotiation_note": r[14],
+            "appointment_dt": str(r[15]) if r[15] else None,
+            "partial_amount": float(r[16]) if r[16] else None,
+            "slip_url": r[17],
+            "customer_name": r[18],
+            "customer_code": r[19],
+            "customer_data": cd,
         })
     return result
 
 @router.get("/unpaid-bills")
-def unpaid_bills(member_id: str = Query(""), authorization: str = Header("")):
+def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
     tid, _ = get_tenant_user(authorization)
+    if not q.strip():
+        return []
     with engine.connect() as c:
-        if member_id:
-            rows = c.execute(text("""
-                SELECT b.id, b.bill_no, b.customer_name, b.total, b.pay_method,
-                       b.doc_type, b.created_at, b.shipping_status
-                FROM bills b
-                WHERE b.tenant_id=:tid
-                  AND b.customer_id=:mid
-                  AND b.status NOT IN ('paid','void','cancelled')
-                  AND b.doc_type IN ('invoice','receipt')
-                  AND NOT EXISTS (
-                    SELECT 1 FROM billing_statements bs2
-                    WHERE bs2.tenant_id=:tid
-                      AND bs2.status != 'cancelled'
-                      AND bs2.bill_ids IS NOT NULL
-                      AND bs2.bill_ids != '[]'
-                      AND bs2.bill_ids::jsonb @> jsonb_build_array(b.id::text)
-                  )
-                ORDER BY b.created_at DESC LIMIT 200
-            """), {"tid": tid, "mid": member_id}).fetchall()
-        else:
-            rows = c.execute(text("""
-                SELECT id, bill_no, customer_name, total, pay_method,
-                       doc_type, created_at, shipping_status
-                FROM bills
-                WHERE tenant_id=:tid
-                  AND status NOT IN ('paid','void','cancelled')
-                  AND doc_type IN ('invoice','receipt')
-                ORDER BY created_at DESC LIMIT 200
-            """), {"tid": tid}).fetchall()
+        rows = c.execute(text("""
+            SELECT b.id, b.bill_no, b.customer_id, b.customer_name,
+                   b.customer_code, b.total, b.created_at
+            FROM bills b
+            WHERE b.tenant_id = :tid
+              AND b.status NOT IN ('paid','voided','statement')
+              AND (b.customer_name ILIKE :qp OR b.bill_no ILIKE :qp OR b.customer_code ILIKE :qp)
+              AND b.id::text NOT IN (
+                SELECT jsonb_array_elements_text(bs2.bill_ids)
+                FROM billing_statements bs2
+                WHERE bs2.tenant_id = :tid
+                  AND bs2.status != 'cancelled'
+                  AND bs2.bill_ids IS NOT NULL
+                  AND bs2.bill_ids != '[]'::jsonb
+              )
+            ORDER BY b.created_at DESC LIMIT 20
+        """), {"tid": tid, "qp": f"%{q}%"}).fetchall()
     result = []
     for r in rows:
         result.append({
-            "id": r[0], "bill_no": r[1], "customer_name": r[2],
-            "total": float(r[3] or 0), "pay_method": r[4],
-            "doc_type": r[5], "created_at": str(r[6]),
-            "shipping_status": r[7],
+            "id": str(r[0]), "bill_no": r[1],
+            "customer_id": str(r[2]) if r[2] else None,
+            "customer_name": r[3], "customer_code": r[4],
+            "total": float(r[5] or 0), "created_at": str(r[6]),
         })
     return result
 
@@ -133,12 +119,14 @@ def create_statement(payload: dict, authorization: str = Header("")):
     bill_ids = payload.get("bill_ids", [])
     if not bill_ids:
         raise HTTPException(400, "กรุณาเลือกบิลอย่างน้อย 1 รายการ")
+    if not payload.get("due_single"):
+        raise HTTPException(400, "กรุณาระบุวันกำหนดชำระ")
     total_amt = float(payload.get("total_amt", 0))
     discount  = float(payload.get("discount", 0))
-    vat_type  = payload.get("vat_type", "included")
+    vat_type  = payload.get("vat_type", "none")
     vat_rate  = float(payload.get("vat_rate", 0))
     after_disc = max(0, total_amt - discount)
-    if vat_rate == 0:
+    if vat_rate == 0 or vat_type == "none":
         vat_amt = 0; net_amt = after_disc
     elif vat_type == "included":
         vat_amt = round(after_disc - after_disc / (1 + vat_rate/100), 2)
@@ -146,52 +134,31 @@ def create_statement(payload: dict, authorization: str = Header("")):
     else:
         vat_amt = round(after_disc * vat_rate / 100, 2)
         net_amt = after_disc + vat_amt
-    # Member snapshot
-    member_id = payload.get("member_id") or None
-    partner_name = contact_name = contact_phone = None
-    partner_address = partner_tax_id = partner_code = None
-    if member_id:
-        with engine.connect() as c:
-            m = c.execute(text(
-                "SELECT name, name, phone, address, tax_id, code "
-                "FROM members WHERE id=:mid AND tenant_id=:tid LIMIT 1"
-            ), {"mid": member_id, "tid": tid}).fetchone()
-            if m:
-                partner_name, contact_name, contact_phone = m[0], m[1], m[2]
-                partner_address, partner_tax_id, partner_code = m[3], m[4], m[5]
     with engine.begin() as c:
         run_id = gen_run_id(tid, c)
         c.execute(text("""
             INSERT INTO billing_statements (
                 run_id, tenant_id, bill_ids, total_amt, discount,
                 vat_amt, vat_type, net_amt, due_dates, due_single,
-                split_pay, status, payment_method, slip_url,
-                cheque_detail, appointment_note, created_by,
-                member_id, partner_name, contact_name, contact_phone,
-                partner_address, partner_tax_id, partner_code
+                split_pay, status, created_by
             ) VALUES (
                 :run_id, :tid, :bill_ids, :total_amt, :discount,
-                :vat_amt, :vat_type, :net_amt, :due_dates, :due_single,
-                :split_pay, 'pending', :pm, :slip, :cheque, :appt, :uid,
-                :mid, :pname, :cname, :cphone, :paddr, :ptaxid, :pcode
+                :vat_amt, :vat_type, :net_amt, '[]', :due_single,
+                false, 'pending', :uid
             )
         """), {
             "run_id": run_id, "tid": tid,
-            "bill_ids": json.dumps(bill_ids),
+            "bill_ids": json.dumps([str(b) for b in bill_ids]),
             "total_amt": total_amt, "discount": discount,
             "vat_amt": vat_amt, "vat_type": vat_type, "net_amt": net_amt,
-            "due_dates": json.dumps(payload.get("due_dates", [])),
             "due_single": payload.get("due_single"),
-            "split_pay": bool(payload.get("split_pay", False)),
-            "pm": payload.get("payment_method"),
-            "slip": payload.get("slip_url"),
-            "cheque": payload.get("cheque_detail"),
-            "appt": payload.get("appointment_note"),
             "uid": uid,
-            "mid": member_id,
-            "pname": partner_name, "cname": contact_name, "cphone": contact_phone,
-            "paddr": partner_address, "ptaxid": partner_tax_id, "pcode": partner_code,
         })
+        for bid in bill_ids:
+            c.execute(text(
+                "UPDATE bills SET status='statement', updated_at=NOW() "
+                "WHERE id::text=:bid AND tenant_id=:tid"
+            ), {"bid": str(bid), "tid": tid})
     return {"ok": True, "run_id": run_id}
 
 @router.patch("/record/{sid}")
@@ -199,7 +166,7 @@ def record_statement(sid: int, payload: dict, authorization: str = Header("")):
     tid, uid = get_tenant_user(authorization)
     with engine.begin() as c:
         row = c.execute(text(
-            "SELECT id FROM billing_statements WHERE id=:id AND tenant_id=:tid"
+            "SELECT id, bill_ids FROM billing_statements WHERE id=:id AND tenant_id=:tid"
         ), {"id": sid, "tid": tid}).fetchone()
         if not row:
             raise HTTPException(404, "ไม่พบรายการ")
@@ -231,6 +198,13 @@ def record_statement(sid: int, payload: dict, authorization: str = Header("")):
             "partial": payload.get("partial_amount"),
             "uid": uid, "id": sid, "tid": tid,
         })
+        if payload.get("status") == "paid":
+            bill_ids = row[1] if isinstance(row[1], list) else json.loads(row[1] or "[]")
+            for bid in bill_ids:
+                c.execute(text(
+                    "UPDATE bills SET status='paid', updated_at=NOW() "
+                    "WHERE id::text=:bid AND tenant_id=:tid"
+                ), {"bid": str(bid), "tid": tid})
     return {"ok": True}
 
 @router.post("/upload-slip/{sid}")
@@ -275,21 +249,37 @@ def statement_bills(sid: int, authorization: str = Header("")):
             params[k] = str(bid)
             placeholders.append(f":{k}")
         rows = c.execute(text(
-            f"SELECT id::text, bill_no, customer_name, total, created_at "
+            f"SELECT id::text, bill_no, customer_name, customer_code, customer_data::text, total, created_at "
             f"FROM bills WHERE id::text IN ({','.join(placeholders)}) AND tenant_id=:tid"
         ), params).fetchall()
-    return [{"id": r[0], "bill_no": r[1], "customer_name": r[2],
-             "total": float(r[3] or 0), "created_at": str(r[4])} for r in rows]
+    result = []
+    for r in rows:
+        cd = {}
+        try:
+            cd = json.loads(r[4] or "{}") if isinstance(r[4], str) else (r[4] or {})
+        except: pass
+        result.append({
+            "id": r[0], "bill_no": r[1], "customer_name": r[2],
+            "customer_code": r[3], "customer_data": cd,
+            "total": float(r[5] or 0), "created_at": str(r[6])
+        })
+    return result
 
 @router.delete("/{sid}")
 def delete_statement(sid: int, authorization: str = Header("")):
     tid, _ = get_tenant_user(authorization)
     with engine.begin() as c:
         row = c.execute(text(
-            "SELECT id FROM billing_statements WHERE id=:id AND tenant_id=:tid"
+            "SELECT id, bill_ids FROM billing_statements WHERE id=:id AND tenant_id=:tid"
         ), {"id": sid, "tid": tid}).fetchone()
         if not row:
             raise HTTPException(404, "ไม่พบรายการ")
+        bill_ids = row[1] if isinstance(row[1], list) else json.loads(row[1] or "[]")
+        for bid in bill_ids:
+            c.execute(text(
+                "UPDATE bills SET status='pending', updated_at=NOW() "
+                "WHERE id::text=:bid AND tenant_id=:tid"
+            ), {"bid": str(bid), "tid": tid})
         c.execute(text(
             "UPDATE billing_statements SET status='cancelled', updated_at=NOW() WHERE id=:id AND tenant_id=:tid"
         ), {"id": sid, "tid": tid})

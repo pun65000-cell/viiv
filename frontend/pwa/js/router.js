@@ -101,3 +101,4 @@ const Router = {
     Router.go(startPage, {}, { replace: true });
   }
 };
+window.Router = Router;
