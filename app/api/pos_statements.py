@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from sqlalchemy import text
 from app.core.db import engine
-import jwt, os, json
+import jwt, os, json, shutil, uuid
 from datetime import datetime
 
 router = APIRouter(prefix="/api/pos/statements", tags=["pos-statements"])
@@ -41,7 +41,9 @@ def list_statements(authorization: str = Header("")):
         rows = c.execute(text("""
             SELECT id, run_id, total_amt, discount, vat_amt, net_amt,
                    status, payment_method, due_single, split_pay,
-                   created_by, created_at, updated_at, bill_ids, due_dates
+                   created_by, created_at, updated_at, bill_ids, due_dates,
+                   cheque_detail, appointment_note, negotiation_note,
+                   appointment_dt, partial_amount, slip_url
             FROM billing_statements
             WHERE tenant_id=:tid AND status != 'cancelled'
             ORDER BY created_at DESC LIMIT 100
@@ -58,6 +60,12 @@ def list_statements(authorization: str = Header("")):
             "created_at": str(r[11]), "updated_at": str(r[12]),
             "bill_ids": r[13] if isinstance(r[13], list) else json.loads(r[13] or "[]"),
             "due_dates": r[14] if isinstance(r[14], list) else json.loads(r[14] or "[]"),
+            "cheque_detail": r[15],
+            "appointment_note": r[16],
+            "negotiation_note": r[17],
+            "appointment_dt": str(r[18]) if r[18] else None,
+            "partial_amount": float(r[19]) if r[19] else None,
+            "slip_url": r[20],
         })
     return result
 
@@ -141,6 +149,9 @@ def record_statement(sid: int, payload: dict, authorization: str = Header("")):
         ), {"id": sid, "tid": tid}).fetchone()
         if not row:
             raise HTTPException(404, "ไม่พบรายการ")
+        cheque = payload.get("cheque_detail")
+        if isinstance(cheque, dict):
+            cheque = json.dumps(cheque)
         c.execute(text("""
             UPDATE billing_statements SET
                 status=COALESCE(:status, status),
@@ -148,17 +159,48 @@ def record_statement(sid: int, payload: dict, authorization: str = Header("")):
                 slip_url=COALESCE(:slip, slip_url),
                 cheque_detail=COALESCE(:cheque, cheque_detail),
                 appointment_note=COALESCE(:appt, appointment_note),
+                negotiation_note=COALESCE(:neg, negotiation_note),
+                appointment_dt=COALESCE(:appt_dt::timestamptz, appointment_dt),
+                due_single=COALESCE(:due, due_single),
+                partial_amount=COALESCE(:partial, partial_amount),
                 recorded_by=:uid, updated_at=NOW()
             WHERE id=:id AND tenant_id=:tid
         """), {
             "status": payload.get("status"),
             "pm": payload.get("payment_method"),
             "slip": payload.get("slip_url"),
-            "cheque": payload.get("cheque_detail"),
+            "cheque": cheque,
             "appt": payload.get("appointment_note"),
+            "neg": payload.get("negotiation_note"),
+            "appt_dt": payload.get("appointment_dt"),
+            "due": payload.get("due_single"),
+            "partial": payload.get("partial_amount"),
             "uid": uid, "id": sid, "tid": tid,
         })
     return {"ok": True}
+
+@router.post("/upload-slip/{sid}")
+async def upload_slip(sid: int, file: UploadFile = File(...), authorization: str = Header("")):
+    tid, _ = get_tenant_user(authorization)
+    with engine.connect() as c:
+        row = c.execute(text(
+            "SELECT id FROM billing_statements WHERE id=:id AND tenant_id=:tid"
+        ), {"id": sid, "tid": tid}).fetchone()
+        if not row:
+            raise HTTPException(404, "ไม่พบรายการ")
+    ext = os.path.splitext(file.filename or "")[1] or ".jpg"
+    filename = f"{uuid.uuid4().hex}{ext}"
+    dirpath = f"uploads/statements/{tid}"
+    os.makedirs(dirpath, exist_ok=True)
+    filepath = f"{dirpath}/{filename}"
+    with open(filepath, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    slip_url = f"/uploads/statements/{tid}/{filename}"
+    with engine.begin() as c:
+        c.execute(text(
+            "UPDATE billing_statements SET slip_url=:url, updated_at=NOW() WHERE id=:id AND tenant_id=:tid"
+        ), {"url": slip_url, "id": sid, "tid": tid})
+    return {"slip_url": slip_url}
 
 @router.delete("/{sid}")
 def delete_statement(sid: int, authorization: str = Header("")):

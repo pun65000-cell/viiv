@@ -51,9 +51,9 @@ body{background:#fef9ee;font-family:'Sarabun',sans-serif;font-size:13px;color:#1
 .st-summary{background:#fffbf0;border:1px solid #e8d9b0;border-radius:6px;padding:10px;margin-bottom:10px;}
 .st-summary-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;}
 .st-summary-row.total{font-weight:700;font-size:13px;color:#e8b93e;border-top:1px solid #e8d9b0;margin-top:5px;padding-top:5px;}
-.st-pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
-.st-pm-btn{padding:6px 4px;font-size:11px;border:1.5px solid #d1d5db;border-radius:6px;cursor:pointer;background:#fff;text-align:center;}
-.st-pm-btn.active{background:#e8b93e;color:#1a1200;border-color:#c9a130;font-weight:700;}
+.status-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.st-mode-btn{padding:6px 4px;font-size:11px;border:1.5px solid #d1d5db;border-radius:6px;cursor:pointer;background:#fff;text-align:center;font-family:'Sarabun',sans-serif;}
+.st-mode-btn.active{background:var(--accent,#e8b93e);color:#1a1200;border-color:#c9a130;font-weight:700;}
 .st-form-actions{display:flex;gap:6px;justify-content:flex-end;padding:10px 14px;border-top:1px solid #e8d9b0;background:#fff;}
 .st-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
 .st-modal{background:#fff;border-radius:12px;width:min(600px,100%);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18);}
@@ -80,13 +80,10 @@ body{background:#fef9ee;font-family:'Sarabun',sans-serif;font-size:13px;color:#1
   <div class="st-list-panel">
     <div class="st-toolbar">
       <div class="st-toolbar-title">&#x1F4CB; &#x0E43;&#x0E1A;&#x0E27;&#x0E32;&#x0E07;&#x0E1A;&#x0E34;&#x0E25;</div>
-      <input id="stSearch" class="st-search" placeholder="&#x0E04;&#x0E49;&#x0E19;&#x0E2B;&#x0E32; run_id / &#x0E04;&#x0E39;&#x0E48;&#x0E04;&#x0E49;&#x0E32; / &#x0E40;&#x0E25;&#x0E02;&#x0E1A;&#x0E34;&#x0E25;..." oninput="window.stSearchInput&&stSearchInput()"/>
+      <input id="stSearch" class="st-search" placeholder="&#x0E04;&#x0E49;&#x0E19;&#x0E2B;&#x0E32; run_id / &#x0E04;&#x0E39;&#x0E48;&#x0E04;&#x0E49;&#x0E32;..." oninput="window.stRender&&stRender()"/>
       <div class="st-actions">
         <button class="st-btn st-btn-primary" onclick="window.stOpenSelector&&stOpenSelector()">+ &#x0E2A;&#x0E23;&#x0E49;&#x0E32;&#x0E07;&#x0E43;&#x0E2B;&#x0E21;&#x0E48;</button>
         <button class="st-btn st-btn-ghost" onclick="window.stLoad&&stLoad()">&#x21BB; &#x0E23;&#x0E35;&#x0E40;&#x0E1F;&#x0E23;&#x0E0A;</button>
-      </div>
-      <div id="stSearchBar" style="display:none;">
-        <button id="stCreateFromSearchBtn" class="st-btn st-btn-primary" style="width:100%;" onclick="window.stCreateFromSearch&&stCreateFromSearch()" disabled>&#x2795; &#x0E2A;&#x0E23;&#x0E49;&#x0E32;&#x0E07;&#x0E43;&#x0E1A;&#x0E27;&#x0E32;&#x0E07;&#x0E1A;&#x0E34;&#x0E25;&#x0E08;&#x0E32;&#x0E01;&#x0E17;&#x0E35;&#x0E48;&#x0E40;&#x0E25;&#x0E37;&#x0E2D;&#x0E01;</button>
       </div>
     </div>
     <div id="stCount" class="st-count"></div>
@@ -105,10 +102,13 @@ body{background:#fef9ee;font-family:'Sarabun',sans-serif;font-size:13px;color:#1
     <div id="stFormActions" class="st-form-actions" style="display:none;">
       <button class="st-btn st-btn-ghost" onclick="window.stCancelForm&&stCancelForm()">&#x0E22;&#x0E01;&#x0E40;&#x0E25;&#x0E34;&#x0E01;</button>
       <button class="st-btn st-btn-ghost" onclick="window.stShowHistory&&stShowHistory()" style="border-color:#e8b93e;color:#92400e;">&#x1F4DC; &#x0E1B;&#x0E23;&#x0E30;&#x0E27;&#x0E31;&#x0E15;&#x0E34;</button>
+      <button id="stPartialBtn" class="st-btn" style="display:none;background:#0284c7;color:#fff;" onclick="window.stOpenPartial&&stOpenPartial()">&#x1F4B0; &#x0E0A;&#x0E33;&#x0E23;&#x0E30;&#x0E1A;&#x0E32;&#x0E07;&#x0E2A;&#x0E48;&#x0E27;&#x0E19;</button>
+      <button id="stPaidBtn" class="st-btn" style="display:none;background:#16a34a;color:#fff;" onclick="window.stOpenPaid&&stOpenPaid()">&#x2713; &#x0E0A;&#x0E33;&#x0E23;&#x0E30;&#x0E41;&#x0E25;&#x0E49;&#x0E27;</button>
       <button id="stSaveBtn" class="st-btn st-btn-primary" onclick="window.stSave&&stSave()">&#x0E1A;&#x0E31;&#x0E19;&#x0E17;&#x0E36;&#x0E01;</button>
     </div>
   </div>
 </div>
+<!-- Selector Modal -->
 <div id="stSelectorModal" class="st-ov" style="display:none;" onclick="if(event.target===this&&window.stCloseSelector)stCloseSelector()">
   <div class="st-modal">
     <div class="st-modal-hd">
@@ -125,7 +125,9 @@ body{background:#fef9ee;font-family:'Sarabun',sans-serif;font-size:13px;color:#1
     </div>
   </div>
 </div>
+<!-- Toast -->
 <div id="stToast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:8px 18px;border-radius:18px;font-size:12px;font-weight:600;z-index:99999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.18);"></div>
+<!-- History Modal -->
 <div id="stHistoryModal" class="st-ov" style="display:none;" onclick="if(event.target===this&&window.stCloseHistory)stCloseHistory()">
   <div class="st-modal">
     <div class="st-modal-hd">
@@ -141,84 +143,116 @@ body{background:#fef9ee;font-family:'Sarabun',sans-serif;font-size:13px;color:#1
     </div>
   </div>
 </div>
+<!-- Partial Payment Modal -->
+<div id="stPartialModal" class="st-ov" style="display:none;" onclick="if(event.target===this){this.style.display='none';}">
+  <div class="st-modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="st-modal-hd">
+      <div class="st-modal-title">&#x1F4B0; ชำระบางส่วน</div>
+      <button onclick="document.getElementById('stPartialModal').style.display='none'" style="background:none;border:none;font-size:16px;cursor:pointer;color:#6b7280;">&#x2715;</button>
+    </div>
+    <div class="st-modal-body">
+      <div class="st-field">
+        <label>ยอดที่ชำระ (บาท) *</label>
+        <input id="stPartialAmt" class="st-input" type="number" min="0.01" step="0.01" placeholder="0.00" required/>
+      </div>
+      <div class="st-field">
+        <label>แนบสลิป *</label>
+        <input id="stPartialSlip" class="st-input" type="file" accept="image/*,.pdf" required style="padding:4px;"/>
+      </div>
+    </div>
+    <div class="st-modal-ft" style="justify-content:flex-end;gap:8px;">
+      <button class="st-btn st-btn-ghost" onclick="document.getElementById('stPartialModal').style.display='none'">ยกเลิก</button>
+      <button id="stPartialConfirmBtn" class="st-btn" style="background:#0284c7;color:#fff;" onclick="window.stConfirmPartial&&stConfirmPartial()">ยืนยันการชำระ</button>
+    </div>
+  </div>
+</div>
+<!-- Paid Modal -->
+<div id="stPaidModal" class="st-ov" style="display:none;" onclick="if(event.target===this){this.style.display='none';}">
+  <div class="st-modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="st-modal-hd">
+      <div class="st-modal-title">&#x2713; ชำระเงินแล้ว</div>
+      <button onclick="document.getElementById('stPaidModal').style.display='none'" style="background:none;border:none;font-size:16px;cursor:pointer;color:#6b7280;">&#x2715;</button>
+    </div>
+    <div class="st-modal-body">
+      <div class="st-field">
+        <label>แนบสลิป *</label>
+        <input id="stPaidSlip" class="st-input" type="file" accept="image/*,.pdf" required style="padding:4px;"/>
+      </div>
+    </div>
+    <div class="st-modal-ft" style="justify-content:flex-end;gap:8px;">
+      <button class="st-btn st-btn-ghost" onclick="document.getElementById('stPaidModal').style.display='none'">ยกเลิก</button>
+      <button id="stPaidConfirmBtn" class="st-btn" style="background:#16a34a;color:#fff;" onclick="window.stConfirmPaid&&stConfirmPaid()">ยืนยันการชำระ</button>
+    </div>
+  </div>
+</div>
 <script>
 window.stLoad=function(){
   fetch(API+'/api/pos/statements/unpaid-bills',{headers:authH()})
   .then(function(r){return r.json();})
-  .then(function(d){
-    _unpaidBills=Array.isArray(d)?d:[];
-    renderUnpaidList();
-  })
-  .catch(function(){
-    var el=document.getElementById('stList');
-    if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';
-  });
+  .then(function(d){_unpaidBills=Array.isArray(d)?d:[];renderUnpaidList();})
+  .catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
 function renderUnpaidList(){
   var q=(document.getElementById('stSearch')||{value:''}).value.toLowerCase();
-  var list=_unpaidBills.filter(function(b){
-    return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);
-  });
-  var cnt=document.getElementById('stCount');
-  if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
-  var el=document.getElementById('stList');
-  if(!el)return;
+  var list=_unpaidBills.filter(function(b){return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);});
+  var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
+  var el=document.getElementById('stList');if(!el)return;
   if(!list.length){el.innerHTML='<div class="st-empty">ไม่มีบิลค้างชำระ</div>';return;}
   el.innerHTML=list.map(function(b){
     return '<div class="st-card" data-bid="'+b.id+'" onclick="stSelectBill(this.dataset.bid)">'+
-      '<div class="st-card-top">'+
-        '<div class="st-card-run">'+h(b.bill_no)+'</div>'+
-        '<div class="st-card-amt">฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</div>'+
-      '</div>'+
+      '<div class="st-card-top"><div class="st-card-run">'+h(b.bill_no)+'</div><div class="st-card-amt">฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</div></div>'+
       '<div class="st-card-meta">'+h(b.customer_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div>'+
-      '<span class="st-badge pending">'+h(b.pay_method||'-')+'</span>'+
-    '</div>';
+      '<span class="st-badge pending">'+h(b.pay_method||'-')+'</span></div>';
   }).join('');
 }
 window.stRender=function(){renderUnpaidList();};
 window.stSelectBill=function(bid){
-  var b=_unpaidBills.find(function(x){return x.id===bid;});
-  if(!b)return;
+  var b=_unpaidBills.find(function(x){return x.id===bid;});if(!b)return;
   document.getElementById('stFormTitle').textContent=b.bill_no+' - '+h(b.customer_name||'');
   document.getElementById('stFormBody').innerHTML=
-    '<div class="st-section">'+
-      '<div class="st-section-title">รายละเอียดบิล</div>'+
-      '<div class="st-summary">'+
-        '<div class="st-summary-row"><span>เลขบิล</span><span>'+h(b.bill_no)+'</span></div>'+
-        '<div class="st-summary-row"><span>ลูกค้า</span><span>'+h(b.customer_name||'-')+'</span></div>'+
-        '<div class="st-summary-row"><span>วิธีชำระ</span><span>'+h(b.pay_method||'-')+'</span></div>'+
-        '<div class="st-summary-row total"><span>ยอด</span><span>฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</span></div>'+
-      '</div>'+
-      '<div class="st-field"><label>วันที่สร้าง</label><div style="font-size:12px;">'+fmtDt(b.created_at)+'</div></div>'+
-    '</div>'+
-    '<div class="st-section">'+
-      '<div class="st-section-title">สร้างใบวางบิลจากบิลนี้</div>'+
-      '<p style="font-size:12px;color:#6b7280;">กด "+ สร้างใหม่" เพื่อเลือกบิลนี้รวมกับบิลอื่นๆ</p>'+
-    '</div>';
+    '<div class="st-section"><div class="st-section-title">รายละเอียดบิล</div>'+
+    '<div class="st-summary"><div class="st-summary-row"><span>เลขบิล</span><span>'+h(b.bill_no)+'</span></div>'+
+    '<div class="st-summary-row"><span>ลูกค้า</span><span>'+h(b.customer_name||'-')+'</span></div>'+
+    '<div class="st-summary-row total"><span>ยอด</span><span>฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</span></div></div></div>'+
+    '<div class="st-section"><div class="st-section-title">สร้างใบวางบิลจากบิลนี้</div>'+
+    '<p style="font-size:12px;color:#6b7280;">กด "+ สร้างใหม่" เพื่อเลือกบิลนี้รวมกับบิลอื่นๆ</p></div>';
   document.getElementById('stFormActions').style.display='none';
 };
 (function(){
 'use strict';
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
-var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_pendingPm=null,_activeStmt=null;
+var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_activeStmt=null,_currentMode='delivered';
 var _stTotal=0,_stSelectedIds=[],_stNet=0,_stVat=0,_stDisc=0;
-var SL={pending:'\u0e23\u0e2d\u0e0a\u0e33\u0e23\u0e30',partial:'\u0e0a\u0e33\u0e23\u0e30\u0e1a\u0e32\u0e07\u0e2a\u0e48\u0e27\u0e19',paid:'\u0e0a\u0e33\u0e23\u0e30\u0e41\u0e25\u0e49\u0e27',cancelled:'\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01'};
+var SL={pending:'รอชำระ',partial:'ชำระบางส่วน',paid:'ชำระแล้ว',cancelled:'ยกเลิก'};
 function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
-function fmt(n){return '\u0e3f'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
+function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
 function fmtDt(s){if(!s)return'-';var d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('th',{day:'2-digit',month:'short',year:'2-digit'});}
 function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg,color){var el=document.getElementById('stToast');if(!el)return;el.textContent=msg;el.style.background=color||'#1f2937';el.style.color='#fff';el.style.display='block';setTimeout(function(){el.style.display='none';},2500);}
-var _BANKS=['\u0e01\u0e23\u0e38\u0e07\u0e40\u0e17\u0e1e','\u0e01\u0e2a\u0e34\u0e01\u0e23\u0e44\u0e17\u0e22','\u0e44\u0e17\u0e22\u0e1e\u0e32\u0e13\u0e34\u0e0a\u0e22\u0e4c','\u0e01\u0e23\u0e38\u0e07\u0e44\u0e17\u0e22','\u0e17\u0e2b\u0e32\u0e23\u0e44\u0e17\u0e22\u0e18\u0e19\u0e0a\u0e32\u0e15','\u0e2d\u0e2d\u0e21\u0e2a\u0e34\u0e19','\u0e2d\u0e32\u0e04\u0e32\u0e23\u0e2a\u0e07\u0e40\u0e04\u0e23\u0e32\u0e30\u0e2b\u0e4c','\u0e40\u0e01\u0e35\u0e22\u0e23\u0e15\u0e34\u0e19\u0e32\u0e04\u0e34\u0e19\u0e20\u0e31\u0e17\u0e23','\u0e0b\u0e35\u0e44\u0e2d\u0e40\u0e2d\u0e47\u0e21\u0e1a\u0e35\u0e44\u0e17\u0e22','\u0e22\u0e39\u0e42\u0e2d\u0e1a\u0e35','\u0e41\u0e25\u0e19\u0e14\u0e4c\u0e41\u0e2d\u0e19\u0e14\u0e4c\u0e40\u0e2e\u0e49\u0e32\u0e2a\u0e4c','\u0e17\u0e34\u0e2a\u0e42\u0e01\u0e49','\u0e2d\u0e34\u0e2a\u0e25\u0e32\u0e21','\u0e44\u0e17\u0e22\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15','\u0e0b\u0e39\u0e21\u0e34\u0e42\u0e15\u0e42\u0e21 \u0e21\u0e34\u0e15\u0e0b\u0e38\u0e22'];
-function _chequeHtml(cd){cd=cd||{};return '<div class="st-field"><label>\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23</label><select id="stChequeBank" class="st-input"><option value="">-- \u0e40\u0e25\u0e37\u0e2d\u0e01\u0e18\u0e19\u0e32\u0e04\u0e32\u0e23 --</option>'+_BANKS.map(function(b){return '<option value="'+h(b)+'"'+(cd.bank===b?' selected':'')+'>'+h(b)+'</option>';}).join('')+'</select></div><div class="st-row"><div class="st-field"><label>\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e40\u0e0a\u0e47\u0e04</label><input id="stChequePayee" class="st-input" value="'+h(cd.payee||'')+'" placeholder="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a\u0e40\u0e0a\u0e47\u0e04"/></div><div class="st-field"><label>\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e08\u0e48\u0e32\u0e22\u0e40\u0e0a\u0e47\u0e04</label><input id="stChequePayer" class="st-input" value="'+h(cd.payer||'')+'" placeholder="\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e08\u0e48\u0e32\u0e22\u0e40\u0e0a\u0e47\u0e04"/></div></div><div class="st-row"><div class="st-field"><label>\u0e40\u0e25\u0e02\u0e17\u0e35\u0e48\u0e40\u0e0a\u0e47\u0e04</label><input id="stChequeNo" class="st-input" value="'+h(cd.cheque_no||'')+'" placeholder="XXXXXXXXXX"/></div><div class="st-field"><label>\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48\u0e1a\u0e19\u0e40\u0e0a\u0e47\u0e04</label><input id="stChequeDue" class="st-input" type="date" value="'+h(cd.due_date||'')+'"/></div></div><div style="text-align:right;margin-top:4px;"><button type="button" onclick="clearChequeFields()" style="font-size:11px;padding:3px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;cursor:pointer;">&#x1F5D1; \u0e25\u0e49\u0e32\u0e07\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e40\u0e0a\u0e47\u0e04</button></div>';}
-function _buildActionExtra(act,s){s=s||{};if(act==='cheque'){var cd={};try{cd=typeof s.cheque_detail==='string'?JSON.parse(s.cheque_detail):(s.cheque_detail||{});}catch(e){}return _chequeHtml(cd);}return '<div class="st-field"><label>\u0e27\u0e31\u0e19\u0e0a\u0e33\u0e23\u0e30</label><input id="stDueSingle" class="st-input" type="date" value="'+(s.due_single?String(s.due_single).slice(0,10):'')+'"/></div>';}
-window.stLoad=function(){fetch(API+'/api/pos/statements/list',{headers:authH()}).then(function(r){return r.json();}).then(function(d){_statements=Array.isArray(d)?d:[];stRender();}).catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">\u0e42\u0e2b\u0e25\u0e14\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08</div>';});};
+var _BANKS=['กรุงเทพ','กสิกรไทย','ไทยพาณิชย์','กรุงไทย','ทหารไทยธนชาต','ออมสิน','อาคารสงเคราะห์','เกียรตินาคินภัทร','ซีไอเอ็มบีไทย','ยูโอบี','แลนด์แอนด์เฮ้าส์','ทิสโก้','อิสลาม','ไทยเครดิต','ซูมิโตโม มิตซุย'];
+function _chequeHtml(cd){cd=cd||{};return '<div class="st-field"><label>ธนาคาร</label><select id="stChequeBank" class="st-input"><option value="">-- เลือกธนาคาร --</option>'+_BANKS.map(function(b){return '<option value="'+h(b)+'"'+(cd.bank===b?' selected':'')+'>'+h(b)+'</option>';}).join('')+'</select></div><div class="st-row"><div class="st-field"><label>ชื่อผู้รับเช็ค</label><input id="stChequePayee" class="st-input" value="'+h(cd.payee||'')+'" placeholder="ชื่อผู้รับเช็ค"/></div><div class="st-field"><label>ชื่อผู้จ่ายเช็ค</label><input id="stChequePayer" class="st-input" value="'+h(cd.payer||'')+'" placeholder="ชื่อผู้จ่ายเช็ค"/></div></div><div class="st-row"><div class="st-field"><label>เลขที่เช็ค</label><input id="stChequeNo" class="st-input" value="'+h(cd.cheque_no||'')+'" placeholder="XXXXXXXXXX"/></div><div class="st-field"><label>วันที่บนเช็ค</label><input id="stChequeDue" class="st-input" type="date" value="'+h(cd.due_date||'')+'"/></div></div><div style="text-align:right;margin-top:4px;"><button type="button" onclick="clearChequeFields()" style="font-size:11px;padding:3px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;cursor:pointer;">&#x1F5D1; ล้างข้อมูลเช็ค</button></div>';}
+function _buildModeHtml(mode,s){
+  s=s||{};
+  if(mode==='cheque'){var cd={};try{cd=typeof s.cheque_detail==='string'?JSON.parse(s.cheque_detail):(s.cheque_detail||{});}catch(e){}return _chequeHtml(cd);}
+  if(mode==='appointment'){
+    return '<div class="st-field"><label>วันนัดชำระ</label><input type="datetime-local" id="appointment_dt" class="st-input" value="'+(s.appointment_dt?String(s.appointment_dt).replace(' ','T').slice(0,16):'')+'"/></div>'+
+      '<div class="st-field"><label>หมายเหตุ</label><textarea id="appointment_note" class="st-input" rows="2" placeholder="หมายเหตุ...">'+h(s.appointment_note||'')+'</textarea></div>'+
+      '<div class="st-field"><label>รีพอร์ทการเจรจา</label><textarea id="negotiation_note" class="st-input" rows="3" placeholder="บันทึกการเจรจา...">'+h(s.negotiation_note||'')+'</textarea></div>';
+  }
+  return '<div class="st-field"><label>วันชำระ</label><input id="stDueSingle" class="st-input" type="date" value="'+(s.due_single?String(s.due_single).slice(0,10):'')+'"/></div>';
+}
+window.stLoad=function(){
+  fetch(API+'/api/pos/statements/list',{headers:authH()})
+  .then(function(r){return r.json();}).then(function(d){_statements=Array.isArray(d)?d:[];stRender();})
+  .catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
+};
 window.stRender=function(){
   var q=(document.getElementById('stSearch').value||'').toLowerCase();
   var list=_statements.filter(function(s){return !q||(s.run_id||'').toLowerCase().includes(q)||(s.partner_name||'').toLowerCase().includes(q)||(s.contact_name||'').toLowerCase().includes(q);});
-  var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='\u0e1e\u0e1a '+list.length+' \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23';
+  var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
   var el=document.getElementById('stList');
-  if(!list.length){el.innerHTML='<div class="st-empty">\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>';return;}
+  if(!list.length){el.innerHTML='<div class="st-empty">ไม่มีรายการ</div>';return;}
   el.innerHTML=list.map(function(s){
     var sc=s.status==='paid'?'st-paid':s.status==='partial'?'st-partial':s.status==='cancelled'?'st-cancelled':'';
     var ac=s.id===_activeId?' active':'';
@@ -226,93 +260,191 @@ window.stRender=function(){
     return '<div class="st-card '+sc+ac+'" data-sid="'+s.id+'" onclick="stOpen(this.dataset.sid)">'+
       '<div class="st-card-top"><div class="st-card-run">'+h(s.run_id)+'</div><div class="st-card-amt">'+fmt(s.net_amt)+'</div></div>'+
       '<div class="st-card-meta">'+h(s.partner_name||'-')+' &middot; '+h(s.contact_name||'-')+'</div>'+
-      '<div class="st-card-meta">'+fmtDt(s.created_at)+' &middot; '+bills.length+' \u0e1a\u0e34\u0e25</div>'+
-      '<span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span>'+
-    '</div>';
+      '<div class="st-card-meta">'+fmtDt(s.created_at)+' &middot; '+bills.length+' บิล</div>'+
+      '<span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div>';
   }).join('');
 };
+window.stSetMode=function(mode){
+  _currentMode=mode;
+  document.querySelectorAll('.st-mode-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+  var ex=document.getElementById('stModeExtra');if(ex)ex.innerHTML=_buildModeHtml(mode,_activeStmt);
+};
+window.clearChequeFields=function(){['stChequeBank','stChequePayee','stChequePayer','stChequeNo','stChequeDue'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});};
 window.stOpen=function(id){
   id=parseInt(id);_activeId=id;_mode='record';
   var s=_statements.find(function(x){return x.id===id;});if(!s)return;
-  _activeStmt=s;_pendingPm=s.payment_method||'cash';
+  _activeStmt=s;
+  if(s.payment_method==='cheque')_currentMode='cheque';
+  else if(s.appointment_dt||s.payment_method==='appointment')_currentMode='appointment';
+  else _currentMode='delivered';
   stRender();
   var bills=Array.isArray(s.bill_ids)?s.bill_ids:JSON.parse(s.bill_ids||'[]');
-  document.getElementById('stFormTitle').textContent=s.run_id+(s.partner_name?' \u2014 '+s.partner_name:'');
-  var isCheque=s.payment_method==='cheque';
+  document.getElementById('stFormTitle').textContent=s.run_id+(s.partner_name?' — '+s.partner_name:'');
   var stOpts=['pending','partial','paid'].map(function(v){return '<option value="'+v+'"'+(s.status===v?' selected':'')+'>'+SL[v]+'</option>';}).join('');
+  var notPaid=s.status!=='paid';
+  var pBtn=document.getElementById('stPartialBtn');if(pBtn)pBtn.style.display=notPaid?'':'none';
+  var pdBtn=document.getElementById('stPaidBtn');if(pdBtn)pdBtn.style.display=notPaid?'':'none';
+  var today=new Date();today.setHours(0,0,0,0);
+  var dueHtml='';
+  if(s.due_single){
+    var dd=new Date(s.due_single);dd.setHours(0,0,0,0);
+    var isOd=dd<today;
+    dueHtml='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;margin-bottom:4px;background:'+(isOd?'#fee2e2':'#fef9c3')+';border:1px solid '+(isOd?'#fca5a5':'#fde68a')+';">'+
+      '<span style="font-size:12px;">&#x1F4C5; กำหนดชำระ: '+fmtDt(s.due_single)+'</span>'+
+      '<span style="font-size:11px;font-weight:700;color:'+(isOd?'#b91c1c':'#92400e')+';">'+(isOd?'&#x26A0; เกินกำหนด':'รอชำระ')+'</span>'+
+    '</div>';
+  }
+  var ftRows='';
+  if(s.partial_amount&&parseFloat(s.partial_amount)>0)ftRows+='<div class="st-summary-row"><span>ชำระบางส่วน</span><span style="color:#0284c7;font-weight:700;">'+fmt(s.partial_amount)+'</span></div>';
+  if(s.appointment_dt)ftRows+='<div class="st-summary-row"><span>นัดชำระ</span><span>'+fmtDt(s.appointment_dt)+'</span></div>';
+  if(s.appointment_note)ftRows+='<div class="st-summary-row"><span>หมายเหตุ</span><span style="max-width:60%;text-align:right;word-break:break-word;">'+h(s.appointment_note)+'</span></div>';
+  if(s.negotiation_note)ftRows+='<div class="st-summary-row"><span>การเจรจา</span><span style="max-width:60%;text-align:right;word-break:break-word;">'+h(s.negotiation_note)+'</span></div>';
+  var followupHtml='';
+  if(s.status!=='paid'&&(dueHtml||ftRows)){
+    followupHtml='<div class="st-section"><div class="st-section-title">&#x1F514; ติดตามการชำระ</div>'+
+      dueHtml+(ftRows?'<div class="st-summary" style="margin-top:4px;margin-bottom:0;">'+ftRows+'</div>':'')+
+    '</div>';
+  }
+  var initMode=_currentMode;
   document.getElementById('stFormBody').innerHTML=
-    '<div class="st-section"><div class="st-section-title">\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e43\u0e1a\u0e27\u0e32\u0e07\u0e1a\u0e34\u0e25</div>'+
+    '<div class="st-section"><div class="st-section-title">ข้อมูลใบวางบิล</div>'+
       '<div class="st-summary">'+
-        '<div class="st-summary-row"><span>\u0e04\u0e39\u0e48\u0e04\u0e49\u0e32</span><span>'+h(s.partner_name||'-')+'</span></div>'+
-        '<div class="st-summary-row"><span>\u0e1c\u0e39\u0e49\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d</span><span>'+h(s.contact_name||'-')+'</span></div>'+
-        '<div class="st-summary-row"><span>\u0e1a\u0e34\u0e25\u0e17\u0e35\u0e48\u0e23\u0e27\u0e21</span><span>'+bills.length+' \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</span></div>'+
-        '<div class="st-summary-row"><span>\u0e22\u0e2d\u0e14\u0e23\u0e27\u0e21</span><span>'+fmt(s.total_amt)+'</span></div>'+
-        '<div class="st-summary-row"><span>\u0e2a\u0e48\u0e27\u0e19\u0e25\u0e14</span><span>-'+fmt(s.discount)+'</span></div>'+
+        '<div class="st-summary-row"><span>คู่ค้า</span><span>'+h(s.partner_name||'-')+'</span></div>'+
+        '<div class="st-summary-row"><span>ผู้ติดต่อ</span><span>'+h(s.contact_name||'-')+'</span></div>'+
+        '<div class="st-summary-row"><span>บิลที่รวม</span><span>'+bills.length+' รายการ</span></div>'+
+        '<div class="st-summary-row"><span>ยอดรวม</span><span>'+fmt(s.total_amt)+'</span></div>'+
+        '<div class="st-summary-row"><span>ส่วนลด</span><span>-'+fmt(s.discount)+'</span></div>'+
         '<div class="st-summary-row"><span>VAT</span><span>'+fmt(s.vat_amt)+'</span></div>'+
-        '<div class="st-summary-row total"><span>\u0e22\u0e2d\u0e14\u0e2a\u0e38\u0e17\u0e18\u0e34</span><span>'+fmt(s.net_amt)+'</span></div>'+
+        '<div class="st-summary-row total"><span>ยอดสุทธิ</span><span>'+fmt(s.net_amt)+'</span></div>'+
       '</div></div>'+
-    '<div class="st-section"><div class="st-section-title">\u0e1b\u0e23\u0e31\u0e1a\u0e2a\u0e16\u0e32\u0e19\u0e30</div>'+
-      '<div class="st-pm-grid" style="grid-template-columns:1fr 1fr;">'+
-        '<button class="st-pm-btn'+(isCheque?'':' active')+'" data-act="bill" onclick="stPickAction(this)">&#x1F4C5; \u0e27\u0e32\u0e07\u0e1a\u0e34\u0e25\u0e41\u0e25\u0e49\u0e27</button>'+
-        '<button class="st-pm-btn'+(isCheque?' active':'')+'" data-act="cheque" onclick="stPickAction(this)">&#x1F3E6; \u0e27\u0e32\u0e07\u0e1a\u0e34\u0e25\u0e40\u0e01\u0e47\u0e1a\u0e40\u0e0a\u0e47\u0e04</button>'+
+    followupHtml+
+    '<div class="st-section"><div class="st-section-title">บันทึกการชำระ</div>'+
+      '<div class="status-actions">'+
+        '<button class="st-mode-btn'+(initMode==='delivered'?' active':'')+'" data-mode="delivered" onclick="stSetMode(\'delivered\')">&#x1F4CB; วางบิลแล้ว</button>'+
+        '<button class="st-mode-btn'+(initMode==='cheque'?' active':'')+'" data-mode="cheque" onclick="stSetMode(\'cheque\')">&#x1F3E6; เก็บเช็ค</button>'+
+        '<button class="st-mode-btn'+(initMode==='appointment'?' active':'')+'" data-mode="appointment" onclick="stSetMode(\'appointment\')">&#x1F4C5; นัดชำระ</button>'+
       '</div>'+
-      '<div id="stActionExtra">'+_buildActionExtra(isCheque?'cheque':'bill',s)+'</div>'+
-      '<div class="st-field"><label>\u0e2a\u0e16\u0e32\u0e19\u0e30</label><select id="stStatus" class="st-input">'+stOpts+'</select></div>'+
+      '<div id="stModeExtra">'+_buildModeHtml(initMode,s)+'</div>'+
+      '<div class="st-field" style="margin-top:8px;"><label>สถานะ</label><select id="stStatus" class="st-input">'+stOpts+'</select></div>'+
     '</div>';
   document.getElementById('stFormActions').style.display='flex';
   document.getElementById('stSaveBtn').onclick=stSave;
 };
-window.stPickAction=function(btn){
-  _pendingPm=btn.dataset.act==='cheque'?'cheque':'cash';
-  document.querySelectorAll('.st-pm-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
-  var ex=document.getElementById('stActionExtra');if(ex)ex.innerHTML=_buildActionExtra(btn.dataset.act,_activeStmt);
-};
-window.clearChequeFields=function(){['stChequeBank','stChequePayee','stChequePayer','stChequeNo','stChequeDue'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});};
 window.stSave=function(){
   if(!_activeId)return;
   var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;
   var payload={};
   var st=document.getElementById('stStatus');if(st)payload.status=st.value;
-  if(_pendingPm)payload.payment_method=_pendingPm;
-  if(_pendingPm==='cheque'){
+  if(_currentMode==='cheque'){
+    payload.payment_method='cheque';
     var bank=document.getElementById('stChequeBank');var payee=document.getElementById('stChequePayee');
     var payer=document.getElementById('stChequePayer');var cno=document.getElementById('stChequeNo');var cdue=document.getElementById('stChequeDue');
     payload.cheque_detail={bank:bank?bank.value:'',payee:payee?payee.value.trim():'',payer:payer?payer.value.trim():'',cheque_no:cno?cno.value.trim():'',due_date:cdue?cdue.value:''};
-  }else{var due=document.getElementById('stDueSingle');if(due&&due.value)payload.due_single=due.value;}
+  } else if(_currentMode==='appointment'){
+    payload.payment_method='appointment';
+    var apptDt=document.getElementById('appointment_dt');if(apptDt&&apptDt.value)payload.appointment_dt=apptDt.value;
+    var apptNote=document.getElementById('appointment_note');if(apptNote&&apptNote.value.trim())payload.appointment_note=apptNote.value.trim();
+    var negNote=document.getElementById('negotiation_note');if(negNote&&negNote.value.trim())payload.negotiation_note=negNote.value.trim();
+  } else {
+    payload.payment_method='cash';
+    var due=document.getElementById('stDueSingle');if(due&&due.value)payload.due_single=due.value;
+  }
   fetch(API+'/api/pos/statements/record/'+_activeId,{method:'PATCH',headers:authH(),body:JSON.stringify(payload)})
-  .then(function(r){return r.json();}).then(function(d){if(btn)btn.disabled=false;if(d.detail){toast('\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08: '+d.detail,'#ef4444');return;}toast('\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27','#16a34a');stLoad();})
-  .catch(function(){if(btn)btn.disabled=false;toast('\u0e40\u0e0a\u0e37\u0e48\u0e2d\u0e21\u0e15\u0e48\u0e2d\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49','#ef4444');});
+  .then(function(r){return r.json();}).then(function(d){if(btn)btn.disabled=false;if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}toast('บันทึกแล้ว','#16a34a');stLoad();})
+  .catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});
+};
+window.stOpenPartial=function(){
+  if(!_activeId)return;
+  var m=document.getElementById('stPartialModal');if(!m)return;
+  m.style.display='flex';
+  document.getElementById('stPartialAmt').value='';
+  document.getElementById('stPartialSlip').value='';
+  var btn=document.getElementById('stPartialConfirmBtn');if(btn)btn.disabled=false;
+};
+window.stConfirmPartial=function(){
+  var amtEl=document.getElementById('stPartialAmt');
+  var amt=parseFloat((amtEl||{}).value||0);
+  if(!amt||amt<=0){toast('กรุณาระบุยอดที่ชำระ','#ef4444');return;}
+  var slip=document.getElementById('stPartialSlip');
+  if(!slip||!slip.files||!slip.files[0]){toast('กรุณาแนบสลิป','#ef4444');return;}
+  var btn=document.getElementById('stPartialConfirmBtn');if(btn)btn.disabled=true;
+  var fd=new FormData();fd.append('file',slip.files[0]);
+  fetch(API+'/api/pos/statements/upload-slip/'+_activeId,{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d||!d.slip_url){toast('อัปโหลดสลิปไม่สำเร็จ','#ef4444');if(btn)btn.disabled=false;return;}
+    return fetch(API+'/api/pos/statements/record/'+_activeId,{method:'PATCH',headers:authH(),body:JSON.stringify({partial_amount:amt,slip_url:d.slip_url,status:'partial'})});
+  })
+  .then(function(r){if(r)return r.json();})
+  .then(function(d){
+    if(btn)btn.disabled=false;
+    if(!d)return;
+    if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}
+    toast('บันทึกการชำระบางส่วนแล้ว','#16a34a');
+    document.getElementById('stPartialModal').style.display='none';
+    stLoad();
+  })
+  .catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});
+};
+window.stOpenPaid=function(){
+  if(!_activeId)return;
+  var m=document.getElementById('stPaidModal');if(!m)return;
+  m.style.display='flex';
+  document.getElementById('stPaidSlip').value='';
+  var btn=document.getElementById('stPaidConfirmBtn');if(btn)btn.disabled=false;
+};
+window.stConfirmPaid=function(){
+  var slip=document.getElementById('stPaidSlip');
+  if(!slip||!slip.files||!slip.files[0]){toast('กรุณาแนบสลิป','#ef4444');return;}
+  var btn=document.getElementById('stPaidConfirmBtn');if(btn)btn.disabled=true;
+  var fd=new FormData();fd.append('file',slip.files[0]);
+  fetch(API+'/api/pos/statements/upload-slip/'+_activeId,{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d||!d.slip_url){toast('อัปโหลดสลิปไม่สำเร็จ','#ef4444');if(btn)btn.disabled=false;return;}
+    return fetch(API+'/api/pos/statements/record/'+_activeId,{method:'PATCH',headers:authH(),body:JSON.stringify({slip_url:d.slip_url,status:'paid'})});
+  })
+  .then(function(r){if(r)return r.json();})
+  .then(function(d){
+    if(btn)btn.disabled=false;
+    if(!d)return;
+    if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}
+    toast('บันทึกการชำระเงินแล้ว','#16a34a');
+    document.getElementById('stPaidModal').style.display='none';
+    stLoad();
+  })
+  .catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});
 };
 window.stShowHistory=function(){
   var m=document.getElementById('stHistoryModal');if(m)m.style.display='flex';
-  document.getElementById('stHistoryList').innerHTML='<div class="st-empty">\u0e01\u0e33\u0e25\u0e31\u0e07\u0e42\u0e2b\u0e25\u0e14...</div>';
+  document.getElementById('stHistoryList').innerHTML='<div class="st-empty">กำลังโหลด...</div>';
   document.getElementById('stHistorySearch').value='';
   fetch(API+'/api/pos/statements/list?status=pending',{headers:authH()})
   .then(function(r){return r.json();}).then(function(d){window._historyData=Array.isArray(d)?d:[];_renderHistoryList(window._historyData);})
-  .catch(function(){document.getElementById('stHistoryList').innerHTML='<div class="st-empty">\u0e42\u0e2b\u0e25\u0e14\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08</div>';});
+  .catch(function(){document.getElementById('stHistoryList').innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
 function _renderHistoryList(list){
   var q=(document.getElementById('stHistorySearch').value||'').toLowerCase();
   var filtered=list.filter(function(s){return !q||(s.run_id||'').toLowerCase().includes(q)||(s.partner_name||'').toLowerCase().includes(q);});
   var el=document.getElementById('stHistoryList');if(!el)return;
-  if(!filtered.length){el.innerHTML='<div class="st-empty">\u0e44\u0e21\u0e48\u0e21\u0e35\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23</div>';return;}
+  if(!filtered.length){el.innerHTML='<div class="st-empty">ไม่มีรายการ</div>';return;}
   el.innerHTML=filtered.map(function(s){
     return '<div class="st-bill-row" style="cursor:default;">'+
       '<div class="st-bill-info"><div class="st-bill-no">'+h(s.run_id)+'</div><div class="st-bill-sub">'+h(s.partner_name||'-')+'</div></div>'+
-      '<div style="text-align:right;"><div class="st-bill-amt">'+fmt(s.net_amt)+'</div><div style="font-size:10px;color:#9ca3af;">\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e0a\u0e33\u0e23\u0e30: '+fmtDt(s.due_single)+'</div></div>'+
+      '<div style="text-align:right;"><div class="st-bill-amt">'+fmt(s.net_amt)+'</div><div style="font-size:10px;color:#9ca3af;">กำหนดชำระ: '+fmtDt(s.due_single)+'</div></div>'+
     '</div>';
   }).join('');
 }
 window.stCloseHistory=function(){var m=document.getElementById('stHistoryModal');if(m)m.style.display='none';};
 window.stFilterHistory=function(){if(window._historyData)_renderHistoryList(window._historyData);};
-window.stCancelForm=function(){_activeId=null;_mode=null;_pendingPm=null;_activeStmt=null;document.getElementById('stFormTitle').textContent='\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e43\u0e1a\u0e27\u0e32\u0e07\u0e1a\u0e34\u0e25\u0e08\u0e32\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23';document.getElementById('stFormBody').innerHTML='<div class="st-placeholder"><div class="st-placeholder-icon">&#x1F4C4;</div><div>\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23\u0e08\u0e32\u0e01\u0e0b\u0e49\u0e32\u0e22 \u0e2b\u0e23\u0e37\u0e2d\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e43\u0e2b\u0e21\u0e48</div></div>';document.getElementById('stFormActions').style.display='none';stRender();};
-window.stOpenSelector=function(){_selectedBills=[];document.getElementById('stSelectorModal').style.display='flex';document.getElementById('stBillSearch').value='';document.getElementById('stBillList').innerHTML='<div class="st-empty">\u0e01\u0e33\u0e25\u0e31\u0e07\u0e42\u0e2b\u0e25\u0e14...</div>';fetch(API+'/api/pos/statements/unpaid-bills',{headers:authH()}).then(function(r){return r.json();}).then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();}).catch(function(){document.getElementById('stBillList').innerHTML='<div class="st-empty">\u0e42\u0e2b\u0e25\u0e14\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08</div>';});};
+window.stCancelForm=function(){_activeId=null;_mode=null;_activeStmt=null;_currentMode='delivered';document.getElementById('stFormTitle').textContent='เลือกใบวางบิลจากรายการ';document.getElementById('stFormBody').innerHTML='<div class="st-placeholder"><div class="st-placeholder-icon">&#x1F4C4;</div><div>เลือกรายการจากซ้าย หรือสร้างใหม่</div></div>';document.getElementById('stFormActions').style.display='none';var pb=document.getElementById('stPartialBtn');if(pb)pb.style.display='none';var pdb=document.getElementById('stPaidBtn');if(pdb)pdb.style.display='none';stRender();};
+window.stOpenSelector=function(){_selectedBills=[];document.getElementById('stSelectorModal').style.display='flex';document.getElementById('stBillSearch').value='';document.getElementById('stBillList').innerHTML='<div class="st-empty">กำลังโหลด...</div>';fetch(API+'/api/pos/statements/unpaid-bills',{headers:authH()}).then(function(r){return r.json();}).then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();}).catch(function(){document.getElementById('stBillList').innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});};
 window.stFilterBills=function(){stRenderBills();};
-function stRenderBills(){var q=(document.getElementById('stBillSearch').value||'').toLowerCase();var list=_unpaidBills.filter(function(b){return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);});var el=document.getElementById('stBillList');if(!list.length){el.innerHTML='<div class="st-empty">\u0e44\u0e21\u0e48\u0e21\u0e35\u0e1a\u0e34\u0e25\u0e04\u0e49\u0e32\u0e07\u0e0a\u0e33\u0e23\u0e30</div>';return;}el.innerHTML=list.map(function(b){var sel=_selectedBills.indexOf(String(b.id))>=0;return '<div class="st-bill-row'+(sel?' selected':'')+'" data-bid="'+h(b.id)+'" onclick="stToggleBill(this)"><input type="checkbox" class="st-bill-check" '+(sel?'checked':'')+' onclick="event.stopPropagation();stToggleBill(this.parentElement)"><div class="st-bill-info"><div class="st-bill-no">'+h(b.bill_no)+'</div><div class="st-bill-sub">'+h(b.customer_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div></div><div class="st-bill-amt">'+fmt(b.total)+'</div></div>';}).join('');}
-window.stToggleBill=function(el){var bid=String(el.dataset.bid);var idx=_selectedBills.indexOf(bid);if(idx>=0)_selectedBills.splice(idx,1);else _selectedBills.push(bid);document.getElementById('stSelectedCount').textContent='\u0e40\u0e25\u0e37\u0e2d\u0e01 '+_selectedBills.length+' \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23';stRenderBills();};
-window.stConfirmBills=function(){if(!_selectedBills.length){toast('\u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e25\u0e37\u0e2d\u0e01\u0e1a\u0e34\u0e25\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e19\u0e49\u0e2d\u0e22 1 \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23','#ef4444');return;}stCloseSelector();var selected=_unpaidBills.filter(function(b){return _selectedBills.indexOf(String(b.id))>=0;});var total=selected.reduce(function(s,b){return s+parseFloat(b.total||0);},0);_stTotal=total;_stSelectedIds=_selectedBills.slice();_mode='new';_activeId=null;document.getElementById('stFormTitle').textContent='\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e43\u0e1a\u0e27\u0e32\u0e07\u0e1a\u0e34\u0e25\u0e43\u0e2b\u0e21\u0e48';document.getElementById('stFormBody').innerHTML='<div class="st-section"><div class="st-section-title">\u0e1a\u0e34\u0e25\u0e17\u0e35\u0e48\u0e40\u0e25\u0e37\u0e2d\u0e01 ('+selected.length+' \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23)</div>'+selected.map(function(b){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0ede8;"><span>'+h(b.bill_no)+' &middot; '+h(b.customer_name||'-')+'</span><span style="font-weight:600;">'+fmt(b.total)+'</span></div>';}).join('')+'</div><div class="st-section"><div class="st-section-title">\u0e2a\u0e23\u0e38\u0e1b\u0e22\u0e2d\u0e14</div><div class="st-row"><div class="st-field"><label>\u0e2a\u0e48\u0e27\u0e19\u0e25\u0e14 (\u0e1a\u0e32\u0e17)</label><input id="stDiscount" class="st-input" type="number" value="0" oninput="stCalc()"/></div><div class="st-field"><label>VAT (%)</label><input id="stVatRate" class="st-input" type="number" value="0" oninput="stCalc()"/></div></div><div class="st-field"><label>\u0e1b\u0e23\u0e30\u0e40\u0e20\u0e17 VAT</label><select id="stVatType" class="st-input" onchange="stCalc()"><option value="none">\u0e44\u0e21\u0e48\u0e21\u0e35 VAT</option><option value="included">\u0e23\u0e27\u0e21\u0e43\u0e19\u0e23\u0e32\u0e04\u0e32</option><option value="excluded">\u0e41\u0e22\u0e01\u0e08\u0e32\u0e01\u0e23\u0e32\u0e04\u0e32</option></select></div><div class="st-summary"><div class="st-summary-row"><span>\u0e22\u0e2d\u0e14\u0e23\u0e27\u0e21</span><span>'+fmt(total)+'</span></div><div class="st-summary-row"><span>\u0e2a\u0e48\u0e27\u0e19\u0e25\u0e14</span><span id="sDisc">-'+fmt(0)+'</span></div><div class="st-summary-row"><span>VAT</span><span id="sVat">'+fmt(0)+'</span></div><div class="st-summary-row total"><span>\u0e22\u0e2d\u0e14\u0e2a\u0e38\u0e17\u0e18\u0e34</span><span id="sNet">'+fmt(total)+'</span></div></div></div><div class="st-section"><div class="st-section-title">\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e0a\u0e33\u0e23\u0e30</div><div class="st-field"><label>\u0e27\u0e31\u0e19\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e0a\u0e33\u0e23\u0e30</label><input id="stDueSingle" class="st-input" type="date"/></div></div>';document.getElementById('stFormActions').style.display='flex';document.getElementById('stSaveBtn').onclick=stCreate;_stNet=total;};
+function stRenderBills(){var q=(document.getElementById('stBillSearch').value||'').toLowerCase();var list=_unpaidBills.filter(function(b){return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);});var el=document.getElementById('stBillList');if(!list.length){el.innerHTML='<div class="st-empty">ไม่มีบิลค้างชำระ</div>';return;}el.innerHTML=list.map(function(b){var sel=_selectedBills.indexOf(String(b.id))>=0;return '<div class="st-bill-row'+(sel?' selected':'')+'" data-bid="'+h(b.id)+'" onclick="stToggleBill(this)"><input type="checkbox" class="st-bill-check" '+(sel?'checked':'')+' onclick="event.stopPropagation();stToggleBill(this.parentElement)"><div class="st-bill-info"><div class="st-bill-no">'+h(b.bill_no)+'</div><div class="st-bill-sub">'+h(b.customer_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div></div><div class="st-bill-amt">'+fmt(b.total)+'</div></div>';}).join('');}
+window.stToggleBill=function(el){var bid=String(el.dataset.bid);var idx=_selectedBills.indexOf(bid);if(idx>=0)_selectedBills.splice(idx,1);else _selectedBills.push(bid);document.getElementById('stSelectedCount').textContent='เลือก '+_selectedBills.length+' รายการ';stRenderBills();};
+window.stConfirmBills=function(){if(!_selectedBills.length){toast('กรุณาเลือกบิลอย่างน้อย 1 รายการ','#ef4444');return;}stCloseSelector();var selected=_unpaidBills.filter(function(b){return _selectedBills.indexOf(String(b.id))>=0;});var total=selected.reduce(function(s,b){return s+parseFloat(b.total||0);},0);_stTotal=total;_stSelectedIds=_selectedBills.slice();_mode='new';_activeId=null;document.getElementById('stFormTitle').textContent='สร้างใบวางบิลใหม่';document.getElementById('stFormBody').innerHTML='<div class="st-section"><div class="st-section-title">บิลที่เลือก ('+selected.length+' รายการ)</div>'+selected.map(function(b){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0ede8;"><span>'+h(b.bill_no)+' &middot; '+h(b.customer_name||'-')+'</span><span style="font-weight:600;">'+fmt(b.total)+'</span></div>';}).join('')+'</div><div class="st-section"><div class="st-section-title">สรุปยอด</div><div class="st-row"><div class="st-field"><label>ส่วนลด (บาท)</label><input id="stDiscount" class="st-input" type="number" value="0" oninput="stCalc()"/></div><div class="st-field"><label>VAT (%)</label><input id="stVatRate" class="st-input" type="number" value="0" oninput="stCalc()"/></div></div><div class="st-field"><label>ประเภท VAT</label><select id="stVatType" class="st-input" onchange="stCalc()"><option value="none">ไม่มี VAT</option><option value="included">รวมในราคา</option><option value="excluded">แยกจากราคา</option></select></div><div class="st-summary"><div class="st-summary-row"><span>ยอดรวม</span><span>'+fmt(total)+'</span></div><div class="st-summary-row"><span>ส่วนลด</span><span id="sDisc">-'+fmt(0)+'</span></div><div class="st-summary-row"><span>VAT</span><span id="sVat">'+fmt(0)+'</span></div><div class="st-summary-row total"><span>ยอดสุทธิ</span><span id="sNet">'+fmt(total)+'</span></div></div></div><div class="st-section"><div class="st-section-title">กำหนดชำระ</div><div class="st-field"><label>วันกำหนดชำระ</label><input id="stDueSingle" class="st-input" type="date"/></div></div>';document.getElementById('stFormActions').style.display='flex';document.getElementById('stSaveBtn').onclick=stCreate;_stNet=total;};
 window.stCalc=function(){var total=_stTotal||0;var disc=parseFloat((document.getElementById('stDiscount')||{}).value)||0;var vr=parseFloat((document.getElementById('stVatRate')||{}).value)||0;var vt=(document.getElementById('stVatType')||{}).value||'none';var after=Math.max(0,total-disc);var vat=0,net=after;if(vr>0&&vt==='included'){vat=Math.round((after-after/(1+vr/100))*100)/100;}else if(vr>0&&vt==='excluded'){vat=Math.round(after*vr/100*100)/100;net=after+vat;}var sD=document.getElementById('sDisc');if(sD)sD.textContent='-'+fmt(disc);var sV=document.getElementById('sVat');if(sV)sV.textContent=fmt(vat);var sN=document.getElementById('sNet');if(sN)sN.textContent=fmt(net);_stNet=net;_stVat=vat;_stDisc=disc;};
-window.stCreate=function(){var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;var payload={bill_ids:_stSelectedIds,total_amt:_stTotal,discount:_stDisc,vat_amt:_stVat,vat_type:(document.getElementById('stVatType')||{}).value||'none',vat_rate:parseFloat((document.getElementById('stVatRate')||{}).value)||0,net_amt:_stNet||_stTotal,due_single:(document.getElementById('stDueSingle')||{}).value||null};if(!payload.bill_ids.length){toast('\u0e44\u0e21\u0e48\u0e21\u0e35\u0e1a\u0e34\u0e25\u0e17\u0e35\u0e48\u0e40\u0e25\u0e37\u0e2d\u0e01','#ef4444');if(btn)btn.disabled=false;return;}fetch(API+'/api/pos/statements/create',{method:'POST',headers:authH(),body:JSON.stringify(payload)}).then(function(r){return r.json();}).then(function(d){if(btn)btn.disabled=false;if(d.detail){toast('\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08: '+d.detail,'#ef4444');return;}toast('\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e43\u0e1a\u0e27\u0e32\u0e07\u0e1a\u0e34\u0e25 '+d.run_id+' \u0e41\u0e25\u0e49\u0e27','#16a34a');stCancelForm();stLoad();}).catch(function(){if(btn)btn.disabled=false;toast('\u0e40\u0e0a\u0e37\u0e48\u0e2d\u0e21\u0e15\u0e48\u0e2d\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49','#ef4444');});};
+window.stCreate=function(){var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;var payload={bill_ids:_stSelectedIds,total_amt:_stTotal,discount:_stDisc,vat_amt:_stVat,vat_type:(document.getElementById('stVatType')||{}).value||'none',vat_rate:parseFloat((document.getElementById('stVatRate')||{}).value)||0,net_amt:_stNet||_stTotal,due_single:(document.getElementById('stDueSingle')||{}).value||null};if(!payload.bill_ids.length){toast('ไม่มีบิลที่เลือก','#ef4444');if(btn)btn.disabled=false;return;}fetch(API+'/api/pos/statements/create',{method:'POST',headers:authH(),body:JSON.stringify(payload)}).then(function(r){return r.json();}).then(function(d){if(btn)btn.disabled=false;if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}toast('สร้างใบวางบิล '+d.run_id+' แล้ว','#16a34a');stCancelForm();stLoad();}).catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});};
 window.stCloseSelector=function(){document.getElementById('stSelectorModal').style.display='none';};
 (function init(){window.removeEventListener('viiv_token_ready',window._st_tok);window._st_tok=function(e){if(e.detail&&e.detail.token)TOKEN=e.detail.token;stLoad();};window.addEventListener('viiv_token_ready',window._st_tok);var t=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';if(t)window._st_tok({detail:{token:t}});})();
 })();

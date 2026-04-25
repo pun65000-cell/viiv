@@ -1,65 +1,41 @@
 window.stLoad=function(){
   fetch(API+'/api/pos/statements/unpaid-bills',{headers:authH()})
   .then(function(r){return r.json();})
-  .then(function(d){
-    _unpaidBills=Array.isArray(d)?d:[];
-    renderUnpaidList();
-  })
-  .catch(function(){
-    var el=document.getElementById('stList');
-    if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';
-  });
+  .then(function(d){_unpaidBills=Array.isArray(d)?d:[];renderUnpaidList();})
+  .catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
 function renderUnpaidList(){
   var q=(document.getElementById('stSearch')||{value:''}).value.toLowerCase();
-  var list=_unpaidBills.filter(function(b){
-    return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);
-  });
-  var cnt=document.getElementById('stCount');
-  if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
-  var el=document.getElementById('stList');
-  if(!el)return;
+  var list=_unpaidBills.filter(function(b){return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);});
+  var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='พบ '+list.length+' รายการ';
+  var el=document.getElementById('stList');if(!el)return;
   if(!list.length){el.innerHTML='<div class="st-empty">ไม่มีบิลค้างชำระ</div>';return;}
   el.innerHTML=list.map(function(b){
     return '<div class="st-card" data-bid="'+b.id+'" onclick="stSelectBill(this.dataset.bid)">'+
-      '<div class="st-card-top">'+
-        '<div class="st-card-run">'+h(b.bill_no)+'</div>'+
-        '<div class="st-card-amt">฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</div>'+
-      '</div>'+
+      '<div class="st-card-top"><div class="st-card-run">'+h(b.bill_no)+'</div><div class="st-card-amt">฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</div></div>'+
       '<div class="st-card-meta">'+h(b.customer_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div>'+
-      '<span class="st-badge pending">'+h(b.pay_method||'-')+'</span>'+
-    '</div>';
+      '<span class="st-badge pending">'+h(b.pay_method||'-')+'</span></div>';
   }).join('');
 }
 window.stRender=function(){renderUnpaidList();};
 window.stSelectBill=function(bid){
-  var b=_unpaidBills.find(function(x){return x.id===bid;});
-  if(!b)return;
+  var b=_unpaidBills.find(function(x){return x.id===bid;});if(!b)return;
   document.getElementById('stFormTitle').textContent=b.bill_no+' - '+h(b.customer_name||'');
   document.getElementById('stFormBody').innerHTML=
-    '<div class="st-section">'+
-      '<div class="st-section-title">รายละเอียดบิล</div>'+
-      '<div class="st-summary">'+
-        '<div class="st-summary-row"><span>เลขบิล</span><span>'+h(b.bill_no)+'</span></div>'+
-        '<div class="st-summary-row"><span>ลูกค้า</span><span>'+h(b.customer_name||'-')+'</span></div>'+
-        '<div class="st-summary-row"><span>วิธีชำระ</span><span>'+h(b.pay_method||'-')+'</span></div>'+
-        '<div class="st-summary-row total"><span>ยอด</span><span>฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</span></div>'+
-      '</div>'+
-      '<div class="st-field"><label>วันที่สร้าง</label><div style="font-size:12px;">'+fmtDt(b.created_at)+'</div></div>'+
-    '</div>'+
-    '<div class="st-section">'+
-      '<div class="st-section-title">สร้างใบวางบิลจากบิลนี้</div>'+
-      '<p style="font-size:12px;color:#6b7280;">กด "+ สร้างใหม่" เพื่อเลือกบิลนี้รวมกับบิลอื่นๆ</p>'+
-    '</div>';
+    '<div class="st-section"><div class="st-section-title">รายละเอียดบิล</div>'+
+    '<div class="st-summary"><div class="st-summary-row"><span>เลขบิล</span><span>'+h(b.bill_no)+'</span></div>'+
+    '<div class="st-summary-row"><span>ลูกค้า</span><span>'+h(b.customer_name||'-')+'</span></div>'+
+    '<div class="st-summary-row total"><span>ยอด</span><span>฿'+parseFloat(b.total||0).toLocaleString('th',{minimumFractionDigits:2})+'</span></div></div></div>'+
+    '<div class="st-section"><div class="st-section-title">สร้างใบวางบิลจากบิลนี้</div>'+
+    '<p style="font-size:12px;color:#6b7280;">กด "+ สร้างใหม่" เพื่อเลือกบิลนี้รวมกับบิลอื่นๆ</p></div>';
   document.getElementById('stFormActions').style.display='none';
 };
 (function(){
 'use strict';
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
-var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_pendingPm=null,_activeStmt=null;
+var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_activeStmt=null,_currentMode='delivered';
 var _stTotal=0,_stSelectedIds=[],_stNet=0,_stVat=0,_stDisc=0;
-var _searchSelectedBills=[],_searchBillsData=[];
 var SL={pending:'รอชำระ',partial:'ชำระบางส่วน',paid:'ชำระแล้ว',cancelled:'ยกเลิก'};
 function authH(){return {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'};}
 function fmt(n){return '฿'+(parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2});}
@@ -68,12 +44,20 @@ function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function toast(msg,color){var el=document.getElementById('stToast');if(!el)return;el.textContent=msg;el.style.background=color||'#1f2937';el.style.color='#fff';el.style.display='block';setTimeout(function(){el.style.display='none';},2500);}
 var _BANKS=['กรุงเทพ','กสิกรไทย','ไทยพาณิชย์','กรุงไทย','ทหารไทยธนชาต','ออมสิน','อาคารสงเคราะห์','เกียรตินาคินภัทร','ซีไอเอ็มบีไทย','ยูโอบี','แลนด์แอนด์เฮ้าส์','ทิสโก้','อิสลาม','ไทยเครดิต','ซูมิโตโม มิตซุย'];
 function _chequeHtml(cd){cd=cd||{};return '<div class="st-field"><label>ธนาคาร</label><select id="stChequeBank" class="st-input"><option value="">-- เลือกธนาคาร --</option>'+_BANKS.map(function(b){return '<option value="'+h(b)+'"'+(cd.bank===b?' selected':'')+'>'+h(b)+'</option>';}).join('')+'</select></div><div class="st-row"><div class="st-field"><label>ชื่อผู้รับเช็ค</label><input id="stChequePayee" class="st-input" value="'+h(cd.payee||'')+'" placeholder="ชื่อผู้รับเช็ค"/></div><div class="st-field"><label>ชื่อผู้จ่ายเช็ค</label><input id="stChequePayer" class="st-input" value="'+h(cd.payer||'')+'" placeholder="ชื่อผู้จ่ายเช็ค"/></div></div><div class="st-row"><div class="st-field"><label>เลขที่เช็ค</label><input id="stChequeNo" class="st-input" value="'+h(cd.cheque_no||'')+'" placeholder="XXXXXXXXXX"/></div><div class="st-field"><label>วันที่บนเช็ค</label><input id="stChequeDue" class="st-input" type="date" value="'+h(cd.due_date||'')+'"/></div></div><div style="text-align:right;margin-top:4px;"><button type="button" onclick="clearChequeFields()" style="font-size:11px;padding:3px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:5px;cursor:pointer;">&#x1F5D1; ล้างข้อมูลเช็ค</button></div>';}
-function _buildActionExtra(act,s){s=s||{};if(act==='cheque'){var cd={};try{cd=typeof s.cheque_detail==='string'?JSON.parse(s.cheque_detail):(s.cheque_detail||{});}catch(e){}return _chequeHtml(cd);}return '<div class="st-field"><label>วันชำระ</label><input id="stDueSingle" class="st-input" type="date" value="'+(s.due_single?String(s.due_single).slice(0,10):'')+'"/></div>';}
+function _buildModeHtml(mode,s){
+  s=s||{};
+  if(mode==='cheque'){var cd={};try{cd=typeof s.cheque_detail==='string'?JSON.parse(s.cheque_detail):(s.cheque_detail||{});}catch(e){}return _chequeHtml(cd);}
+  if(mode==='appointment'){
+    return '<div class="st-field"><label>วันนัดชำระ</label><input type="datetime-local" id="appointment_dt" class="st-input" value="'+(s.appointment_dt?String(s.appointment_dt).replace(' ','T').slice(0,16):'')+'"/></div>'+
+      '<div class="st-field"><label>หมายเหตุ</label><textarea id="appointment_note" class="st-input" rows="2" placeholder="หมายเหตุ...">'+h(s.appointment_note||'')+'</textarea></div>'+
+      '<div class="st-field"><label>รีพอร์ทการเจรจา</label><textarea id="negotiation_note" class="st-input" rows="3" placeholder="บันทึกการเจรจา...">'+h(s.negotiation_note||'')+'</textarea></div>';
+  }
+  return '<div class="st-field"><label>วันชำระ</label><input id="stDueSingle" class="st-input" type="date" value="'+(s.due_single?String(s.due_single).slice(0,10):'')+'"/></div>';
+}
 window.stLoad=function(){
-  var _si=document.getElementById('stSearch');if(_si)_si.value='';
-  var _sb=document.getElementById('stSearchBar');if(_sb)_sb.style.display='none';
-  _searchSelectedBills=[];_searchBillsData=[];
-  fetch(API+'/api/pos/statements/list',{headers:authH()}).then(function(r){return r.json();}).then(function(d){_statements=Array.isArray(d)?d:[];stRender();}).catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
+  fetch(API+'/api/pos/statements/list',{headers:authH()})
+  .then(function(r){return r.json();}).then(function(d){_statements=Array.isArray(d)?d:[];stRender();})
+  .catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
 window.stRender=function(){
   var q=(document.getElementById('stSearch').value||'').toLowerCase();
@@ -89,88 +73,51 @@ window.stRender=function(){
       '<div class="st-card-top"><div class="st-card-run">'+h(s.run_id)+'</div><div class="st-card-amt">'+fmt(s.net_amt)+'</div></div>'+
       '<div class="st-card-meta">'+h(s.partner_name||'-')+' &middot; '+h(s.contact_name||'-')+'</div>'+
       '<div class="st-card-meta">'+fmtDt(s.created_at)+' &middot; '+bills.length+' บิล</div>'+
-      '<span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span>'+
-    '</div>';
+      '<span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div>';
   }).join('');
 };
-window.stSearchInput=function(){
-  var q=(document.getElementById('stSearch').value||'').trim();
-  var sb=document.getElementById('stSearchBar');
-  if(!q){if(sb)sb.style.display='none';_searchSelectedBills=[];_searchBillsData=[];stRender();return;}
-  if(sb)sb.style.display='block';
-  var btn=document.getElementById('stCreateFromSearchBtn');if(btn)btn.disabled=true;
-  _searchSelectedBills=[];_searchBillsData=[];
-  var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">กำลังค้นหา...</div>';
-  var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='';
-  fetch(API+'/api/pos/statements/unpaid-bills?q='+encodeURIComponent(q),{headers:authH()})
-  .then(function(r){return r.json();})
-  .then(function(d){_renderSearchBills(Array.isArray(d)?d:[]);})
-  .catch(function(){if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
+window.stSetMode=function(mode){
+  _currentMode=mode;
+  document.querySelectorAll('.st-mode-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+  var ex=document.getElementById('stModeExtra');if(ex)ex.innerHTML=_buildModeHtml(mode,_activeStmt);
 };
-function _renderSearchBills(list){
-  _searchBillsData=list;
-  var el=document.getElementById('stList');
-  var cnt=document.getElementById('stCount');if(cnt)cnt.textContent='พบ '+list.length+' บิล';
-  if(!list.length){if(el)el.innerHTML='<div class="st-empty">ไม่พบบิลค้างชำระ</div>';return;}
-  if(el)el.innerHTML=list.map(function(b){
-    var sel=_searchSelectedBills.indexOf(String(b.id))>=0;
-    return '<div class="st-bill-row'+(sel?' selected':'')+'" data-bid="'+h(b.id)+'" onclick="stToggleSearchBill(this)">'+
-      '<input type="checkbox" class="st-bill-check" '+(sel?'checked':'')+' onclick="event.stopPropagation();stToggleSearchBill(this.parentElement)"/>'+
-      '<div class="st-bill-info"><div class="st-bill-no">'+h(b.bill_no)+'</div>'+
-      '<div class="st-bill-sub">'+h(b.customer_name||b.partner_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div></div>'+
-      '<div class="st-bill-amt">'+fmt(b.total)+'</div>'+
-    '</div>';
-  }).join('');
-}
-window.stToggleSearchBill=function(el){
-  var bid=String(el.dataset.bid);
-  var idx=_searchSelectedBills.indexOf(bid);
-  if(idx>=0)_searchSelectedBills.splice(idx,1);else _searchSelectedBills.push(bid);
-  var btn=document.getElementById('stCreateFromSearchBtn');if(btn)btn.disabled=(_searchSelectedBills.length===0);
-  document.querySelectorAll('#stList [data-bid]').forEach(function(row){
-    var sel=_searchSelectedBills.indexOf(String(row.dataset.bid))>=0;
-    row.classList.toggle('selected',sel);
-    var cb=row.querySelector('input[type=checkbox]');if(cb)cb.checked=sel;
-  });
-};
-window.stCreateFromSearch=function(){
-  if(!_searchSelectedBills.length){toast('กรุณาเลือกบิลอย่างน้อย 1 รายการ','#ef4444');return;}
-  var selected=_searchBillsData.filter(function(b){return _searchSelectedBills.indexOf(String(b.id))>=0;});
-  if(!selected.length){toast('ไม่พบข้อมูลบิล','#ef4444');return;}
-  _unpaidBills=_searchBillsData;
-  _selectedBills=_searchSelectedBills.slice();
-  stConfirmBills();
-};
+window.clearChequeFields=function(){['stChequeBank','stChequePayee','stChequePayer','stChequeNo','stChequeDue'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});};
 window.stOpen=function(id){
   id=parseInt(id);_activeId=id;_mode='record';
   var s=_statements.find(function(x){return x.id===id;});if(!s)return;
-  _activeStmt=s;_pendingPm=s.payment_method||'cash';
+  _activeStmt=s;
+  if(s.payment_method==='cheque')_currentMode='cheque';
+  else if(s.appointment_dt||s.payment_method==='appointment')_currentMode='appointment';
+  else _currentMode='delivered';
   stRender();
   var bills=Array.isArray(s.bill_ids)?s.bill_ids:JSON.parse(s.bill_ids||'[]');
   document.getElementById('stFormTitle').textContent=s.run_id+(s.partner_name?' — '+s.partner_name:'');
-  var isCheque=s.payment_method==='cheque';
   var stOpts=['pending','partial','paid'].map(function(v){return '<option value="'+v+'"'+(s.status===v?' selected':'')+'>'+SL[v]+'</option>';}).join('');
-  var followupHtml='';
-  if(s.status!=='paid'){
-    var today=new Date();today.setHours(0,0,0,0);
-    var dueHtml='';
-    if(s.due_single){
-      var dd=new Date(s.due_single);dd.setHours(0,0,0,0);
-      var isOd=dd<today;
-      dueHtml='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;margin-bottom:4px;background:'+(isOd?'#fee2e2':'#fef9c3')+';border:1px solid '+(isOd?'#fca5a5':'#fde68a')+';">'+
-        '<span style="font-size:12px;">&#x1F4C5; กำหนดชำระ: '+fmtDt(s.due_single)+'</span>'+
-        '<span style="font-size:11px;font-weight:700;color:'+(isOd?'#b91c1c':'#92400e')+';">'+(isOd?'&#x26A0; เกินกำหนด':'รอชำระ')+'</span>'+
-      '</div>';
-    }
-    var ftRows='';
-    if(s.appointment_dt)ftRows+='<div class="st-summary-row"><span>นัดชำระ</span><span>'+fmtDt(s.appointment_dt)+'</span></div>';
-    if(s.appointment_note)ftRows+='<div class="st-summary-row"><span>หมายเหตุ</span><span style="max-width:65%;text-align:right;word-break:break-word;">'+h(s.appointment_note)+'</span></div>';
-    if(dueHtml||ftRows){
-      followupHtml='<div class="st-section"><div class="st-section-title">&#x1F514; ติดตามการชำระ</div>'+
-        dueHtml+(ftRows?'<div class="st-summary" style="margin-top:4px;margin-bottom:0;">'+ftRows+'</div>':'')+
-      '</div>';
-    }
+  var notPaid=s.status!=='paid';
+  var pBtn=document.getElementById('stPartialBtn');if(pBtn)pBtn.style.display=notPaid?'':'none';
+  var pdBtn=document.getElementById('stPaidBtn');if(pdBtn)pdBtn.style.display=notPaid?'':'none';
+  var today=new Date();today.setHours(0,0,0,0);
+  var dueHtml='';
+  if(s.due_single){
+    var dd=new Date(s.due_single);dd.setHours(0,0,0,0);
+    var isOd=dd<today;
+    dueHtml='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;margin-bottom:4px;background:'+(isOd?'#fee2e2':'#fef9c3')+';border:1px solid '+(isOd?'#fca5a5':'#fde68a')+';">'+
+      '<span style="font-size:12px;">&#x1F4C5; กำหนดชำระ: '+fmtDt(s.due_single)+'</span>'+
+      '<span style="font-size:11px;font-weight:700;color:'+(isOd?'#b91c1c':'#92400e')+';">'+(isOd?'&#x26A0; เกินกำหนด':'รอชำระ')+'</span>'+
+    '</div>';
   }
+  var ftRows='';
+  if(s.partial_amount&&parseFloat(s.partial_amount)>0)ftRows+='<div class="st-summary-row"><span>ชำระบางส่วน</span><span style="color:#0284c7;font-weight:700;">'+fmt(s.partial_amount)+'</span></div>';
+  if(s.appointment_dt)ftRows+='<div class="st-summary-row"><span>นัดชำระ</span><span>'+fmtDt(s.appointment_dt)+'</span></div>';
+  if(s.appointment_note)ftRows+='<div class="st-summary-row"><span>หมายเหตุ</span><span style="max-width:60%;text-align:right;word-break:break-word;">'+h(s.appointment_note)+'</span></div>';
+  if(s.negotiation_note)ftRows+='<div class="st-summary-row"><span>การเจรจา</span><span style="max-width:60%;text-align:right;word-break:break-word;">'+h(s.negotiation_note)+'</span></div>';
+  var followupHtml='';
+  if(s.status!=='paid'&&(dueHtml||ftRows)){
+    followupHtml='<div class="st-section"><div class="st-section-title">&#x1F514; ติดตามการชำระ</div>'+
+      dueHtml+(ftRows?'<div class="st-summary" style="margin-top:4px;margin-bottom:0;">'+ftRows+'</div>':'')+
+    '</div>';
+  }
+  var initMode=_currentMode;
   document.getElementById('stFormBody').innerHTML=
     '<div class="st-section"><div class="st-section-title">ข้อมูลใบวางบิล</div>'+
       '<div class="st-summary">'+
@@ -183,40 +130,101 @@ window.stOpen=function(id){
         '<div class="st-summary-row total"><span>ยอดสุทธิ</span><span>'+fmt(s.net_amt)+'</span></div>'+
       '</div></div>'+
     followupHtml+
-    '<div class="st-section"><div class="st-section-title">ปรับสถานะ</div>'+
-      '<div class="st-pm-grid" style="grid-template-columns:1fr 1fr;">'+
-        '<button class="st-pm-btn'+(isCheque?'':' active')+'" data-act="bill" onclick="stPickAction(this)">&#x1F4C5; วางบิลแล้ว</button>'+
-        '<button class="st-pm-btn'+(isCheque?' active':'')+'" data-act="cheque" onclick="stPickAction(this)">&#x1F3E6; วางบิลเก็บเช็ค</button>'+
+    '<div class="st-section"><div class="st-section-title">บันทึกการชำระ</div>'+
+      '<div class="status-actions">'+
+        '<button class="st-mode-btn'+(initMode==='delivered'?' active':'')+'" data-mode="delivered" onclick="stSetMode(\'delivered\')">&#x1F4CB; วางบิลแล้ว</button>'+
+        '<button class="st-mode-btn'+(initMode==='cheque'?' active':'')+'" data-mode="cheque" onclick="stSetMode(\'cheque\')">&#x1F3E6; เก็บเช็ค</button>'+
+        '<button class="st-mode-btn'+(initMode==='appointment'?' active':'')+'" data-mode="appointment" onclick="stSetMode(\'appointment\')">&#x1F4C5; นัดชำระ</button>'+
       '</div>'+
-      '<div id="stActionExtra">'+_buildActionExtra(isCheque?'cheque':'bill',s)+'</div>'+
-      '<div class="st-field"><label>นัดชำระ</label><input type="datetime-local" id="appointment_dt" class="st-input" value="'+(s.appointment_dt?String(s.appointment_dt).replace(' ','T').slice(0,16):'')+'"/></div>'+
-      '<div class="st-field"><label>หมายเหตุ</label><textarea id="appointment_note" class="st-input" rows="2" placeholder="หมายเหตุ...">'+h(s.appointment_note||'')+'</textarea></div>'+
-      '<div class="st-field"><label>สถานะ</label><select id="stStatus" class="st-input">'+stOpts+'</select></div>'+
+      '<div id="stModeExtra">'+_buildModeHtml(initMode,s)+'</div>'+
+      '<div class="st-field" style="margin-top:8px;"><label>สถานะ</label><select id="stStatus" class="st-input">'+stOpts+'</select></div>'+
     '</div>';
   document.getElementById('stFormActions').style.display='flex';
   document.getElementById('stSaveBtn').onclick=stSave;
 };
-window.stPickAction=function(btn){
-  _pendingPm=btn.dataset.act==='cheque'?'cheque':'cash';
-  document.querySelectorAll('.st-pm-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');
-  var ex=document.getElementById('stActionExtra');if(ex)ex.innerHTML=_buildActionExtra(btn.dataset.act,_activeStmt);
-};
-window.clearChequeFields=function(){['stChequeBank','stChequePayee','stChequePayer','stChequeNo','stChequeDue'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});};
 window.stSave=function(){
   if(!_activeId)return;
   var btn=document.getElementById('stSaveBtn');if(btn)btn.disabled=true;
   var payload={};
   var st=document.getElementById('stStatus');if(st)payload.status=st.value;
-  if(_pendingPm)payload.payment_method=_pendingPm;
-  if(_pendingPm==='cheque'){
+  if(_currentMode==='cheque'){
+    payload.payment_method='cheque';
     var bank=document.getElementById('stChequeBank');var payee=document.getElementById('stChequePayee');
     var payer=document.getElementById('stChequePayer');var cno=document.getElementById('stChequeNo');var cdue=document.getElementById('stChequeDue');
     payload.cheque_detail={bank:bank?bank.value:'',payee:payee?payee.value.trim():'',payer:payer?payer.value.trim():'',cheque_no:cno?cno.value.trim():'',due_date:cdue?cdue.value:''};
-  }else{var due=document.getElementById('stDueSingle');if(due&&due.value)payload.due_single=due.value;}
-  var apptDt=document.getElementById('appointment_dt');if(apptDt&&apptDt.value)payload.appointment_dt=apptDt.value;
-  var apptNote=document.getElementById('appointment_note');if(apptNote&&apptNote.value.trim())payload.appointment_note=apptNote.value.trim();
+  } else if(_currentMode==='appointment'){
+    payload.payment_method='appointment';
+    var apptDt=document.getElementById('appointment_dt');if(apptDt&&apptDt.value)payload.appointment_dt=apptDt.value;
+    var apptNote=document.getElementById('appointment_note');if(apptNote&&apptNote.value.trim())payload.appointment_note=apptNote.value.trim();
+    var negNote=document.getElementById('negotiation_note');if(negNote&&negNote.value.trim())payload.negotiation_note=negNote.value.trim();
+  } else {
+    payload.payment_method='cash';
+    var due=document.getElementById('stDueSingle');if(due&&due.value)payload.due_single=due.value;
+  }
   fetch(API+'/api/pos/statements/record/'+_activeId,{method:'PATCH',headers:authH(),body:JSON.stringify(payload)})
   .then(function(r){return r.json();}).then(function(d){if(btn)btn.disabled=false;if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}toast('บันทึกแล้ว','#16a34a');stLoad();})
+  .catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});
+};
+window.stOpenPartial=function(){
+  if(!_activeId)return;
+  var m=document.getElementById('stPartialModal');if(!m)return;
+  m.style.display='flex';
+  document.getElementById('stPartialAmt').value='';
+  document.getElementById('stPartialSlip').value='';
+  var btn=document.getElementById('stPartialConfirmBtn');if(btn)btn.disabled=false;
+};
+window.stConfirmPartial=function(){
+  var amtEl=document.getElementById('stPartialAmt');
+  var amt=parseFloat((amtEl||{}).value||0);
+  if(!amt||amt<=0){toast('กรุณาระบุยอดที่ชำระ','#ef4444');return;}
+  var slip=document.getElementById('stPartialSlip');
+  if(!slip||!slip.files||!slip.files[0]){toast('กรุณาแนบสลิป','#ef4444');return;}
+  var btn=document.getElementById('stPartialConfirmBtn');if(btn)btn.disabled=true;
+  var fd=new FormData();fd.append('file',slip.files[0]);
+  fetch(API+'/api/pos/statements/upload-slip/'+_activeId,{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d||!d.slip_url){toast('อัปโหลดสลิปไม่สำเร็จ','#ef4444');if(btn)btn.disabled=false;return;}
+    return fetch(API+'/api/pos/statements/record/'+_activeId,{method:'PATCH',headers:authH(),body:JSON.stringify({partial_amount:amt,slip_url:d.slip_url,status:'partial'})});
+  })
+  .then(function(r){if(r)return r.json();})
+  .then(function(d){
+    if(btn)btn.disabled=false;
+    if(!d)return;
+    if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}
+    toast('บันทึกการชำระบางส่วนแล้ว','#16a34a');
+    document.getElementById('stPartialModal').style.display='none';
+    stLoad();
+  })
+  .catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});
+};
+window.stOpenPaid=function(){
+  if(!_activeId)return;
+  var m=document.getElementById('stPaidModal');if(!m)return;
+  m.style.display='flex';
+  document.getElementById('stPaidSlip').value='';
+  var btn=document.getElementById('stPaidConfirmBtn');if(btn)btn.disabled=false;
+};
+window.stConfirmPaid=function(){
+  var slip=document.getElementById('stPaidSlip');
+  if(!slip||!slip.files||!slip.files[0]){toast('กรุณาแนบสลิป','#ef4444');return;}
+  var btn=document.getElementById('stPaidConfirmBtn');if(btn)btn.disabled=true;
+  var fd=new FormData();fd.append('file',slip.files[0]);
+  fetch(API+'/api/pos/statements/upload-slip/'+_activeId,{method:'POST',headers:{'Authorization':'Bearer '+TOKEN},body:fd})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d||!d.slip_url){toast('อัปโหลดสลิปไม่สำเร็จ','#ef4444');if(btn)btn.disabled=false;return;}
+    return fetch(API+'/api/pos/statements/record/'+_activeId,{method:'PATCH',headers:authH(),body:JSON.stringify({slip_url:d.slip_url,status:'paid'})});
+  })
+  .then(function(r){if(r)return r.json();})
+  .then(function(d){
+    if(btn)btn.disabled=false;
+    if(!d)return;
+    if(d.detail){toast('ไม่สำเร็จ: '+d.detail,'#ef4444');return;}
+    toast('บันทึกการชำระเงินแล้ว','#16a34a');
+    document.getElementById('stPaidModal').style.display='none';
+    stLoad();
+  })
   .catch(function(){if(btn)btn.disabled=false;toast('เชื่อมต่อไม่ได้','#ef4444');});
 };
 window.stShowHistory=function(){
@@ -241,7 +249,7 @@ function _renderHistoryList(list){
 }
 window.stCloseHistory=function(){var m=document.getElementById('stHistoryModal');if(m)m.style.display='none';};
 window.stFilterHistory=function(){if(window._historyData)_renderHistoryList(window._historyData);};
-window.stCancelForm=function(){_activeId=null;_mode=null;_pendingPm=null;_activeStmt=null;document.getElementById('stFormTitle').textContent='เลือกใบวางบิลจากรายการ';document.getElementById('stFormBody').innerHTML='<div class="st-placeholder"><div class="st-placeholder-icon">&#x1F4C4;</div><div>เลือกรายการจากซ้าย หรือสร้างใหม่</div></div>';document.getElementById('stFormActions').style.display='none';stRender();};
+window.stCancelForm=function(){_activeId=null;_mode=null;_activeStmt=null;_currentMode='delivered';document.getElementById('stFormTitle').textContent='เลือกใบวางบิลจากรายการ';document.getElementById('stFormBody').innerHTML='<div class="st-placeholder"><div class="st-placeholder-icon">&#x1F4C4;</div><div>เลือกรายการจากซ้าย หรือสร้างใหม่</div></div>';document.getElementById('stFormActions').style.display='none';var pb=document.getElementById('stPartialBtn');if(pb)pb.style.display='none';var pdb=document.getElementById('stPaidBtn');if(pdb)pdb.style.display='none';stRender();};
 window.stOpenSelector=function(){_selectedBills=[];document.getElementById('stSelectorModal').style.display='flex';document.getElementById('stBillSearch').value='';document.getElementById('stBillList').innerHTML='<div class="st-empty">กำลังโหลด...</div>';fetch(API+'/api/pos/statements/unpaid-bills',{headers:authH()}).then(function(r){return r.json();}).then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();}).catch(function(){document.getElementById('stBillList').innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});};
 window.stFilterBills=function(){stRenderBills();};
 function stRenderBills(){var q=(document.getElementById('stBillSearch').value||'').toLowerCase();var list=_unpaidBills.filter(function(b){return !q||(b.bill_no||'').toLowerCase().includes(q)||(b.customer_name||'').toLowerCase().includes(q);});var el=document.getElementById('stBillList');if(!list.length){el.innerHTML='<div class="st-empty">ไม่มีบิลค้างชำระ</div>';return;}el.innerHTML=list.map(function(b){var sel=_selectedBills.indexOf(String(b.id))>=0;return '<div class="st-bill-row'+(sel?' selected':'')+'" data-bid="'+h(b.id)+'" onclick="stToggleBill(this)"><input type="checkbox" class="st-bill-check" '+(sel?'checked':'')+' onclick="event.stopPropagation();stToggleBill(this.parentElement)"><div class="st-bill-info"><div class="st-bill-no">'+h(b.bill_no)+'</div><div class="st-bill-sub">'+h(b.customer_name||'-')+' &middot; '+fmtDt(b.created_at)+'</div></div><div class="st-bill-amt">'+fmt(b.total)+'</div></div>';}).join('');}
