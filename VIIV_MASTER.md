@@ -293,10 +293,10 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.31
+Version:      v1.32
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
-Last updated: 2026-04-24
-Git latest:   docs: update VIIV_MASTER.md v1.31 CTO briefing
+Last updated: 2026-04-25
+Git latest:   feat: reserve bill - stock_reserved logic + complete-reserve endpoint + reserve.html UI
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -324,6 +324,15 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-25 v1.32]
+✅ Reserve Bill System — stock_reserved + complete-reserve flow:
+   - app/api/pos_bills.py: create_bill doc_type=reserve → status=pending, เพิ่ม stock_reserved (ไม่หัก stock_qty)
+   - app/api/pos_bills.py: POST /api/pos/bills/complete-reserve/{bid} → หัก stock_qty จริง + ลด stock_reserved + status=paid/receipt
+   - app/api/pos_bills.py: PATCH /api/pos/bills/update-reserve/{bid} → แก้ลูกค้า/วันรับ/หมายเหตุ/items + คำนวณ stock_reserved delta
+   - app/api/pos_bills.py: void_bill reserve → release stock_reserved (stock_qty ไม่เปลี่ยน)
+   - modules/pos/merchant/ui/dashboard/billing/reserve.html: สร้างใหม่ทั้งหมด — list, search, filter status, detail modal, edit, จบการขาย, ยกเลิก
+   Git: ac5ad6f
+
 [2026-04-24 v1.31]
 ✅ VIIV_MASTER.md — CTO Briefing v1.19 updates:
    - Section [A]: เพิ่ม CGO=subscription1, CTO=subscription2, Execute=Claude Code API
