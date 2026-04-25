@@ -293,10 +293,10 @@ category     ✅  ใน products (ไม่ใช่ category_id)
 [E] PROGRESS
 Current State
 ```
-Version:      v1.32
+Version:      v1.33
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
 Last updated: 2026-04-25
-Git latest:   feat: reserve bill - stock_reserved logic + complete-reserve endpoint + reserve.html UI
+Git latest:   feat: delivery.html — กำลังส่ง list with status modal
 ```
 PWA Pages Status
 ไฟล์	สถานะ	หมายเหตุ
@@ -324,6 +324,15 @@ Next Up (ลำดับ Priority)
 10. 🔵 FUT  — Capacitor.js → APK/IPA
 ```
 Completed Log
+[2026-04-25 v1.33]
+✅ delivery.html — กำลังส่ง dashboard ใหม่ทั้งหมด:
+   - filter เฉพาะ shipping_status: scheduled, shipped_*, delivery, bill_check, chargeback
+   - search + filter chip (ทั้งหมด | กำหนดส่ง | กำลังส่ง | COD)
+   - card: bill_no, ลูกค้า, ยอด, shipping badge, วันกำหนดส่ง, ship_note
+   - modal: status grid + เลขพัสดุ + activity log + POST update-status
+   - card หายออก list อัตโนมัติเมื่อสถานะพ้น shipped group
+   Git: 89bd450
+
 [2026-04-25 v1.32]
 ✅ Reserve Bill System — stock_reserved + complete-reserve flow:
    - app/api/pos_bills.py: create_bill doc_type=reserve → status=pending, เพิ่ม stock_reserved (ไม่หัก stock_qty)
