@@ -247,7 +247,7 @@ Version:      v1.34
 Phase:        PWA Mobile Phase 1 ✅ Done → Phase 2 กำลังจะเริ่ม
               PC Dashboard: billing reserve + delivery ✅ Done
 Last updated: 2026-04-25 (v1.36)
-Git latest:   statement [1][2][3] partner/cheque/history (2026-04-25, 03ab628)
+Git latest:   statement [1][2][3][4] search/cheque/appt/followup (2026-04-25, f952717)
 ```
 PWA Pages Status
 ```
@@ -284,15 +284,22 @@ Next Up (ลำดับ Priority)
 ```
 Completed Today (2026-04-25)
 ```
-✅ statement.html + statement.js (commit 03ab628) — Task [1][2][3]:
-   - [1] CARD: search + card แสดง partner_name · contact_name
-   - [2] CHEQUE: bank select 15 ธนาคาร + payee/payer/cheque_no/due_date + clear btn
-         cheque_detail บันทึกเป็น JSON {bank,payee,payer,cheque_no,due_date}
-   - [3] RIGHT PANEL: 2-action btn (วางบิลแล้ว → due_single / วางบิลเก็บเช็ค → cheque fields)
-         stPickAction แทน stPickPm; _activeStmt closure var
-         ประวัติ btn → stHistoryModal fetching pending statements + search
-   - Fixed corrupted <option> ใน stConfirmBills VAT select
-   - statement.js inner IIFE synced กับ statement.html
+✅ statement [1][2][3][4] (commit f952717):
+   - [1] LEFT SEARCH: พิมพ์ → fetch unpaid-bills?q= → checklist+checkbox ใน left panel
+         ปุ่ม "สร้างใบวางบิลจากที่เลือก" (disabled ถ้าไม่มีเลือก)
+         stLoad() clears search ทุกครั้ง; เคลียร์ → กลับ statement list
+   - [2] CHEQUE: 15-bank dropdown + payee/payer/cheque_no/due_date + clear btn
+         cheque_detail = JSON {bank,payee,payer,cheque_no,due_date}
+   - [3] APPOINTMENT FIELDS: appointment_dt (datetime-local) + appointment_note (textarea)
+         แสดงใน ปรับสถานะ section; บันทึกใน stSave payload
+   - [4] ติดตามการชำระ section (status!=paid):
+         due_single < today → bg แดง "เกินกำหนด"
+         due_single >= today → bg เหลือง "รอชำระ"
+         appointment_dt + appointment_note display
+
+✅ statement [1][2][3] earlier (commit 03ab628):
+   - CARD: search + card แสดง partner_name · contact_name
+   - 2-action btn; stPickAction; _activeStmt; stHistoryModal
 
 ✅ delivery.html (commit 89bd450):
    - list filter client-side: scheduled/shipped_*/delivery/bill_check/chargeback
@@ -432,3 +439,9 @@ GIT RESTORE POINTS เพิ่ม:
 [pending] statement.html+js complete — commit ยังไม่ได้ทำ
 
 Version: v1.36 | Updated: 2026-04-25
+
+Model Policy
+claude-haiku-4-5   → งานทั่วไป (edit, debug, CSS, < 100 บรรทัด)
+claude-sonnet-4-6  → complex logic, multi-file, architecture
+claude-opus        → ห้ามใช้ยกเว้น CGO อนุมัติ
+❌ FORBIDDEN: claude-sonnet-4-7, claude-haiku-4-6 หรือ version อื่น
