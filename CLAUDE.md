@@ -80,3 +80,5 @@ END OF SESSION
 ```
 ---
 > สำหรับรายละเอียดทั้งหมด → อ่าน VIIV_MASTER.md
+
+# Model: haiku-4-5 default / sonnet-4-6 complex / ไม่แน่ใจ → ดู MASTER.md

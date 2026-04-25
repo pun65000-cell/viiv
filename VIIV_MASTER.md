@@ -1,15 +1,18 @@
 # VIIV MASTER — CGO Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่กับ CGO ทุกครั้ง**  
-> Version: v1.36 | Updated: 2026-04-25  
+> Version: v1.42 | Updated: 2026-04-25  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
-บทบาท
+บทบาท (v1.42)
 ```
-CGO (subscription1)  = Claude.ai Pro — ผู้กำหนดทิศทาง, architecture, spec, token budget
-CTO (subscription2)  = Claude.ai Pro — review, validate, second opinion (ถามได้อิสระ)
-Execute              = Claude Code (API) — executor เขียนโค้ดตาม spec ที่ CGO กำหนด
-เจ้าของโปรเจกต์      = ส่ง spec ให้ CGO → CGO แปลงเป็น task → Claude Code implement
+CGO Chat    = Claude Pro subscription (แยกบัญชี) — architecture, decisions, MASTER.md
+CTO Chat    = Claude Pro subscription — review, สั่ง Claude Code, เขียน spec ร่วม CGO
+Claude Code = Pro subscription (same account as CTO) — implement ตาม spec
+             ⚠️ ใช้บัญชีเดียวกับ CTO → นับ limit รวม แจ้ง CGO ที่ 80%
+Terminal    = รับ pyeof จาก CGO โดยตรง — debug, grep, short scripts เท่านั้น
+API Key     = debug only — ห้ามเขียนโค้ดใหม่
+เจ้าของโปรเจกต์ = ส่ง spec ให้ CGO → CGO/CTO แปลงเป็น task → Claude Code implement
 ```
 Daily Workflow
 ```
@@ -18,12 +21,12 @@ Daily Workflow
 เย็น:     CGO สั่ง Claude Code: "สรุปวันนี้ เพิ่มใน VIIV_MASTER.md Section [E]"
 พรุ่งนี้: copy ไฟล์ใหม่ → เปิดแชท → ทำต่อ
 ```
-Execution Workflow (v1.34)
+Execution Workflow (v1.42)
 ```
-→ API      = งานสแกนไฟล์, แก้บัค, rewrite (Claude Code API key)
-→ PRO      = งานเขียนโค้ดยาว, python EOF (Claude Pro อีกบัญชี)
-→ TERMINAL = รันคำสั่งสั้นได้เลย (bash, psql, grep)
-CGO chat ไม่เขียนโค้ดยาว — เขียนแต่ prompt และ spec เท่านั้น
+→ Claude Code (Pro)  = งานเขียนโค้ด implement, rewrite, feature ใหม่ทุกอย่าง
+→ Terminal           = รันคำสั่งสั้น, debug, grep, pyeof จาก CGO โดยตรง
+→ API Key            = debug only หลัง implement เสร็จ — ห้ามเขียนโค้ดใหม่
+CGO/CTO ไม่เขียนโค้ดยาว — เขียนแต่ prompt, spec, และ review เท่านั้น
 ```
 Model Policy
 ```
@@ -238,6 +241,9 @@ Rule 36 — ระบุชื่อไฟล์เป้าหมายใน p
 Rule 37 — Pro subscription ห้ามแก้ dashboard loading mechanism — เสี่ยง regression ทุกเมนู
 Rule 34 — ก่อนส่ง spec ทุกครั้ง ให้ Claude Code confirm path ด้วย:
   ls [path] 2>&1 && echo "PATH OK" || echo "PATH NOT FOUND" อย่าใช้ ! ใน string → ใช้ heredoc << 'EOF' แทน
+Rule 45 — CGO ห้าม debug ทีละบรรทัดเอง → วิเคราะห์ root cause แล้วส่ง spec ให้ Claude Code
+Rule 46 — CTO + Claude Code ใช้ Pro บัญชีเดียวกัน → นับ limit รวม แจ้ง CGO ที่ 80%
+Rule 47 — billing/create.html: init ด้วย polling window.VIIV_TOKEN แทน _tok_ pattern (event อาจ fire ก่อน bind)
 ```
 ---
 [E] PROGRESS
@@ -269,18 +275,19 @@ billing/reserve.html   ✅ Done  ใบจอง list+search+filter+modal+จบ
 billing/delivery.html  ✅ Done  กำลังส่ง list+search+filter+status modal+auto-remove
 billing/reserve.html   ⚠️ TODO card size ใหญ่เกิน — ต้องลดขนาด + ปรับ UI แยกจากหน้าค้นหาบิล
 ```
-Next Up (ลำดับ Priority)
+Next Up (ลำดับ Priority — อัปเดต v1.42)
 ```
-1. 🔴 HIGH  — delivery.html: ลด card size + ปรับสีพื้น/UI ให้แยกจากหน้ารวมบิล
-2. 🔴 HIGH  — PWA billing: เพิ่ม discount, VAT, doc type (invoice/receipt)
-3. 🔴 HIGH  — pos_line.py: LINE Webhook + pending-uid
-4. 🟡 MED   — PWA members: add/edit member form
-5. 🟡 MED   — Dashboard API: ยอดแชท, Affiliate, AutoPost (real data)
-6. 🟡 MED   — PWA Phase 2: easysale, affiliate, finance
-7. 🟡 MED   — Feature Flag Schema + AI Quota Tables (DB)
-8. 🟡 MED   — Blue-Green setup: สร้าง viiv-green + scripts
-9. 🔵 FUT   — PWA Phase 3: receive, settings
-10. 🔵 FUT  — Capacitor.js → APK/IPA
+1. 🔴 HIGH — statement: แสดงรายละเอียดลูกค้าครบ (JOIN members realtime — ที่อยู่, tax_id, เบอร์)
+2. 🔴 HIGH — create.html: search สินค้า ✅ แก้แล้ว (polling VIIV_TOKEN fix, Claude Code)
+3. 🔴 HIGH — pos_line.py: LINE Webhook + pending-uid
+4. 🟡 MED  — PWA billing: discount, VAT, doc type
+5. 🟡 MED  — PWA members: add/edit form
+6. 🟡 MED  — Dashboard API: ยอดแชท, Affiliate, AutoPost (real data)
+7. 🟡 MED  — PWA Phase 2: easysale, affiliate, finance
+8. 🟡 MED  — Feature Flag Schema + AI Quota Tables (DB)
+9. 🟡 MED  — Blue-Green setup: สร้าง viiv-green + scripts
+10. 🔵 FUT — PWA Phase 3: receive, settings
+11. 🔵 FUT — Capacitor.js → APK/IPA
 ```
 Completed Today (2026-04-25)
 ```
@@ -427,13 +434,6 @@ KNOWN ISSUES v1.36:
 - statement.js: stRender pattern replace miss ตอน Pro แก้ครั้งสุดท้าย ต้อง verify ก่อน deploy
 - cheque dropdown อาจยัง render ไม่ครบ รอ test รอบถัดไป
 
-NEXT UP (ปรับ priority):
-1. 🔴 HIGH — statement.html: verify cheque fields + stRender fix
-2. 🔴 HIGH — PWA billing: discount, VAT, doc type
-3. 🔴 HIGH — pos_line.py: LINE Webhook + pending-uid
-4. 🟡 MED — PWA members: add/edit form
-5. 🟡 MED — Feature Flag Schema + AI Quota Tables
-
 GIT RESTORE POINTS เพิ่ม:
 89bd450  delivery.html UI patch
 [pending] statement.html+js complete — commit ยังไม่ได้ทำ
@@ -469,16 +469,6 @@ DECISIONS เพิ่ม:
 24 — 3-mode system แทน 2-button: delivered/cheque/appointment รวม negotiation_note ด้วย v1.37
 25 — upload flow 2-step: POST upload-slip → PATCH record (แยก slip upload กับ status update) v1.37
 
-NEXT UP (ปรับ priority):
-1. 🔴 HIGH — test statement flow end-to-end: create → partial → paid modal
-2. 🔴 HIGH — pos_line.py: LINE Webhook + pending-uid
-3. 🟡 MED — PWA billing: discount, VAT, doc type
-4. 🟡 MED — PWA members: add/edit form
-5. 🟡 MED — Feature Flag Schema + AI Quota Tables
-
-GIT RESTORE POINTS:
-[pending] statement v1.37 — commit หลัง verify
-
 Version: v1.37 | Updated: 2026-04-25
 
 ---
@@ -508,12 +498,6 @@ FILES CHANGED:
 - modules/pos/merchant/ui/dashboard/billing/statement.js (sync)
 - app/api/pos_statements.py (GET /list JOIN partners, POST /create snapshot, GET /{sid}/bills)
 
-NEXT UP:
-1. 🔴 HIGH — verify statement ทุก flow ทำงานถูกต้อง
-2. 🔴 HIGH — PWA billing: discount, VAT, doc type
-3. 🔴 HIGH — pos_line.py: LINE Webhook
-4. 🟡 MED  — PWA members: add/edit form
-
 Version: v1.38 | Updated: 2026-04-25
 
 [v1.39 UPDATE — 2026-04-25]
@@ -542,10 +526,212 @@ FILES CHANGED:
 - modules/pos/merchant/ui/dashboard/billing/statement.html (full rewrite — member-first create flow)
 - modules/pos/merchant/ui/dashboard/billing/statement.js (sync กับ statement.html)
 
-NEXT UP:
-1. 🔴 HIGH — verify statement ทุก flow ทำงานถูกต้อง
-2. 🔴 HIGH — PWA billing: discount, VAT, doc type
-3. 🔴 HIGH — pos_line.py: LINE Webhook
-4. 🟡 MED  — PWA members: add/edit form
-
 Version: v1.39 | Updated: 2026-04-25
+
+# VIIV PRINCIPLES — Architecture Laws & Workflow Update
+> เพิ่มต่อท้าย VIIV_MASTER.md
+> Updated: 2026-04-25
+
+---
+
+## [G] ARCHITECTURE LAWS (ห้ามละเมิด)
+
+### Law 1 — Single Source of Truth: SALES
+```
+bills table = ยอดขายทั้งระบบ (จุดเดียว)
+
+ครอบคลุมทุกเอกสาร:
+  invoice, receipt, reserve, delivery, creditnote, statement
+
+กฎ:
+  - ยอดขายเกิดได้จาก bills เท่านั้น
+  - table อื่นเก็บได้แค่ bill_id (reference) + metadata เฉพาะของตัวเอง
+  - ห้าม duplicate: ยอดเงิน, ข้อมูลลูกค้า, รายการสินค้า
+  - display / print / report ทุกอย่างดึงจาก bills เสมอ
+  - ละเมิด = ความเสียหายต่อระบบบัญชีทั้งหมด
+```
+
+### Law 2 — Single Source of Truth: MONEY
+```
+บัญชี/การเงิน = เงินจริง (money flow) เท่านั้น
+
+กฎ:
+  - รับ bill_id มาอ้างอิงเท่านั้น ไม่ duplicate ยอด
+  - ยอดในบัญชี = เงินจริง ไม่ใช่ยอดขาย
+  - ยอดขาย + ใบลดหนี้ + รายจ่ายอื่น → รวมเป็นยอดบัญชี
+  - bills และบัญชีต้องแยกกันเสมอ
+```
+
+### Law 3 — Single Source of Truth: CUSTOMER
+```
+members table (pos) = ลูกค้าทั้งระบบ (จุดเดียว)
+pos เป็นเจ้าภาพ members ทั้งระบบ
+
+ช่องทางสร้าง member (3 ทาง):
+  1. LINE/Chat → AI สร้างอัตโนมัติเมื่อลูกค้าติดต่อเข้ามา
+  2. Admin/Staff สร้างเอง
+  3. Comment/Social → Chat ดูดเข้า members
+
+กฎ:
+  - ทุก module reference member_id เท่านั้น
+  - ห้าม module อื่นสร้าง customer table ของตัวเอง
+  - ลูกค้าคนเดียว = member record เดียวทั้งระบบ
+  - pos, chat, autopost, affiliate ใช้ member_id เดียวกัน
+```
+
+### Law 4 — Table Design Rule
+```
+ก่อนสร้าง column ใหม่ ต้องตอบได้ว่า:
+  "ข้อมูลนี้มีอยู่ใน bills หรือ members แล้วหรือเปล่า?"
+  ถ้าตอบว่า "มีแล้ว" → ห้ามสร้าง ให้ reference แทน
+  ถ้าตอบว่า "ไม่มี" → สร้างได้ แต่ต้องเป็น metadata เฉพาะ
+
+ตัวอย่างที่ถูกต้อง:
+  billing_statements เก็บ:
+    ✅ bill_ids[]       → reference เท่านั้น
+    ✅ due_single       → metadata เฉพาะ (วันนัดชำระ)
+    ✅ negotiation_note → metadata เฉพาะ (บันทึกเจรจา)
+    ✅ run_id           → ID สำหรับเรียกดู
+    ❌ customer_name    → มีใน bills แล้ว
+    ❌ total_amt        → มีใน bills แล้ว (ห้าม duplicate)
+```
+
+---
+
+## [H] WORKFLOW UPDATE (v1.41)
+
+### Execution Model (v1.42)
+```
+CGO Chat    = Claude Pro (แยกบัญชี) — architecture, decisions, MASTER.md
+CTO Chat    = Claude Pro (same account as Claude Code) — review, spec, สั่ง Claude Code
+Claude Code = Pro subscription (same as CTO) — implement ทั้งหมด
+             ⚠️ CTO + Claude Code = บัญชีเดียวกัน → limit นับรวม
+Terminal    = รับ pyeof จาก CGO โดยตรง — debug, grep, short scripts
+API Key     = debug only — ห้ามเขียนโค้ดใหม่
+
+เหตุผล:
+  - Pro = ไม่มีค่า token ต่อครั้ง → ใช้เขียนโค้ดทั้งหมด
+  - API = แพงมาก ($0.6/นาที sonnet) → debug only
+```
+
+### Pro Subscription Management
+```
+มี 3 บัญชี Pro หมุนเวียน (CGO แยกบัญชี + CTO/Claude Code ใช้บัญชีเดียวกัน)
+
+⚠️ สลับบัญชีที่ 80% limit (Rule 46) — ไม่รอจนเต็ม
+เหตุผล: ถ้าเต็มแล้วสลับ = ติด block ทั้งหมด ต้องลบลงใหม่
+
+CGO ต้องแจ้งผมเมื่อ:
+  - prompt ที่จะส่งมีขนาดใหญ่ (> 500 บรรทัด code)
+  - task นี้คาดว่าจะใช้ token เยอะ (multi-file rewrite)
+  → แจ้งก่อนส่ง เพื่อประเมินว่าต้องสลับบัญชีไหม
+
+วิธีเช็ค limit: ดูจาก Claude Code UI หรือถามผม
+```
+
+### CGO Prompt Rules (เพิ่มเติม)
+```
+Rule 40 — Single Source of Truth (ห้ามละเมิด)
+  bills = ยอดขาย | members = ลูกค้า | บัญชี = เงินจริง
+  ห้าม duplicate ข้อมูลข้าม table
+
+Rule 41 — Customer Single Source
+  members table คือลูกค้าทั้งระบบ
+  ห้าม module อื่นสร้าง customer/member table ของตัวเอง
+
+Rule 42 — Table Column Validation
+  ก่อนสร้าง column ใหม่ → ถามว่ามีใน bills/members แล้วหรือยัง
+  ถ้ามีแล้ว → ใช้ reference (id) แทน
+
+Rule 43 — API Usage Policy
+  API = debug only (หลัง implement เสร็จ)
+  Pro subscription = เขียนโค้ด, implement, rewrite
+  ห้ามใช้ API เขียนโค้ดใหม่หรือ rewrite ไฟล์ใหญ่
+
+Rule 44 — Pro Limit Warning
+  CGO แจ้งผมที่ 90% limit ก่อนส่ง task ใหญ่
+  มี 3 บัญชี Pro หมุนเวียน
+  สลับที่ 90% ไม่ใช่รอให้เต็ม
+```
+
+---
+
+## [I] LESSONS LEARNED (2026-04-25)
+
+```
+❌ สิ่งที่ผิดพลาดวันนี้:
+  - สร้าง columns ซ้ำใน billing_statements (partner_name, contact_name ฯลฯ)
+  - ไม่ฟัง CGO ที่บอกว่า "ข้อมูลมีอยู่แล้ว"
+  - rewrite ทั้งไฟล์ทุกรอบแทนที่จะเพิ่ม function
+  - ใช้ API เขียนโค้ดใหญ่ → เสีย $17 + เสียเวลาทั้งวัน
+  - concept ไม่นิ่งก่อน implement
+
+✅ วิธีที่ถูกต้อง:
+  - Lock concept ก่อนเสมอ (CGO approve แล้วค่อยเขียน)
+  - ถาม "มีใน bills/members แล้วไหม?" ก่อนสร้างอะไรใหม่
+  - เพิ่ม function ไม่ใช่ rewrite
+  - Pro สำหรับเขียนโค้ด API สำหรับ debug
+  - สลับ Pro ที่ 90% limit
+```
+
+---
+
+> Version: v1.41 | Updated: 2026-04-25
+> "ยอดขายมีจุดเดียว เงินมีจุดเดียว ลูกค้ามีจุดเดียว"
+
+---
+
+## [E] PROGRESS LOG
+
+### [v1.41 UPDATE — 2026-04-25]
+
+COMPLETED v1.41:
+✅ card — customer_name/customer_code จาก bills โดยตรง (ลบ partner_name/contact_name)
+✅ create modal — ค้นหาบิลโดยตรง ไม่ผ่าน member (stSearchBillsDirect, debounce 400ms)
+✅ unpaid-bills query — require q, LIMIT 20, ลบ customer_data (Rule 40)
+✅ lock customer_id — บิลต่าง customer ถูก disabled อัตโนมัติ
+✅ print A4 — Sarabun Google Fonts, store/info+bank/list+bills parallel fetch
+✅ print customer — ดึงจาก bills[0] โดยตรง (ไม่ duplicate จาก statement)
+✅ paid cascade → bills status='paid' (มีอยู่แล้วใน record endpoint)
+✅ void/ลบ cascade → bills status='pending' (มีอยู่แล้วใน delete endpoint)
+✅ action bar — ปุ่มลบซ่อนเมื่อ status='paid'
+
+Files changed:
+  app/api/pos_statements.py
+  modules/pos/merchant/ui/dashboard/billing/statement.js
+  modules/pos/merchant/ui/dashboard/billing/statement.html
+
+---
+
+### [v1.42 UPDATE — 2026-04-25]
+
+EXECUTION MODEL CHANGE:
+  CTO Chat    = Claude Pro (same account as Claude Code) — review, spec, สั่ง implement
+  Claude Code = Pro subscription (same as CTO) ⚠️ limit นับรวม → แจ้ง CGO ที่ 80%
+  CGO Chat    = Claude Pro (แยกบัญชี) — architecture, decisions, MASTER.md
+  Terminal    = debug, grep, pyeof เท่านั้น
+  API Key     = debug only ห้ามเขียนโค้ดใหม่
+
+STATEMENT.HTML STATUS (สถานะจริงวันนี้):
+  ✅ list + search + card (customer_name/customer_code จาก bills โดยตรง)
+  ✅ create modal (ค้นหาบิลโดยตรง, lock customer_id หลังเลือกบิลแรก)
+  ✅ cheque fields + 3-mode payment (delivered/cheque/appointment)
+  ✅ partial/paid modal + upload slip
+  ✅ print A4 (Sarabun, store/settings + bank/list + bills parallel fetch)
+  ✅ action bar: ปุ่มลบซ่อนเมื่อ status=paid
+  ✅ create.html search dropdown bug fixed (polling window.VIIV_TOKEN)
+  ⚠️ รายละเอียดลูกค้าใน right panel ยังไม่ครบ (ที่อยู่, tax_id, เบอร์)
+     → ต้อง JOIN members realtime ตอน stOpen() display (ห้าม duplicate ใน table)
+
+COMPLETED v1.42:
+✅ VIIV_MASTER.md — ปรับ Execution Model v1.42 (CTO+Claude Code = same account)
+✅ VIIV_MASTER.md — เพิ่ม Rule 45, 46, 47
+✅ VIIV_MASTER.md — ลบ Next Up ซ้ำใน v1.36-v1.39 blocks
+✅ VIIV_MASTER.md — อัปเดต Next Up priority ตามสถานะจริง
+
+RULES เพิ่ม:
+Rule 45 — CGO ห้าม debug ทีละบรรทัดเอง → วิเคราะห์ root cause ส่ง spec ให้ Claude Code
+Rule 46 — CTO + Claude Code ใช้ Pro บัญชีเดียวกัน → แจ้ง CGO ที่ 80% limit
+Rule 47 — billing/create.html: init ด้วย polling window.VIIV_TOKEN แทน _tok_ pattern
+
+Version: v1.42 | Updated: 2026-04-25

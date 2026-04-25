@@ -529,137 +529,147 @@ window.addEventListener('viiv_load_draft',function(e){
 })();
 
 (function(){
-  function _tok_create(e){
-  if(e.detail&&e.detail.token)TOKEN=e.detail.token;
-  // โหลด store settings เพื่อเอา default vat_mode
-  if(!window._storeSettings){
-    fetch((window.API_BASE||'')+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      window._storeSettings=d;
-      var vtEl=document.getElementById('billVatType');
-      if(vtEl) vtEl.value=d.vat_mode||'included';
-    }).catch(function(){});
-  }
-  loadData();
-  reloadMembers();;
-  // INIT - DOM พร้อมแล้ว (guard ทุก element)
-  uiDocType();
-  calc();
-  // Search
-  var si=document.getElementById('billSearchInput');
+  var _inited=false;
   var sd=document.getElementById('billSearchDrop');
-  if(si){
-    var _ime=false;
-    si.addEventListener('compositionstart',function(){_ime=true;});
-    si.addEventListener('compositionend',function(){_ime=false;});
-    si.addEventListener('input',function(){
-      var q=this.value.toLowerCase();
-      if(!q){sd.style.display='none';return;}
-      var found=allProducts.filter(function(p){
-        return p.status!=='inactive'&&((p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q));
-      }).slice(0,8);
-      if(!found.length){sd.style.display='none';return;}
-      sd.innerHTML='';
-      found.forEach(function(p){
-        var div=document.createElement('div');div.className='bill-search-item';
-        div.innerHTML='<span>'+p.name+' <span style="color:#9ca3af;font-size:11px;">('+p.sku+')</span></span><span style="color:#e8b93e;font-weight:600;">'+fmt(p.price)+'</span>';
-        div.addEventListener('click',function(){addProduct(p.id);});
-        sd.appendChild(div);
-      });
-      sd.style.display='block';
-    });
-    si.addEventListener('keydown',function(e){
-      if(e.key!=='Enter'||_ime)return;
-      e.preventDefault();
-      var q=this.value.trim().toLowerCase();if(!q)return;
-      var p=allProducts.find(function(x){return x.status!=='inactive'&&(x.sku||'').toLowerCase()===q;});
-      if(!p){showMsg('ไม่พบรหัสสินค้า "'+this.value+'" กรุณาตรวจสอบ SKU','#ef4444');this.select();return;}
-      addProduct(p.id);this.value='';sd.style.display='none';
-    });
-  }
-  // Scan
-  var scanTog=document.getElementById('billScanToggle');
-  var scanIn=document.getElementById('billScanInput');
-  var scanAr=document.getElementById('billScanArea');
-  if(scanTog)scanTog.addEventListener('click',function(){
-    if(!scanAr)return;
-    scanAr.style.display=scanAr.style.display==='none'?'block':'none';
-    if(scanAr.style.display==='block'&&scanIn)scanIn.focus();
-  });
-  if(scanIn)scanIn.addEventListener('keydown',function(e){
-    if(e.key!=='Enter')return;
-    var code=this.value.trim();
-    var p=allProducts.find(function(x){return x.sku===code||x.id===code;});
-    if(p){addProduct(p.id);showMsg('เพิ่ม '+p.name,'#16a34a');}
-    else showMsg('ไม่พบสินค้า: '+code,'#ef4444');
-    this.value='';
-  });
-  // Member
-  var ci=document.getElementById('billCustomer');
   var md=document.getElementById('billMemberDrop');
-  if(ci){
-    ci.addEventListener('input',function(){
-      _selectedMember=null;ci.classList.remove('error');
-      reloadMembers();
-      var q=this.value.toLowerCase();
-      if(!q){md.style.display='none';return;}
-      var found=allMembers.filter(function(m){
-        return (m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q)||(m.code||'').toLowerCase().includes(q);
-      }).slice(0,8);
-      md.innerHTML='';
-      if(!found.length){
-        var no=document.createElement('div');no.style.cssText='padding:8px 14px;font-size:12px;color:#aaa;';
-        no.textContent='ไม่พบสมาชิก';md.appendChild(no);
-      } else {
-        found.forEach(function(m){
+  function doInit(tok){
+    if(_inited) return;
+    _inited=true;
+    if(tok) TOKEN=tok;
+    if(!TOKEN) return;
+    if(!window._storeSettings){
+      fetch((window.API_BASE||'')+'/api/pos/store/settings',{headers:{'Authorization':'Bearer '+TOKEN}})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        window._storeSettings=d;
+        var vtEl=document.getElementById('billVatType');
+        if(vtEl) vtEl.value=d.vat_mode||'included';
+      }).catch(function(){});
+    }
+    loadData();
+    reloadMembers();
+    uiDocType();
+    calc();
+    var si=document.getElementById('billSearchInput');
+    if(si){
+      var _ime=false;
+      si.addEventListener('compositionstart',function(){_ime=true;});
+      si.addEventListener('compositionend',function(){_ime=false;});
+      si.addEventListener('input',function(){
+        var q=this.value.toLowerCase();
+        if(!q){sd.style.display='none';return;}
+        var found=allProducts.filter(function(p){
+          return p.status!=='inactive'&&((p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q));
+        }).slice(0,8);
+        if(!found.length){sd.style.display='none';return;}
+        sd.innerHTML='';
+        found.forEach(function(p){
           var div=document.createElement('div');div.className='bill-search-item';
-          var s1=document.createElement('span');s1.textContent=m.name;
-          var s2=document.createElement('span');s2.style.cssText='color:#9ca3af;font-size:11px;';s2.textContent=m.code||m.phone||'';
-          div.appendChild(s1);div.appendChild(s2);
-          div.addEventListener('mousedown',function(e){
-            e.preventDefault();
-            _selectedMember=m;
-            ci.value=m.name+(m.phone?' ('+m.phone+')':'');ci.classList.remove('error');
-            var mc=document.getElementById('billMemberCode');if(mc)mc.value=m.code||m.id||'—';
-            md.style.display='none';
-          });
-          md.appendChild(div);
+          div.innerHTML='<span>'+p.name+' <span style="color:#9ca3af;font-size:11px;">('+p.sku+')</span></span><span style="color:#e8b93e;font-weight:600;">'+fmt(p.price)+'</span>';
+          div.addEventListener('click',function(){addProduct(p.id);});
+          sd.appendChild(div);
         });
-      }
-      var ab=document.createElement('div');
-      ab.style.cssText='padding:8px 14px;font-size:12px;color:#e8b93e;font-weight:600;cursor:pointer;border-top:1px solid #f0ede8;';
-      ab.textContent='+ สร้างสมาชิกใหม่';
-      ab.addEventListener('mousedown',function(e){e.preventDefault();md.style.display='none';showNewMemberPopup(ci.value);});
-      md.appendChild(ab);md.style.display='block';
+        sd.style.display='block';
+      });
+      si.addEventListener('keydown',function(e){
+        if(e.key!=='Enter'||_ime)return;
+        e.preventDefault();
+        var q=this.value.trim().toLowerCase();if(!q)return;
+        var p=allProducts.find(function(x){return x.status!=='inactive'&&(x.sku||'').toLowerCase()===q;});
+        if(!p){showMsg('ไม่พบรหัสสินค้า "'+this.value+'" กรุณาตรวจสอบ SKU','#ef4444');this.select();return;}
+        addProduct(p.id);this.value='';sd.style.display='none';
+      });
+    }
+    var scanTog=document.getElementById('billScanToggle');
+    var scanIn=document.getElementById('billScanInput');
+    var scanAr=document.getElementById('billScanArea');
+    if(scanTog)scanTog.addEventListener('click',function(){
+      if(!scanAr)return;
+      scanAr.style.display=scanAr.style.display==='none'?'block':'none';
+      if(scanAr.style.display==='block'&&scanIn)scanIn.focus();
     });
-    ci.addEventListener('blur',function(){
-      setTimeout(function(){
-        md.style.display='none';
-        // ถ้าพิมพ์ชื่อตรงๆ โดยไม่เลือกจาก dropdown ให้เก็บเป็น manual customer
-        if(ci.value&&!_selectedMember){
-          _selectedMember={name:ci.value,phone:'',code:'',id:''};
+    if(scanIn)scanIn.addEventListener('keydown',function(e){
+      if(e.key!=='Enter')return;
+      var code=this.value.trim();
+      var p=allProducts.find(function(x){return x.sku===code||x.id===code;});
+      if(p){addProduct(p.id);showMsg('เพิ่ม '+p.name,'#16a34a');}
+      else showMsg('ไม่พบสินค้า: '+code,'#ef4444');
+      this.value='';
+    });
+    var ci=document.getElementById('billCustomer');
+    if(ci){
+      ci.addEventListener('input',function(){
+        _selectedMember=null;ci.classList.remove('error');
+        reloadMembers();
+        var q=this.value.toLowerCase();
+        if(!q){md.style.display='none';return;}
+        var found=allMembers.filter(function(m){
+          return (m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q)||(m.code||'').toLowerCase().includes(q);
+        }).slice(0,8);
+        md.innerHTML='';
+        if(!found.length){
+          var no=document.createElement('div');no.style.cssText='padding:8px 14px;font-size:12px;color:#aaa;';
+          no.textContent='ไม่พบสมาชิก';md.appendChild(no);
+        } else {
+          found.forEach(function(m){
+            var div=document.createElement('div');div.className='bill-search-item';
+            var s1=document.createElement('span');s1.textContent=m.name;
+            var s2=document.createElement('span');s2.style.cssText='color:#9ca3af;font-size:11px;';s2.textContent=m.code||m.phone||'';
+            div.appendChild(s1);div.appendChild(s2);
+            div.addEventListener('mousedown',function(e){
+              e.preventDefault();
+              _selectedMember=m;
+              ci.value=m.name+(m.phone?' ('+m.phone+')':'');ci.classList.remove('error');
+              var mc=document.getElementById('billMemberCode');if(mc)mc.value=m.code||m.id||'—';
+              md.style.display='none';
+            });
+            md.appendChild(div);
+          });
         }
-      },250);
+        var ab=document.createElement('div');
+        ab.style.cssText='padding:8px 14px;font-size:12px;color:#e8b93e;font-weight:600;cursor:pointer;border-top:1px solid #f0ede8;';
+        ab.textContent='+ สร้างสมาชิกใหม่';
+        ab.addEventListener('mousedown',function(e){e.preventDefault();md.style.display='none';showNewMemberPopup(ci.value);});
+        md.appendChild(ab);md.style.display='block';
+      });
+      ci.addEventListener('blur',function(){
+        setTimeout(function(){
+          md.style.display='none';
+          if(ci.value&&!_selectedMember){
+            _selectedMember={name:ci.value,phone:'',code:'',id:''};
+          }
+        },250);
+      });
+    }
+    var els={billDiscount:'input',billDiscountType:'change',billVat:'change',billPaid:'input'};
+    var fns={billDiscount:calc,billDiscountType:calc,billVat:calc,billPaid:calcChange};
+    Object.keys(els).forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener(els[id],fns[id]);});
+    var bc=document.getElementById('billClearBtn');if(bc)bc.addEventListener('click',clearBill);
+    var bd=document.getElementById('billDraftBtn');if(bd)bd.addEventListener('click',function(){save('draft');});
+    var bs=document.getElementById('billSubmitBtn');if(bs)bs.addEventListener('click',function(){save('paid');});
+    var bdt=document.getElementById('billDocType');if(bdt)bdt.addEventListener('change',uiDocType);
+    document.addEventListener('click',function(e){
+      if(sd&&!e.target.closest('.bill-search-wrap'))sd.style.display='none';
+      if(md&&!e.target.closest('.bill-meta-row'))md.style.display='none';
     });
   }
-  // Buttons
-  var els={billDiscount:'input',billDiscountType:'change',billVat:'change',billPaid:'input'};
-  var fns={billDiscount:calc,billDiscountType:calc,billVat:calc,billPaid:calcChange};
-  Object.keys(els).forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener(els[id],fns[id]);});
-  var bc=document.getElementById('billClearBtn');if(bc)bc.addEventListener('click',clearBill);
-  var bd=document.getElementById('billDraftBtn');if(bd)bd.addEventListener('click',function(){save('draft');});
-  var bs=document.getElementById('billSubmitBtn');if(bs)bs.addEventListener('click',function(){save('paid');});
-  var bdt=document.getElementById('billDocType');if(bdt)bdt.addEventListener('change',uiDocType);
-  document.addEventListener('click',function(e){
-    if(sd&&!e.target.closest('.bill-search-wrap'))sd.style.display='none';
-    if(md&&!e.target.closest('.bill-meta-row'))md.style.display='none';
+  // Try immediately — token อาจมีอยู่แล้วก่อน event ส่ง
+  doInit(window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'');
+  // Listen สำหรับกรณี token มาทีหลัง
+  window.addEventListener('viiv_token_ready',function(e){
+    var tok=e.detail&&e.detail.token?e.detail.token:'';
+    if(tok) TOKEN=tok;
+    if(_inited){loadData();return;}
+    doInit(tok||TOKEN);
   });
-  }
-  window.removeEventListener('viiv_token_ready',window._tok_create);
-  window._tok_create=_tok_create;
-  window.addEventListener('viiv_token_ready',_tok_create);
-});
+  // Poll fallback: ถ้า token ยังไม่พร้อม poll ทุก 100ms สูงสุด 3 วินาที
+  var _pc=0,_poll=setInterval(function(){
+    _pc++;
+    if(_inited||_pc>30){clearInterval(_poll);return;}
+    var tok=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+    if(tok){clearInterval(_poll);doInit(tok);}
+  },100);
+})();
 })();
 </script>
 </body>
