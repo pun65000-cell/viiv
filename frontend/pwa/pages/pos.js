@@ -207,18 +207,17 @@
   }
 
   function _openSalesSheet() {
-    const PC = 'https://concore.viiv.me/superboard/pages/';
     openSheet(`
       <div style="padding:0 0 12px">
         <div class="pm-title" style="padding:0 16px 12px;font-size:var(--fs-lg);font-weight:700">ยอดขาย</div>
         ${[
-          { icon:'📅', label:'ยอดขายวันนี้',  url: PC+'sales.html?tab=today'  },
-          { icon:'📆', label:'ยอดขายเดือนนี้', url: PC+'sales.html?tab=month'  },
-          { icon:'📈', label:'รายงานยอดขาย',   url: PC+'sales.html'            },
+          { icon:'📅', label:'ยอดขายวันนี้',   tab:'today' },
+          { icon:'📆', label:'ยอดขายเดือนนี้',  tab:'month' },
+          { icon:'📈', label:'รายงานยอดขาย',    tab:'all'   },
         ].map(item => `
-          <div class="list-item" style="border-bottom:1px solid var(--bdr)" onclick="window.open('${item.url}','_blank');closeSheet()">
-            <div style="font-size:1.25rem;width:28px;text-align:center;flex-shrink:0">${item.icon}</div>
-            <div class="li-left"><div class="li-title">${_esc(item.label)}</div></div>
+          <div class="list-item" style="border-bottom:1px solid var(--bdr)" onclick="Router.go('sales',{tab:'${item.tab}'});closeSheet()">
+            <span style="font-size:1.3rem">${item.icon}</span>
+            <div class="li-left"><div class="li-title">${item.label}</div></div>
             <div style="color:var(--muted)">›</div>
           </div>`).join('')}
       </div>`);
