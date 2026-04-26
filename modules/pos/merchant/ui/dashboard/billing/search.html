@@ -624,7 +624,7 @@ window.openShipPopup=function(dbId){
   // reset statement indicator ก่อนแล้วค่อยอัปเดต
   var stmBtn=document.getElementById('spStmBtn');
   if(stmBtn){stmBtn.style.background='#f3f4f6';stmBtn.style.color='#d1d5db';stmBtn.style.border='1.5px solid #e5e7eb';stmBtn.title='';}
-  fetch(API+'/api/pos/statements/by-bill/'+b.id,{headers:{Authorization:'Bearer '+TOKEN}})
+  fetch(API+'/api/pos/statements/by-bill/'+(b.db_id||b.id),{headers:{Authorization:'Bearer '+TOKEN}})
   .then(function(r){return r.json();}).then(function(st){
     var stEl=document.getElementById('stmInfo');
     var stmBtn=document.getElementById('spStmBtn');

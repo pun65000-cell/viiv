@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ยอดขาย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#f5f0e8;color:#2c2c2c;min-height:100vh}
+.top-bar{background:#fff;border-bottom:1px solid #e0d8c8;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.top-bar h1{font-size:18px;font-weight:700}
+.tab-bar{display:flex;background:#fff;border-bottom:2px solid #e0d8c8;padding:0 20px}
+.tab-btn{padding:12px 20px;border:none;background:none;font-size:14px;font-weight:600;cursor:pointer;color:#999;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab-btn.active{color:#b8972a;border-bottom-color:#b8972a}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px 20px}
+.sum-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.sum-label{font-size:12px;color:#999;margin-bottom:6px}
+.sum-value{font-size:22px;font-weight:700;color:#2c2c2c}
+.sum-value.gold{color:#b8972a}
+.sum-sub{font-size:12px;color:#999;margin-top:4px}
+.bill-list{padding:0 20px 80px}
+.bill-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.bill-no{font-size:13px;font-weight:700}
+.bill-cust{font-size:12px;color:#999;margin-top:2px}
+.bill-items{font-size:12px;color:#666;margin-top:4px}
+.bill-total{font-size:16px;font-weight:700;color:#b8972a;white-space:nowrap}
+.bill-date{font-size:11px;color:#bbb;margin-top:4px;text-align:right}
+.tag-green{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#16a34a}
+.pay-badge{font-size:11px;padding:2px 7px;border-radius:10px;background:#f5f0e8;color:#666;margin-top:4px;display:inline-block}
+.empty{text-align:center;padding:60px 20px;color:#bbb;font-size:14px}
+.loading{text-align:center;padding:60px 20px;color:#bbb}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <button onclick="history.back()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#666">←</button>
+  <h1>ยอดขาย</h1>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('today')" id="tab-today">วันนี้</button>
+  <button class="tab-btn" onclick="switchTab('month')" id="tab-month">เดือนนี้</button>
+  <button class="tab-btn" onclick="switchTab('all')" id="tab-all">ทั้งหมด</button>
+</div>
+<div id="summary-area" class="summary-grid"></div>
+<div id="list-area" class="bill-list"><div class="loading">กำลังโหลด...</div></div>
+<script>
+let _token = '';
+let _tab = 'today';
+let _bills = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+  _token = localStorage.getItem('viiv_token') || '';
+  const urlTab = new URLSearchParams(location.search).get('tab');
+  if (urlTab) _tab = urlTab;
+  setActiveTab(_tab);
+  loadBills();
+});
+
+window.addEventListener('message', e => {
+  if (e.data?.type === 'viiv_token' && e.data.token) {
+    _token = e.data.token;
+    loadBills();
+  }
+});
+
+async function loadBills() {
+  document.getElementById('list-area').innerHTML = '<div class="loading">กำลังโหลด...</div>';
+  try {
+    const res = await fetch('/api/pos/bills/list?status=paid&limit=500', {
+      headers: { Authorization: 'Bearer ' + _token }
+    });
+    _bills = await res.json();
+    if (!Array.isArray(_bills)) _bills = [];
+    render();
+  } catch(e) {
+    document.getElementById('list-area').innerHTML = '<div class="empty">โหลดไม่ได้: ' + e.message + '</div>';
+  }
+}
+
+function filterBills() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  const monthStr = now.toISOString().slice(0,7);
+  if (_tab === 'today') return _bills.filter(b => (b.created_at||'').startsWith(todayStr));
+  if (_tab === 'month') return _bills.filter(b => (b.created_at||'').startsWith(monthStr));
+  return _bills;
+}
+
+function render() {
+  const list = filterBills();
+  const total = list.reduce((s,b) => s+(b.total||0), 0);
+  const count = list.length;
+  const avg = count ? total/count : 0;
+  const payMap = {};
+  list.forEach(b => { payMap[b.pay_method] = (payMap[b.pay_method]||0)+(b.total||0); });
+  const payRows = Object.entries(payMap).map(([k,v]) =>
+    `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+      <span style="color:#999">${fmtPay(k)}</span>
+      <span style="font-weight:600">฿${fmt(v)}</span>
+    </div>`).join('') || '<div style="font-size:12px;color:#bbb;margin-top:4px">ไม่มีข้อมูล</div>';
+
+  document.getElementById('summary-area').innerHTML = `
+    <div class="sum-card">
+      <div class="sum-label">ยอดขายรวม</div>
+      <div class="sum-value gold">฿${fmt(total)}</div>
+      <div class="sum-sub">${count} บิล</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">เฉลี่ย/บิล</div>
+      <div class="sum-value">฿${fmt(avg)}</div>
+    </div>
+    <div class="sum-card" style="grid-column:span 2">
+      <div class="sum-label">แยกตามช่องทางชำระ</div>
+      ${payRows}
+    </div>`;
+
+  if (!list.length) {
+    document.getElementById('list-area').innerHTML = '<div class="empty">ไม่มีข้อมูลยอดขาย</div>';
+    return;
+  }
+  const sorted = [...list].sort((a,b) => new Date(b.created_at)-new Date(a.created_at));
+  document.getElementById('list-area').innerHTML = sorted.map(b => {
+    const items = (b.items||[]).map(i=>i.name).join(', ');
+    return `<div class="bill-card">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="bill-no">${esc(b.bill_no||b.id)}</div>
+          <span class="tag-green">ชำระแล้ว</span>
+        </div>
+        <div class="bill-cust">${esc(b.customer_name||'ลูกค้าทั่วไป')}</div>
+        <div class="bill-items">${esc(items||'—')}</div>
+        <span class="pay-badge">${fmtPay(b.pay_method)}</span>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="bill-total">฿${fmt(b.total)}</div>
+        <div class="bill-date">${fmtDate(b.created_at)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchTab(tab) {
+  _tab = tab;
+  setActiveTab(tab);
+  render();
+}
+
+function setActiveTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('tab-'+tab);
+  if (el) el.classList.add('active');
+}
+
+function fmt(n) { return Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0}); }
+function esc(s) { return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  return d.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function fmtPay(p) {
+  return {cash:'เงินสด',transfer:'โอน',credit_card:'บัตรเครดิต',cod:'COD',cheque:'เช็ค'}[p]||p||'—';
+}
+</script>
+</body>
+</html>
