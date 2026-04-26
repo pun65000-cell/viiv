@@ -95,10 +95,12 @@ const Router = {
     });
 
     // initial state
-    const hash = location.hash.replace('#', '') || 'home';
-    const startPage = Router.pages[hash] ? hash : 'home';
-    history.replaceState({ page: startPage, params: {} }, '', '#' + startPage);
-    Router.go(startPage, {}, { replace: true });
+    const rawHash = location.hash.replace('#', '') || 'home';
+    const [hashPage, hashQuery] = rawHash.split('?');
+    const hashParams = Object.fromEntries(new URLSearchParams(hashQuery || ''));
+    const startPage = Router.pages[hashPage] ? hashPage : 'home';
+    history.replaceState({ page: startPage, params: hashParams }, '', '#' + rawHash);
+    Router.go(startPage, hashParams, { replace: true });
   }
 };
 window.Router = Router;

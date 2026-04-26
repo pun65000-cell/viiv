@@ -12,7 +12,8 @@
     async load(params) {
       _destroyed = false;
       _q = '';
-      _tab = params?.tab || 'store';
+      const _hashTab = location.hash.includes('tab=partner') ? 'partner' : null;
+      _tab = _hashTab || params?.tab || 'store';
       _refreshHandler = () => _reload();
       document.addEventListener('viiv:refresh', _refreshHandler);
       await _reload();
@@ -369,7 +370,7 @@
   // ─── PUBLIC ──────────────────────────────────────────────────────────────────
 
   window.MembersPage = {
-    switchTab(tab) { _tab = tab; _q = ''; _reload(); },
+    switchTab(tab) { _tab = tab; _q = ''; history.replaceState(null,'','#members?tab='+tab); _reload(); },
     openCreate() {
       openSheet(_tab === 'store' ? _storeFormHtml({}) : _partnerFormHtml({}));
     },
