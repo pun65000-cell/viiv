@@ -593,12 +593,11 @@ window.openShipPopup=function(dbId){
     }
     infoHtml+='</div>';
   }
-  // statement info
-  infoHtml+='<div id="stmInfo"></div>';
   // activity log
+  infoHtml+='<div style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;">ประวัติการเปลี่ยนแปลง</div>';
+  infoHtml+='<div id="stmInfo"><div style="font-size:10px;color:#9ca3af;padding:4px 0;">กำลังโหลด...</div></div>';
   if(b.activity_log&&b.activity_log.length){
     var logs=b.activity_log.slice().reverse();
-    infoHtml+='<div style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;">ประวัติการเปลี่ยนแปลง</div>';
     logs.forEach(function(log){
       var dt=new Date(log.at).toLocaleString('th');
       infoHtml+='<div style="font-size:10px;padding:5px 8px;background:#f8fafc;border-radius:6px;margin-bottom:3px;border-left:3px solid #e2e8f0;">';
@@ -611,18 +610,29 @@ window.openShipPopup=function(dbId){
       if(log.photo) infoHtml+='<button onclick="window.viewPhoto(\''+log.photo+'\')" style="margin-top:4px;background:#e0f2fe;border:1px solid #bae6fd;border-radius:6px;padding:3px 8px;font-size:10px;color:#0369a1;cursor:pointer;">🖼 ดูรูปภาพ</button>';
       infoHtml+='</div>';
     });
-    infoHtml+='</div>';
   }
+  infoHtml+='</div>';
   infoEl.innerHTML=infoHtml;
   fetch(API+'/api/pos/statements/by-bill/'+b.id,{headers:{Authorization:'Bearer '+TOKEN}})
   .then(function(r){return r.json();}).then(function(st){
+    var stEl=document.getElementById('stmInfo');
+    if(!stEl) return;
     if(st&&st.run_id){
-      var stEl=document.getElementById('stmInfo');
-      if(stEl) stEl.innerHTML=
-        '<div style="margin:8px 0;padding:6px 10px;background:#ede9fe;border-radius:6px;font-size:12px;color:#5b21b6;">'+
-        '📋 วางบิล '+st.run_id+' โดย '+st.created_by+' · '+(st.created_at||'').slice(0,16).replace('T',' ')+'</div>';
+      var dt=new Date(st.created_at).toLocaleString('th');
+      stEl.innerHTML=
+        '<div style="font-size:10px;padding:5px 8px;background:#ede9fe;border-radius:6px;margin-bottom:4px;border-left:3px solid #a78bfa;">'+
+          '<div style="color:#9ca3af;font-size:9px;">'+dt+' · '+st.created_by+'</div>'+
+          '<div style="font-weight:600;color:#5b21b6;">📝 '+st.run_id+'</div>'+
+        '</div>'+
+        '<button onclick="window.navigate&&navigate(\'billing\',5)" style="width:100%;padding:6px 12px;background:#ede9fe;color:#5b21b6;border:1px solid #a78bfa;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;">📋 ดูใบวางบิล '+st.run_id+'</button>';
+    } else {
+      stEl.innerHTML=
+        '<button onclick="window.navigate&&navigate(\'billing\',5)" style="width:100%;padding:6px 12px;background:#fefce8;color:#854d0e;border:1px solid #fde68a;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;">+ สร้างใบวางบิล</button>';
     }
-  }).catch(function(){});
+  }).catch(function(){
+    var stEl=document.getElementById('stmInfo');
+    if(stEl) stEl.innerHTML='';
+  });
   // reset grid
   setTimeout(function(){
     var btns=document.querySelectorAll('#spShipGrid button');
