@@ -332,7 +332,9 @@ function clearBill(){
   clearBillSilent();
 }
 window.onPayMethodChange = function(){
-  var pm=document.getElementById('billPayMethod').value;
+  var pmEl=document.getElementById('billPayMethod');
+  if(!pmEl) return;
+  var pm=pmEl.value;
   // UI-only: show/hide waiting date row — business logic lives in backend
   var needDt=['cash_waiting','transfer_waiting','deposit','credit'];
   var dtRow=document.getElementById('billWaitingRow');
@@ -654,7 +656,7 @@ window.addEventListener('viiv_load_draft',function(e){
   window.addEventListener('viiv_token_ready',function(e){
     var tok=e.detail&&e.detail.token?e.detail.token:'';
     if(tok) TOKEN=tok;
-    if(_inited){loadData();return;}
+    if(_inited){loadData();reloadMembers();return;}
     doInit(tok||TOKEN);
   });
   // Poll fallback: ถ้า token ยังไม่พร้อม poll ทุก 100ms สูงสุด 3 วินาที

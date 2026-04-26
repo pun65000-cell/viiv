@@ -95,10 +95,10 @@ def list_statements(authorization: str = Header("")):
 @router.get("/unpaid-bills")
 def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
     tid, _ = get_tenant_user(authorization)
-    if not q.strip():
-        return []
+    has_q = bool(q.strip())
     with engine.connect() as c:
-        rows = c.execute(text("""
+        q_filter = "AND (b.customer_name ILIKE :qp OR b.bill_no ILIKE :qp OR b.customer_code ILIKE :qp)" if has_q else ""
+        rows = c.execute(text(f"""
             SELECT b.id, b.bill_no, b.customer_id, b.customer_name,
                    b.customer_code, b.total, b.created_at,
                    m.phone, m.address, m.tax_id
@@ -107,7 +107,7 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
             WHERE b.tenant_id = :tid
               AND b.status NOT IN ('paid','voided','deleted','draft')
               AND (b.shipping_status IS NULL OR b.shipping_status != 'received_payment')
-              AND (b.customer_name ILIKE :qp OR b.bill_no ILIKE :qp OR b.customer_code ILIKE :qp)
+              {q_filter}
               AND b.id::text NOT IN (
                 SELECT jsonb_array_elements_text(bs2.bill_ids)
                 FROM billing_statements bs2
@@ -116,7 +116,7 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
                   AND bs2.bill_ids IS NOT NULL
                   AND bs2.bill_ids != '[]'::jsonb
               )
-            ORDER BY b.created_at DESC LIMIT 20
+            ORDER BY b.created_at DESC LIMIT 50
         """), {"tid": tid, "qp": f"%{q}%"}).fetchall()
     result = []
     for r in rows:

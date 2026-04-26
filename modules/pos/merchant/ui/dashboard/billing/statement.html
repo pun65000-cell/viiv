@@ -582,16 +582,20 @@ window.stOpenSelector=function(){
   _selectedBills=[];_selectedMember=null;_lockedCustomerId=null;
   var ms=document.getElementById('stMemberSearch');if(ms)ms.value='';
   var si=document.getElementById('stSelectedMemberInfo');if(si){si.style.display='none';si.innerHTML='';}
-  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">พิมพ์เพื่อค้นหาบิล...</div>';
+  var bl=document.getElementById('stBillList');if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
   document.getElementById('stSelectedCount').textContent='เลือก 0 รายการ';
   _updateConfirmBtn();
   document.getElementById('stSelectorModal').style.display='flex';
+  // โหลดบิลทั้งหมดทันทีที่เปิด popup
+  fetch(API+'/api/pos/statements/unpaid-bills?q=',{headers:authH()})
+  .then(function(r){return r.json();})
+  .then(function(d){_unpaidBills=Array.isArray(d)?d:[];stRenderBills();})
+  .catch(function(){if(bl)bl.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
 window.stSearchBillsDirect=function(){
   clearTimeout(_memberTimer);
   var q=(document.getElementById('stMemberSearch').value||'').trim();
   var bl=document.getElementById('stBillList');
-  if(!q){if(bl)bl.innerHTML='<div class="st-empty">พิมพ์เพื่อค้นหาบิล...</div>';return;}
   _memberTimer=setTimeout(function(){
     if(bl)bl.innerHTML='<div class="st-empty">กำลังโหลด...</div>';
     fetch(API+'/api/pos/statements/unpaid-bills?q='+encodeURIComponent(q),{headers:authH()})
