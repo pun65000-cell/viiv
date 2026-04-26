@@ -81,7 +81,7 @@
       <div class="bill-sum-row total"><span>ยอดสุทธิ</span><span id="billTotal" style="color:#e8b93e;font-size:18px;font-weight:700;">฿0.00</span></div>
       <div class="bill-sum-row">
         <span>จ่ายแบบ</span>
-        <select id="billPayMethod" class="bill-select-sm" onchange="onPayMethodChange()">
+        <select id="billPayMethod" class="bill-select-sm" onchange="window.onPayMethodChange&&window.onPayMethodChange()">
           <option value="cash">เงินสด (จ่ายแล้ว)</option>
           <option value="cash_waiting">เงินสด-รอส่ง</option>
           <option value="transfer">โอน/QR (จ่ายแล้ว)</option>
@@ -331,7 +331,7 @@ function clearBill(){
   if(billItems.length&&!confirm('ล้างบิลทั้งหมด?'))return;
   clearBillSilent();
 }
-function onPayMethodChange(){
+window.onPayMethodChange = function(){
   var pm=document.getElementById('billPayMethod').value;
   var statusMap={
     cash:             {status:'paid',    shipping:'received_payment', delay:0},
@@ -656,9 +656,6 @@ window.addEventListener('viiv_load_draft',function(e){
       ci.addEventListener('blur',function(){
         setTimeout(function(){
           md.style.display='none';
-          if(ci.value&&!_selectedMember){
-            _selectedMember={name:ci.value,phone:'',code:'',id:''};
-          }
         },250);
       });
     }
