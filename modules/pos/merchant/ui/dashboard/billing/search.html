@@ -164,7 +164,11 @@ window.bsFilter=function(){
     var mSh=!sh||(sh==='__none__'?!b.shipping_status:b.shipping_status===sh);
     return mQ&&mS&&mT&&mSh;
   });
-  filtered.sort(function(a,b){ return new Date(b.created_at)-new Date(a.created_at); });
+  filtered.sort(function(a,b){
+    var da=a.created_at?new Date(a.created_at).getTime():0;
+    var db=b.created_at?new Date(b.created_at).getTime():0;
+    return db-da;
+  });
   document.getElementById('bsCount').textContent='พบ '+filtered.length+' รายการ';
   render(filtered);
 };
