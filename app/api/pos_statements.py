@@ -49,7 +49,16 @@ def list_statements(authorization: str = Header("")):
                    (SELECT b.customer_code FROM bills b
                     WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_code,
                    (SELECT b.customer_data::text FROM bills b
-                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_data
+                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_data,
+                   (SELECT m.phone FROM members m
+                    WHERE m.id::text = (SELECT b.customer_id::text FROM bills b
+                    WHERE b.id::text=(bs.bill_ids::jsonb->>0) LIMIT 1) LIMIT 1) AS customer_phone,
+                   (SELECT m.address FROM members m
+                    WHERE m.id::text = (SELECT b.customer_id::text FROM bills b
+                    WHERE b.id::text=(bs.bill_ids::jsonb->>0) LIMIT 1) LIMIT 1) AS customer_address,
+                   (SELECT m.tax_id FROM members m
+                    WHERE m.id::text = (SELECT b.customer_id::text FROM bills b
+                    WHERE b.id::text=(bs.bill_ids::jsonb->>0) LIMIT 1) LIMIT 1) AS customer_tax_id
             FROM billing_statements bs
             WHERE bs.tenant_id=:tid AND bs.status != 'cancelled'
             ORDER BY bs.created_at DESC LIMIT 100
@@ -77,6 +86,9 @@ def list_statements(authorization: str = Header("")):
             "customer_name": r[18],
             "customer_code": r[19],
             "customer_data": cd,
+            "customer_phone": r[21] or "",
+            "customer_address": r[22] or "",
+            "customer_tax_id": r[23] or "",
         })
     return result
 
@@ -88,10 +100,12 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
     with engine.connect() as c:
         rows = c.execute(text("""
             SELECT b.id, b.bill_no, b.customer_id, b.customer_name,
-                   b.customer_code, b.total, b.created_at
+                   b.customer_code, b.total, b.created_at,
+                   m.phone, m.address, m.tax_id
             FROM bills b
+            LEFT JOIN members m ON b.customer_id = m.id::text
             WHERE b.tenant_id = :tid
-              AND b.status NOT IN ('paid','voided','statement')
+              AND b.status NOT IN ('paid','voided','deleted','draft')
               AND (b.customer_name ILIKE :qp OR b.bill_no ILIKE :qp OR b.customer_code ILIKE :qp)
               AND b.id::text NOT IN (
                 SELECT jsonb_array_elements_text(bs2.bill_ids)
@@ -110,6 +124,9 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
             "customer_id": str(r[2]) if r[2] else None,
             "customer_name": r[3], "customer_code": r[4],
             "total": float(r[5] or 0), "created_at": str(r[6]),
+            "customer_phone": r[7] or "",
+            "customer_address": r[8] or "",
+            "customer_tax_id": r[9] or "",
         })
     return result
 
@@ -154,11 +171,6 @@ def create_statement(payload: dict, authorization: str = Header("")):
             "due_single": payload.get("due_single"),
             "uid": uid,
         })
-        for bid in bill_ids:
-            c.execute(text(
-                "UPDATE bills SET status='statement', updated_at=NOW() "
-                "WHERE id::text=:bid AND tenant_id=:tid"
-            ), {"bid": str(bid), "tid": tid})
     return {"ok": True, "run_id": run_id}
 
 @router.patch("/record/{sid}")
@@ -274,12 +286,6 @@ def delete_statement(sid: int, authorization: str = Header("")):
         ), {"id": sid, "tid": tid}).fetchone()
         if not row:
             raise HTTPException(404, "ไม่พบรายการ")
-        bill_ids = row[1] if isinstance(row[1], list) else json.loads(row[1] or "[]")
-        for bid in bill_ids:
-            c.execute(text(
-                "UPDATE bills SET status='pending', updated_at=NOW() "
-                "WHERE id::text=:bid AND tenant_id=:tid"
-            ), {"bid": str(bid), "tid": tid})
         c.execute(text(
             "UPDATE billing_statements SET status='cancelled', updated_at=NOW() WHERE id=:id AND tenant_id=:tid"
         ), {"id": sid, "tid": tid})

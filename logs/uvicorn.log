@@ -1,14 +1,21 @@
-INFO:     Started server process [3599493]
+nohup: ignoring input
+INFO:     Started server process [3657251]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:44186 - "GET /openapi.json HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44192 - "POST /api/pos/bills/migrate HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:56438 - "POST /api/pos/bills/migrate HTTP/1.1" 403 Forbidden
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     172.71.81.2:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
-INFO:     108.162.238.12:0 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/unpaid-bills?q=%E0%B8%97 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/unpaid-bills?q=%E0%B8%88%E0%B8%88 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/unpaid-bills?q=00 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/unpaid-bills?q=004 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/statements/unpaid-bills?q=BILL-2026-000004 HTTP/1.1" 200 OK

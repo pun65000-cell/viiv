@@ -91,8 +91,17 @@ window.stOpen=function(id){
   }
   var partnerHtml='';
   if(s.customer_name){
+    var ci = document.getElementById('stCustomerInfo');
+    if(ci) ci.innerHTML =
+      '<div class="st-partner-name">'+h(s.customer_name)+'</div>'+
+      (s.customer_tax_id?'<div style="font-size:12px;color:#6b7280;">เลขภาษี: '+h(s.customer_tax_id)+'</div>':'')+
+      (s.customer_address?'<div style="font-size:12px;color:#6b7280;">ที่อยู่: '+h(s.customer_address)+'</div>':'')+
+      (s.customer_phone?'<div style="font-size:12px;color:#6b7280;">โทร: '+h(s.customer_phone)+'</div>':'');
     partnerHtml='<div class="st-partner-info">'+
       '<div class="st-partner-name">'+h(s.customer_name)+'</div>'+
+      (s.customer_tax_id?'<div style="font-size:12px;color:#6b7280;">เลขภาษี: '+h(s.customer_tax_id)+'</div>':'')+
+      (s.customer_address?'<div style="font-size:12px;color:#6b7280;">ที่อยู่: '+h(s.customer_address)+'</div>':'')+
+      (s.customer_phone?'<div style="font-size:12px;color:#6b7280;">โทร: '+h(s.customer_phone)+'</div>':'')+
       (s.customer_code?'<div class="st-partner-meta">รหัส: '+h(s.customer_code)+'</div>':'')+
     '</div>';
   }
