@@ -55,6 +55,9 @@ def create_bill(payload: dict, authorization: str = Header("")):
         status = payload.get("status", "pending")
         if status not in ("paid","credit","partial","pending","draft"):
             status = "pending"
+        pm = payload.get("pay_method", "cash")
+        if pm in ("credit",) and status == "paid":
+            status = "credit"
     with engine.begin() as c:
         items_snap = []
         for item in items:
@@ -86,6 +89,12 @@ def create_bill(payload: dict, authorization: str = Header("")):
                 "deposit": "deposit_waiting",
             }
             ship_st = ship_map.get(pm, None)
+        if pm == "credit":
+            status = "credit"
+            ship_st = "scheduled"
+        elif pm == "pending":
+            status = "pending"
+            ship_st = None
         sched = payload.get("scheduled_at")
         c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,vat_type,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
             VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:vtype,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),

@@ -314,7 +314,13 @@ function showMsg(msg,color){
 }
 function hideMsg(){var el=document.getElementById('billMsg');if(el)el.style.display='none';}
 function clearBillSilent(){
-  billItems=[];_selectedMember=null;renderItems();
+  billItems=[]; _selectedMember=null;
+  var fields={'billCustomer':'','billNote':'','billPaid':'0','billDiscount':'0','billAddQty':'1','billWaitingAt':''};
+  Object.keys(fields).forEach(function(id){var el=document.getElementById(id);if(el)el.value=fields[id];});
+  var pm=document.getElementById('billPayMethod');if(pm)pm.value='cash';
+  onPayMethodChange();
+  var wr=document.getElementById('billWaitingRow');if(wr)wr.style.display='none';
+  renderItems();
   ['billDiscount','billPaid'].forEach(function(id){var e=document.getElementById(id);if(e)e.value=0;});
   ['billCustomer','billNote','billMemberCode'].forEach(function(id){
     var e=document.getElementById(id);if(e){e.value='';e.classList.remove('error');}
@@ -371,11 +377,11 @@ function save(status){
     member_id:_selectedMember?(_selectedMember.id||''):'',
     note:(document.getElementById('billNote')||{}).value||'',
     scheduled_at:(function(){
-      var el=document.getElementById('billWaitingAt');
+      var el=document.getElementById('billScheduledAt');
       if(el&&el.value) return new Date(el.value).toISOString();
-      var map=window._payStatusMap||{delay:0};
+      var map=window._payStatusMap||{delay:45};
       var dd=new Date();
-      dd.setMinutes(dd.getMinutes()+(map.delay||0));
+      dd.setMinutes(dd.getMinutes()+(map.delay||45));
       return dd.toISOString();
     })(),
     total:_total,
@@ -553,14 +559,6 @@ window.addEventListener('viiv_load_draft',function(e){
   uiDocType();renderItems();
   showMsg('โหลดบิลร่าง #'+bill.id+' แล้ว','#e8b93e');
 });
-// set default scheduled_at = now + 45min
-(function(){
-  var el=document.getElementById('billScheduledAt');
-  if(el&&!el.value){
-    var d=new Date(); d.setMinutes(d.getMinutes()+45);
-    el.value=d.toISOString().slice(0,16);
-  }
-})();
 
 (function(){
   var _inited=false;

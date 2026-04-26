@@ -92,7 +92,9 @@ var allBills=[];
 var typeMap={receipt:'ใบเสร็จ',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
 var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
 var stMap={paid:'จ่ายแล้ว',pending:'รอชำระ',credit:'เครดิต',draft:'ร่าง',voided:'ยกเลิก',deleted:'ลบแล้ว',partial:'ชำระบางส่วน'};
-stMap['transfer_paid']='โอน/QR (จ่ายแล้ว)';stMap['transfer_waiting']='โอน/QR-รอส่ง';stMap['paid_waiting']='จ่ายแล้ว-รอส่ง';stMap['partial']='ชำระมัดจำ';stMap['credit']='เครดิต-ชำระปลายทาง';stMap['pending']='รอยืนยันการชำระ';
+stMap['transfer_paid']='โอน/QR (จ่ายแล้ว)';
+stMap['transfer_waiting']='โอน/QR-รอส่ง';
+stMap['paid_waiting']='จ่ายแล้ว-รอส่ง';
 var shipMap={scheduled:'กำหนดวันส่ง',shipped_no_recipient:'ส่ง-ไม่มีผู้รับ',shipped_cod:'ส่ง-วางบิล',shipped_collect:'ส่ง-รับเงินสด',bill_check:'ส่ง-วางบิล-เก็บเช็ค',chargeback:'ชะลอจ่าย-รอเคลม',received_payment:'ส่ง-ชำระเงินแล้ว',debt:'หนี้เสีย-NPL',paid_waiting:'จ่ายแล้ว-รอส่ง',deposit_waiting:'ชำระมัดจำ-รอส่ง',debt_collection:'เร่งรัดหนี้สิน'};
 var shipBtnCls={scheduled:'ship-scheduled',shipped_no_recipient:'ship-active',shipped_cod:'ship-active',shipped_collect:'ship-collect',bill_check:'ship-check',chargeback:'ship-warn',received_payment:'ship-done',debt:'ship-debt'};
 var finBtnCls={paid:'fin-paid',pending:'fin-pending',credit:'fin-credit',partial:'fin-partial',voided:'fin-voided',draft:'fin-pending'};
@@ -129,6 +131,11 @@ function loadBills(){
         created_at:b.created_at
       };
     }).concat(drafts);
+    allBills.sort(function(a,b){
+      var da=a.created_at?new Date(a.created_at).getTime():0;
+      var db=b.created_at?new Date(b.created_at).getTime():0;
+      return db-da;
+    });
     bsFilter();
     document.getElementById('bsCount').textContent='พบ '+allBills.length+' รายการ';
   })
@@ -157,6 +164,7 @@ window.bsFilter=function(){
     var mSh=!sh||(sh==='__none__'?!b.shipping_status:b.shipping_status===sh);
     return mQ&&mS&&mT&&mSh;
   });
+  filtered.sort(function(a,b){ return new Date(b.created_at)-new Date(a.created_at); });
   document.getElementById('bsCount').textContent='พบ '+filtered.length+' รายการ';
   render(filtered);
 };

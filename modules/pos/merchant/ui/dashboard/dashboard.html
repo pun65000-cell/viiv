@@ -279,7 +279,7 @@ const PAGES = {
   products:  { title:'สินค้า', tabs:[
     { label:'ทั้งหมด',      file:'products/all.html' },
     { label:'สร้างสินค้า',  file:'products/create.html' },
-    { label:'รับสินค้า',    file:'products/receive.html?v=1776583341' },
+    { label:'รับสินค้า',    file:'products/receive.html' },
     { label:'หมวดหมู่',     file:'products/category.html' },
     { label:'จัดการสินค้า', file:'products/manage.html' },
   ]},
@@ -301,16 +301,16 @@ const PAGES = {
   }},
   sales: { title:'ยอดขาย', tabs:[
     { label:'ยอดขายวันนี้',    file:'sales/today.html' },
-    { label:'ค้นหายอดขาย',    file:'sales/search.html?v=1776406936' },
+    { label:'ค้นหายอดขาย',    file:'sales/search.html' },
     { label:'ยอดขายล่วงหน้า', file:'sales/advance.html' },
   ]},
   billing: { title:'บิลใบเสร็จ', tabs:[
-    { label:'ค้นหาบิล',    file:'billing/search.html?v=1777186965' },
+    { label:'ค้นหาบิล',    file:'billing/search.html' },
     { label:'สร้างบิล',     file:'billing/create.html' },
     { label:'ใบจอง',        file:'billing/reserve.html' },
     { label:'ใบส่งของ',    file:'billing/delivery.html' },
     { label:'ใบเสร็จ',     file:'billing/receipt.html' },
-    { label:'ใบวางบิล',    file:'billing/statement.html?v=1777178216' },
+    { label:'ใบวางบิล',    file:'billing/statement.html' },
     { label:'ใบลดหนี้',    file:'billing/creditnote.html' },
   ]},
   finance:   { title:'บัญชีการเงิน', tabs:[
@@ -319,7 +319,7 @@ const PAGES = {
     { label:'รายจ่าย', file:'finance/expense.html'  },
   ]},
   settings:  { title:'จัดการร้านค้า', tabs: null, render: function(el) {
-    loadSubPage(el, 'settings/store.html?v=1776743318');
+    loadSubPage(el, 'settings/store.html');
   }},
 };
 
@@ -341,7 +341,7 @@ function loadSubPage(el, file) {
   if(!document.getElementById('viiv-global-css')){
     var gl=document.createElement('link');
     gl.id='viiv-global-css';gl.rel='stylesheet';
-    gl.href='/merchant/global.css?v='+Date.now();
+    gl.href='/merchant/global.css'+Date.now();
     document.head.appendChild(gl);
   }
   fetch(file + '?v=' + Date.now(), { signal: _loadAbort.signal })
