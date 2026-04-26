@@ -106,6 +106,7 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
             LEFT JOIN members m ON b.customer_id = m.id::text
             WHERE b.tenant_id = :tid
               AND b.status NOT IN ('paid','voided','deleted','draft')
+              AND (b.shipping_status IS NULL OR b.shipping_status != 'received_payment')
               AND (b.customer_name ILIKE :qp OR b.bill_no ILIKE :qp OR b.customer_code ILIKE :qp)
               AND b.id::text NOT IN (
                 SELECT jsonb_array_elements_text(bs2.bill_ids)
@@ -129,6 +130,22 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
             "customer_tax_id": r[9] or "",
         })
     return result
+
+@router.get("/by-bill/{bid}")
+def statement_by_bill(bid: str, authorization: str = Header("")):
+    tid, _ = get_tenant_user(authorization)
+    with engine.connect() as c:
+        row = c.execute(text("""
+            SELECT run_id, created_by, created_at
+            FROM billing_statements
+            WHERE tenant_id=:tid
+              AND bill_ids @> jsonb_build_array(:bid)
+              AND status != 'cancelled'
+            LIMIT 1
+        """), {"tid": tid, "bid": bid}).fetchone()
+    if not row:
+        return {}
+    return {"run_id": row[0], "created_by": row[1], "created_at": str(row[2])}
 
 @router.post("/create")
 def create_statement(payload: dict, authorization: str = Header("")):

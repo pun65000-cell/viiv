@@ -29,8 +29,11 @@
         <option value="shipped_collect">ส่ง+เก็บเงิน</option>
         <option value="bill_check">วางบิลเก็บเช็ค</option>
         <option value="chargeback">ชะลอจ่ายรอเคลม</option>
-        <option value="received_payment">รับชำระแล้ว</option>
-        <option value="debt">หนี้ค้างชำระ</option>
+        <option value="received_payment">ส่ง-ชำระเงินแล้ว</option>
+        <option value="paid_waiting">จ่ายแล้ว-รอส่ง</option>
+        <option value="deposit_waiting">ชำระมัดจำ-รอส่ง</option>
+        <option value="debt_collection">เร่งรัดหนี้สิน</option>
+        <option value="debt">หนี้เสีย-NPL</option>
       </select>
     </div>
     <div id="bsCount" style="font-size:12px;color:#6b7280;align-self:center;white-space:nowrap;"></div>
@@ -89,7 +92,8 @@ var allBills=[];
 var typeMap={receipt:'ใบเสร็จ',delivery:'ใบส่งของ',quotation:'ใบเสนอราคา',reserve:'ใบจอง'};
 var payLabel={cash:'เงินสด',transfer:'โอนเงิน',credit:'เครดิต',qr:'QR Code'};
 var stMap={paid:'จ่ายแล้ว',pending:'รอชำระ',credit:'เครดิต',draft:'ร่าง',voided:'ยกเลิก',deleted:'ลบแล้ว',partial:'ชำระบางส่วน'};
-var shipMap={scheduled:'กำหนดวันส่ง',shipped_no_recipient:'ส่งไม่มีผู้รับ',shipped_cod:'ส่ง+วางบิล',shipped_collect:'ส่ง+เก็บเงิน',bill_check:'วางบิลเก็บเช็ค',chargeback:'ชะลอจ่าย',received_payment:'รับชำระแล้ว',debt:'หนี้ค้างชำระ'};
+stMap['transfer_paid']='โอน/QR (จ่ายแล้ว)';stMap['transfer_waiting']='โอน/QR-รอส่ง';stMap['paid_waiting']='จ่ายแล้ว-รอส่ง';stMap['partial']='ชำระมัดจำ';stMap['credit']='เครดิต-ชำระปลายทาง';stMap['pending']='รอยืนยันการชำระ';
+var shipMap={scheduled:'กำหนดวันส่ง',shipped_no_recipient:'ส่ง-ไม่มีผู้รับ',shipped_cod:'ส่ง-วางบิล',shipped_collect:'ส่ง-รับเงินสด',bill_check:'ส่ง-วางบิล-เก็บเช็ค',chargeback:'ชะลอจ่าย-รอเคลม',received_payment:'ส่ง-ชำระเงินแล้ว',debt:'หนี้เสีย-NPL',paid_waiting:'จ่ายแล้ว-รอส่ง',deposit_waiting:'ชำระมัดจำ-รอส่ง',debt_collection:'เร่งรัดหนี้สิน'};
 var shipBtnCls={scheduled:'ship-scheduled',shipped_no_recipient:'ship-active',shipped_cod:'ship-active',shipped_collect:'ship-collect',bill_check:'ship-check',chargeback:'ship-warn',received_payment:'ship-done',debt:'ship-debt'};
 var finBtnCls={paid:'fin-paid',pending:'fin-pending',credit:'fin-credit',partial:'fin-partial',voided:'fin-voided',draft:'fin-pending'};
 var finIcon={paid:'✓',pending:'○',credit:'◷',partial:'◑',voided:'✕',draft:'○'};
@@ -343,14 +347,17 @@ window.viewPhoto = function(url){
 // ======== POPUP ========
 var _spBill=null, _selectedShip=null;
 var _shipDef=[
-  {v:'scheduled',           label:'กำหนดวันเวลาส่ง', bg:'#fef3c7',color:'#92400e',border:'#fde68a'},
-  {v:'shipped_no_recipient',label:'ส่งไม่มีผู้รับ',   bg:'#ffedd5',color:'#9a3412',border:'#fed7aa'},
-  {v:'shipped_cod',         label:'ส่ง+วางบิล',       bg:'#e0f2fe',color:'#0369a1',border:'#bae6fd'},
-  {v:'shipped_collect',     label:'ส่ง+เก็บเงิน',     bg:'#dcfce7',color:'#166534',border:'#bbf7d0'},
-  {v:'bill_check',          label:'วางบิลเก็บเช็ค',   bg:'#ede9fe',color:'#5b21b6',border:'#ddd6fe'},
-  {v:'chargeback',          label:'ชะลอจ่ายรอเคลม',   bg:'#fee2e2',color:'#991b1b',border:'#fecaca'},
-  {v:'received_payment',    label:'รับชำระแล้ว',      bg:'#166534',color:'#fff',   border:'#15803d'},
-  {v:'debt',                label:'หนี้ค้างชำระ',     bg:'#7f1d1d',color:'#fff',   border:'#991b1b'}
+  {v:'paid_waiting',        label:'จ่ายแล้ว-รอส่ง',        bg:'#dcfce7',color:'#166534',border:'#bbf7d0'},
+  {v:'deposit_waiting',     label:'ชำระมัดจำ-รอส่ง',       bg:'#dbeafe',color:'#1e40af',border:'#bfdbfe'},
+  {v:'scheduled',           label:'กำหนดวันส่ง',            bg:'#fef9c3',color:'#854d0e',border:'#fde047'},
+  {v:'shipped_no_recipient',label:'ส่ง-ไม่มีผู้รับ',        bg:'#ffedd5',color:'#9a3412',border:'#fed7aa'},
+  {v:'shipped_cod',         label:'ส่ง-วางบิล',             bg:'#fce7f3',color:'#9d174d',border:'#fbcfe8'},
+  {v:'bill_check',          label:'ส่ง-วางบิล-เก็บเช็ค',   bg:'#ede9fe',color:'#5b21b6',border:'#ddd6fe'},
+  {v:'shipped_collect',     label:'ส่ง-รับเงินสด',          bg:'#d1fae5',color:'#065f46',border:'#a7f3d0'},
+  {v:'received_payment',    label:'ส่ง-ชำระเงินแล้ว',      bg:'#166534',color:'#fff',   border:'#15803d'},
+  {v:'chargeback',          label:'ชะลอจ่าย-รอเคลม',       bg:'#fee2e2',color:'#991b1b',border:'#fecaca'},
+  {v:'debt_collection',     label:'เร่งรัดหนี้สิน',         bg:'#fed7aa',color:'#9a3412',border:'#fb923c'},
+  {v:'debt',                label:'หนี้เสีย-NPL',           bg:'#450a0a',color:'#fff',   border:'#7f1d1d'},
 ];
 
 function getPopup(){
@@ -370,13 +377,27 @@ function buildPopup(){
       '<div id="spFinRow" style="margin-bottom:14px;">'+
         '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">สถานะการเงิน</label>'+
         '<select id="spFinancial" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;">'+
-          '<option value="pending">รอชำระเงิน</option><option value="paid">จ่ายแล้ว</option>'+
-          '<option value="partial">ชำระบางส่วน</option><option value="credit">เครดิต</option>'+
+          '<option value="paid">เงินสด-จ่ายแล้ว</option>'+
+          '<option value="paid_waiting">จ่ายแล้ว-รอส่ง</option>'+
+          '<option value="transfer_paid">โอน/QR (จ่ายแล้ว)</option>'+
+          '<option value="transfer_waiting">โอน/QR-รอส่ง</option>'+
+          '<option value="partial">ชำระมัดจำ</option>'+
+          '<option value="credit">เครดิต-ชำระปลายทาง</option>'+
+          '<option value="pending">รอยืนยันการชำระ</option>'+
           '<option value="voided">ยกเลิก</option>'+
         '</select>'+
+        '<div id="spWaitingRow" style="display:none;margin-top:8px;">'+
+          '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">กำหนดวันเวลาส่ง (ไม่ระบุ = +15 นาที)</label>'+
+          '<input id="spScheduledAt" type="datetime-local" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"/>'+
+        '</div>'+
+        '<div id="spFinWaitingRow" style="display:none;margin-top:8px;">'+
+          '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">กำหนดวันเวลาส่ง</label>'+
+          '<input id="spFinScheduledAt" type="datetime-local" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"/>'+
+        '</div>'+
       '</div>'+
       '<div id="spShipRow" style="display:none;margin-bottom:10px;">'+
         '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:8px;">เลือกสถานะการจัดส่ง</label>'+
+        '<div id="shipReadonlyNotice" style="display:none;margin:8px 0;padding:8px 12px;background:#fef9c3;border-radius:6px;font-size:12px;color:#854d0e;">🔒 สถานะนี้ไม่สามารถเปลี่ยนได้ (เข้าดูข้อมูลได้อย่างเดียว)</div>'+
         '<div id="spShipGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>'+
       '</div>'+
       '<div id="spShipFields" style="display:none;margin-top:12px;margin-bottom:14px;padding-top:12px;border-top:1px solid #f0ede8;"></div>'+
@@ -388,6 +409,12 @@ function buildPopup(){
   document.body.appendChild(div);
   document.getElementById('spCancelBtn').addEventListener('click',function(){ div.style.display='none'; });
   document.getElementById('spSaveBtn').addEventListener('click',doSave);
+  var needFinDt=['paid_waiting','deposit_waiting','credit'];
+  document.getElementById('spFinancial').addEventListener('change',function(){
+    var v=this.value;
+    document.getElementById('spWaitingRow').style.display=v==='paid_waiting'?'block':'none';
+    document.getElementById('spFinWaitingRow').style.display=needFinDt.includes(v)?'block':'none';
+  });
   // build ship grid
   var grid=document.getElementById('spShipGrid');
   _shipDef.forEach(function(s){
@@ -490,21 +517,44 @@ window.openFinPopup=function(dbId){
   document.getElementById('spShipRow').style.display='none';
   document.getElementById('spShipFields').style.display='none';
   document.getElementById('spFinancial').value=b.status||'pending';
+  document.getElementById('spWaitingRow').style.display='none';
+  document.getElementById('spFinWaitingRow').style.display='none';
   var backList=['pending','draft','credit'];
   Array.from(document.getElementById('spFinancial').options).forEach(function(opt){
     opt.disabled=(b.status==='paid'&&backList.includes(opt.value));
   });
+  // สถานะปัจจุบัน + activity log การเงิน
+  var infoEl=document.getElementById('spCurrentInfo');
+  if(!infoEl){
+    infoEl=document.createElement('div');
+    infoEl.id='spCurrentInfo';
+    document.getElementById('spFinRow').parentNode.insertBefore(infoEl,document.getElementById('spFinRow'));
+  }
+  var curFinDef={paid:'#16a34a',credit:'#0284c7',partial:'#d97706',pending:'#6b7280'};
+  var infoHtml='<div style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;">'+
+    '<div style="font-size:11px;font-weight:600;color:'+(curFinDef[b.status]||'#374151')+';">สถานะปัจจุบัน: '+(stMap[b.status]||b.status)+'</div></div>';
+  if(b.activity_log&&b.activity_log.length){
+    var finLogs=b.activity_log.filter(function(l){return l.status;}).reverse();
+    if(finLogs.length){
+      infoHtml+='<div style="margin-bottom:8px;"><div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:5px;">ประวัติการเงิน</div>';
+      finLogs.forEach(function(log){
+        infoHtml+='<div style="font-size:10px;padding:5px 8px;background:#f8fafc;border-radius:6px;margin-bottom:3px;border-left:3px solid #e2e8f0;">'+
+          '<div style="color:#9ca3af;font-size:9px;">'+new Date(log.at).toLocaleString('th')+' · '+log.by+'</div>'+
+          '<div>💰 '+log.status+'</div>'+
+          (log.note?'<div>📝 '+log.note+'</div>':'')+
+          '</div>';
+      });
+      infoHtml+='</div>';
+    }
+  }
+  infoEl.innerHTML=infoHtml;
   popup.style.display='flex';
 };
 
 window.openShipPopup=function(dbId){
   var b=allBills.find(function(x){return x.db_id===dbId||x.id===dbId;});
   if(!b) return;
-  var lockList=['received_payment','debt'];
-  if(lockList.includes(b.shipping_status)){
-    alert('สถานะ "'+(shipMap[b.shipping_status]||b.shipping_status)+'" ไม่สามารถเปลี่ยนได้\n(ต้องลบบิลเท่านั้น)');
-    return;
-  }
+  var readonlyList=['received_payment'];
   _spBill=b; _selectedShip=null;
   var popup=getPopup();
   document.getElementById('spTitle').textContent='สถานะการจัดส่ง';
@@ -513,6 +563,8 @@ window.openShipPopup=function(dbId){
   document.getElementById('spShipRow').style.display='block';
   document.getElementById('spShipFields').style.display='none';
   document.getElementById('spShipFields').innerHTML='';
+  var shipReadonlyNotice=document.getElementById('shipReadonlyNotice');
+  if(shipReadonlyNotice) shipReadonlyNotice.style.display='none';
   // แสดงข้อมูลที่บันทึกไว้
   var infoEl=document.getElementById('spCurrentInfo');
   if(!infoEl){ infoEl=document.createElement('div'); infoEl.id='spCurrentInfo'; document.getElementById('spShipRow').parentNode.insertBefore(infoEl,document.getElementById('spShipRow')); }
@@ -529,6 +581,8 @@ window.openShipPopup=function(dbId){
     }
     infoHtml+='</div>';
   }
+  // statement info
+  infoHtml+='<div id="stmInfo"></div>';
   // activity log
   if(b.activity_log&&b.activity_log.length){
     var logs=b.activity_log.slice().reverse();
@@ -548,6 +602,15 @@ window.openShipPopup=function(dbId){
     infoHtml+='</div>';
   }
   infoEl.innerHTML=infoHtml;
+  fetch(API+'/api/pos/statements/by-bill/'+b.id,{headers:{Authorization:'Bearer '+TOKEN}})
+  .then(function(r){return r.json();}).then(function(st){
+    if(st&&st.run_id){
+      var stEl=document.getElementById('stmInfo');
+      if(stEl) stEl.innerHTML=
+        '<div style="margin:8px 0;padding:6px 10px;background:#ede9fe;border-radius:6px;font-size:12px;color:#5b21b6;">'+
+        '📋 วางบิล '+st.run_id+' โดย '+st.created_by+' · '+(st.created_at||'').slice(0,16).replace('T',' ')+'</div>';
+    }
+  }).catch(function(){});
   // reset grid
   setTimeout(function(){
     var btns=document.querySelectorAll('#spShipGrid button');
@@ -569,6 +632,13 @@ window.openShipPopup=function(dbId){
           btn.disabled=true; btn.style.opacity='0.4';
         }
       });
+    }
+    // readonly — disable all buttons + show notice
+    var isReadonly=readonlyList.includes(b.shipping_status);
+    if(isReadonly){
+      btns.forEach(function(btn){ btn.style.opacity='0.4'; btn.style.pointerEvents='none'; });
+      var noticeEl=document.getElementById('shipReadonlyNotice');
+      if(noticeEl) noticeEl.style.display='block';
     }
   },50);
   popup.style.display='flex';
@@ -600,6 +670,37 @@ async function doSave(){
     var bk=document.getElementById('spBank'); if(bk&&bk.value) payload.ship_note=(payload.ship_note||'')+' ธนาคาร:'+bk.value;
   } else {
     payload.status=document.getElementById('spFinancial').value;
+    if(payload.status==='paid_waiting'){
+      payload.shipping_status='paid_waiting';
+      var sched=document.getElementById('spScheduledAt');
+      if(sched&&sched.value){
+        payload.scheduled_at=sched.value;
+      } else {
+        var dt=new Date(Date.now()+15*60*1000);
+        payload.scheduled_at=dt.toISOString();
+      }
+    }
+    var finShipMap={
+      paid:             {shipping:'received_payment', delay:0},
+      transfer_paid:    {shipping:'received_payment', delay:0},
+      paid_waiting:     {shipping:'paid_waiting',     delay:15},
+      transfer_waiting: {shipping:'paid_waiting',     delay:15},
+      partial:          {shipping:'deposit_waiting',  delay:30},
+      credit:           {shipping:'scheduled',        delay:45},
+      pending:          {shipping:null,               delay:0},
+    };
+    var finMap=finShipMap[payload.status];
+    if(finMap&&!payload.shipping_status){
+      payload.shipping_status=finMap.shipping;
+      var schedEl=document.getElementById('spFinScheduledAt');
+      if(schedEl&&schedEl.value){
+        payload.scheduled_at=new Date(schedEl.value).toISOString();
+      } else if(finMap.delay>0&&!payload.scheduled_at){
+        var fdd=new Date();
+        fdd.setMinutes(fdd.getMinutes()+finMap.delay);
+        payload.scheduled_at=fdd.toISOString();
+      }
+    }
   }
   var btn=document.getElementById('spSaveBtn'); btn.textContent='กำลังบันทึก...'; btn.disabled=true;
   fetch(API+'/api/pos/bills/update-status/'+(_spBill.db_id||_spBill.id),{

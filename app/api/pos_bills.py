@@ -49,7 +49,12 @@ def create_bill(payload: dict, authorization: str = Header("")):
     items = payload.get("items", [])
     if not items: raise HTTPException(400, "กรุณาเพิ่มสินค้า")
     doc_type = payload.get("doc_type","receipt")
-    status = "pending" if doc_type == "reserve" else payload.get("status", "paid")
+    if doc_type == "reserve":
+        status = "pending"
+    else:
+        status = payload.get("status", "pending")
+        if status not in ("paid","credit","partial","pending","draft"):
+            status = "pending"
     with engine.begin() as c:
         items_snap = []
         for item in items:
@@ -71,6 +76,16 @@ def create_bill(payload: dict, authorization: str = Header("")):
             va = round(after*vr/100, 2); total = after+va
         src = payload.get("source","billing")
         ship_st = payload.get("shipping_status", None)
+        pm = payload.get("pay_method", "cash")
+        if not ship_st:
+            ship_map = {
+                "cash": "received_payment",
+                "transfer": "received_payment",
+                "transfer_waiting": "paid_waiting",
+                "credit": "scheduled",
+                "deposit": "deposit_waiting",
+            }
+            ship_st = ship_map.get(pm, None)
         sched = payload.get("scheduled_at")
         c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,vat_type,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
             VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:vtype,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
@@ -170,15 +185,16 @@ def list_bills(authorization: str = Header(""), status: str = "", doc_type: str 
         rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,ship_report,activity_log,customer_name,customer_code,customer_data,items,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
     return [dict(r._mapping) for r in rows]
 
-VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted'}
+VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted','paid_waiting','transfer_paid','transfer_waiting'}
 VALID_SHIPPING = {
     'pending','scheduled','packing_in','packing_out',
     'shipped_no_recipient','shipped_cod','shipped_collect',
     'chargeback','bill_check','overdue','delivery',
-    'received_payment','pending_payment','cod'
+    'received_payment','pending_payment','cod',
+    'paid_waiting','deposit_waiting','debt_collection','debt',
 }
 
-LOCK_SHIPPING = {"received_payment"}
+LOCK_SHIPPING = set()
 
 @router.post("/update-status/{bid}")
 def update_bill_status(bid: str, payload: dict, authorization: str = Header("")):
@@ -202,7 +218,6 @@ def update_bill_status(bid: str, payload: dict, authorization: str = Header(""))
 
         if bill.shipping_status in LOCK_SHIPPING:
             raise HTTPException(400,f"ไม่สามารถเปลี่ยนสถานะนี้ได้ (ต้องลบบิลเท่านั้น)")
-            raise HTTPException(400,"จัดส่งพร้อมเก็บเงิน → รับชำระเงินแล้ว เท่านั้น")
         if new_status and bill.status == "paid" and new_status in ("pending","draft","credit"):
             raise HTTPException(400,"ไม่สามารถย้อนสถานะจาก paid ได้")
 
@@ -229,7 +244,24 @@ def update_bill_status(bid: str, payload: dict, authorization: str = Header(""))
         sets.append("activity_log=:alog"); params["alog"]=json.dumps(existing_log)
         if not sets: raise HTTPException(400,"ไม่มีข้อมูลที่จะอัพเดท")
         sets.append("updated_at=NOW()")
-        c.execute(text(f"UPDATE bills SET {','.join(sets)} WHERE id=:id"),params)
+        params["tid"] = tid
+        c.execute(text(f"UPDATE bills SET {','.join(sets)} WHERE id=:id AND tenant_id=:tid"),params)
+        if new_shipping == 'received_payment':
+            c.execute(text(
+                "UPDATE bills SET status='paid', updated_at=NOW() "
+                "WHERE id=:id AND tenant_id=:tid"
+            ), {"id": bid, "tid": tid})
+            log_entry["status"] = f"{bill.status} → paid (auto: received_payment)"
+        if new_status == 'paid_waiting':
+            from datetime import timedelta
+            sched = payload.get("scheduled_at")
+            if not sched:
+                sched = (datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat()
+            c.execute(text(
+                "UPDATE bills SET shipping_status='paid_waiting',"
+                "scheduled_at=:sched,updated_at=NOW() "
+                "WHERE id=:id AND tenant_id=:tid"
+            ), {"sched": sched, "id": bid, "tid": tid})
     return {"ok":True,"bill_id":bid,"log":log_entry}
 
 @router.get("/detail/{bid}")

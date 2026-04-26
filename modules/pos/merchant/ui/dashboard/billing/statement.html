@@ -218,6 +218,7 @@ window.stRender=function(){};
 var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var _statements=[],_unpaidBills=[],_selectedBills=[],_activeId=null,_mode=null,_activeStmt=null,_currentMode='delivered';
+var _billDetails={};
 var _stTotal=0,_stSelectedIds=[],_stNet=0,_stVat=0,_stDisc=0;
 var _selectedMember=null,_memberResults=[],_memberTimer=null,_lockedCustomerId=null;
 var SL={pending:'รอชำระ',partial:'ชำระบางส่วน',paid:'ชำระแล้ว',cancelled:'ยกเลิก'};
@@ -240,7 +241,21 @@ function _buildModeHtml(mode,s){
 }
 window.stLoad=function(){
   fetch(API+'/api/pos/statements/list',{headers:authH()})
-  .then(function(r){return r.json();}).then(function(d){_statements=Array.isArray(d)?d:[];stRender();})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    _statements=Array.isArray(d)?d:[];
+    return Promise.all(_statements.map(function(s){
+      return fetch(API+'/api/pos/statements/'+s.id+'/bills',{headers:authH()})
+        .then(function(r){return r.json();})
+        .then(function(bills){return {sid:s.id,bills:bills};})
+        .catch(function(){return {sid:s.id,bills:[]};});
+    }));
+  })
+  .then(function(results){
+    _billDetails={};
+    results.forEach(function(r){_billDetails[r.sid]=r.bills;});
+    stRender();
+  })
   .catch(function(){var el=document.getElementById('stList');if(el)el.innerHTML='<div class="st-empty">โหลดไม่สำเร็จ</div>';});
 };
 window.stRender=function(){
@@ -254,12 +269,12 @@ window.stRender=function(){
   el.innerHTML=list.map(function(s){
     var sc=s.status==='paid'?'st-paid':s.status==='partial'?'st-partial':s.status==='cancelled'?'st-cancelled':'';
     var ac=s.id===_activeId?' active':'';
-    var bills=Array.isArray(s.bill_ids)?s.bill_ids:JSON.parse(s.bill_ids||'[]');
     return '<div class="st-card '+sc+ac+'" data-sid="'+s.id+'" onclick="stOpen(this.dataset.sid)">'+
       '<div class="st-card-top"><div class="st-card-run">'+h(s.run_id)+'</div><div class="st-card-amt">'+fmt(s.net_amt)+'</div></div>'+
       '<div class="st-card-meta">'+h(s.customer_name||'-')+' &middot; '+h(s.customer_code||'-')+'</div>'+
-      '<div class="st-card-meta">'+fmtDt(s.created_at)+' &middot; '+bills.length+' บิล</div>'+
-      '<span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div>';
+      '<div class="st-card-meta">'+fmtDt(s.created_at)+(s.due_single?' &middot; ครบ: '+fmtDt(s.due_single):'')+'</div>'+
+      '<div><span class="st-badge '+h(s.status)+'">'+(SL[s.status]||s.status)+'</span></div>'+
+    '</div>';
   }).join('');
 };
 window.stSetMode=function(mode){
@@ -304,20 +319,41 @@ window.stOpen=function(id){
   }
   var partnerHtml='';
   if(s.customer_name){
+    var ci=document.getElementById('stCustomerInfo');
+    if(ci) ci.innerHTML=
+      '<div class="st-partner-info">'+
+      '<div class="st-partner-name">'+h(s.customer_name)+'</div>'+
+      (s.customer_code?'<div class="st-partner-meta">รหัส: '+h(s.customer_code)+'</div>':'')+
+      (s.customer_tax_id?'<div class="st-partner-meta">เลขภาษี: '+h(s.customer_tax_id)+'</div>':'')+
+      (s.customer_address?'<div class="st-partner-addr">ที่อยู่: '+h(s.customer_address)+'</div>':'')+
+      (s.customer_phone?'<div class="st-partner-phone">โทร: '+h(s.customer_phone)+'</div>':'')+
+      '</div>';
     partnerHtml='<div class="st-partner-info">'+
       '<div class="st-partner-name">'+h(s.customer_name)+'</div>'+
       (s.customer_code?'<div class="st-partner-meta">รหัส: '+h(s.customer_code)+'</div>':'')+
+      (s.customer_tax_id?'<div class="st-partner-meta">เลขภาษี: '+h(s.customer_tax_id)+'</div>':'')+
+      (s.customer_address?'<div class="st-partner-addr">ที่อยู่: '+h(s.customer_address)+'</div>':'')+
+      (s.customer_phone?'<div class="st-partner-phone">โทร: '+h(s.customer_phone)+'</div>':'')+
     '</div>';
   }
+  var billDetailRows='<div style="margin-bottom:10px;">'+
+    '<div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">รายการบิล</div>'+
+    (_billDetails[s.id]||[]).map(function(b){
+      return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0ede8;">'+
+        '<span>'+h(b.bill_no)+' &middot; '+fmtDt(b.created_at)+'</span>'+
+        '<span style="font-weight:600;">'+fmt(b.total)+'</span></div>';
+    }).join('')+
+  '</div>';
   var stOpts=['pending','partial','paid'].map(function(v){return '<option value="'+v+'"'+(s.status===v?' selected':'')+'>'+SL[v]+'</option>';}).join('');
   var initMode=_currentMode;
   document.getElementById('stFormBody').innerHTML=
     partnerHtml+
+    billDetailRows+
     '<div class="st-section"><div class="st-section-title">ข้อมูลใบวางบิล</div>'+
       '<div class="st-summary">'+
         '<div class="st-summary-row"><span>ลูกค้า</span><span>'+h(s.customer_name||'-')+'</span></div>'+
         (s.customer_code?'<div class="st-summary-row"><span>รหัส</span><span>'+h(s.customer_code)+'</span></div>':'')+
-        '<div class="st-summary-row"><span>บิลที่รวม</span><span>'+bills.length+' รายการ</span></div>'+
+        '<div class="st-summary-row"><span>บิลที่รวม</span><span>'+((_billDetails[s.id]||[]).length||bills.length)+' รายการ</span></div>'+
         '<div class="st-summary-row"><span>ยอดรวม</span><span>'+fmt(s.total_amt)+'</span></div>'+
         '<div class="st-summary-row"><span>ส่วนลด</span><span>-'+fmt(s.discount)+'</span></div>'+
         '<div class="st-summary-row"><span>VAT</span><span>'+fmt(s.vat_amt)+'</span></div>'+
