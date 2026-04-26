@@ -448,8 +448,8 @@ function buildPopup(){
   stmBtn.id='spStmBtn';
   stmBtn.type='button';
   stmBtn.disabled=true;
-  stmBtn.textContent='วางบิล';
-  stmBtn.style.cssText='padding:10px 4px;border-radius:8px;border:1.5px solid #d4a853;background:#fef3c7;color:#92400e;font-size:13px;font-weight:500;cursor:default;text-align:center;width:100%;opacity:0.45;';
+  stmBtn.textContent='สร้างใบวางบิล';
+  stmBtn.style.cssText='padding:10px 4px;border-radius:8px;border:1.5px solid #e5e7eb;background:#f3f4f6;color:#d1d5db;font-size:13px;font-weight:500;cursor:default;text-align:center;width:100%;';
   grid.appendChild(stmBtn);
 }
 
@@ -623,7 +623,7 @@ window.openShipPopup=function(dbId){
   infoEl.innerHTML=infoHtml;
   // reset statement indicator ก่อนแล้วค่อยอัปเดต
   var stmBtn=document.getElementById('spStmBtn');
-  if(stmBtn){stmBtn.style.opacity='0.45';stmBtn.style.background='#fef3c7';stmBtn.style.color='#92400e';stmBtn.style.border='1.5px solid #d4a853';stmBtn.title='';}
+  if(stmBtn){stmBtn.style.background='#f3f4f6';stmBtn.style.color='#d1d5db';stmBtn.style.border='1.5px solid #e5e7eb';stmBtn.title='';}
   fetch(API+'/api/pos/statements/by-bill/'+b.id,{headers:{Authorization:'Bearer '+TOKEN}})
   .then(function(r){return r.json();}).then(function(st){
     var stEl=document.getElementById('stmInfo');
@@ -631,7 +631,6 @@ window.openShipPopup=function(dbId){
     if(st&&st.run_id){
       // highlight indicator ปุ่ม — สีน้ำตาลเข้ม
       if(stmBtn){
-        stmBtn.style.opacity='1';
         stmBtn.style.background='#78350f';
         stmBtn.style.color='#fff';
         stmBtn.style.border='1.5px solid #92400e';
