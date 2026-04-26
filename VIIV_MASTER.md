@@ -760,6 +760,13 @@ STEP 3 — create.html: fix bugs (clearBillSilent, free-text customer, reloadMem
 STEP 4 — commit [✅ done — 623c537]
 
 Rule 48 — create.html: ห้าม statusMap/shippingMap ใน JS → backend เป็น single source of truth (PAY_MAP ใน pos_bills.py)
+Rule 49 — bills ห้าม hard DELETE → ใช้ UPDATE status='deleted' เสมอ (soft delete)
+           เหตุผล: billing_statements อ้างอิง bill_ids → ถ้า hard delete bills, statements สูญ customer data
+Rule 50 — Single Source of Truth:
+           bills        = truth ของธุรกรรม + customer snapshot (customer_data JSON)
+           members      = truth ของ master customer data
+           billing_statements = เก็บเฉพาะ run_id, bill_ids[], status, slip_url, cheque/appt fields
+           ห้ามเก็บ customer_name/code/phone ซ้ำใน billing_statements → ดึงจาก bills.customer_data เสมอ
 
 ### [v1.43 COMPLETED — 2026-04-26]
 ✅ API-first refactor: PAY_MAP ใน pos_bills.py (backend owns cascade)

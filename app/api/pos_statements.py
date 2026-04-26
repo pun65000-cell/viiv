@@ -48,17 +48,8 @@ def list_statements(authorization: str = Header("")):
                     WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_name,
                    (SELECT b.customer_code FROM bills b
                     WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_code,
-                   (SELECT b.customer_data::text FROM bills b
-                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_data,
-                   (SELECT m.phone FROM members m
-                    WHERE m.id::text = (SELECT b.customer_id::text FROM bills b
-                    WHERE b.id::text=(bs.bill_ids::jsonb->>0) LIMIT 1) LIMIT 1) AS customer_phone,
-                   (SELECT m.address FROM members m
-                    WHERE m.id::text = (SELECT b.customer_id::text FROM bills b
-                    WHERE b.id::text=(bs.bill_ids::jsonb->>0) LIMIT 1) LIMIT 1) AS customer_address,
-                   (SELECT m.tax_id FROM members m
-                    WHERE m.id::text = (SELECT b.customer_id::text FROM bills b
-                    WHERE b.id::text=(bs.bill_ids::jsonb->>0) LIMIT 1) LIMIT 1) AS customer_tax_id
+                   (SELECT b.customer_data FROM bills b
+                    WHERE b.id::text = (bs.bill_ids::jsonb ->> 0) LIMIT 1) AS customer_data
             FROM billing_statements bs
             WHERE bs.tenant_id=:tid AND bs.status != 'cancelled'
             ORDER BY bs.created_at DESC LIMIT 100
@@ -83,12 +74,12 @@ def list_statements(authorization: str = Header("")):
             "appointment_dt": str(r[15]) if r[15] else None,
             "partial_amount": float(r[16]) if r[16] else None,
             "slip_url": r[17],
-            "customer_name": r[18],
-            "customer_code": r[19],
+            "customer_name": r[18] or cd.get("name", ""),
+            "customer_code": r[19] or cd.get("code", ""),
             "customer_data": cd,
-            "customer_phone": r[21] or "",
-            "customer_address": r[22] or "",
-            "customer_tax_id": r[23] or "",
+            "customer_phone": cd.get("phone", ""),
+            "customer_address": cd.get("address", ""),
+            "customer_tax_id": cd.get("tax_id", ""),
         })
     return result
 
