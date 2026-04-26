@@ -760,3 +760,16 @@ STEP 3 — create.html: fix bugs (clearBillSilent, free-text customer, reloadMem
 STEP 4 — commit [✅ done — 623c537]
 
 Rule 48 — create.html: ห้าม statusMap/shippingMap ใน JS → backend เป็น single source of truth (PAY_MAP ใน pos_bills.py)
+
+### [v1.43 COMPLETED — 2026-04-26]
+✅ API-first refactor: PAY_MAP ใน pos_bills.py (backend owns cascade)
+✅ create.html: ลบ statusMap/finShipMap ออก, UI เป็น thin shell
+✅ create.html: fix clearBillSilent (onPayMethodChange bare call)
+✅ create.html: customer free-text ได้ (ไม่บังคับ dropdown)
+✅ create.html: ลบ reloadMembers() ทุก keystroke
+✅ statement.html: card แสดง phone
+✅ search.html: popup กว้าง 680px
+✅ DB cleanup: ลบ 35 test bills (created_by=unknown)
+✅ Rule 48 เพิ่ม
+
+Version: v1.43 | Updated: 2026-04-26
