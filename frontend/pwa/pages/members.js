@@ -197,15 +197,14 @@
         สมาชิกตั้งแต่: <strong style="color:var(--txt)">${App.fmtDate(m.created_at)}</strong>
         ${m.pv_total > 0 ? `&nbsp;·&nbsp; PV: <strong style="color:var(--gold)">${_fmt(m.pv_total)}</strong>` : ''}
       </div>` : ''}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div class="pm-field"><label>รหัสลูกค้า${isEdit?' (ปัจจุบัน)':''}</label>
-          <input type="text" id="mf-code" value="${_esc(m.code||'')}" placeholder="เว้นว่าง=สร้างอัตโนมัติ"${isEdit?' readonly':''}>
-        </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>ชื่อลูกค้า *</label>
           <input type="text" id="mf-name" value="${_esc(m.name||'')}" placeholder="ชื่อ-นามสกุล">
         </div>
+        <div class="pm-field"><label>รหัสลูกค้า${isEdit?' (ปัจจุบัน)':''}</label>
+          <input type="text" id="mf-code" value="${_esc(m.code||'')}" placeholder="เว้นว่าง=สร้างอัตโนมัติ"${isEdit?' readonly':''}>\n        </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>เบอร์โทร</label>
           <input type="tel" id="mf-phone" value="${_esc(m.phone||'')}" placeholder="0812345678">
         </div>
@@ -213,7 +212,7 @@
           <input type="text" id="mf-taxid" value="${_esc(m.tax_id||'')}" placeholder="เลขประจำตัวผู้เสียภาษี">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>อีเมล</label>
           <input type="email" id="mf-email" value="${_esc(m.email||'')}" placeholder="email@example.com">
         </div>
@@ -224,7 +223,7 @@
       <div class="pm-field" style="margin-bottom:10px"><label>ที่อยู่</label>
         <input type="text" id="mf-addr" value="${_esc(m.address||'')}" placeholder="ที่อยู่">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>พิกัด GPS</label>
           <input type="text" id="mf-geo" value="${_esc(m.geo||'')}" placeholder="lat,lng">
         </div>
@@ -232,7 +231,7 @@
           <input type="number" id="mf-pv" value="${m.pv_total||0}" min="0">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>เงินสด (฿)</label>
           <input type="number" id="mf-cash" value="${m.cash||0}" min="0">
         </div>
@@ -289,7 +288,7 @@
       <div class="pm-field" style="margin-bottom:10px"><label>ชื่อบริษัท / ร้านค้า *</label>
         <input type="text" id="ptf-cname" value="${_esc(p.company_name||'')}" placeholder="บริษัท ABC จำกัด">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>ประเภทนิติบุคคล</label>
           <select id="ptf-etype" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none">
             <option value="company"    ${(p.entity_type||'company')==='company'    ?'selected':''}>บริษัท/นิติบุคคล</option>
@@ -300,7 +299,7 @@
           <input type="text" id="ptf-taxid" value="${_esc(p.tax_id||'')}" placeholder="0000000000000">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>เบอร์โทรบริษัท *</label>
           <input type="tel" id="ptf-phone" value="${_esc(p.phone||'')}" placeholder="02-xxx-xxxx">
         </div>
@@ -312,7 +311,7 @@
         <input type="text" id="ptf-addr" value="${_esc(p.address||'')}" placeholder="ที่อยู่บริษัท">
       </div>
       <div style="font-size:12px;font-weight:600;color:var(--muted);margin:4px 0 8px">ผู้ติดต่อ</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>ชื่อผู้ติดต่อ *</label>
           <input type="text" id="ptf-ctname" value="${_esc(p.contact_name||'')}" placeholder="ชื่อ-นามสกุล">
         </div>
@@ -320,7 +319,7 @@
           <input type="text" id="ptf-ctpos" value="${_esc(p.contact_position||'')}" placeholder="ผู้จัดการ">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>เบอร์โทรผู้ติดต่อ *</label>
           <input type="tel" id="ptf-ctphone" value="${_esc(p.contact_phone||'')}" placeholder="0812345678">
         </div>
@@ -332,7 +331,7 @@
         <input type="email" id="ptf-ctemail" value="${_esc(p.contact_email||'')}" placeholder="email@example.com">
       </div>
       <div style="font-size:12px;font-weight:600;color:var(--muted);margin:4px 0 8px">การเงิน</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:10px">
         <div class="pm-field"><label>วงเงินสินเชื่อ (฿) *</label>
           <input type="number" id="ptf-cl" value="${p.credit_limit||0}" min="0">
         </div>
