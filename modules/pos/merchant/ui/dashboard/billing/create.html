@@ -318,7 +318,7 @@ function clearBillSilent(){
   var fields={'billCustomer':'','billNote':'','billPaid':'0','billDiscount':'0','billAddQty':'1','billWaitingAt':''};
   Object.keys(fields).forEach(function(id){var el=document.getElementById(id);if(el)el.value=fields[id];});
   var pm=document.getElementById('billPayMethod');if(pm)pm.value='cash';
-  onPayMethodChange();
+  window.onPayMethodChange&&window.onPayMethodChange();
   var wr=document.getElementById('billWaitingRow');if(wr)wr.style.display='none';
   renderItems();
   ['billDiscount','billPaid'].forEach(function(id){var e=document.getElementById(id);if(e)e.value=0;});
@@ -333,35 +333,24 @@ function clearBill(){
 }
 window.onPayMethodChange = function(){
   var pm=document.getElementById('billPayMethod').value;
-  var statusMap={
-    cash:             {status:'paid',    shipping:'received_payment', delay:0},
-    cash_waiting:     {status:'paid',    shipping:'paid_waiting',     delay:15},
-    transfer:         {status:'paid',    shipping:'received_payment', delay:0},
-    transfer_waiting: {status:'paid',    shipping:'paid_waiting',     delay:15},
-    deposit:          {status:'partial', shipping:'deposit_waiting',  delay:30},
-    credit:           {status:'credit',  shipping:'scheduled',        delay:45},
-    pending:          {status:'pending', shipping:null,               delay:0},
-  };
-  window._payStatusMap=statusMap[pm]||{status:'pending',shipping:null,delay:0};
+  // UI-only: show/hide waiting date row — business logic lives in backend
   var needDt=['cash_waiting','transfer_waiting','deposit','credit'];
   var dtRow=document.getElementById('billWaitingRow');
-  if(dtRow) dtRow.style.display=needDt.includes(pm)?'block':'none';
-  var needAmt=['cash','cash_waiting','transfer','transfer_waiting','deposit'];
-  var amtRow=document.getElementById('billPaidAmtRow');
-  if(amtRow) amtRow.style.display=needAmt.includes(pm)?'':'none';
+  if(dtRow) dtRow.style.display=needDt.indexOf(pm)>-1?'block':'none';
 }
 function save(status){
   calc();
   var errors=[];
-  if(!billItems.length)errors.push('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ');
-  if(!_selectedMember){
-    errors.push('กรุณาเลือกลูกค้าจากสมาชิก');
+  if(!billItems.length) errors.push('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ');
+  var customerName=(document.getElementById('billCustomer')||{}).value||'';
+  if(!customerName.trim()){
+    errors.push('กรุณาระบุชื่อลูกค้า');
     var cel=document.getElementById('billCustomer');if(cel)cel.classList.add('error');
   }
   if(status==='paid'){
     var paid=parseFloat((document.getElementById('billPaid')||{}).value)||0;
     var pm=(document.getElementById('billPayMethod')||{}).value;
-    if(pm==='cash'&&paid<_total)errors.push('รับเงินไม่ครบ (ยอด '+fmt(_total)+')');
+    if(pm==='cash'&&paid<_total) errors.push('รับเงินไม่ครบ (ยอด '+fmt(_total)+')');
   }
   if(errors.length){showMsg(errors.join(' | '),'#ef4444');return;}
   var cel=document.getElementById('billCustomer');if(cel)cel.classList.remove('error');
@@ -369,21 +358,16 @@ function save(status){
   var d=document.getElementById('billDeliveryDate');
   var q=document.getElementById('billQtDays');
   var rv=document.getElementById('billReserveDate');
+  var schedEl=document.getElementById('billScheduledAt');
   var payload={
     doc_type:(document.getElementById('billDocType')||{}).value||'receipt',
     items:billItems.slice(),
-    customer:(document.getElementById('billCustomer')||{}).value||'',
-    customer_code:_selectedMember?(_selectedMember.code||_selectedMember.id||''):'',
+    customer:customerName,
+    customer_code:_selectedMember?(_selectedMember.code||''):'',
     member_id:_selectedMember?(_selectedMember.id||''):'',
+    customer_data:_selectedMember||null,
     note:(document.getElementById('billNote')||{}).value||'',
-    scheduled_at:(function(){
-      var el=document.getElementById('billScheduledAt');
-      if(el&&el.value) return new Date(el.value).toISOString();
-      var map=window._payStatusMap||{delay:45};
-      var dd=new Date();
-      dd.setMinutes(dd.getMinutes()+(map.delay||45));
-      return dd.toISOString();
-    })(),
+    scheduled_at:(schedEl&&schedEl.value)?new Date(schedEl.value).toISOString():null,
     total:_total,
     pay_method:(document.getElementById('billPayMethod')||{}).value||'cash',
     paid:parseFloat((document.getElementById('billPaid')||{}).value)||0,
@@ -391,17 +375,11 @@ function save(status){
     discount_type:(document.getElementById('billDiscountType')||{}).value||'amount',
     vat:parseInt((document.getElementById('billVat')||{}).value)||0,
     vat_type:(document.getElementById('billVatType')||{value:'included'}).value,
-    status:(function(){
-      if(status==='draft') return 'draft';
-      var map=window._payStatusMap||{status:'pending',shipping:null};
-      return map.status;
-    })(),
+    status:status==='draft'?'draft':undefined,
   };
-  var _map=window._payStatusMap||{status:'pending',shipping:null};
-  if(status!=='draft'&&_map.shipping) payload.shipping_status=_map.shipping;
-  if(d)payload.delivery_date=d.value;
-  if(q)payload.quotation_days=q.value;
-  if(rv)payload.reserve_date=rv.value;
+  if(d) payload.delivery_date=d.value;
+  if(q) payload.quotation_days=q.value;
+  if(rv) payload.reserve_date=rv.value;
 
   var submitBtn=document.getElementById('billSubmitBtn');
   var draftBtn=document.getElementById('billDraftBtn');
@@ -621,7 +599,6 @@ window.addEventListener('viiv_load_draft',function(e){
     if(ci){
       ci.addEventListener('input',function(){
         _selectedMember=null;ci.classList.remove('error');
-        reloadMembers();
         var q=this.value.toLowerCase();
         if(!q){md.style.display='none';return;}
         var found=allMembers.filter(function(m){

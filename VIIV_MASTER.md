@@ -747,3 +747,14 @@ Rule 46 — CTO + Claude Code ใช้ Pro บัญชีเดียวกั
 Rule 47 — billing/create.html: init ด้วย polling window.VIIV_TOKEN แทน _tok_ pattern
 
 Version: v1.42 | Updated: 2026-04-25
+
+---
+
+### [v1.43 PLAN — 2026-04-26] API-First Refactor
+
+GOAL: Backend owns all business rules → UI เป็น thin shell → Mobile/AI-chat ใช้ API เดียวกันได้
+
+STEP 1 — pos_bills.py: Backend owns cascade [✅ done]
+STEP 2 — create.html: ลบ statusMap ออกจาก JS [ ]
+STEP 3 — create.html: fix bugs (clearBillSilent, free-text customer, reloadMembers) [ ]
+STEP 4 — ทดสอบ + commit [ ]

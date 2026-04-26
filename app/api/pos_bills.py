@@ -3,7 +3,7 @@ from sqlalchemy import text
 from app.core.db import engine
 from app.core.id_generator import generate_id
 import jwt, os, json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/pos/bills", tags=["pos-bills"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
@@ -49,15 +49,28 @@ def create_bill(payload: dict, authorization: str = Header("")):
     items = payload.get("items", [])
     if not items: raise HTTPException(400, "กรุณาเพิ่มสินค้า")
     doc_type = payload.get("doc_type","receipt")
+    pm = payload.get("pay_method", "cash")
+    # backend is single source of truth for status + shipping cascade
+    PAY_MAP = {
+        "cash":             {"status": "paid",    "shipping": "received_payment", "delay": 0},
+        "transfer":         {"status": "paid",    "shipping": "received_payment", "delay": 0},
+        "cash_waiting":     {"status": "paid",    "shipping": "paid_waiting",     "delay": 15},
+        "transfer_waiting": {"status": "paid",    "shipping": "paid_waiting",     "delay": 15},
+        "deposit":          {"status": "partial", "shipping": "deposit_waiting",  "delay": 30},
+        "credit":           {"status": "credit",  "shipping": "scheduled",        "delay": 45},
+        "pending":          {"status": "pending", "shipping": None,               "delay": 0},
+    }
+    _map = PAY_MAP.get(pm, {"status": "pending", "shipping": None, "delay": 0})
     if doc_type == "reserve":
         status = "pending"
+        ship_st = None
     else:
-        status = payload.get("status", "pending")
-        if status not in ("paid","credit","partial","pending","draft"):
-            status = "pending"
-        pm = payload.get("pay_method", "cash")
-        if pm in ("credit",) and status == "paid":
-            status = "credit"
+        status = _map["status"]
+        ship_st = _map["shipping"]
+    # scheduled_at: use frontend value if provided, else compute from pay_method delay
+    sched = payload.get("scheduled_at")
+    if not sched and _map["delay"] > 0:
+        sched = (datetime.now() + timedelta(minutes=_map["delay"])).isoformat()
     with engine.begin() as c:
         items_snap = []
         for item in items:
@@ -78,24 +91,6 @@ def create_bill(payload: dict, authorization: str = Header("")):
         else:
             va = round(after*vr/100, 2); total = after+va
         src = payload.get("source","billing")
-        ship_st = payload.get("shipping_status", None)
-        pm = payload.get("pay_method", "cash")
-        if not ship_st:
-            ship_map = {
-                "cash": "received_payment",
-                "transfer": "received_payment",
-                "transfer_waiting": "paid_waiting",
-                "credit": "scheduled",
-                "deposit": "deposit_waiting",
-            }
-            ship_st = ship_map.get(pm, None)
-        if pm == "credit":
-            status = "credit"
-            ship_st = "scheduled"
-        elif pm == "pending":
-            status = "pending"
-            ship_st = None
-        sched = payload.get("scheduled_at")
         c.execute(text("""INSERT INTO bills(id,tenant_id,bill_no,inv_no,doc_type,status,source,shipping_status,scheduled_at,customer_id,customer_name,customer_code,customer_data,items,subtotal,discount,discount_type,vat_rate,vat_amount,vat_type,total,pay_method,paid_amount,note,created_by,created_at,updated_at)
             VALUES(:id,:tid,:bno,:ino,:dt,:st,:src,:ship,:sched,:cid,:cn,:cc,:cd,:items,:sub,:disc,:dtype,:vr,:va,:vtype,:total,:pm,:paid,:note,:uid,NOW(),NOW())"""),
             {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":doc_type,"st":status,
