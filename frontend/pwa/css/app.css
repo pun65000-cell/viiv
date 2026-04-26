@@ -915,3 +915,19 @@ input, textarea { font-family: inherit; }
 .ld-st-b  { color: var(--blue); }
 .ld-st-gd { color: var(--gold); }
 .ld-st-o  { color: var(--orange); }
+
+@keyframes aiPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(184,151,42,.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(184,151,42,0); }
+}
+#tb-ai-btn { display: none; }
+#tb-ai-btn.show { display: flex !important; }
+
+/* AI boost topbar */
+.spark1 { animation: tbSparkle 1.8s ease-in-out infinite; transform-origin: 2.6px 4.6px; }
+.spark2 { animation: tbSparkle 1.8s ease-in-out infinite .4s; transform-origin: 5.9px 1.9px; }
+@keyframes tbSparkle {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.3; transform:scale(.5); }
+}
+#tb-ai-label.show { max-width:100px !important; opacity:1 !important; }

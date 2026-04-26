@@ -45,15 +45,15 @@
   }
 
   const MENUS = [
-    { icon:'🧾', label:'ออกบิล',    action:()=> _openBillingSheet()   },
-    { icon:'⚡', label:'ขายด่วน',   action:()=> Router.go('billing')  },
-    { icon:'📋', label:'ออเดอร์',   action:()=> Router.go('orders')   },
-    { icon:'👥', label:'สมาชิก',    action:()=> Router.go('members')  },
-    { icon:'📦', label:'สินค้า',    action:()=> Router.go('products') },
-    { icon:'📊', label:'ยอดขาย',    action:()=> _openSalesSheet()     },
-    { icon:'🏪', label:'สโตร์',     action:()=> Router.go('store')    },
-    { icon:'🤝', label:'Affiliate', action:()=> Router.go('affiliate')  },
-    { icon:'⋯',  label:'เพิ่มเติม', action:()=> _openMoreSheet()      },
+    { icon:'🤝', label:'Affiliate',   action:()=> Router.go('affiliate')   },
+    { icon:'👥', label:'สมาชิก',      action:()=> Router.go('members')     },
+    { icon:'📋', label:'คำสั่งซื้อ',  action:()=> Router.go('orders')      },
+    { icon:'🧾', label:'บิลใบเสร็จ',  action:()=> Router.go('bill')      },
+    { icon:'🏪', label:'สโตร์',       action:()=> Router.go('store')       },
+    { icon:'📊', label:'Status',      action:()=> _openStatusSheet()       },
+    { icon:'📥', label:'รับสินค้า',   action:()=> Router.go('receive')     },
+    { icon:'💰', label:'บัญชี',       action:()=> Router.go('sales')       },
+    { icon:'⋯',  label:'เพิ่มเติม',   action:()=> _openMoreSheet()         },
   ];
 
   function _html(pos, recent, members) {
@@ -183,19 +183,23 @@
   }
 
   function _openMoreSheet() {
-    const PC = 'https://concore.viiv.me/superboard/pages/';
     const items = [
-      { icon:'💰', label:'การเงิน',       sub:'รายรับ-รายจ่าย',    url: PC+'finance.html'   },
-      { icon:'📥', label:'รับสินค้า',     sub:'บันทึกรับสต็อก',    url: PC+'receive.html'   },
-      { icon:'📌', label:'จองสินค้า',     sub:'Pre-order',         url: PC+'reserve.html'   },
-      { icon:'⏳', label:'รออนุมัติ',     sub:'บิลรอตรวจสอบ',      url: PC+'approval.html'  },
-      { icon:'🏪', label:'ตั้งค่าร้านค้า', sub:'ข้อมูลร้าน, โลโก้', url: PC+'settings.html'  },
+      { icon:'📌', label:'จองสินค้า',  sub:'Pre-order, ใบจอง',      action:()=>{ closeSheet(); Router.go('orders');   } },
+      { icon:'🏪', label:'ร้านค้า',    sub:'ข้อมูลร้าน, โลโก้',     action:()=>{ closeSheet(); Router.go('store');    } },
+      { icon:'🧾', label:'ตั้งค่าบิล', sub:'รูปแบบบิล, VAT, หมายเหตุ', action:()=>{ closeSheet(); Router.go('store');    } },
+      { icon:'🏦', label:'ธนาคาร',     sub:'บัญชีรับเงิน',           action:()=>{ closeSheet(); Router.go('store');    } },
+      { icon:'💚', label:'เชื่อม LINE', sub:'LINE OA, Webhook',      action:()=>{ closeSheet(); Router.go('store');    } },
+      { icon:'⏳', label:'รออนุมัติ',  sub:'บิลรอตรวจสอบ',           action:()=>{ closeSheet(); Router.go('orders');   } },
+      { icon:'🧾', label:'ออกบิล',     sub:'สร้างบิลใหม่',            action:()=>{ closeSheet(); _openBillingSheet();   } },
+      { icon:'⚡', label:'ขายด่วน',    sub:'POS ด่วน',               action:()=>{ closeSheet(); Router.go('billing');  } },
+      { icon:'📦', label:'สินค้า',     sub:'จัดการสินค้า, สต็อก',    action:()=>{ closeSheet(); Router.go('products'); } },
+      { icon:'📊', label:'ยอดขาย',     sub:'รายงานยอดขาย',           action:()=>{ closeSheet(); _openSalesSheet();     } },
     ];
     openSheet(`
       <div style="padding:0 0 12px">
         <div class="pm-title" style="padding:0 16px 12px;font-size:var(--fs-lg);font-weight:700">เพิ่มเติม</div>
-        ${items.map(item => `
-          <div class="list-item" style="border-bottom:1px solid var(--bdr)" onclick="window.open('${item.url}','_blank');closeSheet()">
+        ${items.map((item,i) => `
+          <div class="list-item" style="border-bottom:1px solid var(--bdr)" onclick="PosHub.moreAction(${i})">
             <div style="font-size:1.25rem;width:28px;text-align:center;flex-shrink:0">${item.icon}</div>
             <div class="li-left">
               <div class="li-title">${_esc(item.label)}</div>
@@ -204,6 +208,7 @@
             <div style="color:var(--muted)">›</div>
           </div>`).join('')}
       </div>`);
+    window._moreItems = items;
   }
 
   function _openSalesSheet() {
@@ -224,7 +229,33 @@
   }
 
 window.PosHub = {
-    menu(i) { MENUS[i]?.action(); }
+    menu(i) { MENUS[i]?.action(); },
+    moreAction(i) { window._moreItems?.[i]?.action(); },
+    openAI() {
+      openSheet(`
+        <div style="padding:0 0 16px">
+          <div style="background:linear-gradient(135deg,#1a1200,#2d2000);border-radius:16px;padding:20px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#b8972a,#e8c84a);display:flex;align-items:center;justify-content:center;font-size:18px">✦</div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#e8c84a;letter-spacing:.5px">AI-POWERED SALES</div>
+                <div style="font-size:12px;color:#b8972a">เพิ่มยอดขาย ได้ทันที</div>
+              </div>
+            </div>
+            <div style="font-size:13px;color:#d4b87a;line-height:1.6;margin-bottom:14px">ให้ AI ของ VIIV ทำงานแทนคุณตลอด 24 ชั่วโมง — ตั้งแต่โพสต์สินค้า ดึงลูกค้าเข้า DM จนปิดการขายอัตโนมัติ</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+              ${['✓ โพสต์อัตโนมัติ','✓ AI ปิดการขายใน DM','✓ ทดลองฟรี 10 วัน'].map(t=>'<span style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #b8972a;color:#e8c84a">'+t+'</span>').join('')}
+            </div>
+            <div style="display:flex;gap:8px">
+              <button onclick="closeSheet()" style="flex:1;padding:10px;border-radius:10px;background:#b8972a;color:#000;border:none;font-weight:700;font-size:13px;cursor:pointer">เริ่มต้นเลย →</button>
+              <button onclick="closeSheet()" style="flex:1;padding:10px;border-radius:10px;background:none;border:1px solid #b8972a;color:#b8972a;font-weight:700;font-size:13px;cursor:pointer">ดูวิธีทำงาน</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+            ${[['3x','ยอดขายเพิ่มเฉลี่ย'],['24/7','AI ทำงานแทนคุณ'],['5 นาที','ตั้งค่าเสร็จพร้อมขาย']].map(([v,l])=>'<div style="background:var(--card);border-radius:10px;padding:10px 6px"><div style="font-size:16px;font-weight:700;color:var(--gold)">'+v+'</div><div style="font-size:10px;color:var(--muted);margin-top:2px">'+l+'</div></div>').join('')}
+          </div>
+        </div>`);
+    },
   };
 
   function _fmt(n) { return Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0}); }

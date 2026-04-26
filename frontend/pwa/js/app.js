@@ -129,3 +129,51 @@ const App = {
   }
 };
 window.App = App;
+
+// AI boost label — เลื่อนเข้าออกทุก 12 วินาที
+(function(){
+  function pulse(){
+    const lbl = document.getElementById('tb-ai-label');
+    if (!lbl) return;
+    lbl.classList.add('show');
+    setTimeout(()=>lbl.classList.remove('show'), 3000);
+  }
+  setTimeout(pulse, 2000);
+  setInterval(pulse, 12000);
+})();
+
+// Bell notification
+window.Bell = {
+  _open: false,
+  toggle() {
+    this._open = !this._open;
+    const dd = document.getElementById('tb-bell-dd');
+    if (dd) dd.style.display = this._open ? 'block' : 'none';
+    if (this._open) this.markAll();
+  },
+  markAll() {
+    document.querySelectorAll('.bell-item.unread').forEach(el => {
+      el.classList.remove('unread');
+      const dot = el.querySelector('span');
+      if (dot) dot.style.background = 'var(--bdr)';
+    });
+    const bellDot = document.getElementById('tb-bell-dot');
+    if (bellDot) bellDot.style.display = 'none';
+  },
+  showDot() {
+    const bellDot = document.getElementById('tb-bell-dot');
+    if (bellDot) bellDot.style.display = 'block';
+  }
+};
+// แสดง dot ถ้ามี unread
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.querySelector('.bell-item.unread')) Bell.showDot();
+  // ปิด dropdown เมื่อคลิกนอก
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#tb-bell') && !e.target.closest('#tb-bell-dd')) {
+      const dd = document.getElementById('tb-bell-dd');
+      if (dd) dd.style.display = 'none';
+      Bell._open = false;
+    }
+  });
+});

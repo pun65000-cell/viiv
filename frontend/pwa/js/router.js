@@ -53,6 +53,8 @@ const Router = {
     const title = document.getElementById('tb-title');
     const logo  = document.getElementById('tb-logo');
     const back  = document.getElementById('tb-back');
+    const aibtn = document.getElementById('tb-ai-btn');
+    if (aibtn) aibtn.classList.toggle('show', page.id === 'pos');
 
     if (page.id === 'home') {
       if (title) title.style.display = 'none';

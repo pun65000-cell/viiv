@@ -221,6 +221,15 @@ html, body {
 @keyframes spin { to { transform:rotate(360deg); } }
 #ptr.visible { top:calc(var(--top-h) + 4px); }
 #ptr.visible #ptr-icon { opacity:1; }
+
+.spark1 { animation: sparkle 1.8s ease-in-out infinite; transform-origin: 2.6px 4.6px; }
+.spark2 { animation: sparkle 1.8s ease-in-out infinite .4s; transform-origin: 5.9px 1.9px; }
+@keyframes sparkle {
+  0%,100% { opacity:1; transform:scale(1) rotate(0deg); }
+  50%      { opacity:.4; transform:scale(.6) rotate(20deg); }
+}
+#tb-ai-boost:hover #tb-ai-label,
+#tb-ai-label.show { max-width:100px !important; opacity:1 !important; }
 </style>
 </head>
 <body>
@@ -242,8 +251,23 @@ html, body {
   <div class="tb-logo"><span class="tb-o">○</span> ViiV</div>
   <div class="tb-shop" id="tb-shop">Platform</div>
   <div class="tb-right">
+    <button id="tb-ai-boost" onclick="tbShowAI()" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px">
+      <span id="tb-ai-icon" style="display:flex;align-items:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="18" height="14" rx="3" stroke="#C9A84C" stroke-width="1.8"/>
+          <path d="M8.5 15 L10.5 10 L12.5 15" stroke="#C9A84C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9.2 13h2.6" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M14.5 10 L14.5 15" stroke="#C9A84C" stroke-width="1.7" stroke-linecap="round"/>
+          <g class="sparkle-group">
+            <path class="spark1" d="M2 4 L2.6 2 L3.2 4 L5 4.6 L3.2 5.2 L2.6 7 L2 5.2 L0.2 4.6 Z" fill="#C9A84C"/>
+            <path class="spark2" d="M5.5 1.5 L5.9 0.2 L6.3 1.5 L7.5 1.9 L6.3 2.3 L5.9 3.5 L5.5 2.3 L4.3 1.9 Z" fill="#C9A84C" transform="scale(0.75) translate(3,0)"/>
+          </g>
+        </svg>
+      </span>
+      <span id="tb-ai-label" style="font-size:12px;font-weight:700;color:#C9A84C;overflow:hidden;max-width:0;white-space:nowrap;transition:max-width .4s ease,opacity .4s;opacity:0">เพิ่มยอดขาย</span>
+    </button>
+    <div id="tb-notif" onclick="toggleNotif()">🔔<div class="dot" id="notif-dot"></div></div>
     <div id="tb-clock">--:--</div>
-    <div id="tb-notif">🔔<div class="dot" id="notif-dot"></div></div>
   </div>
 </div>
 
@@ -295,7 +319,28 @@ const S = {
 
 // ── CLOCK ──────────────────────────────────────
 function tick() {
-  const e = document.getElementById('tb-clock');
+  // AI boost label — แสดงข้อความเลื่อนขึ้นสลับกัน
+(function(){
+  const lbl = document.getElementById('tb-ai-label');
+  if (!lbl) return;
+  setTimeout(()=>{
+    lbl.classList.add('show');
+    setTimeout(()=>lbl.classList.remove('show'), 3000);
+  }, 1500);
+  setInterval(()=>{
+    lbl.classList.add('show');
+    setTimeout(()=>lbl.classList.remove('show'), 3000);
+  }, 12000);
+})();
+function tbShowAI() {
+  // เปิด sheet AI (ใช้ iframe postMessage หรือ navigate)
+  const iframe = document.querySelector('.page.active');
+  if (iframe) iframe.contentWindow?.postMessage({type:'viiv_open_ai'},'*');
+}
+function toggleNotif() {
+  document.getElementById('tb-notif').classList.toggle('open');
+}
+const e = document.getElementById('tb-clock');
   if (e) e.textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 }
 tick(); setInterval(tick, 1000);
