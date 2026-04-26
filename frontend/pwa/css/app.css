@@ -301,10 +301,11 @@ input, textarea { font-family: inherit; }
 .nb-btn:active { background: rgba(201,168,76,.10); }
 
 .nb-icon {
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
-  filter: grayscale(1) brightness(1.8);
-  transition: filter .2s, transform .2s;
+  color: var(--gold);
+  opacity: 0.5;
+  transition: opacity .2s, color .2s, transform .2s;
 }
 .nb-label {
   font-family: 'Chakra Petch', sans-serif;
@@ -320,8 +321,9 @@ input, textarea { font-family: inherit; }
 }
 
 /* active state */
-.nb-btn.active .nb-icon  { filter: none; transform: translateY(-2px); }
-.nb-btn.active .nb-label { color: var(--gold); }
+.nb-btn.active .nb-icon  { opacity: 1; color: #fff; transform: translateY(-2px); }
+.nb-btn.active .nb-label { color: var(--gold) !important; }
+
 .nb-btn.active::after {
   content: '';
   position: absolute;
