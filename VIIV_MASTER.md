@@ -755,6 +755,8 @@ Version: v1.42 | Updated: 2026-04-25
 GOAL: Backend owns all business rules → UI เป็น thin shell → Mobile/AI-chat ใช้ API เดียวกันได้
 
 STEP 1 — pos_bills.py: Backend owns cascade [✅ done]
-STEP 2 — create.html: ลบ statusMap ออกจาก JS [ ]
-STEP 3 — create.html: fix bugs (clearBillSilent, free-text customer, reloadMembers) [ ]
-STEP 4 — ทดสอบ + commit [ ]
+STEP 2 — create.html: ลบ statusMap ออกจาก JS [✅ done]
+STEP 3 — create.html: fix bugs (clearBillSilent, free-text customer, reloadMembers) [✅ done]
+STEP 4 — commit [✅ done — 623c537]
+
+Rule 48 — create.html: ห้าม statusMap/shippingMap ใน JS → backend เป็น single source of truth (PAY_MAP ใน pos_bills.py)
