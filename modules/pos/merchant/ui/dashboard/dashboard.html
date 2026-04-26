@@ -341,7 +341,7 @@ function loadSubPage(el, file) {
   if(!document.getElementById('viiv-global-css')){
     var gl=document.createElement('link');
     gl.id='viiv-global-css';gl.rel='stylesheet';
-    gl.href='/merchant/global.css'+Date.now();
+    gl.href='/merchant/global.css?v='+Date.now();
     document.head.appendChild(gl);
   }
   fetch(file + '?v=' + Date.now(), { signal: _loadAbort.signal })

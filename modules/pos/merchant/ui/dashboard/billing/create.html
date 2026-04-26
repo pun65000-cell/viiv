@@ -39,7 +39,7 @@
     <div class="bill-field" style="flex:1;">
       <label>ลูกค้า <span style="color:#ef4444;">*</span></label>
       <div style="position:relative;">
-        <input id="billCustomer" type="text" placeholder="ชื่อลูกค้า / รหัสสมาชิก" class="bill-input"/>
+        <input id="billCustomer" type="text" placeholder="ชื่อลูกค้า / รหัสสมาชิก" class="bill-input" autocomplete="off"/>
         <div id="billMemberDrop" class="bill-search-drop" style="display:none;"></div>
       </div>
     </div>
@@ -501,16 +501,6 @@ function showNewMemberPopup(prefill){
     var name=document.getElementById('nm-name').value.trim();
     if(!name){document.getElementById('nm-name').style.borderColor='#ef4444';return;}
     var code=document.getElementById('nm-code').value.trim();
-    var members=JSON.parse(localStorage.getItem('viiv_members')||'[]');
-    if(code){
-      var dup=members.find(function(m){return (m.code||'').toLowerCase()===code.toLowerCase();});
-      if(dup){
-        document.getElementById('nm-code').style.borderColor='#ef4444';
-        var er=document.getElementById('nm-code-err');
-        er.textContent='รหัสซ้ำ! มีสมาชิก "'+dup.name+'" ใช้รหัสนี้แล้ว';
-        er.style.display='block';return;
-      }
-    }
     var selPF=Array.from(document.querySelectorAll('input[name="nm-platform"]:checked')).map(function(cb){return cb.value;});
     var nm={id:'MEM_'+Date.now(),code:code||'C'+Date.now().toString().slice(-6),name:name,
       phone:document.getElementById('nm-phone').value,tax_id:document.getElementById('nm-taxid').value,
@@ -518,9 +508,8 @@ function showNewMemberPopup(prefill){
       credit:parseFloat(document.getElementById('nm-credit').value)||0,
       platforms:selPF,pv_total:0,cash:0,credit_limit:0,avatar_url:'',
       created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
-    members.unshift(nm);
-    localStorage.setItem('viiv_members',JSON.stringify(members));
-    allMembers=members;_selectedMember=nm;
+    _selectedMember=nm;
+    reloadMembers();
     var ci=document.getElementById('billCustomer');
     if(ci){ci.value=nm.name+(nm.phone?' ('+nm.phone+')':'');ci.classList.remove('error');}
     var mc=document.getElementById('billMemberCode');if(mc)mc.value=nm.code||'—';
