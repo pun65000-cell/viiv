@@ -94,3 +94,22 @@ INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/statements/by-bill/BILL-2026-000025 HTTP/1.1" 200 OK
+INFO:     104.23.251.221:0 - "GET /.git/config HTTP/1.1" 404 Not Found
+INFO:     172.64.217.171:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     162.158.91.22:0 - "GET /.git/HEAD HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/by-bill/BILL-2026-000025 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/unpaid-bills?q=%E0%B8%97 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/pos/statements/create HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/3/bills HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
