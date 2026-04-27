@@ -184,8 +184,8 @@
       <div style="padding:10px 14px 6px">
         <div style="position:relative">
           <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none">🔍</span>
-          <input id="orders-search" type="search" placeholder="ค้นหาเลขบิล / ลูกค้า..."
-            value="${_esc(_q)}"
+          <input id="orders-search" type="text" autocomplete="new-password" name="orders_search_x"
+            placeholder="ค้นหาเลขบิล / ลูกค้า..."
             style="width:100%;box-sizing:border-box;background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:9px 12px 9px 34px;color:var(--txt);font-size:var(--fs-sm);outline:none;transition:border-color .2s"
             onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--bdr)'"/>
         </div>
@@ -270,6 +270,13 @@
     const sd = document.getElementById('orders-doctype');
     const sh = document.getElementById('orders-ship');
     if (!sq) return;
+
+    // กัน browser autofill (Rule 52) — clear ทันทีและรอ 300ms อีกรอบ
+    sq.value = '';
+    _q = '';
+    setTimeout(() => {
+      if (sq && sq.value && sq.value !== '') { sq.value = ''; _q = ''; _renderList(); }
+    }, 350);
 
     let timer;
     sq.addEventListener('input', e => {
