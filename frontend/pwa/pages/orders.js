@@ -72,6 +72,9 @@
         _mode = 'list';
         _detailId = null;
         _status = params?.status || '';
+      _q = '';
+      _docType = '';
+      _shipFilter = '';
         _docType = '';
         _shipFilter = '';
         _q = '';
@@ -184,7 +187,7 @@
       <div style="padding:10px 14px 6px">
         <div style="position:relative">
           <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none">🔍</span>
-          <input id="orders-search" type="text" autocomplete="new-password" name="orders_search_x"
+          <input id="orders-search" type="text" autocomplete="off" name="orders_search_x" readonly onfocus="this.removeAttribute(this.getAttribute('readonly')!==null?'readonly':'')"
             placeholder="ค้นหาเลขบิล / ลูกค้า..."
             style="width:100%;box-sizing:border-box;background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:9px 12px 9px 34px;color:var(--txt);font-size:var(--fs-sm);outline:none;transition:border-color .2s"
             onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--bdr)'"/>
@@ -225,7 +228,7 @@
     const itemCount = items.length;
     const date = App.fmtDate ? App.fmtDate(b.created_at) : (b.created_at||'').slice(0,10);
 
-    return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:5px;padding:11px 14px;margin-bottom:8px;cursor:pointer" onclick="Router.go('orders',{id:'${b.id}'})">
+    return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:5px;padding:11px 14px 11px 16px;margin-bottom:8px;cursor:pointer;border-left:3px solid var(--gold);box-shadow:-3px 0 8px rgba(232,185,62,0.25)" onclick="Router.go('orders',{id:'${b.id}'})">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div style="min-width:0;flex:1">
           <div style="font-size:var(--fs-sm);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(b.bill_no)}</div>
@@ -276,7 +279,7 @@
     _q = '';
     setTimeout(() => {
       if (sq && sq.value && sq.value !== '') { sq.value = ''; _q = ''; _renderList(); }
-    }, 350);
+    }, 800);
 
     let timer;
     sq.addEventListener('input', e => {
