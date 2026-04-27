@@ -1,8 +1,9 @@
-import json
+import json, io
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from sqlalchemy import text
 from app.core.db import engine
 import jwt, os, uuid
+from PIL import Image
 
 router = APIRouter(prefix="/api/pos/store", tags=["pos-store"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
@@ -117,6 +118,18 @@ async def upload_logo(file: UploadFile = File(...), authorization: str = Header(
     if ext not in [".jpg",".jpeg",".png",".webp"]: raise HTTPException(400,"รองรับเฉพาะ JPG/PNG/WEBP")
     content = await file.read()
     if len(content)>5*1024*1024: raise HTTPException(400,"ไฟล์ใหญ่เกิน 5MB")
+    # resize ให้เหลือ max 500px (ลดขนาดไฟล์ ไม่เปลี่ยน ratio)
+    try:
+        img = Image.open(io.BytesIO(content))
+        img = img.convert("RGBA") if ext in [".png",".webp"] else img.convert("RGB")
+        if max(img.size) > 500:
+            img.thumbnail((500, 500), Image.LANCZOS)
+        buf = io.BytesIO()
+        save_fmt = "PNG" if ext == ".png" else "WEBP" if ext == ".webp" else "JPEG"
+        img.save(buf, format=save_fmt, quality=85, optimize=True)
+        content = buf.getvalue()
+    except Exception:
+        pass  # fallback: ใช้ original ถ้า PIL ล้มเหลว
     fname = str(uuid.uuid4())+ext
     with open(os.path.join(UPLOAD_DIR,fname),"wb") as f: f.write(content)
     url = f"/uploads/store/{fname}"

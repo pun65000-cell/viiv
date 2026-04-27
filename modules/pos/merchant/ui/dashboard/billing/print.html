@@ -66,6 +66,8 @@ var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 if(!TOKEN){ setTimeout(function(){ TOKEN=localStorage.getItem('viiv_token')||''; },300); }
 var _bill=null, _store=null, _form=1, _banks=[];
+var _logoDataUrl=null; // cache logo as base64 — ไม่ต้อง fetch ซ้ำเมื่อเปลี่ยน form
+var _loadingBid=null; // guard: ป้องกัน loadData ถูกเรียกซ้ำ
 
 function fmt(n){ return (parseFloat(n)||0).toLocaleString('th',{minimumFractionDigits:2}); }
 function buildBankBlock(store, banks){
@@ -91,6 +93,8 @@ function fmtDate(d){ return d?new Date(d).toLocaleDateString('th-TH',{year:'nume
 function fmtDateTime(d){ return d?new Date(d).toLocaleString('th-TH'):''; }
 
 window.loadData = async function loadData(bid){
+  if(_loadingBid===bid) return; // กัน duplicate call
+  _loadingBid=bid;
   var status=document.getElementById('printStatus');
   if(status) status.textContent='กำลังโหลด...';
   try{
@@ -103,18 +107,32 @@ window.loadData = async function loadData(bid){
     _store=await sRes.json();
     _banks=(await bankRes.json()).banks||[];
     if(_bill.items && typeof _bill.items==='string') _bill.items=JSON.parse(_bill.items);
+
+    // preload logo → base64 data URL (ไม่ต้อง fetch ซ้ำเมื่อเปลี่ยน form)
+    _logoDataUrl=null;
+    if(_store.logo_url){
+      var logoSrc=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
+      try{
+        var logoRes=await fetch(logoSrc,{cache:'force-cache'});
+        if(logoRes.ok){
+          var blob=await logoRes.blob();
+          _logoDataUrl=await new Promise(function(res){
+            var r=new FileReader(); r.onload=function(e){res(e.target.result);}; r.readAsDataURL(blob);
+          });
+        }
+      }catch(e2){ _logoDataUrl=logoSrc; } // fallback: ใช้ URL ตรง
+    }
+
     if(status) status.textContent='';
     renderForm(_form);
   }catch(e){
+    _loadingBid=null; // reset guard ถ้า error (ให้ retry ได้)
     if(status) status.textContent='โหลดไม่สำเร็จ: '+e.message;
   }
 }
 
 function storeHeader(){
-  var logoUrl='';
-    if(_store.logo_url){
-      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
-    }
+  var logoUrl=_logoDataUrl||'';
   var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
   return '<div class="doc-header">'+
     '<div style="display:flex;gap:10px;align-items:flex-start;">'+
@@ -305,10 +323,7 @@ window.renderForm = function renderForm(f){
   else if(f==4||f==5){
     var title4={4:'ใบเสร็จรับเงิน/ใบกำกับภาษี',5:'ใบส่งของชั่วคราว/ใบกำกับภาษี'};
     var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
-    var logoUrl='';
-    if(_store.logo_url){
-      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
-    }
+    var logoUrl=_logoDataUrl||'';
     html+='<div style="text-align:center;font-size:14px;font-weight:700;margin-bottom:12px;">'+title4[f]+'</div>'+
       '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
         (logoUrl?'<img src="'+logoUrl+'" style="width:60px;height:60px;object-fit:contain;"/>':'')+
@@ -335,10 +350,7 @@ window.renderForm = function renderForm(f){
       buildBankBlock(_store, _banks);
   }
   else if(f==6){
-    var logoUrl='';
-    if(_store.logo_url){
-      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
-    }
+    var logoUrl=_logoDataUrl||'';
     var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
     html+=
       '<div style="text-align:center;margin-bottom:12px;">'+
@@ -355,10 +367,7 @@ window.renderForm = function renderForm(f){
       '<div class="doc-footer">ขอบคุณที่ใช้บริการ</div>';
   }
   else if(f==7){
-    var logoUrl='';
-    if(_store.logo_url){
-      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
-    }
+    var logoUrl=_logoDataUrl||'';
     var addr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
     html+=
       '<div style="text-align:center;margin-bottom:12px;">'+
@@ -384,10 +393,7 @@ window.renderForm = function renderForm(f){
     var cusName=_bill.customer_name||'';
     var cusPhone=cd?cd.phone||'':'';
     var cusAddr=cd?cd.address||'':'';
-    var logoUrl='';
-    if(_store.logo_url){
-      logoUrl=_store.logo_url.startsWith('http')?_store.logo_url:API+_store.logo_url;
-    }
+    var logoUrl=_logoDataUrl||'';
     var storeAddr=[_store.address,_store.road,_store.subdistrict,_store.district,_store.province,_store.postal_code].filter(Boolean).join(' ');
     html+=
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">'+
@@ -433,48 +439,38 @@ window.renderForm = function renderForm(f){
 
 window.addEventListener('viiv_token_ready',function(e){
   if(e.detail&&e.detail.token) TOKEN=e.detail.token;
-  // หา bid จาก URL hash หรือ param
-  var params=new URLSearchParams(location.search);
-  var bid=params.get('bid');
+  _bindUI();
+});
+})();
+
+// init เดียว — ผ่าน setTimeout รอ token จาก localStorage
+setTimeout(function(){
+  TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
+  _bindUI();
+},200);
+
+function _bindUI(){
+  var bid=new URLSearchParams(location.search).get('bid');
   if(!bid){
     var hash=location.hash.replace('#','');
     if(hash.startsWith('bid=')) bid=hash.slice(4);
   }
-  if(bid){
-    loadData(bid);
-  } else {
+  if(!bid){
     document.getElementById('printPage').innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">ไม่พบเลขบิล กรุณาส่ง ?bid=BILL_ID</div>';
+    return;
   }
-  // auto init ถ้า token พร้อม
-  if(TOKEN){
-    var params2=new URLSearchParams(location.search);
-    var bid2=params2.get('bid');
-    if(bid2) loadData(bid2);
-  }
-  document.getElementById('formSelector').addEventListener('change',function(){
-    _form=parseInt(this.value);
-    renderForm(_form);
-  });
-  document.getElementById('printBtn').addEventListener('click',function(){ window.print(); });
-  document.getElementById('closeBtn').addEventListener('click',function(){
+  if(!TOKEN){ return; } // ยังไม่มี token — รอ event
+  loadData(bid); // _loadingBid guard ป้องกัน call ซ้ำ
+
+  var fs=document.getElementById('formSelector');
+  if(fs&&!fs._bound){ fs._bound=true; fs.addEventListener('change',function(){ _form=parseInt(this.value); renderForm(_form); }); }
+  var pb=document.getElementById('printBtn');
+  if(pb&&!pb._bound){ pb._bound=true; pb.addEventListener('click',function(){ window.print(); }); }
+  var cb=document.getElementById('closeBtn');
+  if(cb&&!cb._bound){ cb._bound=true; cb.addEventListener('click',function(){
     if(window.parent&&window.parent.closePrintPopup) window.parent.closePrintPopup();
     else window.close();
-  });
-});
-})();
-setTimeout(function(){
-  var tok=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
-  if(!tok){ console.warn('no token'); return; }
-  TOKEN=tok;
-  var bid=new URLSearchParams(location.search).get('bid');
-  if(!bid){ console.warn('no bid'); return; }
-  loadData(bid);
-  var fs=document.getElementById('formSelector');
-  if(fs) fs.addEventListener('change',function(){ _form=parseInt(this.value); renderForm(_form); });
-  var pb=document.getElementById('printBtn');
-  if(pb) pb.addEventListener('click',function(){ window.print(); });
-  var cb=document.getElementById('closeBtn');
-  if(cb) cb.addEventListener('click',function(){ window.close(); });
-},300);
+  }); }
+}
 </script>
 </body>
