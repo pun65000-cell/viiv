@@ -52,7 +52,7 @@
     { icon:'🏪', label:'สโตร์',       action:()=> Router.go('store')       },
     { icon:'📊', label:'Status',      action:()=> _openStatusSheet()       },
     { icon:'📥', label:'รับสินค้า',   action:()=> Router.go('receive')     },
-    { icon:'💰', label:'บัญชี',       action:()=> Router.go('sales')       },
+    { icon:'💰', label:'บัญชี',       action:()=> Router.go('finance')       },
     { icon:'⋯',  label:'เพิ่มเติม',   action:()=> _openMoreSheet()         },
   ];
 

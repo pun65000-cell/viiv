@@ -44,7 +44,7 @@
     try {
       var data = await App.api('/api/pos/bills/list?limit=200');
       if (_destroyed) return;
-      _bills = Array.isArray(data) ? data : [];
+      _bills = data.bills || data || [];
       _render();
     } catch(e) {
       if (_destroyed) return;

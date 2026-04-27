@@ -208,7 +208,7 @@ def list_expense(q: str = "", limit: int = 100, authorization: str = Header(""))
         params["q"] = f"%{q}%"
     with engine.connect() as c:
         rows = c.execute(text(f"""
-            SELECT e.*, p.name AS partner_name
+            SELECT e.*, p.company_name AS partner_name
             FROM finance_expense e
             LEFT JOIN partners p ON p.id = e.partner_id AND p.tenant_id = e.tenant_id
             {filters}
