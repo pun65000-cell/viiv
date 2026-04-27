@@ -43,6 +43,17 @@ def gen_bill_no(tid, conn):
     inv_no = f"{inv_prefix}-{str(new_seq).zfill(6)}"
     return bill_no, inv_no, new_seq
 
+def _snapshot_member(c, tid, member_id, fallback):
+    """ดึงข้อมูลสมาชิกครบจาก members table ถ้ามี member_id"""
+    if member_id:
+        row = c.execute(text("""SELECT id,code,name,phone,tax_id,address,email,birthday,geo,credit_limit,credit,note
+            FROM members WHERE id=:id AND tenant_id=:tid"""), {"id":member_id,"tid":tid}).fetchone()
+        if row:
+            return {"id":row[0],"code":row[1],"name":row[2],"phone":row[3],"tax_id":row[4],
+                    "address":row[5],"email":row[6],"birthday":str(row[7]) if row[7] else None,
+                    "geo":row[8],"credit_limit":float(row[9] or 0),"credit":float(row[10] or 0),"note":row[11]}
+    return fallback or {}
+
 @router.post("/create")
 def create_bill(payload: dict, authorization: str = Header("")):
     tid, uid = get_tenant_user(authorization)
@@ -96,7 +107,7 @@ def create_bill(payload: dict, authorization: str = Header("")):
             {"id":bid,"tid":tid,"bno":bill_no,"ino":inv_no,"dt":doc_type,"st":status,
              "src":src,"ship":ship_st,"sched":sched,
              "cid":(payload.get("customer_data") or {}).get("id"),"cn":payload.get("customer",""),"cc":payload.get("customer_code",""),
-             "cd":json.dumps(payload.get("customer_data")) if payload.get("customer_data") else None,
+             "cd":json.dumps(_snapshot_member(c, tid, (payload.get("customer_data") or {}).get("id"), payload.get("customer_data"))),
              "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"vtype":vat_type,"total":total,
              "pm":payload.get("pay_method","cash"),"paid":float(payload.get("paid",0)),"note":payload.get("note",""),"uid":uid})
         if doc_type == "reserve":

@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=1842"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=8243"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -161,25 +161,25 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/auth.js?v=1842"></script>
-<script src="/pwa/js/router.js?v=1842"></script>
-<script src="/pwa/js/app.js?v=1842"></script>
-<script src="/pwa/pages/home.js?v=1842"></script>
-<script src="/pwa/pages/pos.js?v=1842"></script>
-<script src="/pwa/pages/billing.js?v=1842"></script>
-<script src="/pwa/pages/orders-upload.js?v=1842"></script>
-<script src="/pwa/pages/orders.js?v=1845"></script>
-<script src="/pwa/pages/orders-detail.js?v=1843"></script>
-<script src="/pwa/pages/products.js?v=1842"></script>
-<script src="/pwa/pages/members.js?v=1842"></script>
-    <script src="/pwa/pages/bill.js?v=1842"></script>
-    <script src="/pwa/pages/sales.js?v=1842"></script>
-<script src="/pwa/pages/chat.js?v=1842"></script>
-<script src="/pwa/pages/autopost.js?v=1842"></script>
-<script src="/pwa/pages/affiliate.js?v=1842"></script>
-<script src="/pwa/pages/partners.js?v=1842"></script>
-<script src="/pwa/pages/store.js?v=1842"></script>
-<script src="/pwa/pages/more.js?v=1842"></script>
+<script src="/pwa/js/auth.js?v=8243"></script>
+<script src="/pwa/js/router.js?v=8243"></script>
+<script src="/pwa/js/app.js?v=8243"></script>
+<script src="/pwa/pages/home.js?v=8243"></script>
+<script src="/pwa/pages/pos.js?v=8243"></script>
+<script src="/pwa/pages/billing.js?v=8243"></script>
+<script src="/pwa/pages/orders-upload.js?v=8243"></script>
+<script src="/pwa/pages/orders.js?v=8243"></script>
+<script src="/pwa/pages/orders-detail.js?v=8243"></script>
+<script src="/pwa/pages/products.js?v=8243"></script>
+<script src="/pwa/pages/members.js?v=8243"></script>
+    <script src="/pwa/pages/bill.js?v=8243"></script>
+    <script src="/pwa/pages/sales.js?v=8243"></script>
+<script src="/pwa/pages/chat.js?v=8243"></script>
+<script src="/pwa/pages/autopost.js?v=8243"></script>
+<script src="/pwa/pages/affiliate.js?v=8243"></script>
+<script src="/pwa/pages/partners.js?v=8243"></script>
+<script src="/pwa/pages/store.js?v=8243"></script>
+<script src="/pwa/pages/more.js?v=8243"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -188,7 +188,7 @@ const Profile = {
     document.getElementById('tb-profile-dd').classList.toggle('open');
   },
   closeDD() {
-    document.getElementById('tb-profile-dd').classList.remove('open');
+    var _dd = document.getElementById('tb-profile-dd'); if(_dd) _dd.classList.remove('open');
   },
   openSheet() {
     this.closeDD();
@@ -291,5 +291,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+  <script src="pages/receive.js"></script>
 </body>
 </html>
