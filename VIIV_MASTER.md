@@ -1,43 +1,50 @@
-# VIIV MASTER — CGO Reference
-> **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่กับ CGO ทุกครั้ง**  
-> Version: v1.42 | Updated: 2026-04-25  
+# VIIV MASTER — Project Reference
+> **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
+> Version: v1.45 | Updated: 2026-04-27  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
-บทบาท (v1.42)
+บทบาท (v1.45)
 ```
-CGO Chat    = Claude Pro subscription (แยกบัญชี) — architecture, decisions, MASTER.md
-CTO Chat    = Claude Pro subscription — review, สั่ง Claude Code, เขียน spec ร่วม CGO
-Claude Code = Pro subscription (same account as CTO) — implement ตาม spec
-             ⚠️ ใช้บัญชีเดียวกับ CTO → นับ limit รวม แจ้ง CGO ที่ 80%
-Terminal    = รับ pyeof จาก CGO โดยตรง — debug, grep, short scripts เท่านั้น
+AI แชท     = claude.ai (Pro) — ช่วยวิเคราะห์, ออกแบบ, เขียนโค้ด
+             ✅ ส่งโค้ดพร้อม copy-paste ไปวางที่ Terminal ได้เลย
+             ✅ ถ้าเป็นคำสั่งสั้น → ส่งเป็น bash block พร้อมรัน
+             ✅ ถ้าเป็นโค้ดยาว → ส่งแบบแยก file พร้อม path ชัดเจน
+
+Claude Code = ใน Terminal — รับคำสั่งภาษาไทยโดยตรงจากเจ้าของโปรเจกต์
+             ✅ implement ตามที่สั่ง โดยไม่ต้องแปลง spec ก่อน
+             ✅ อ่าน CLAUDE.md อัตโนมัติทุก session
+             ✅ อัปเดต VIIV_MASTER.md Section [E] เมื่อสิ้นวัน
+
+Terminal    = รันคำสั่ง bash, debug, grep, short scripts
 API Key     = debug only — ห้ามเขียนโค้ดใหม่
-เจ้าของโปรเจกต์ = ส่ง spec ให้ CGO → CGO/CTO แปลงเป็น task → Claude Code implement
 ```
 Daily Workflow
 ```
-เช้า:     copy VIIV_MASTER.md ทั้งไฟล์ → เปิดแชทใหม่ → CGO เก็ต context 100%
-ระหว่างวัน: CGO ออก spec → Claude Code implement → test
-เย็น:     CGO สั่ง Claude Code: "สรุปวันนี้ เพิ่มใน VIIV_MASTER.md Section [E]"
-พรุ่งนี้: copy ไฟล์ใหม่ → เปิดแชท → ทำต่อ
+เช้า:         copy VIIV_MASTER.md → วางใน AI แชท → ได้ context 100%
+ระหว่างวัน:   สั่ง Claude Code ภาษาไทยโดยตรง → implement → test
+              หรือ ถาม AI แชท → ได้โค้ด copy-paste → วางที่ Terminal
+เย็น:         สั่ง Claude Code: "สรุปวันนี้ เพิ่มใน VIIV_MASTER.md Section [E]"
+พรุ่งนี้:     copy ไฟล์ใหม่ → เปิดแชท → ทำต่อ
 ```
-Execution Workflow (v1.42)
+Execution Workflow (v1.45)
 ```
-→ Claude Code (Pro)  = งานเขียนโค้ด implement, rewrite, feature ใหม่ทุกอย่าง
-→ Terminal           = รันคำสั่งสั้น, debug, grep, pyeof จาก CGO โดยตรง
-→ API Key            = debug only หลัง implement เสร็จ — ห้ามเขียนโค้ดใหม่
-CGO/CTO ไม่เขียนโค้ดยาว — เขียนแต่ prompt, spec, และ review เท่านั้น
+→ Claude Code    = งานเขียนโค้ด implement, rewrite, feature ทุกอย่าง
+                   รับคำสั่งภาษาไทยจากเจ้าของโปรเจกต์โดยตรง
+→ AI แชท         = ถาม architecture, ดีไซน์, ขอโค้ดตัวอย่าง copy-paste
+→ Terminal (!)   = รัน bash command จาก AI แชท — พิมพ์ ! นำหน้าคำสั่ง
+→ API Key        = debug only หลัง implement เสร็จ
 ```
 Model Policy
 ```
 claude-haiku-4-5   → งานทั่วไป (edit, debug, < 100 บรรทัด)
 claude-sonnet-4-6  → complex logic, multi-file, architecture
-claude-opus        → ห้ามใช้ยกเว้น CGO อนุมัติ
+claude-opus        → ห้ามใช้ยกเว้นอนุมัติเป็นลายลักษณ์อักษร
 ```
 Token Rules
 ```
 Claude Code อ่านเฉพาะไฟล์ที่เกี่ยวกับ task นั้น
-ถ้า task ต้อง read > 3 ไฟล์ → แจ้ง CGO ก่อน แบ่ง task
+ถ้า task ต้อง read > 3 ไฟล์ → แจ้งก่อน แบ่ง task
 ห้าม loop/retry เกิน 3 ครั้งโดยไม่แจ้ง
 ใช้ /compact ก่อนส่ง prompt ใหม่ทุกครั้ง
 Rate limit 30,000 tokens/min → รอ 1 นาทีแล้วส่งใหม่
@@ -780,3 +787,101 @@ Rule 50 — Single Source of Truth:
 ✅ Rule 48 เพิ่ม
 
 Version: v1.43 | Updated: 2026-04-26
+
+---
+
+### [v1.44 COMPLETED — 2026-04-26] Statement Indicator Fix + Architecture Cleanup
+
+GOAL: statement indicator ใน ship popup แสดงสีน้ำตาลถูกต้อง + single source of truth
+
+FIXES:
+✅ search.html: `by-bill` fetch ใช้ `b.db_id` แทน `b.id`
+   — `b.id` = bill_no (BILL-2026-000033), `b.db_id` = UUID จริง (bill_1777201470_zrpf)
+   — billing_statements.bill_ids เก็บ UUID → fetch ก่อนหน้า query ไม่ match เลย
+   — บรรทัด 627: `b.id` → `(b.db_id||b.id)`
+
+✅ pos_statements.py: `/unpaid-bills` ลบ guard `if not q: return []`
+   — ตอนนี้ return bills ทุกใบถ้า q ว่าง (LIMIT 50)
+   — statement.html popup แสดง unpaid bills ทันทีเมื่อเปิด
+
+✅ pos_statements.py: `/list` ดึง customer_name/phone/address จาก bills.customer_data JSON
+   — ไม่ JOIN members table ซ้ำ (single source of truth)
+
+✅ Rule 49 + 50 เพิ่ม: bills soft-delete only, billing_statements ไม่เก็บ customer fields ซ้ำ
+
+✅ DB cleanup: ลบ orphaned statements (BS-ten_1-20260426-001, 002) ที่ bill_ids ชี้ไป deleted bills
+
+RULES เพิ่ม:
+Rule 49 — bills ห้าม hard DELETE → soft delete (UPDATE status='deleted') เสมอ
+Rule 50 — billing_statements ไม่เก็บ customer fields ซ้ำ → อ่านจาก bills.customer_data เสมอ
+
+Version: v1.44 | Updated: 2026-04-26
+
+## [E] PROGRESS LOG
+
+### [v1.45 UPDATE — 2026-04-26]
+
+COMPLETED v1.45:
+
+✅ members.js — form responsive (auto-fill minmax) ทั้ง store และ partner form
+✅ members.js — tab คู่ค้า restore หลัง reload (hash ?tab=partner)
+✅ router.js — parse hash query string สำหรับ tab params
+✅ sw.js v6 — network-first JS + bump.sh script (~/viiv/bump.sh)
+✅ sales.js — ยอดขาย PWA page (Router.go แทน window.open, ไม่หลุดออกนอก PWA)
+✅ pos.js — MENUS ใหม่ 9 เมนู (Affiliate/สมาชิก/คำสั่งซื้อ/บิลใบเสร็จ/สโตร์/Status/รับสินค้า/บัญชี/เพิ่มเติม)
+✅ pos.js — _openMoreSheet ใหม่ (จองสินค้า/ร้านค้า/ตั้งค่าบิล/ธนาคาร/เชื่อมLINE/รออนุมัติ + เมนูเดิม)
+✅ pos.js — _openStatusSheet (ยอดขายวันนี้/เดือนนี้/จัดส่ง/การเงิน)
+✅ index.html — AI boost button (SVG sparkle animate) + Bell notification
+✅ index.html — ViiV Platform label บน topbar
+✅ app.js — Bell.toggle/markAll/showDot
+✅ bill.js — หน้าบิลใบเสร็จ PWA (#bill) ค้นหา+filter+รายละเอียด+พิมพ์+แชร์
+✅ pos_bills.py — _snapshot_member() JOIN members ตอนสร้างบิล (address/tax_id/phone/email ครบ)
+✅ router.js — alias bill→pos ยกเลิก, bill register แยกหน้าแล้ว
+
+FILES CHANGED:
+  frontend/pwa/pages/members.js
+  frontend/pwa/pages/sales.js (NEW)
+  frontend/pwa/pages/bill.js (NEW)
+  frontend/pwa/pages/pos.js
+  frontend/pwa/js/router.js
+  frontend/pwa/js/app.js
+  frontend/pwa/js/auth.js
+  frontend/pwa/index.html
+  frontend/pwa/css/app.css
+  frontend/pwa/sw.js
+  app/api/pos_bills.py
+
+RULES เพิ่ม:
+Rule 48 — bill_no ต้องมาจาก gen_bill_no() เสมอ ห้าม client ส่งมาตรงๆ
+Rule 49 — DRAFT- prefix = ยังไม่ finalize ห้าม expose ลูกค้า
+Rule 50 — customer_data snapshot ต้อง JOIN members ที่ backend เสมอ ห้าม frontend ส่งแค่บางฟิลด์
+Rule 51 — PWA page ใหม่ทุกหน้าต้อง Router.register + เพิ่มใน index.html + bump.sh
+Rule 52 — browser autofill กัน: ใช้ setTimeout clear ใน _bindFilters (300ms)
+Rule 53 — SW JS network-first: แก้ JS ไฟล์ไหนก็ได้ รัน ~/viiv/bump.sh รอบเดียวจบ
+
+DECISIONS เพิ่ม:
+26 — bill_no standard: BILL-YYYY-XXXXXX เท่านั้น (server gen_bill_no())
+27 — PWA flat navigation: list → bottom sheet (ไม่มี nested page)
+28 — customer_data = full snapshot จาก members ตอนสร้างบิล (backend owns)
+
+---
+[2026-04-27 v1.45] Mobile คำสั่งซื้อ (#orders) — ปรับให้ตรงกับ PC version
+
+✅ orders.js — เปลี่ยน title 'ออเดอร์' → 'คำสั่งซื้อ'
+✅ orders.js — เพิ่ม filter bar: status dropdown (8 สถานะ) + doc_type + shipping_status (12 สถานะ)
+✅ orders.js — _listRow ใหม่: แสดง doc_type badge, วิธีชำระ, วันที่, จำนวนรายการ, POS badge
+✅ orders.js — โหลด 500 รายการ client-side filter (shipping_status filter ไม่มีใน API)
+✅ orders-detail.js — FIN_STATUS ครบ 8 สถานะ (paid/transfer_paid/paid_waiting/transfer_waiting/partial/credit/pending/voided)
+✅ orders-detail.js — SHIP_STATUS ครบ 11 สถานะ (รวม paid_waiting/deposit_waiting/debt_collection/debt-NPL)
+✅ orders-detail.js — _shipExtraHtml ใหม่: field bank dropdown + camera button + report textarea + due date
+✅ orders-detail.js — กลับปุ่ม '← คำสั่งซื้อ' + ปุ่มพิมพ์ + แชร์ + activity log แสดงรูปภาพ
+✅ orders-detail.js — _viewPhoto() global popup viewer
+✅ index.html — bump v1843 สำหรับ orders.js + orders-detail.js
+
+FILES CHANGED:
+  frontend/pwa/pages/orders.js
+  frontend/pwa/pages/orders-detail.js
+  frontend/pwa/index.html
+  VIIV_MASTER.md
+
+Version: v1.45 | Updated: 2026-04-26
