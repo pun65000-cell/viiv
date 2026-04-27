@@ -182,6 +182,7 @@ app.include_router(pos_categories_router)
 
 from app.api import pos_partners
 from app.api.pos_statements import router as statements_router
+from app.api import pos_finance
 app.include_router(pos_partners.router)
 from app.api import pos_receive
 from app.api import pos_line
@@ -199,3 +200,4 @@ app.include_router(chat_routes.router, prefix="/api/chat")
 app.include_router(posm_routes.router)
 app.include_router(post_routes.router, prefix="/api/post")
 app.include_router(statements_router)
+app.include_router(pos_finance.router)

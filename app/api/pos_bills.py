@@ -188,7 +188,7 @@ def finalize_draft(bid: str, authorization: str = Header("")):
     return {"ok": True, "bill_no": bill_no, "inv_no": inv_no}
 
 @router.get("/list")
-def list_bills(authorization: str = Header(""), status: str = "", doc_type: str = "", q: str = "", source: str = ""):
+def list_bills(authorization: str = Header(""), status: str = "", doc_type: str = "", q: str = "", source: str = "", sort: str = "", limit: int = 500):
     tid, _ = get_tenant_user(authorization)
     filters = "WHERE tenant_id=:tid AND status != 'deleted'"
     params = {"tid":tid}
@@ -196,9 +196,11 @@ def list_bills(authorization: str = Header(""), status: str = "", doc_type: str 
     if doc_type: filters += " AND doc_type=:dt"; params["dt"]=doc_type
     if q: filters += " AND (bill_no ILIKE :q OR customer_name ILIKE :q OR customer_code ILIKE :q)"; params["q"]=f"%{q}%"
     if source: filters += " AND source=:source"; params["source"]=source
+    order_col = "updated_at" if sort == "updated_at" else "created_at"
+    cap = min(max(1, limit), 500)
     with engine.connect() as c:
-        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,ship_report,activity_log,customer_name,customer_code,customer_data,items,total,pay_method,paid_amount,note,created_at,voided_at,void_reason FROM bills {filters} ORDER BY created_at DESC LIMIT 500"),params).fetchall()
-    return [dict(r._mapping) for r in rows]
+        rows = c.execute(text(f"SELECT id,bill_no,inv_no,doc_type,status,shipping_status,source,scheduled_at,ship_photo_url,ship_note,ship_report,activity_log,customer_name,customer_code,customer_data,items,total,pay_method,paid_amount,note,created_at,updated_at,voided_at,void_reason FROM bills {filters} ORDER BY {order_col} DESC LIMIT {cap}"),params).fetchall()
+    return {"bills": [dict(r._mapping) for r in rows]}
 
 VALID_FINANCIAL = {'pending','paid','partial','credit','voided','deleted','paid_waiting','transfer_paid','transfer_waiting'}
 VALID_SHIPPING = {
@@ -236,8 +238,9 @@ def update_bill_status(bid: str, payload: dict, authorization: str = Header(""))
         if new_status and bill.status == "paid" and new_status in ("pending","draft","credit"):
             raise HTTPException(400,"ไม่สามารถย้อนสถานะจาก paid ได้")
 
-        # build log entry
-        log_entry = {"at": datetime.now(timezone.utc).isoformat(), "by": uid}
+        # build log entry — mobile sends a pre-formatted device string, PC sends nothing
+        device = payload.get("device", "")
+        log_entry = {"at": datetime.now(timezone.utc).isoformat(), "by": device or uid}
         if new_status: log_entry["status"] = f"{bill.status} → {new_status}"
         if new_shipping: log_entry["shipping"] = f"{bill.shipping_status or '-'} → {new_shipping}"
         if scheduled_at: log_entry["scheduled_at"] = scheduled_at

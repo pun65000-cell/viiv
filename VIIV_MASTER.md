@@ -885,3 +885,61 @@ FILES CHANGED:
   VIIV_MASTER.md
 
 Version: v1.45 | Updated: 2026-04-26
+
+COMPLETED v1.46:
+✅ receive.js (NEW) — หน้ารับสินค้า PWA v5
+   - list ประวัติรับสินค้าล่าสุด + search bar
+   - ปุ่ม "+ รับสินค้า" + ปุ่ม "ประวัติ" same row
+   - ฟอร์มบันทึก: คู่ค้า, หมายเหตุ, รายการสินค้า (datalist inline), รูปบิล
+   - History sheet: ค้นหา supplier/หมายเหตุ/ผู้บันทึก
+   - Detail sheet: รายละเอียดครบ + รูปบิล
+   - บันทึกข้อมูลเดียวกับ PC version (pos_receive.py)
+
+✅ Router.register('receive') — ลงทะเบียน route ถูกต้อง
+✅ index.html — เพิ่ม script tag receive.js
+✅ index.html — ลบ tb-ai-btn (ปุ่ม "เพิ่มยอดขาย" เก่า) ออก
+✅ index.html — closeDD() null guard (ป้องกัน TypeError)
+✅ router.js — ลบ aibtn toggle ออก
+✅ bump.sh — รัน bump รวม
+FILES CHANGED:
+frontend/pwa/pages/receive.js  (NEW)
+frontend/pwa/js/router.js
+frontend/pwa/index.html
+RULES เพิ่ม:
+Rule 54 — PWA page ห้ามสร้าง header ซ้อน topbar
+           ใช้พื้นที่ #page-container เท่านั้น
+Rule 55 — Python heredoc ที่มี emoji/unicode ซับซ้อน
+           ให้เขียนไฟล์ .py แล้วรัน python3 /tmp/xxx.py
+           ห้ามใช้ inline python3 << 'PYEOF' กับโค้ดยาว
+Rule 56 — ก่อนลบ element ใน index.html ต้องลบ
+           reference ใน router.js และ js อื่นด้วย
+DECISIONS เพิ่ม:
+29 — receive.js ใช้ datalist inline แทน picker sheet
+     เหมือน PC version products.js (rcSetProduct pattern)
+30 — PWA page layout: ห้ามแตะ topbar/navbar
+     ทำเฉพาะใน #page-container เท่านั้น
+Version: v1.46 | Updated: 2026-04-27
+
+[2026-04-27 v1.47] Mobile Status Sheet — จัดการสถานะครบใน POS เมนู
+
+✅ pos.js — _openStatusSheet() ใหม่: bottom sheet ค้นหาบิล → จัดการสถานะ
+✅ pos.js — _ST_FIN (8 สถานะการเงิน) + _ST_SHIP (11 สถานะจัดส่ง) ครบ
+✅ pos.js — StatusSheet.search() ค้นหา server-side (/api/pos/bills/list?q=) debounce 400ms
+✅ pos.js — StatusSheet.selectBill() → โหลด bill detail → render status grid
+✅ pos.js — StatusSheet.setFin() → POST update-status + reload sheet
+✅ pos.js — StatusSheet.selectShip() → update button styles + render extra fields
+✅ pos.js — StatusSheet.saveShip() → upload photo (OrdersUpload.slip) + POST + reload
+✅ pos.js — _stShipExtraHtml() ครบทุก shipping status (scheduled/photo/bank/check/report/due date)
+✅ pos.js — _deviceName() detect iPhone/iPad/Android จาก userAgent
+✅ pos.js — device identity ใน by field: "📱 ชื่อ · iPhone" ใน activity log
+✅ pos.js — activity log แสดงเป็น list (timestamp/status/shipping/note/by/photo)
+✅ pos_bills.py — update-status รับ device field → log_entry["by"] = device or uid
+✅ index.html — bump pos.js v5280
+
+FILES CHANGED:
+  frontend/pwa/pages/pos.js
+  frontend/pwa/index.html
+  app/api/pos_bills.py
+  VIIV_MASTER.md
+
+Version: v1.47 | Updated: 2026-04-27

@@ -100,7 +100,7 @@
         (_q ? '&q=' + encodeURIComponent(_q) : '');
       const bills = await App.api(url);
       if (_destroyed) return;
-      _allBills = Array.isArray(bills) ? bills : [];
+      _allBills = Array.isArray(bills) ? bills : (bills?.bills || []);
       _allBills.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       _renderList();
     } catch(e) {
