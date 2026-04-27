@@ -184,12 +184,12 @@
 
   function _openMoreSheet() {
     const items = [
-      { icon:'📌', label:'จองสินค้า',  sub:'Pre-order, ใบจอง',      action:()=>{ closeSheet(); Router.go('orders');   } },
-      { icon:'🏪', label:'ร้านค้า',    sub:'ข้อมูลร้าน, โลโก้',     action:()=>{ closeSheet(); Router.go('store');    } },
-      { icon:'🧾', label:'ตั้งค่าบิล', sub:'รูปแบบบิล, VAT, หมายเหตุ', action:()=>{ closeSheet(); Router.go('store');    } },
-      { icon:'🏦', label:'ธนาคาร',     sub:'บัญชีรับเงิน',           action:()=>{ closeSheet(); Router.go('store');    } },
-      { icon:'💚', label:'เชื่อม LINE', sub:'LINE OA, Webhook',      action:()=>{ closeSheet(); Router.go('store');    } },
-      { icon:'⏳', label:'รออนุมัติ',  sub:'บิลรอตรวจสอบ',           action:()=>{ closeSheet(); Router.go('orders');   } },
+      { icon:'📌', label:'จองสินค้า',  sub:'Pre-order, ใบจอง',      action:()=>{ closeSheet(); Router.go('reserve'); } },
+      { icon:'🏪', label:'ร้านค้า',    sub:'ข้อมูลร้าน, โลโก้',     action:()=>{ closeSheet(); Router.go('shop');    } },
+      { icon:'🧾', label:'ตั้งค่าบิล', sub:'รูปแบบบิล, VAT, หมายเหตุ', action:()=>{ closeSheet(); Router.go('shop');    } },
+      { icon:'🏦', label:'ธนาคาร',     sub:'บัญชีรับเงิน',           action:()=>{ closeSheet(); Router.go('shop');    } },
+      { icon:'💚', label:'เชื่อม LINE', sub:'LINE OA, Webhook',      action:()=>{ closeSheet(); Router.go('shop');    } },
+      { icon:'⏳', label:'รออนุมัติ',  sub:'บิลรอตรวจสอบ',           action:()=>{ closeSheet(); Router.go('reserve'); } },
       { icon:'🧾', label:'ออกบิล',     sub:'สร้างบิลใหม่',            action:()=>{ closeSheet(); _openBillingSheet();   } },
       { icon:'⚡', label:'ขายด่วน',    sub:'POS ด่วน',               action:()=>{ closeSheet(); Router.go('billing');  } },
       { icon:'📦', label:'สินค้า',     sub:'จัดการสินค้า, สต็อก',    action:()=>{ closeSheet(); Router.go('products'); } },

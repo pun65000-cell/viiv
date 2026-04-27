@@ -108,7 +108,7 @@ function loadBills(){
   .then(function(dbBills){
     var local=JSON.parse(localStorage.getItem('viiv_bills')||'[]');
     var drafts=local.filter(function(b){return b.status==='draft';});
-    allBills=dbBills.map(function(b){
+    allBills=(Array.isArray(dbBills)?dbBills:dbBills.bills||[]).map(function(b){
       return {
         id:b.bill_no||b.id, db_id:b.id,
         doc_type:b.doc_type, status:b.status,
@@ -261,6 +261,11 @@ function render(bills){
     sub.appendChild(info);
 
     row.appendChild(top); row.appendChild(sub);
+    if(b.doc_type==='reserve'){
+      row.style.background='#fdf6e3';
+      row.style.borderLeft='3px solid #c9a84c';
+      row.style.paddingLeft='13px';
+    }
     row.addEventListener('click',function(){ showBillDetail(b); });
     el.appendChild(row);
   });

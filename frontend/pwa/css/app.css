@@ -206,7 +206,7 @@ input, textarea { font-family: inherit; }
   border: 1.5px solid var(--bdr); border-radius: 9px;
   background: var(--bg); color: var(--txt);
   font-family: 'Sarabun', sans-serif; font-size: 14px;
-  outline: none; transition: border-color .15s;
+  outline: none; transition: border-color .15s; width: 100%; box-sizing: border-box;
 }
 .pm-field input:focus { border-color: var(--gold); background: var(--card); }
 .pm-field input[readonly] { color: var(--muted); background: var(--bg2); }

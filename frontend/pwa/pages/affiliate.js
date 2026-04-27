@@ -41,35 +41,41 @@
 
     c.innerHTML = `<div class="sb-wrap">
 
-      <!-- STATS -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-        <div class="card" style="text-align:center;padding:12px 8px">
-          <div style="font-size:1.6rem;font-weight:700;color:var(--gold)">${_products.length}</div>
-          <div style="font-size:var(--fs-xs);color:var(--muted)">สินค้าทั้งหมด</div>
+      <!-- HERO BANNER -->
+      <div style="background:linear-gradient(135deg,#2a1f08 0%,#3d2e0f 60%,#1a1206 100%);border-radius:18px;padding:20px 18px 18px;margin-bottom:16px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(201,168,76,0.08)"></div>
+        <div style="position:absolute;bottom:-30px;right:20px;width:80px;height:80px;border-radius:50%;background:rgba(201,168,76,0.05)"></div>
+        <div style="font-size:11px;font-weight:600;color:#ff2d2d;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Affiliate Program</div>
+        <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.2">สร้างรายได้<br>จากการแนะนำ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:10px 8px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:var(--gold)">${_products.length}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">สินค้า</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:10px 8px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:var(--gold)">${active}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">จำหน่าย</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:10px 8px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:var(--gold)">${clicks.toLocaleString()}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px">คลิก</div>
+          </div>
         </div>
-        <div class="card" style="text-align:center;padding:12px 8px">
-          <div style="font-size:1.6rem;font-weight:700;color:var(--gold)">${active}</div>
-          <div style="font-size:var(--fs-xs);color:var(--muted)">จำหน่ายอยู่</div>
-        </div>
-        <div class="card" style="text-align:center;padding:12px 8px">
-          <div style="font-size:1.6rem;font-weight:700;color:var(--gold)">${clicks.toLocaleString()}</div>
-          <div style="font-size:var(--fs-xs);color:var(--muted)">คลิกรวม</div>
-        </div>
-        <div class="card" style="background:linear-gradient(135deg,var(--card),#fef9ee);border:1.5px solid var(--gold);text-align:center;padding:12px 8px">
-          <div style="font-size:1.3rem;font-weight:700;color:#22c55e">฿${income.toLocaleString('th-TH',{maximumFractionDigits:0})}</div>
-          <div style="font-size:var(--fs-xs);color:var(--muted)">รายได้โดยประมาณ</div>
+        <div style="margin-top:10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;color:rgba(255,255,255,0.6)">รายได้โดยประมาณ</span>
+          <span style="font-size:16px;font-weight:700;color:#4ade80">฿${income.toLocaleString('th-TH',{maximumFractionDigits:0})}</span>
         </div>
       </div>
 
-      <!-- TABS -->
-      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px">
-        <button class="aff-tab ${_tab==='all'?'aff-tab-active':''}" onclick="AffPage.tab('all')">ทั้งหมด</button>
-        <button class="aff-tab ${_tab==='store'?'aff-tab-active':''}" onclick="AffPage.tab('store')">สโตร์</button>
-        <button class="aff-tab ${_tab==='trend'?'aff-tab-active':''}" onclick="AffPage.tab('trend')">เทรน</button>
+      <!-- TABS + ADD -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="display:flex;gap:4px;flex:1;background:var(--bg2);border-radius:10px;padding:3px">
+          <button class="aff-tab ${_tab==='all'?'aff-tab-active':''}" onclick="AffPage.tab('all')" style="flex:1">ทั้งหมด</button>
+          <button class="aff-tab ${_tab==='store'?'aff-tab-active':''}" onclick="AffPage.tab('store')" style="flex:1">สโตร์</button>
+          <button class="aff-tab ${_tab==='trend'?'aff-tab-active':''}" onclick="AffPage.tab('trend')" style="flex:1">เทรน</button>
+        </div>
+        <button onclick="AffPage.showCreate()" style="flex-shrink:0;height:38px;padding:0 14px;border-radius:10px;border:none;background:var(--gold);color:#1a1200;font-size:13px;font-weight:700;cursor:pointer">+ เพิ่ม</button>
       </div>
-
-      <!-- ADD BTN -->
-      <button class="btn btn-primary" style="width:100%;margin-bottom:14px" onclick="AffPage.showCreate()">+ สร้างสินค้า Affiliate</button>
 
       <!-- CONTENT -->
       <div id="aff-content"></div>
@@ -164,9 +170,12 @@
     const isEdit = !!p; p = p || {};
     const stVal = p.status || 'active';
     openSheet(`
-      <div style="padding:4px 0 8px">
-        <div style="font-size:var(--fs-lg);font-weight:700;padding:0 16px 12px">${isEdit ? '✏️ แก้ไขสินค้า' : '✨ สร้างสินค้า Affiliate'}</div>
-        <div style="padding:0 16px;display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div style="padding:14px 16px 12px;border-bottom:1px solid var(--bdr)">
+          <div style="font-size:11px;font-weight:600;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">Affiliate</div>
+          <div style="font-size:18px;font-weight:700;color:var(--txt)">${isEdit ? '✏️ แก้ไขสินค้า' : '✨ สร้างสินค้าใหม่'}</div>
+        </div>
+        <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px">
           <div class="pm-field"><label>ชื่อสินค้า / ไตเติ้ล *</label><input type="text" id="af-title" value="${_esc(p.title||'')}" placeholder="ชื่อที่ดึงดูด..."></div>
           <div class="pm-field"><label>ลิ้งค์ Affiliate *</label><input type="url" id="af-url" value="${_esc(p.aff_url||'')}" placeholder="https://..."></div>
           <div class="pm-row2">
@@ -190,15 +199,68 @@
           </div>
 
           <div id="af-msg" style="display:none;font-size:var(--fs-xs);color:#ef4444;margin-top:4px"></div>
+
+          <!-- รูปภาพ -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px">📷 รูปภาพสินค้า</div>
+            <div id="af-imgs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px"></div>
+            <label style="display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:10px;border:1.5px dashed var(--bdr);font-size:13px;color:var(--muted);cursor:pointer">
+              + เพิ่มรูป<input type="file" accept="image/*" multiple style="display:none" onchange="AffPage._addImgs(this)">
+            </label>
+          </div>
+
+          <!-- คลิปสั้น -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px">🎬 คลิปสั้น (MP4/MOV)</div>
+            <div id="af-vids" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px"></div>
+            <label style="display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:10px;border:1.5px dashed var(--bdr);font-size:13px;color:var(--muted);cursor:pointer">
+              + เพิ่มคลิป<input type="file" accept="video/mp4,video/quicktime" style="display:none" onchange="AffPage._addVids(this)">
+            </label>
+          </div>
+
+          <!-- ตัวเลือกสินค้า -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px">🏷️ ตัวเลือกสินค้า <span style="font-weight:400;font-size:10px">(สี/ขนาด/รุ่น)</span></div>
+            <div id="af-opts"></div>
+            <button onclick="AffPage._addOpt()" style="margin-top:6px;height:36px;padding:0 14px;border-radius:10px;border:1.5px dashed var(--bdr);background:transparent;font-size:13px;color:var(--muted);cursor:pointer">+ เพิ่มตัวเลือก</button>
+          </div>
         </div>
-        <div class="pm-actions" style="padding:16px 16px 0">
-          ${isEdit ? `<button class="pm-btn" style="background:#fee2e2;color:#991b1b;border:none" onclick="AffPage.del('${_esc(_editId)}')">ลบ</button>` : '<div></div>'}
+        <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--bdr);background:var(--bg);gap:8px;padding-bottom:max(12px,env(safe-area-inset-bottom))">
+          <div>
+            ${isEdit ? `<button onclick="AffPage.del('${_esc(_editId)}')" style="height:42px;padding:0 16px;border-radius:12px;border:1.5px solid #fca5a5;background:#fff0f0;color:#dc2626;font-size:13px;font-weight:600;cursor:pointer">ลบ</button>` : '<div></div>'}
+          </div>
           <div style="display:flex;gap:8px">
-            <button class="pm-btn pm-btn-cancel" onclick="closeSheet()">ยกเลิก</button>
-            <button class="pm-btn pm-btn-save" id="af-savebtn" onclick="AffPage.save()">บันทึก</button>
+            <button onclick="closeSheet()" style="height:42px;padding:0 18px;border-radius:12px;border:1.5px solid var(--bdr);background:transparent;color:var(--txt-2,#888);font-size:14px;font-weight:600;cursor:pointer">ยกเลิก</button>
+            <button id="af-savebtn" onclick="AffPage.save()" style="height:42px;padding:0 24px;border-radius:12px;border:none;background:linear-gradient(135deg,#e8b93e,#c4902a);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(196,144,42,0.35)">บันทึก</button>
           </div>
         </div>
       </div>`);
+  }
+
+
+  function _renderImgs() {
+    const el = document.getElementById('af-imgs'); if (!el) return;
+    el.innerHTML = _imgs.map((u,i) => `<div style="position:relative">
+      <img src="${u}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr)">
+      <button onclick="AffPage._delImg(${i})" style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:10px;cursor:pointer;line-height:1">×</button>
+    </div>`).join('');
+  }
+  function _renderVids() {
+    const el = document.getElementById('af-vids'); if (!el) return;
+    el.innerHTML = _vids.map((u,i) => `<div style="position:relative;display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;border:1px solid var(--bdr);font-size:12px;color:var(--txt)">
+      🎬 คลิป ${i+1}
+      <button onclick="AffPage._delVid(${i})" style="margin-left:4px;width:16px;height:16px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:10px;cursor:pointer;line-height:1">×</button>
+    </div>`).join('');
+  }
+  function _renderOpts() {
+    const el = document.getElementById('af-opts'); if (!el) return;
+    el.innerHTML = _opts.map((o,i) => `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <input value="${_esc(o.name||'')}" placeholder="ชื่อ เช่น สีแดง" oninput="AffPage._optName(${i},this.value)"
+        style="flex:1;height:36px;padding:0 10px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;background:var(--bg);color:var(--txt)">
+      <input value="${_esc(o.value||'')}" placeholder="ค่า เช่น #ff0000" oninput="AffPage._optVal(${i},this.value)"
+        style="flex:1;height:36px;padding:0 10px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;background:var(--bg);color:var(--txt)">
+      <button onclick="AffPage._delOpt(${i})" style="width:30px;height:36px;border-radius:8px;border:none;background:#fee2e2;color:#dc2626;font-size:16px;cursor:pointer">×</button>
+    </div>`).join('');
   }
 
   // ── PUBLIC API ────────────────────────────────────────────────────────
@@ -222,6 +284,7 @@
       _vids = (p.videos||[]).slice();
       _opts = (p.options||[]).slice();
       _openForm(p);
+      setTimeout(()=>{ _renderImgs(); _renderVids(); _renderOpts(); }, 50);
     },
     _toggleStatus(btn) {
       btn.dataset.status = btn.dataset.status === 'active' ? 'inactive' : 'active';
@@ -230,6 +293,27 @@
       btn.style.background = st ? '#dcfce7' : '#fee2e2';
       btn.style.color = st ? '#166534' : '#991b1b';
     },
+
+    async _addImgs(input) {
+      for (const f of input.files) {
+        const fd = new FormData(); fd.append('file', f);
+        const r = await fetch('/api/pos/affiliate/upload-media', { method:'POST', headers:{'Authorization':'Bearer '+App.token}, body:fd });
+        const d = await r.json(); if (d.url) { _imgs.push(d.url); _renderImgs(); }
+      }
+    },
+    async _addVids(input) {
+      for (const f of input.files) {
+        const fd = new FormData(); fd.append('file', f);
+        const r = await fetch('/api/pos/affiliate/upload-media', { method:'POST', headers:{'Authorization':'Bearer '+App.token}, body:fd });
+        const d = await r.json(); if (d.url) { _vids.push(d.url); _renderVids(); }
+      }
+    },
+    _delImg(i) { _imgs.splice(i,1); _renderImgs(); },
+    _delVid(i) { _vids.splice(i,1); _renderVids(); },
+    _addOpt() { _opts.push({name:'',value:''}); _renderOpts(); },
+    _delOpt(i) { _opts.splice(i,1); _renderOpts(); },
+    _optName(i,v) { _opts[i].name=v; },
+    _optVal(i,v) { _opts[i].value=v; },
     async save() {
       const title = (document.getElementById('af-title')?.value || '').trim();
       const url   = (document.getElementById('af-url')?.value || '').trim();

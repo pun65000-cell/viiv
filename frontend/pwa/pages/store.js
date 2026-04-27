@@ -28,11 +28,28 @@
   let _printSelected = [];
 
   /* ── ROUTER ──────────────────────────────────────────────────── */
-  Router.register('store', {
-    title: 'สโตร์',
+  Router.register('shop', {
+    title: 'ร้านค้า',
     async load() {
       _destroyed = false;
       _injectCSS();
+      _tab = 'shop';
+      _refreshHandler = () => _loadShopDirect();
+      document.addEventListener('viiv:refresh', _refreshHandler);
+      await _loadShopDirect();
+    },
+    destroy() {
+      _destroyed = true;
+      if (_refreshHandler) { document.removeEventListener('viiv:refresh', _refreshHandler); _refreshHandler = null; }
+    }
+  });
+
+  Router.register('store', {
+    title: 'สโตร์',
+    async load(params) {
+      _destroyed = false;
+      _injectCSS();
+      _tab = "warehouse";
       _refreshHandler = () => _init();
       document.addEventListener('viiv:refresh', _refreshHandler);
       await _init();
@@ -119,6 +136,7 @@ textarea.form-input{resize:vertical}
       { id: 'bundle', label: 'ชุดสินค้า' },
       { id: 'print', label: 'พิมพ์' },
       { id: 'categories', label: 'หมวดหมู่' },
+      { id: 'shop', label: '⚙️ ร้านค้า' },
     ];
     c.innerHTML = `
       <div class="sb-wrap" style="padding-top:8px">
@@ -155,6 +173,7 @@ textarea.form-input{resize:vertical}
       bundle: _renderBundle,
       print: _renderPrint,
       categories: _renderCategories,
+      // shop: standalone route — ไม่อยู่ใน shell tabs
     }[_tab];
     if (fn) fn(body);
   }
@@ -1324,4 +1343,163 @@ textarea.form-input{resize:vertical}
     t._to = setTimeout(() => { t.style.opacity = '0'; }, 2000);
   }
 
+
+  /* ── TAB: ร้านค้า ────────────────────────────────────────────── */
+  let _shopData = {};
+  let _logoFile = null;
+
+  async function _renderShop(body) {
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div>';
+    try {
+      _shopData = await App.api('/api/pos/store/settings');
+    } catch(e) { _shopData = {}; }
+    const d = _shopData;
+    body.innerHTML = `
+      <div style="padding:4px 0 16px">
+
+        <!-- โลโก้ -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:16px;background:var(--card);border-radius:14px;border:1px solid var(--bdr)">
+          <div id="shop-logo-wrap" style="width:72px;height:72px;border-radius:12px;overflow:hidden;background:var(--bg2);border:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px">
+            ${d.logo_url ? `<img src="${d.logo_url}" style="width:100%;height:100%;object-fit:cover">` : '🏪'}
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:4px">โลโก้ร้านค้า</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:8px">JPG, PNG ไม่เกิน 5MB</div>
+            <label style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1.5px solid var(--bdr);font-size:12px;color:var(--muted);cursor:pointer;background:var(--bg)">
+              เลือกโลโก้<input type="file" accept="image/*" style="display:none" onchange="StorePage._pickLogo(this)">
+            </label>
+          </div>
+        </div>
+
+        <!-- ข้อมูลร้าน -->
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:10px">ข้อมูลร้านค้า</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <div class="pm-field"><label>ชื่อร้านค้า *</label><input id="sh-name" value="${_esc(d.store_name||'')}" placeholder="ชื่อร้าน"></div>
+          <div class="pm-field"><label>เลขประจำตัวผู้เสียภาษี</label><input id="sh-tax" value="${_esc(d.tax_id||'')}" placeholder="0000000000000"></div>
+          <div class="pm-field"><label>เบอร์โทร *</label><input id="sh-phone" type="tel" value="${_esc(d.phone||'')}" placeholder="0812345678"></div>
+          <div class="pm-field"><label>รหัสสาขา</label><input id="sh-branch" value="${_esc(d.branch_code||'')}" placeholder="สำนักงานใหญ่"></div>
+        </div>
+
+        <!-- ที่อยู่ -->
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:10px">ที่อยู่</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <div class="pm-field"><label>ที่อยู่ *</label><input id="sh-addr" value="${_esc(d.address||'')}" placeholder="บ้านเลขที่ หมู่บ้าน"></div>
+          <div class="pm-field"><label>ถนน</label><input id="sh-road" value="${_esc(d.road||'')}" placeholder="ถนน"></div>
+          <div class="pm-row2">
+            <div class="pm-field"><label>ตำบล/แขวง</label><input id="sh-sub" value="${_esc(d.subdistrict||'')}" placeholder="ตำบล"></div>
+            <div class="pm-field"><label>อำเภอ/เขต</label><input id="sh-dist" value="${_esc(d.district||'')}" placeholder="อำเภอ"></div>
+          </div>
+          <div class="pm-row2">
+            <div class="pm-field"><label>จังหวัด *</label><input id="sh-prov" value="${_esc(d.province||'')}" placeholder="จังหวัด"></div>
+            <div class="pm-field"><label>รหัสไปรษณีย์</label><input id="sh-postal" value="${_esc(d.postal_code||'')}" placeholder="10000"></div>
+          </div>
+        </div>
+
+        <!-- การตั้งค่า -->
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:10px">การตั้งค่า</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+          <div class="pm-field"><label>โหมดสแกนบาร์โค้ด</label>
+            <select id="sh-scan" style="height:40px;padding:0 12px;border:1.5px solid var(--bdr);border-radius:9px;font-size:14px;background:var(--bg);color:var(--txt)">
+              <option value="combine" ${d.scan_mode==='combine'?'selected':''}>รวมสินค้าเดิม</option>
+              <option value="new" ${d.scan_mode==='new'?'selected':''}>เพิ่มแถวใหม่</option>
+            </select>
+          </div>
+          <div class="pm-field"><label>VAT เริ่มต้น</label>
+            <select id="sh-vat" style="height:40px;padding:0 12px;border:1.5px solid var(--bdr);border-radius:9px;font-size:14px;background:var(--bg);color:var(--txt)">
+              <option value="included" ${d.vat_mode==='included'?'selected':''}>รวมใน VAT</option>
+              <option value="excluded" ${d.vat_mode==='excluded'?'selected':''}>บวกเพิ่ม VAT</option>
+              <option value="none" ${d.vat_mode==='none'?'selected':''}>ไม่มี VAT</option>
+            </select>
+          </div>
+          <div class="pm-field"><label>ขายเมื่อสต็อกหมด</label>
+            <select id="sh-empty" style="height:40px;padding:0 12px;border:1.5px solid var(--bdr);border-radius:9px;font-size:14px;background:var(--bg);color:var(--txt)">
+              <option value="true" ${d.stock_empty_sell!==false?'selected':''}>อนุญาต</option>
+              <option value="false" ${d.stock_empty_sell===false?'selected':''}>ไม่อนุญาต</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ปุ่ม -->
+        <div style="display:flex;gap:10px">
+          <button onclick="StorePage._resetShop()" style="flex:1;height:44px;border-radius:12px;border:1.5px solid var(--bdr);background:transparent;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer">รีเซ็ต</button>
+          <button onclick="StorePage._saveShop()" style="flex:2;height:44px;border-radius:12px;border:none;background:linear-gradient(135deg,#e8b93e,#c4902a);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(196,144,42,0.3)">บันทึก</button>
+        </div>
+        <div id="sh-msg" style="display:none;margin-top:10px;font-size:13px;text-align:center"></div>
+      </div>`;
+  }
+
+
+  async function _loadShopDirect() {
+    const c=document.getElementById('page-container');
+    c.innerHTML='<div class="sb-wrap"><div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div></div>';
+    try{ _shopData=await App.api('/api/pos/store/settings'); }catch(e){ _shopData={}; }
+    if(_destroyed)return;
+    const body=document.createElement('div');
+    body.className='sb-wrap';
+    c.innerHTML='';
+    c.appendChild(body);
+    _renderShop(body);
+  }
+
 })();
+
+/* ── SHOP TAB METHODS ─────────────────────────────────────────── */
+if (!window.StorePage) window.StorePage = {};
+Object.assign(window.StorePage, {
+  _pickLogo(input) {
+    const f = input.files[0]; if (!f) return;
+    _logoFile = f;
+    const url = URL.createObjectURL(f);
+    const wrap = document.getElementById('shop-logo-wrap');
+    if (wrap) wrap.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
+  },
+  _resetShop() {
+    const d = _shopData;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    set('sh-name', d.store_name); set('sh-tax', d.tax_id); set('sh-phone', d.phone);
+    set('sh-branch', d.branch_code); set('sh-addr', d.address); set('sh-road', d.road);
+    set('sh-sub', d.subdistrict); set('sh-dist', d.district); set('sh-prov', d.province);
+    set('sh-postal', d.postal_code);
+  },
+  async _saveShop() {
+    const g = id => (document.getElementById(id)||{}).value||'';
+    const required = [['sh-name','ชื่อร้านค้า'],['sh-phone','เบอร์โทร'],['sh-addr','ที่อยู่'],['sh-prov','จังหวัด']];
+    for (const [id, label] of required) {
+      if (!g(id).trim()) { App.toast('❌ กรุณากรอก' + label); return; }
+    }
+    const payload = {
+      store_name: g('sh-name'), tax_id: g('sh-tax'), phone: g('sh-phone'),
+      branch_code: g('sh-branch'), address: g('sh-addr'), road: g('sh-road'),
+      subdistrict: g('sh-sub'), district: g('sh-dist'), province: g('sh-prov'),
+      postal_code: g('sh-postal'), scan_mode: g('sh-scan'), vat_mode: g('sh-vat'),
+      stock_empty_sell: g('sh-empty') !== 'false',
+      logo_url: _shopData.logo_url || '',
+      bill_prefix: _shopData.bill_prefix || 'BILL',
+      inv_prefix: _shopData.inv_prefix || 'INV',
+      bill_start_seq: _shopData.bill_start_seq || 1,
+      bill_format: _shopData.bill_format || 'BILL-YYYY-NNNNNN',
+      show_tax_id: _shopData.show_tax_id !== false,
+      show_address: _shopData.show_address !== false,
+      line_oa_id: _shopData.line_oa_id || '',
+      line_channel_token: _shopData.line_channel_token || '',
+      line_channel_secret: _shopData.line_channel_secret || '',
+      line_features: _shopData.line_features || {}
+    };
+    const msg = document.getElementById('sh-msg');
+    try {
+      if (_logoFile) {
+        const fd = new FormData(); fd.append('file', _logoFile);
+        const r = await fetch('/api/pos/store/upload-logo', { method:'POST', headers:{'Authorization':'Bearer '+App.token}, body:fd });
+        const d = await r.json();
+        if (d.url) payload.logo_url = d.url;
+        _logoFile = null;
+      }
+      await App.api('/api/pos/store/settings', { method:'POST', body: JSON.stringify(payload) });
+      _shopData = Object.assign(_shopData, payload);
+      App.toast('✅ บันทึกสำเร็จ');
+      if (msg) { msg.style.display='block'; msg.style.color='#16a34a'; msg.textContent='บันทึกสำเร็จ'; setTimeout(()=>msg.style.display='none', 2000); }
+    } catch(e) {
+      App.toast('❌ บันทึกไม่สำเร็จ');
+    }
+  }
+});

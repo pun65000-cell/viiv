@@ -6,7 +6,7 @@ import jwt, os, uuid, json
 
 router = APIRouter(prefix="/api/pos/affiliate", tags=["affiliate"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
-UPLOAD_DIR = "/home/viivadmin/viiv/frontend/uploads/affiliate"
+UPLOAD_DIR = "/home/viivadmin/viiv/uploads/affiliate"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def get_tenant_user(authorization=""):

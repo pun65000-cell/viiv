@@ -2,6 +2,7 @@
 <div class="rv-wrap">
   <div class="rv-toolbar">
     <input id="rvSearch" class="rv-search" placeholder="ค้นหา เลขบิล / ชื่อลูกค้า..." oninput="filterRender()"/>
+    <button onclick="openCreateReserve()" style="flex-shrink:0;padding:8px 16px;border-radius:8px;border:none;background:#c9a84c;color:#1a1200;font-size:13px;font-weight:700;cursor:pointer;">+ สร้างใบจอง</button>
     <div class="rv-filters">
       <button class="rv-fbtn active" data-s="" onclick="setFilter(this,'')">ทั้งหมด</button>
       <button class="rv-fbtn" data-s="pending" onclick="setFilter(this,'pending')">รอรับสินค้า</button>
@@ -34,7 +35,7 @@
 .rv-fbtn.active{background:var(--accent,#e8b93e);color:#1a1200;border-color:var(--accent,#e8b93e);}
 .rv-list{display:flex;flex-direction:column;gap:8px;}
 .rv-empty{text-align:center;padding:40px;color:#9ca3af;font-size:13px;}
-.rv-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:14px 16px;cursor:pointer;transition:box-shadow .15s;}
+.rv-card{background:#fdf6e3;border:1px solid #e8d5a0;border-radius:12px;padding:14px 16px;cursor:pointer;transition:box-shadow .15s;border-left:3px solid #c9a84c;}
 .rv-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08);}
 .rv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
 .rv-card-no{font-size:13px;font-weight:700;color:#1f2937;}
@@ -91,7 +92,7 @@ function loadBills(){
   if(!TOKEN)return;
   fetch(API+'/api/pos/bills/list?doc_type=reserve',{headers:{'Authorization':'Bearer '+TOKEN}})
   .then(function(r){return r.json();})
-  .then(function(d){allBills=Array.isArray(d)?d:[];filterRender();})
+  .then(function(d){allBills=Array.isArray(d)?d:(d.bills||[]);filterRender();})
   .catch(function(){document.getElementById('rvList').innerHTML='<div class="rv-empty">โหลดข้อมูลไม่สำเร็จ</div>';});
 }
 function loadProducts(){
@@ -276,5 +277,41 @@ window.doVoid=function(bid,billNo){
   window.addEventListener('viiv_token_ready',window._rv_tok);
 })();
 })();
+</script>
+
+<!-- Create Reserve Popup -->
+<div id="rvCreateOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;width:min(600px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f0ede8;background:#fdf6e3;border-radius:14px 14px 0 0;">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#c9a84c;letter-spacing:1px;">RESERVE</div>
+        <div style="font-size:16px;font-weight:700;color:#1a1200;">📋 สร้างใบจอง</div>
+      </div>
+      <button onclick="closeCreateReserve()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">✕</button>
+    </div>
+    <iframe id="rvCreateFrame" src="" style="width:100%;height:75vh;border:none;"></iframe>
+  </div>
+</div>
+
+<script>
+function openCreateReserve(){
+  var ov=document.getElementById('rvCreateOverlay');
+  var fr=document.getElementById('rvCreateFrame');
+  // โหลด create.html แล้ว lock doc_type = reserve
+  fr.src=(window.API_BASE||'')+'/merchant/dashboard.html?sub=billing/create.html';
+  fr.onload=function(){
+    try{
+      var doc=fr.contentDocument||fr.contentWindow.document;
+      var sel=doc.getElementById('billDocType');
+      if(sel){ sel.value='reserve'; sel.disabled=true; }
+    }catch(e){}
+  };
+  ov.style.display='flex';
+}
+function closeCreateReserve(){
+  document.getElementById('rvCreateOverlay').style.display='none';
+  document.getElementById('rvCreateFrame').src='';
+  loadBills();
+}
 </script>
 </body>
