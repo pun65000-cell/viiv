@@ -1,6 +1,6 @@
 # VIIV MASTER — Project Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
-> Version: v1.45 | Updated: 2026-04-27  
+> Version: v1.49 | Updated: 2026-04-27  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -942,4 +942,136 @@ FILES CHANGED:
   app/api/pos_bills.py
   VIIV_MASTER.md
 
+  COMPLETED v1.47:
+✅ pos_finance.py (NEW) — backend บัญชีการเงิน 8 endpoints:
+
+GET /api/pos/finance/summary?month=MM-YYYY (ยอดขายจาก bills + รายรับ/จ่าย + กราฟรายวัน + วันนี้)
+GET /api/pos/finance/income?q=&limit=100
+GET /api/pos/finance/expense?q=&limit=100
+POST /api/pos/finance/income
+POST /api/pos/finance/expense
+DELETE /api/pos/finance/income/{fid}
+DELETE /api/pos/finance/expense/{fid}
+POST /api/pos/finance/upload-slip/{entry_type}/{fid}
+
+✅ DB tables สร้างอัตโนมัติตอน import:
+
+finance_income (id text PK, tenant_id, source, pay_type, amount numeric(12,2), slip_url, noted_by, txn_at, created_at)
+finance_expense (id text PK, tenant_id, partner_id, source, pay_type, amount numeric(12,2), slip_url, noted_by, txn_at, created_at)
+gen_id pattern: fin_inc_/fin_exp_ + timestamp + 4 random chars
+
+✅ finance.js (NEW) — PWA mobile บัญชีการเงิน 532 บรรทัด
+
+Router.register('finance') pattern เหมือน members.js
+3 tabs: ภาพรวม (summary cards + Chart.js bar) / รายรับ / รายจ่าย
+bottom sheet form เพิ่มรายรับ/รายจ่าย + upload slip
+
+✅ pos.js — เปลี่ยน Router.go('sales') → Router.go('finance') (เมนูบัญชี)
+✅ index.html — เพิ่ม script finance.js ก่อน receive.js
+✅ bill.js — แก้ bug: data.bills || data || [] (เคยได้ array ว่างเพราะ Array.isArray(data) = false)
+✅ orders.js — เพิ่ม gold glow border-left การ์ด: border-left:3px solid var(--gold);box-shadow:-3px 0 8px rgba(232,185,62,0.25)
+✅ app/main.py — register pos_finance.router ต่อจาก pos_statements
+
+BUGS FIXED:
+
+partners table ใช้ company_name ไม่ใช่ name → แก้ใน pos_finance.py expense query
+bill.js แสดง list ว่าง → data.bills ไม่ใช่ data โดยตรง
+orders.js autofill admin@viiv.me ค้าง → เพิ่ม readonly + onfocus removeAttribute (🚧 ยังแก้ไม่เสร็จ รอ limit reset)
+
+
+KNOWN ISSUES v1.47:
+
+orders.js autofill bug ยังไม่ resolved — ต้องให้ Claude Code แก้ line 190+193 รวม onfocus 2 อันเป็นอันเดียว
+finance.js ยังไม่ได้ test ครบทุก tab
+
+
+RULES เพิ่ม:
+
+Rule 57 — partners table ใช้ company_name ไม่ใช่ name (contact_name, bank_account_name)
+Rule 58 — bills API return {bills: [...]} ไม่ใช่ array โดยตรง ต้อง data.bills
+
 Version: v1.47 | Updated: 2026-04-27
+
+---
+
+### [v1.48 COMPLETED — 2026-04-27] Bill Deletion System
+
+GOAL: ระบบลบบิลสำหรับ Admin เท่านั้น — เก็บข้อมูลตลอด, ดูประวัติได้
+
+BACKEND (pos_bills.py):
+✅ _get_role_from_token() — helper decode JWT ดึง role field
+✅ POST /api/pos/bills/delete/{bid} — Admin-only
+   - ตรวจ role: admin/shop_admin/owner เท่านั้น (403 ถ้าไม่ใช่)
+   - delete_type: "bill_only" (สต็อกไม่เปลี่ยน) หรือ "with_stock" (คืนสต็อก + stock_log)
+   - บันทึกใน bill_void_log: void_type="delete_bill_only"|"delete_with_stock"
+   - void_reason format: "[name|device] reason" (เก็บผู้ลบครบ)
+   - UPDATE bills SET status='deleted', voided_by=uid, voided_at=NOW()
+✅ GET /api/pos/bills/deleted — Admin-only
+   - list bills WHERE status='deleted' ORDER BY voided_at DESC LIMIT 200
+   - subquery ดึง void_type จาก bill_void_log (delete_ prefix เท่านั้น)
+
+FRONTEND (orders-detail.js):
+✅ isAdmin check: ['admin','shop_admin','owner'].includes(App.user?.role)
+✅ Admin bar ใต้ topbar (isAdmin only): ปุ่ม "📋 ประวัติบิล" + ปุ่ม "🗑 ลบบิล"
+   - ลบบิล ซ่อน ถ้า status=deleted/voided แล้ว
+✅ deletePrompt(id, billNo) — Step 1: เลือก ลบบิลอย่างเดียว / ลบ+คืนสต็อก / ยกเลิก
+✅ _deleteStep2(id, billNo, deleteType) — Step 2: textarea reason + ยืนยัน + ← กลับ
+✅ _executeDelete(id, deleteType) — POST /delete + detect device (iPhone/iPad/Android/Desktop)
+   - ส่ง deleted_by_name (App.user?.name/email/id) + deleted_device
+
+FRONTEND (bill-history.js NEW):
+✅ Router.register('bill-history') — หน้าประวัติบิลที่ถูกลบ
+✅ list deleted bills การ์ด: typeLabel (ลบบิล/ลบ+คืนสต็อก), ผู้ลบ, เหตุผล, วันที่, ยอด, รายการสินค้า (5 แรก)
+✅ parse void_reason format "[name|device] reason" → แสดง deleterInfo + cleanReason แยกกัน
+
+index.html:
+✅ เพิ่ม bill-history.js?v=8775
+✅ bump orders-detail.js v8774 → v8775
+✅ fix finance.js path: pages/finance.js → /pwa/pages/finance.js?v=8775
+
+SAFETY (ไม่กระทบระบบเดิม):
+- ไม่แตะ void endpoint เดิม (POST /void/{bid}) — ยังทำงานปกติ
+- ไม่แตะ bill list query — WHERE status != 'deleted' กรอง soft-deleted ออกอัตโนมัติ
+- ไม่เปลี่ยน schema DB — bill_void_log ใช้ column เดิม (void_type, void_reason, voided_by)
+- stock_log action="delete_return" (ต่างจาก void_return เดิม)
+
+FILES CHANGED:
+  app/api/pos_bills.py (+_get_role_from_token, +delete_bill, +list_deleted)
+  frontend/pwa/pages/orders-detail.js (+isAdmin, +admin bar, +deletePrompt/_deleteStep2/_executeDelete)
+  frontend/pwa/pages/bill-history.js (NEW)
+  frontend/pwa/index.html (+bill-history.js, bump v8775, fix finance.js path)
+  VIIV_MASTER.md
+
+Version: v1.48 | Updated: 2026-04-27
+
+### [v1.49 COMPLETED — 2026-04-27] Bill Deletion Fixes + bill-history Router Fix
+
+COMPLETED v1.49:
+✅ app/api/pos_bills.py — _get_role_from_token() helper (JWT decode สำหรับ admin gate)
+✅ app/api/pos_bills.py — POST /delete/{bid}: soft delete + stock return option + bill_void_log
+✅ app/api/pos_bills.py — GET /deleted: admin-only ประวัติบิลถูกลบ
+✅ frontend/pwa/js/auth.js — DEV_TOKEN ใหม่มี role/sub/name (เดิมไม่มี role → ปุ่มแอดมินไม่ขึ้น)
+✅ frontend/pwa/js/auth.js — Auth.init() upgrade: token เก่าไม่มี role → fall through ใช้ DEV_TOKEN ใหม่
+✅ frontend/pwa/js/app.js — เพิ่ม _parseJwt() + App.user getter (id/role/name จาก JWT)
+✅ frontend/pwa/pages/bill.js — ปุ่ม 📋ประวัติบิล (admin, filter bar) + 🗑ลบบิล (admin, detail sheet)
+✅ frontend/pwa/pages/bill.js — deletePrompt/_deleteStep2/_execDelete (2-step confirm)
+✅ frontend/pwa/pages/bill.js — ลบ voidPrompt/confirmVoid ออก ("ยกเลิก"=ปิด sheet ไม่ใช่ void)
+✅ frontend/pwa/pages/orders-detail.js — admin bar + ปุ่มลบบิล + 3 delete functions
+✅ frontend/pwa/pages/bill-history.js (NEW) — แก้ bug: register ด้วย {render,mount} แทน {load} → Router crash
+✅ frontend/pwa/index.html — +bill-history.js script tag, bump v=2521
+
+KEY FIXES:
+- Router register interface: ต้องใช้ { title, load, destroy } ไม่ใช่ { render, mount, destroy }
+- DEV_TOKEN เก่า payload: {"tenant_id","user_id"} → ใหม่: {"sub","tenant_id","role","admin","name"}
+- Rule 49 เพิ่ม: bills ใช้ soft delete เท่านั้น (UPDATE status='deleted')
+
+FILES CHANGED:
+  app/api/pos_bills.py
+  frontend/pwa/js/auth.js
+  frontend/pwa/js/app.js
+  frontend/pwa/pages/bill.js
+  frontend/pwa/pages/orders-detail.js
+  frontend/pwa/pages/bill-history.js (NEW)
+  frontend/pwa/index.html
+
+Version: v1.49 | Updated: 2026-04-27

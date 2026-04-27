@@ -7,7 +7,7 @@
  *   4. ทุกส่วนของระบบอ่าน/เขียน token ผ่าน Auth เท่านั้น
  */
 
-const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5hbnRfaWQiOiJ0ZW5fMSIsInVzZXJfaWQiOiJ1c3JfMSJ9.JfVeXPnQd1vE6rW4UbjilcWEKcAI_C9RVqorjoUJoZI';
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMSIsInRlbmFudF9pZCI6InRlbl8xIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IkFkbWluIn0.thOZ_qfo1QjGEbz3UD76XP7gfXxV_HHIRSC4NInF_EU';
 
 const Auth = {
   _token: DEV_TOKEN,
@@ -34,9 +34,16 @@ const Auth = {
       if (e.data?.type === 'viiv_token' && e.data.token) this.setToken(e.data.token);
     });
 
-    // 3. localStorage (reload / tab restore)
+    // 3. localStorage (reload / tab restore) — ถ้า token เก่าไม่มี role ให้ upgrade
     const stored = localStorage.getItem(this._key);
-    if (stored) { this._token = stored; return; }
+    if (stored) {
+      try {
+        const p = JSON.parse(atob(stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        if (p.role) { this._token = stored; return; }
+        // token เก่าไม่มี role → upgrade เป็น DEV_TOKEN
+      } catch {}
+      // ถ้า decode ไม่ได้ หรือไม่มี role → ใช้ DEV_TOKEN แทน
+    }
 
     // 4. dev token fallback — เขียน localStorage เพื่อให้ merchant dashboard ใช้ได้
     this.setToken(DEV_TOKEN);

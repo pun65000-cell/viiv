@@ -66,6 +66,7 @@
     const st = b.status || 'pending';
     const isShip = b.source !== 'pos';
     const canVoid = st === 'paid' || st === 'pending';
+    const isAdmin = ['admin','shop_admin','owner'].includes(App.user?.role);
 
     const FIN_MAP = {
       paid:'ชำระแล้ว', pending:'รอชำระ', credit:'เครดิต', partial:'บางส่วน',
@@ -101,6 +102,18 @@
           </button>` : ''}
         </div>
       </div>
+
+      <!-- ADMIN BAR -->
+      ${isAdmin ? `<div style="display:flex;gap:8px;padding:0 16px 8px;flex-wrap:wrap">
+        <button onclick="Router.go('bill-history')"
+          style="background:none;border:1px solid var(--bdr);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:var(--fs-xs);cursor:pointer">
+          📋 ประวัติบิล
+        </button>
+        ${st !== 'deleted' && st !== 'voided' ? `<button onclick="OrdersPage.deletePrompt('${b.id}','${_esc(b.bill_no)}')"
+          style="background:none;border:1px solid #fca5a5;color:#dc2626;border-radius:8px;padding:4px 10px;font-size:var(--fs-xs);cursor:pointer">
+          🗑 ลบบิล
+        </button>` : ''}
+      </div>` : ''}
 
       <!-- BILL HEADER CARD -->
       <div style="margin:8px 14px;padding:16px;background:var(--card);border-radius:16px;border:1px solid var(--bdr)">
@@ -511,6 +524,69 @@
       } catch(e) {
         App.toast('❌ ' + e.message);
         if (btn) { btn.disabled = false; btn.textContent = 'ยืนยันยกเลิกบิล'; }
+      }
+    },
+
+    deletePrompt(id, billNo) {
+      openSheet(`<div style="padding:8px 0 16px">
+        <div style="font-size:var(--fs-md);font-weight:700;margin-bottom:4px">ลบบิล ${_esc(billNo)}</div>
+        <div style="font-size:var(--fs-xs);color:var(--muted);margin-bottom:20px">ข้อมูลถูกเก็บไว้ในประวัติบิล เรียกดูได้โดย Admin เท่านั้น</div>
+        <button onclick="OrdersPage._deleteStep2('${id}','${_esc(billNo)}','bill_only')"
+          style="width:100%;background:var(--card);border:1px solid var(--bdr);color:var(--txt);border-radius:12px;padding:13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;margin-bottom:10px;text-align:left">
+          🗑 ลบบิลอย่างเดียว<br>
+          <span style="font-size:var(--fs-xs);color:var(--muted);font-weight:400">สต็อกสินค้าไม่เปลี่ยนแปลง</span>
+        </button>
+        <button onclick="OrdersPage._deleteStep2('${id}','${_esc(billNo)}','with_stock')"
+          style="width:100%;background:var(--card);border:1px solid var(--bdr);color:var(--txt);border-radius:12px;padding:13px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;margin-bottom:10px;text-align:left">
+          📦 ลบและคืนสินค้าทั้งหมด<br>
+          <span style="font-size:var(--fs-xs);color:var(--muted);font-weight:400">สต็อกสินค้าจะถูกคืนเข้าคลัง</span>
+        </button>
+        <button onclick="closeSheet()"
+          style="width:100%;background:none;border:1px solid var(--bdr);color:var(--muted);border-radius:12px;padding:11px;font-size:var(--fs-sm);cursor:pointer">
+          ยกเลิก
+        </button>
+      </div>`);
+    },
+
+    _deleteStep2(id, billNo, deleteType) {
+      const label = deleteType === 'with_stock' ? 'ลบและคืนสินค้า' : 'ลบบิลอย่างเดียว';
+      openSheet(`<div style="padding:8px 0 16px">
+        <div style="font-size:var(--fs-md);font-weight:700;margin-bottom:2px">ยืนยัน: ${label}</div>
+        <div style="font-size:var(--fs-xs);color:var(--muted);margin-bottom:4px">บิล ${_esc(billNo)}</div>
+        <div style="font-size:var(--fs-xs);color:#dc2626;font-weight:600;margin-bottom:16px">⚠ ไม่สามารถกู้คืนได้ — ข้อมูลถูกเก็บใน ประวัติบิล</div>
+        <div style="font-size:var(--fs-sm);font-weight:600;margin-bottom:6px">เหตุผลที่ลบ *</div>
+        <textarea id="delete-reason" rows="2" placeholder="ระบุเหตุผล..."
+          style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:var(--fs-sm);resize:none;outline:none;margin-bottom:16px"></textarea>
+        <button onclick="OrdersPage._executeDelete('${id}','${deleteType}')"
+          style="width:100%;background:#dc2626;color:#fff;border:none;border-radius:12px;padding:13px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;margin-bottom:10px">
+          ยืนยันลบบิล
+        </button>
+        <button onclick="OrdersPage.deletePrompt('${id}','${_esc(billNo)}')"
+          style="width:100%;background:none;border:1px solid var(--bdr);color:var(--muted);border-radius:12px;padding:11px;font-size:var(--fs-sm);cursor:pointer">
+          ← กลับ
+        </button>
+      </div>`);
+    },
+
+    async _executeDelete(id, deleteType) {
+      const reason = (document.getElementById('delete-reason') || {}).value || '';
+      if (!reason.trim()) { App.toast('กรุณาระบุเหตุผล'); return; }
+      const btn = document.querySelector('[onclick^="OrdersPage._executeDelete"]');
+      if (btn) { btn.disabled = true; btn.textContent = 'กำลังลบ...'; }
+      try {
+        const name = App.user?.name || App.user?.email || App.user?.id || 'unknown';
+        const ua = navigator.userAgent;
+        const device = ua.includes('iPhone') ? 'iPhone' : ua.includes('iPad') ? 'iPad' : ua.includes('Android') ? 'Android' : 'Desktop';
+        await App.api('/api/pos/bills/delete/' + id, {
+          method: 'POST',
+          body: JSON.stringify({ delete_type: deleteType, reason, deleted_by_name: name, deleted_device: device })
+        });
+        closeSheet();
+        App.toast('ลบบิลแล้ว');
+        Router.go('orders');
+      } catch(e) {
+        App.toast('❌ ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'ยืนยันลบบิล'; }
       }
     }
   });

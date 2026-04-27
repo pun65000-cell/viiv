@@ -27,6 +27,14 @@ def get_tenant_user(authorization=""):
     except: pass
     raise HTTPException(401, "Unauthorized")
 
+def _get_role_from_token(authorization=""):
+    try:
+        token = authorization.replace("Bearer ", "")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], options={"leeway":864000,"verify_exp":False})
+        return payload.get("role", "staff")
+    except:
+        return "staff"
+
 def gen_bill_no(tid, conn):
     settings = conn.execute(text("SELECT bill_prefix,bill_start_seq,bill_format,inv_prefix FROM store_settings WHERE tenant_id=:tid"),{"tid":tid}).fetchone()
     seq_row = conn.execute(text("SELECT last_seq FROM bill_seq WHERE tenant_id=:tid FOR UPDATE"),{"tid":tid}).fetchone()
@@ -73,8 +81,10 @@ def create_bill(payload: dict, authorization: str = Header("")):
     }
     _map = PAY_MAP.get(pm, {"status": "pending", "shipping": None, "delay": 0})
     if doc_type == "reserve":
-        status = "pending"
-        ship_st = None
+        # reserve ใช้ status/shipping จาก PAY_MAP เหมือนปกติ
+        # ยกเว้น pending = ยังไม่กำหนดวิธีชำระ
+        status = _map["status"]
+        ship_st = _map["shipping"]
     else:
         status = _map["status"]
         ship_st = _map["shipping"]
@@ -110,12 +120,7 @@ def create_bill(payload: dict, authorization: str = Header("")):
              "cd":json.dumps(_snapshot_member(c, tid, (payload.get("customer_data") or {}).get("id"), payload.get("customer_data"))),
              "items":json.dumps(items_snap),"sub":sub,"disc":disc,"dtype":dt,"vr":vr,"va":va,"vtype":vat_type,"total":total,
              "pm":payload.get("pay_method","cash"),"paid":float(payload.get("paid",0)),"note":payload.get("note",""),"uid":uid})
-        if doc_type == "reserve":
-            for item in items_snap:
-                p = c.execute(text("SELECT track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
-                if p and p[0]:
-                    c.execute(text("UPDATE products SET stock_reserved=COALESCE(stock_reserved,0)+:qty,updated_at=NOW() WHERE id=:id"),{"qty":item["qty"],"id":item["id"]})
-        elif status=="paid":
+        if status=="paid" or doc_type=="reserve":
             for item in items_snap:
                 p = c.execute(text("SELECT stock_qty,track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
                 if p and p[1]:
@@ -409,6 +414,63 @@ def void_log(authorization: str = Header("")):
     with engine.connect() as c:
         rows = c.execute(text("SELECT id,bill_id,bill_no,void_type,void_reason,total,voided_by,voided_at FROM bill_void_log WHERE tenant_id=:tid ORDER BY voided_at DESC LIMIT 200"),{"tid":tid}).fetchall()
     return [dict(r._mapping) for r in rows]
+
+@router.post("/delete/{bid}")
+def delete_bill(bid: str, payload: dict, authorization: str = Header("")):
+    tid, uid = get_tenant_user(authorization)
+    role = _get_role_from_token(authorization)
+    if role not in ('admin', 'shop_admin', 'owner'):
+        raise HTTPException(403, "เฉพาะ Admin เท่านั้น")
+    delete_type = payload.get("delete_type", "bill_only")
+    reason = payload.get("reason", "")
+    deleted_by_name = payload.get("deleted_by_name", uid)
+    deleted_device = payload.get("deleted_device", "")
+    if not reason:
+        raise HTTPException(400, "กรุณาระบุเหตุผล")
+    with engine.begin() as c:
+        bill = c.execute(text("SELECT * FROM bills WHERE id=:id AND tenant_id=:tid"),{"id":bid,"tid":tid}).fetchone()
+        if not bill: raise HTTPException(404,"ไม่พบบิล")
+        if bill.status in ('voided','deleted'): raise HTTPException(400,"บิลนี้ถูกยกเลิก/ลบแล้ว")
+        log_reason = f"[{deleted_by_name}|{deleted_device}] {reason}"
+        c.execute(text("INSERT INTO bill_void_log(id,tenant_id,bill_id,bill_no,void_type,void_reason,items_snapshot,total,voided_by) VALUES(:id,:tid,:bid,:bno,:vt,:vr,:items,:total,:uid)"),
+            {"id":generate_id("vlog"),"tid":tid,"bid":bid,"bno":bill.bill_no,
+             "vt":f"delete_{delete_type}","vr":log_reason,
+             "items":bill.items,"total":bill.total,"uid":uid})
+        if delete_type == "with_stock":
+            items = json.loads(bill.items) if isinstance(bill.items,str) else bill.items
+            for item in items:
+                p = c.execute(text("SELECT stock_qty,track_stock FROM products WHERE id=:id"),{"id":item["id"]}).fetchone()
+                if p and p[1]:
+                    qb=float(p[0] or 0); qa=qb+float(item["qty"])
+                    c.execute(text("UPDATE products SET stock_qty=:q,updated_at=NOW() WHERE id=:id"),{"q":qa,"id":item["id"]})
+                    c.execute(text("INSERT INTO stock_log(id,tenant_id,product_id,sku,product_name,action,qty_before,qty_change,qty_after,ref_bill_id,ref_bill_no,note,created_by) VALUES(:id,:tid,:pid,:sku,:name,'delete_return',:qb,:qc,:qa,:bid,:bno,:note,:uid)"),
+                        {"id":generate_id("slog"),"tid":tid,"pid":item["id"],"sku":item.get("sku",""),"name":item.get("name",""),
+                         "qb":qb,"qc":float(item["qty"]),"qa":qa,"bid":bid,"bno":bill.bill_no,
+                         "note":f"คืนสต็อก (ลบบิล) {bill.bill_no}","uid":uid})
+        c.execute(text("UPDATE bills SET status='deleted',void_reason=:vr,voided_by=:uid,voided_at=NOW(),updated_at=NOW() WHERE id=:id"),
+            {"vr":log_reason,"uid":uid,"id":bid})
+    return {"message":"ลบบิลสำเร็จ","delete_type":delete_type}
+
+@router.get("/deleted")
+def list_deleted(authorization: str = Header("")):
+    tid, _ = get_tenant_user(authorization)
+    role = _get_role_from_token(authorization)
+    if role not in ('admin', 'shop_admin', 'owner'):
+        raise HTTPException(403, "เฉพาะ Admin เท่านั้น")
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT b.id, b.bill_no, b.inv_no, b.doc_type, b.total, b.pay_method,
+                   b.customer_name, b.void_reason, b.voided_by, b.voided_at, b.created_at, b.items,
+                   (SELECT vl.void_type FROM bill_void_log vl
+                    WHERE vl.bill_id = b.id AND vl.tenant_id = b.tenant_id
+                    AND vl.void_type LIKE 'delete_%'
+                    ORDER BY vl.voided_at DESC LIMIT 1) AS void_type
+            FROM bills b
+            WHERE b.tenant_id=:tid AND b.status='deleted'
+            ORDER BY b.voided_at DESC NULLS LAST
+            LIMIT 200
+        """),{"tid":tid}).fetchall()
+    return {"deleted_bills":[dict(r._mapping) for r in rows]}
 
 @router.post("/migrate")
 def migrate_bill(payload: dict, authorization: str = Header("")):

@@ -5,6 +5,17 @@ const App = {
   get token() { return Auth.token; },
   tenantId: 'ten_1',
 
+  _parseJwt(t) {
+    try {
+      const b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      return JSON.parse(atob(b));
+    } catch { return {}; }
+  },
+  get user() {
+    const p = this._parseJwt(Auth.token);
+    return { id: p.sub || p.user_id || 'unknown', role: p.role || null, name: p.name || p.email || '' };
+  },
+
   initToken() {
     // Delegate ทั้งหมดให้ Auth.init() — Auth คือ single source of truth
     Auth.init();
