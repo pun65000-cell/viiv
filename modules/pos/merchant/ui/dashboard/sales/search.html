@@ -95,7 +95,7 @@ window.ssFilter=function(){
       '<div>'+
         '<span style="font-weight:600;">'+(b.bill_no||b.id||'')+'</span>'+
         '<span style="color:#9ca3af;margin-left:6px;">'+(b.customer_name||'')+'</span>'+
-        '<span style="background:#f3f4f6;border-radius:4px;padding:1px 5px;font-size:10px;margin-left:6px;">'+(b.source==='pos'?'POS':'บิล')+'</span>'+
+        (b.source==='pwa'?'<span style="background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px">M</span>':b.source==='pos'?'<span style="background:#f3f4f6;border-radius:4px;padding:1px 5px;font-size:10px;margin-left:6px">POS</span>':'')+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:8px;">'+
         '<span style="font-size:10px;color:#9ca3af;">'+new Date(b.created_at).toLocaleDateString('th')+'</span>'+

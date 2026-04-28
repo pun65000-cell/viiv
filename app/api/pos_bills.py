@@ -438,7 +438,7 @@ def delete_bill(bid: str, payload: dict, authorization: str = Header("")):
         c.execute(text("INSERT INTO bill_void_log(id,tenant_id,bill_id,bill_no,void_type,void_reason,items_snapshot,total,voided_by) VALUES(:id,:tid,:bid,:bno,:vt,:vr,:items,:total,:uid)"),
             {"id":generate_id("vlog"),"tid":tid,"bid":bid,"bno":bill.bill_no,
              "vt":f"delete_{delete_type}","vr":log_reason,
-             "items":bill.items,"total":bill.total,"uid":uid})
+             "items":json.dumps(bill.items) if isinstance(bill.items,(list,dict)) else (bill.items or '[]'),"total":bill.total,"uid":uid})
         if delete_type == "with_stock":
             items = json.loads(bill.items) if isinstance(bill.items,str) else bill.items
             for item in items:

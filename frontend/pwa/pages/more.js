@@ -65,8 +65,8 @@
           <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden">
             ${sec.items.map((item, idx) => `
               <div class="list-item" style="${idx < sec.items.length-1 ? 'border-bottom:1px solid var(--bdr);' : ''}border-radius:0;${item.danger ? 'color:var(--orange)' : ''}"
-                   onclick="MoreMenu.go(${JSON.stringify(item.pwa||'')},${JSON.stringify(item.url||'')},${JSON.stringify(item.action||'')})">
-                <div style="font-size:1.25rem;flex-shrink:0;width:28px;text-align:center">${item.icon}</div>
+                   onclick="MoreMenu.go('${item.pwa||''}','${item.url||''}','${item.action||''}')">
+                <div style="font-size:1.25rem;flex-shrink:0;width:28px;text-align:center">${typeof item.icon==='string'&&item.icon.startsWith('<')?item.icon:_esc(item.icon)}</div>
                 <div class="li-left">
                   <div class="li-title" style="${item.danger ? 'color:var(--orange)' : ''}">${_esc(item.label)}</div>
                   <div class="li-sub">${_esc(item.sub)}</div>

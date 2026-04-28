@@ -1204,3 +1204,10 @@ modules/pos/merchant/ui/dashboard/billing/create.html
 3. 🟡 pos.js more sheet — ลบเมนูซ้ำ + เพิ่ม Delivery
 4. 🟡 billing.js v1.50 เต็ม (doc_type/pay/discount/VAT)
 5. 🟡 ทดสอบ 4-5 บัญชีจริง
+
+สรุปวันนี้ เพิ่มใน VIIV_MASTER.md Section [E] v1.51.3:
+- Superboard connections.html (LINE + Coming Soon tabs)
+- sidebar เพิ่ม "การเชื่อมต่อ" ก่อนบุคลากร
+- store.html ลบ tab LINE
+- fix more.js JSON.stringify onclick
+- fix auth.js atob padding + DEV_TOKEN ten_1

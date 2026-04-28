@@ -92,7 +92,7 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
         rows = c.execute(text(f"""
             SELECT b.id, b.bill_no, b.customer_id, b.customer_name,
                    b.customer_code, b.total, b.created_at,
-                   m.phone, m.address, m.tax_id
+                   m.phone, m.address, m.tax_id, b.customer_data::text
             FROM bills b
             LEFT JOIN members m ON b.customer_id = m.id::text
             WHERE b.tenant_id = :tid
@@ -111,14 +111,19 @@ def unpaid_bills(q: str = Query(""), authorization: str = Header("")):
         """), {"tid": tid, "qp": f"%{q}%"}).fetchall()
     result = []
     for r in rows:
+        cd = {}
+        try:
+            cd = json.loads(r[10] or "{}") if isinstance(r[10], str) else (r[10] or {})
+        except: pass
         result.append({
             "id": str(r[0]), "bill_no": r[1],
             "customer_id": str(r[2]) if r[2] else None,
-            "customer_name": r[3], "customer_code": r[4],
+            "customer_name": r[3] or cd.get("name", ""),
+            "customer_code": r[4] or cd.get("code", ""),
             "total": float(r[5] or 0), "created_at": str(r[6]),
-            "customer_phone": r[7] or "",
-            "customer_address": r[8] or "",
-            "customer_tax_id": r[9] or "",
+            "customer_phone": r[7] or cd.get("phone", ""),
+            "customer_address": r[8] or cd.get("address", ""),
+            "customer_tax_id": r[9] or cd.get("tax_id", ""),
         })
     return result
 
@@ -146,6 +151,12 @@ def create_statement(payload: dict, authorization: str = Header("")):
         raise HTTPException(400, "กรุณาเลือกบิลอย่างน้อย 1 รายการ")
     if not payload.get("due_single"):
         raise HTTPException(400, "กรุณาระบุวันกำหนดชำระ")
+    with engine.connect() as cv:
+        cids = [row[0] for row in cv.execute(text(
+            f"SELECT customer_id FROM bills WHERE id::text IN ({','.join([':b'+str(i) for i in range(len(bill_ids))])}) AND tenant_id=:tid"
+        ), {**{f"b{i}": str(b) for i, b in enumerate(bill_ids)}, "tid": tid}).fetchall()]
+    if len(set(str(c) if c else None for c in cids)) > 1:
+        raise HTTPException(400, "บิลทั้งหมดต้องเป็นของลูกค้าเดียวกัน")
     total_amt = float(payload.get("total_amt", 0))
     discount  = float(payload.get("discount", 0))
     vat_type  = payload.get("vat_type", "none")
@@ -279,8 +290,12 @@ def statement_bills(sid: int, authorization: str = Header("")):
             cd = json.loads(r[4] or "{}") if isinstance(r[4], str) else (r[4] or {})
         except: pass
         result.append({
-            "id": r[0], "bill_no": r[1], "customer_name": r[2],
-            "customer_code": r[3], "customer_data": cd,
+            "id": r[0], "bill_no": r[1],
+            "customer_name": r[2] or cd.get("name", ""),
+            "customer_code": r[3] or cd.get("code", ""),
+            "customer_phone": cd.get("phone", ""),
+            "customer_address": cd.get("address", ""),
+            "customer_data": cd,
             "total": float(r[5] or 0), "created_at": str(r[6])
         })
     return result

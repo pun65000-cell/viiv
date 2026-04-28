@@ -104,7 +104,8 @@
       var ship = b.shipping_status ? '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:#e0f2fe;color:#0369a1">'+_esc(b.shipping_status)+'</span>' : '';
       rows += '<div class="list-item" style="flex-direction:column;align-items:stretch;gap:6px;padding:12px 14px;margin-bottom:8px;cursor:pointer" onclick="BillPage.open(\''+b.id+'\')">';
       rows += '<div style="display:flex;justify-content:space-between;align-items:flex-start">';
-      rows += '<div><div style="font-size:var(--fs-sm);font-weight:700">'+_esc(b.bill_no||b.id)+'</div>';
+      var mBadge = b.source==='pwa' ? '<span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:5px;background:#dbeafe;color:#1d4ed8;font-weight:700;margin-left:5px;vertical-align:middle">M</span>' : '';
+      rows += '<div><div style="font-size:var(--fs-sm);font-weight:700">'+_esc(b.bill_no||b.id)+mBadge+'</div>';
       rows += '<div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px">'+_esc(b.customer_name||'ลูกค้าทั่วไป')+' · '+(PL[b.pay_method]||b.pay_method||'—')+'</div></div>';
       rows += '<div style="text-align:right;flex-shrink:0"><div style="font-size:var(--fs-md);font-weight:700;color:var(--gold)">฿'+_fmt(b.total)+'</div>';
       rows += '<div style="font-size:10px;color:var(--muted)">'+App.fmtDate(b.created_at)+'</div></div></div>';
@@ -133,7 +134,8 @@
     summary += '<div style="font-size:var(--fs-xs);color:var(--muted);margin-top:4px">' + (PL[b.pay_method]||b.pay_method||'—') + '</div>';
     var html = '<div style="padding:0 0 8px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">';
-    html += '<div><div style="font-size:var(--fs-lg);font-weight:700">' + _esc(b.bill_no||b.id) + '</div>';
+    var detailMBadge = b.source==='pwa' ? '<span style="display:inline-block;font-size:11px;padding:2px 7px;border-radius:5px;background:#dbeafe;color:#1d4ed8;font-weight:700;margin-left:6px;vertical-align:middle">M</span>' : '';
+    html += '<div><div style="font-size:var(--fs-lg);font-weight:700">' + _esc(b.bill_no||b.id) + detailMBadge + '</div>';
     html += '<div style="font-size:var(--fs-xs);color:var(--muted);margin-top:2px">' + App.fmtDate(b.created_at) + ' · ' + _esc(DL[b.doc_type]||b.doc_type||'') + '</div></div>';
     html += '<span style="font-size:11px;padding:4px 10px;border-radius:20px;background:' + sb + ';color:' + sc + ';font-weight:700">' + (SL[b.status]||b.status) + '</span></div>';
     html += '<div style="background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:12px">';

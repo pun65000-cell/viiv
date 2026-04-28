@@ -165,13 +165,13 @@
           </div>
         </div>
 
-        ${s.customer_name ? `
+        ${(() => { const fb = bills[0] || {}; const cn = s.customer_name || fb.customer_name || ''; const cc = s.customer_code || fb.customer_code || ''; const cp = s.customer_phone || fb.customer_phone || ''; return cn ? `
         <div style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;margin-bottom:12px">
           <div style="font-size:10px;color:var(--muted);margin-bottom:2px">ลูกค้า</div>
-          <div style="font-weight:700">${_esc(s.customer_name)}</div>
-          ${s.customer_code ? `<div style="font-size:var(--fs-xs);color:var(--muted)">รหัส: ${_esc(s.customer_code)}</div>` : ''}
-          ${s.customer_phone ? `<div style="font-size:var(--fs-xs);color:var(--muted)">โทร: ${_esc(s.customer_phone)}</div>` : ''}
-        </div>` : ''}
+          <div style="font-weight:700">${_esc(cn)}</div>
+          ${cc ? `<div style="font-size:var(--fs-xs);color:var(--muted)">รหัส: ${_esc(cc)}</div>` : ''}
+          ${cp ? `<div style="font-size:var(--fs-xs);color:var(--muted)">โทร: ${_esc(cp)}</div>` : ''}
+        </div>` : ''; })()}
 
         ${bills.length ? `
         <div style="margin-bottom:12px">
@@ -321,7 +321,8 @@
     if (!_unpaidBills.length) { el.innerHTML = '<div class="empty-state">ไม่มีบิลค้างชำระ</div>'; return; }
     el.innerHTML = _unpaidBills.map(b => {
       const sel = _selectedBillIds.includes(String(b.id));
-      const locked = _lockedCustomerId && b.customer_id && String(b.customer_id) !== String(_lockedCustomerId);
+      const billCid = b.customer_id ? String(b.customer_id) : '__NONE__';
+      const locked = _lockedCustomerId !== null && billCid !== _lockedCustomerId;
       return `<div onclick="${locked ? '' : `StmtPage.toggleBill('${b.id}')`}"
         style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid ${sel ? 'var(--gold)' : 'var(--bdr)'};border-radius:10px;margin-bottom:6px;cursor:${locked ? 'not-allowed' : 'pointer'};background:${sel ? 'var(--gold-a)' : 'var(--card)'};${locked ? 'opacity:.4' : ''}">
         <input type="checkbox" ${sel ? 'checked' : ''} ${locked ? 'disabled' : ''} onclick="event.stopPropagation()"
@@ -651,13 +652,15 @@
         }
       } else {
         _selectedBillIds.push(bid);
-        if (!_lockedCustomerId) {
+        if (_lockedCustomerId === null) {
           const b = _unpaidBills.find(x => String(x.id) === bid);
-          if (b && b.customer_id) {
-            _lockedCustomerId = String(b.customer_id);
+          if (b) {
+            _lockedCustomerId = b.customer_id ? String(b.customer_id) : '__NONE__';
             const si = document.getElementById('stm-sel-member-info');
             if (si) {
-              si.innerHTML = `<div style="font-weight:700">${_esc(b.customer_name || '—')}</div>${b.customer_code ? '<div style="color:var(--muted)">รหัส: ' + _esc(b.customer_code) + '</div>' : ''}`;
+              si.innerHTML = b.customer_name
+                ? `<div style="font-weight:700">${_esc(b.customer_name)}</div>${b.customer_code ? '<div style="color:var(--muted)">รหัส: ' + _esc(b.customer_code) + '</div>' : ''}`
+                : `<div style="color:var(--muted)">บิลไม่ระบุลูกค้า — เลือกได้เฉพาะบิลไม่มีลูกค้าเท่านั้น</div>`;
               si.style.display = 'block';
             }
           }

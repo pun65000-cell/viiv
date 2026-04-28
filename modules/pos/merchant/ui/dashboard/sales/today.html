@@ -139,6 +139,7 @@ function renderBills(bills){
     return '<div class="sv-bill-row">'+
       '<div>'+
         '<span style="font-weight:600;">'+(b.bill_no||b.id)+'</span>'+
+        (b.source==='pwa'?'<span style="background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:5px">M</span>':'')+
         '<span style="color:#9ca3af;margin-left:8px;">'+(b.customer_name||'')+'</span>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:8px;">'+

@@ -7,7 +7,7 @@
  *   4. ทุกส่วนของระบบอ่าน/เขียน token ผ่าน Auth เท่านั้น
  */
 
-const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMSIsInRlbmFudF9pZCI6InRlbl9mYTdmMmM5OC1lN2EzLTRlZWMtYmJiYS03NTgwZDlmODg4NzAiLCJyb2xlIjoib3duZXIiLCJuYW1lIjoiQWRtaW4iLCJhZG1pbiI6dHJ1ZX0.vbVHbsLK4R76UL3yNyl8JBeJWER72K8LerUB_NxpPUY';
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMSIsInRlbmFudF9pZCI6InRlbl8xIiwicm9sZSI6Im93bmVyIiwibmFtZSI6IkFkbWluIiwiYWRtaW4iOnRydWV9.K0OzKuZqWAr5fdZ7gPruRiEebNK6gFqB_fRi3nPQGkw';
 
 const Auth = {
   _token: DEV_TOKEN,
@@ -38,7 +38,9 @@ const Auth = {
     const stored = localStorage.getItem(this._key);
     if (stored) {
       try {
-        const p = JSON.parse(atob(stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        const b = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+        const pad = b + '=='.slice((b.length%4)||4);
+        const p = JSON.parse(atob(pad));
         if (p.role) { this._token = stored; return; }
         // token เก่าไม่มี role → upgrade เป็น DEV_TOKEN
       } catch {}

@@ -111,7 +111,7 @@ function renderCards(bills,containerId){
   el.innerHTML=bills.map(function(b){
     return '<div class="od-card" data-bid="'+b.id+'" onclick="odGoSearch(this.dataset.bid)">'
       +'<div class="od-card-head">'
-        +'<div><span class="od-bill-no">'+b.bill_no+'</span><span class="od-doc-type">'+( b.doc_type||'')+'</span></div>'
+        +'<div><span class="od-bill-no">'+b.bill_no+'</span><span class="od-doc-type">'+( b.doc_type||'')+'</span>'+(b.source==='pwa'?'<span style="background:#dbeafe;color:#1d4ed8;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;margin-left:5px">M</span>':'')+'</div>'
         +'<div class="od-price">'+fm(b.total)+'</div>'
       +'</div>'
       +'<div class="od-card-meta">'+( b.customer_name||'ไม่ระบุ')+' · '+fd(b.created_at)+' · '+( b.items_count||0)+' รายการ · '+( b.pay_method||'')+( b.source==='pos'?' · POS':'')+' </div>'

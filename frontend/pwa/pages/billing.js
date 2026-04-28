@@ -148,19 +148,30 @@
     }
     section.style.display = 'block';
     if (bar) bar.style.display = 'flex';
-    items.innerHTML = _cart.map((item, i) => `
-      <div class="list-item" style="margin-bottom:6px">
-        <div class="li-left">
-          <div class="li-title">${_esc(item.name)}</div>
-          <div class="li-sub">฿${_fmt(item.price)} / ชิ้น</div>
+    items.innerHTML = _cart.map((item, i) => {
+      const mn = parseFloat(item.price_min || 0);
+      return `
+      <div class="list-item" style="margin-bottom:6px;flex-direction:column;gap:4px;align-items:stretch">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="li-left" style="flex:1;min-width:0">
+            <div class="li-title">${_esc(item.name)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <button onclick="BillingPage.qty(${i},-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;line-height:1">−</button>
+            <span style="font-weight:700;min-width:20px;text-align:center">${item.qty}</span>
+            <button onclick="BillingPage.qty(${i},1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;line-height:1">+</button>
+            <div id="cart-total-${i}" style="min-width:60px;text-align:right;font-weight:700">฿${_fmt(item.price * item.qty)}</div>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <button onclick="BillingPage.qty(${i},-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;line-height:1">−</button>
-          <span style="font-weight:700;min-width:20px;text-align:center">${item.qty}</span>
-          <button onclick="BillingPage.qty(${i},1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;line-height:1">+</button>
-          <div style="min-width:56px;text-align:right;font-weight:700">฿${_fmt(item.price * item.qty)}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:var(--fs-xs);color:var(--muted);flex-shrink:0">ราคา/ชิ้น ฿</span>
+          <input id="cart-price-${i}" type="number" inputmode="decimal" step="0.01" min="${mn}" value="${item.price}"
+            onchange="BillingPage.setPrice(${i},this.value)"
+            style="width:80px;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:3px 6px;font-size:var(--fs-xs);color:var(--txt);outline:none;-webkit-appearance:none;text-align:right"/>
+          ${mn > 0 ? `<span style="font-size:10px;color:var(--muted)">(ต่ำสุด ฿${_fmt(mn)})</span>` : ''}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     if (amt) amt.textContent = '฿' + _fmt(_cartSubtotal());
   }
 
@@ -260,7 +271,10 @@
       </div>
 
       <!-- ลูกค้า -->
-      <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:6px">ลูกค้า</div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+        <span style="font-size:var(--fs-xs);font-weight:600;color:var(--muted)">ลูกค้า</span>
+        <span style="font-size:10px;color:#ef4444;font-weight:700">* บังคับ</span>
+      </div>
       <div id="pay-cust-wrap" style="margin-bottom:14px">${_customerBlock()}</div>
 
       <!-- วิธีชำระ -->
@@ -434,7 +448,7 @@
       }
       const existing = _cart.find(x => x.id === pid);
       if (existing) { existing.qty++; }
-      else { _cart.push({id:p.id, name:p.name, price:p.price, qty:1, sku:p.sku || ''}); }
+      else { _cart.push({id:p.id, name:p.name, price:p.price, qty:1, sku:p.sku || '', price_min:parseFloat(p.price_min||0)}); }
       _renderCart();
       App.toast(p.name + ' +1');
     },
@@ -443,6 +457,24 @@
       _cart[i].qty += delta;
       if (_cart[i].qty <= 0) _cart.splice(i, 1);
       _renderCart();
+    },
+
+    setPrice(i, val) {
+      const v = Math.round(parseFloat(val) * 100) / 100;
+      const mn = parseFloat((_cart[i] || {}).price_min || 0);
+      let finalPrice = isNaN(v) || v < 0 ? _cart[i].price : v;
+      if (mn > 0 && finalPrice < mn) {
+        App.toast('ราคาต่ำสุด ฿' + _fmt(mn));
+        finalPrice = mn;
+      }
+      _cart[i].price = finalPrice;
+      // Update in-place — no full re-render to avoid focus/keyboard jump
+      const inp = document.getElementById('cart-price-' + i);
+      if (inp && parseFloat(inp.value) !== finalPrice) inp.value = finalPrice;
+      const tot = document.getElementById('cart-total-' + i);
+      if (tot) tot.textContent = '฿' + _fmt(finalPrice * _cart[i].qty);
+      const amt = document.getElementById('bill-total-amt');
+      if (amt) amt.textContent = '฿' + _fmt(_cartSubtotal());
     },
 
     clearCart() { _cart = []; _renderCart(); },
@@ -570,6 +602,12 @@
 
     async confirmBill() {
       if (!_cart.length) { App.toast('ไม่มีสินค้าในบิล'); return; }
+      if (!_customer) { App.toast('⚠️ กรุณาเลือกลูกค้าก่อนออกบิล'); return; }
+      const priceErr = _cart.find(item => {
+        const mn = parseFloat(item.price_min || 0);
+        return mn > 0 && item.price < mn;
+      });
+      if (priceErr) { App.toast('ราคา "' + priceErr.name + '" ต่ำกว่าราคาต่ำสุด ฿' + _fmt(priceErr.price_min)); return; }
       const btn = document.getElementById('pay-confirm-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
       const t = _calcTotals();
