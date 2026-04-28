@@ -38,6 +38,7 @@
       label: 'ตั้งค่า',
       items: [
         { icon: '🏪', label: 'ตั้งค่าร้านค้า',  sub: 'ข้อมูลร้าน, ที่อยู่, โลโก้',  url: PC + 'settings.html' },
+        { icon: '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-0.3px">LINE</span>', label: 'เชื่อมต่อ LINE', sub: 'LINE OA, Token, Webhook, ใบเสนอราคา', pwa: 'line' },
         { icon: '◎',  label: 'บุคลากร',         sub: 'จัดการพนักงานและสิทธิ์',      url: PC + 'staff.html'    },
         { icon: '⬆',  label: 'อัพเกรด',         sub: 'แพ็กเกจและฟีเจอร์เพิ่มเติม', url: PC + 'upgrade.html'  },
       ]

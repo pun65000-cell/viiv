@@ -73,6 +73,8 @@ def create_bill(payload: dict, authorization: str = Header("")):
     PAY_MAP = {
         "cash":             {"status": "paid",    "shipping": "received_payment", "delay": 0},
         "transfer":         {"status": "paid",    "shipping": "received_payment", "delay": 0},
+        "credit_card":      {"status": "paid",    "shipping": "received_payment", "delay": 0},
+        "qr":               {"status": "paid",    "shipping": "received_payment", "delay": 0},
         "cash_waiting":     {"status": "paid",    "shipping": "paid_waiting",     "delay": 15},
         "transfer_waiting": {"status": "paid",    "shipping": "paid_waiting",     "delay": 15},
         "deposit":          {"status": "partial", "shipping": "deposit_waiting",  "delay": 30},

@@ -188,7 +188,7 @@
       { icon:'🏪', label:'ร้านค้า',    sub:'ข้อมูลร้าน, โลโก้',     action:()=>{ closeSheet(); Router.go('shop');    } },
       { icon:'🧾', label:'ตั้งค่าบิล', sub:'รูปแบบบิล, VAT, หมายเหตุ', action:()=>{ closeSheet(); Router.go('shop');    } },
       { icon:'🏦', label:'ธนาคาร',     sub:'บัญชีรับเงิน',           action:()=>{ closeSheet(); Router.go('shop');    } },
-      { icon:'💚', label:'เชื่อม LINE', sub:'LINE OA, Webhook',      action:()=>{ closeSheet(); Router.go('shop');    } },
+      { icon:'<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-0.3px">LINE</span>', label:'เชื่อม LINE', sub:'LINE OA, Token, Webhook',  action:()=>{ closeSheet(); Router.go('line');    } },
       { icon:'⏳', label:'รออนุมัติ',  sub:'บิลรอตรวจสอบ',           action:()=>{ closeSheet(); Router.go('reserve'); } },
       { icon:'🧾', label:'ออกบิล',     sub:'สร้างบิลใหม่',            action:()=>{ closeSheet(); _openBillingSheet();   } },
       { icon:'⚡', label:'ขายด่วน',    sub:'POS ด่วน',               action:()=>{ closeSheet(); Router.go('billing');  } },

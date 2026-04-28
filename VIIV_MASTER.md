@@ -1074,4 +1074,64 @@ FILES CHANGED:
   frontend/pwa/pages/bill-history.js (NEW)
   frontend/pwa/index.html
 
-Version: v1.49 | Updated: 2026-04-27
+---
+[2026-04-27 v1.50] PWA Mobile Billing — Full DB Fields + Finance Status Fix
+
+WHAT CHANGED:
+✅ app/api/pos_bills.py — PAY_MAP เพิ่ม credit_card + qr → status:'paid', shipping:'received_payment'
+   (เดิม credit_card/qr ไม่มีใน PAY_MAP → default เป็น pending ผิด)
+✅ frontend/pwa/pages/billing.js — rewrite pay sheet ให้ครบทุก field:
+   - doc_type selector (ใบเสร็จ/ใบแจ้งหนี้/ใบจอง/ใบส่งของ)
+   - pay_method ครบ 9 อย่าง (cash/transfer/credit_card/qr/cash_waiting/transfer_waiting/deposit/credit/pending)
+   - discount input + discount_type (฿/%)
+   - VAT selector (0%/7%) + vat_type (รวม/บวกเพิ่ม)
+   - paid_amount field (แสดงเฉพาะเมื่อ deposit)
+   - live total summary (subtotal → discount → VAT → ยอดรวม)
+   - ลบ hardcoded status:'paid' → ให้ backend คำนวณจาก PAY_MAP
+   - โหลด store settings สำหรับ VAT mode default
+   - หลังออกบิล → navigate ไป bill list (ไม่ใช่ orders)
+   - เก็บ note/customer state ผ่าน module-level vars (ไม่หายเมื่อ re-render)
+✅ frontend/pwa/index.html — bump v=2937 (billing.js)
+
+STATUS FLOW (PAY_MAP):
+  cash/transfer/credit_card/qr → paid + received_payment
+  cash_waiting/transfer_waiting → paid + paid_waiting
+  deposit                       → partial + deposit_waiting
+  credit                        → credit + scheduled
+  pending                       → pending + null
+
+FILES CHANGED:
+  app/api/pos_bills.py
+  frontend/pwa/pages/billing.js
+  frontend/pwa/index.html
+
+Version: v1.50 | Updated: 2026-04-27
+
+### [v1.51 COMPLETED — 2026-04-28] Mobile LINE Settings Page
+
+งานที่ทำ:
+- สร้างหน้า line.js (PWA page) สำหรับตั้งค่า LINE OA บนโมบาย
+  - Section 1: ข้อมูลการเชื่อมต่อ (OA ID, Channel Token, Channel Secret)
+  - Section 2: Webhook URL พร้อมปุ่มคัดลอก
+  - Section 3: ฟีเจอร์ (bill/quote/chat/order toggles, chat_label, chat_action)
+  - Section 4: การแจ้งเตือน (notify_on_order/bill toggles, UID ผู้รับ + ดึงล่าสุด)
+  - Section 5: ใบเสนอราคา (QR upload, contact, note)
+- pos.js: เปลี่ยนไอคอน 💚 เป็น LINE badge สีเขียว #06C755 + เปลี่ยน route จาก 'shop' เป็น 'line'
+- more.js: เพิ่ม "เชื่อมต่อ LINE" ใน section ตั้งค่า พร้อม LINE icon
+- index.html: เพิ่ม <script src="/pwa/pages/line.js">
+
+API ที่ใช้ (ไม่สร้าง DB ใหม่):
+  GET  /api/pos/line/settings
+  POST /api/pos/line/credentials
+  POST /api/pos/line/features
+  POST /api/pos/line/quote-config
+  POST /api/pos/line/upload-quote-qr
+  GET  /api/line/pending-uid
+
+FILES CHANGED:
+  frontend/pwa/pages/line.js  (NEW)
+  frontend/pwa/pages/pos.js
+  frontend/pwa/pages/more.js
+  frontend/pwa/index.html
+
+Version: v1.51 | Updated: 2026-04-28
