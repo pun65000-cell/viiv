@@ -1154,3 +1154,53 @@ PWA bank.js (NEW):
 ✅ อัปโหลด QR Code พร้อม preview ใช้ /api/pos/bank/upload-qr/{bid} และ /api/pos/bank/upload-qr-new
 ✅ ดึงข้อมูล DB เดียวกับ PC (ไม่สร้าง DB แยก)
 ✅ แก้ pos.js more sheet ชี้ "ธนาคาร" → Router.go('bank')
+
+[v1.51.2 COMPLETED — 2026-04-28]
+PC create.html — stock_empty_sell:
+✅ โหลด stock_empty_sell จาก store settings
+✅ block สินค้าหมด + alert "สินค้า [ชื่อ] หมด กรุณาเพิ่มสินค้าในสต็อก"
+✅ double-check ก่อน submit
+PWA billing.js:
+✅ สินค้าหมด → การ์ดจาง + ป้าย "หมด" กดไม่ได้ (inStock/outStock)
+✅ ปุ่มชำระแล้ว 4 ปุ่ม พื้นหลังเขียวอ่อน
+✅ form เพิ่มสมาชิก ครบทุก field (รหัส/Tax ID/วันเกิด/ที่อยู่/หมายเหตุ)
+✅ saveNewMember() ส่ง field ครบ
+PWA bank.js (NEW):
+✅ หน้าบัญชีธนาคาร list/add/edit/delete/setDefault
+✅ อัปโหลด QR Code + preview
+✅ ใช้ DB เดียวกับ PC (ไม่สร้างแยก)
+✅ pos.js more sheet → "ธนาคาร" ชี้ Router.go('bank')
+PWA staff.js (NEW):
+✅ หน้าบุคลากร list/สร้าง/แก้ไข
+✅ จัดการสิทธิ์ครบทุก group (POS/รายงาน/Chat/ตั้งค่า/AutoPost)
+✅ เปลี่ยนรหัสผ่าน
+✅ pos.js more sheet → "บุคลากร" ชี้ Router.go('staff')
+✅ ใช้ /api/staff/* DB เดียวกับ Superboard
+PC settings/store.html:
+✅ เพิ่ม Shop ID field ใต้ชื่อร้าน + ปุ่มคัดลอก
+✅ ดึง tenant_id จาก JWT token
+Superboard index.html:
+✅ shop switcher แสดงโลโก้ + ชื่อร้าน + tenant_id
+✅ ปุ่ม "+ เพิ่มร้านสาขา" (Coming Soon)
+✅ ดึงข้อมูลจาก /api/pos/store/settings (มี logo_url ครบ)
+Superboard theme.css:
+✅ font-size +2px ทุกส่วน
+
+FILES CHANGED:
+frontend/pwa/pages/billing.js
+frontend/pwa/pages/bank.js        (NEW)
+frontend/pwa/pages/staff.js       (NEW)
+frontend/pwa/pages/pos.js
+frontend/pwa/js/auth.js           (DEV_TOKEN → tenant จริง)
+frontend/pwa/index.html
+frontend/superboard/index.html
+frontend/superboard/css/theme.css
+modules/pos/merchant/ui/dashboard/settings/store.html
+modules/pos/merchant/ui/dashboard/billing/create.html
+
+กำลังจะทำ (ลำดับ Priority):
+1. 🔴 POST /api/staff/login — staff login endpoint
+2. 🔴 Blue/Green deployment scripts
+3. 🟡 pos.js more sheet — ลบเมนูซ้ำ + เพิ่ม Delivery
+4. 🟡 billing.js v1.50 เต็ม (doc_type/pay/discount/VAT)
+5. 🟡 ทดสอบ 4-5 บัญชีจริง

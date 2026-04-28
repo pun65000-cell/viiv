@@ -543,3 +543,11 @@ INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
 INFO:     127.0.0.1:36784 - "GET /api/stores/ HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+INFO:     162.158.170.177:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
