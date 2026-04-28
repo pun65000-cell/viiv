@@ -1,40 +1,332 @@
-INFO:     Started server process [173099]
+INFO:     Started server process [184144]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.70.143.215:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.70.143.214:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.70.143.215:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.70.143.215:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.23.166.8:0 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.22.17.224:0 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-INFO:     47.251.61.165:10080 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
-INFO:     47.251.61.165:10094 - "GET / HTTP/1.1" 404 Not Found
-INFO:     123.160.223.73:2877 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=500 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/receive/list?limit=50 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=300 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/partners/list?limit=100 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "GET /api/pos/bills/deleted HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/deleted HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/pos/bills/deleted HTTP/1.1" 200 OK
+INFO:     104.23.239.121:0 - "GET /api/pos/statements/list HTTP/1.1" 401 Unauthorized
+INFO:     172.71.148.138:0 - "GET /api/pos/statements/list HTTP/1.1" 401 Unauthorized
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/deleted HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/pos/statements/unpaid-bills?q= HTTP/1.1" 200 OK
+INFO:     104.243.32.235:33926 - "GET / HTTP/1.1" 404 Not Found
+INFO:     104.243.32.235:33930 - "GET / HTTP/1.1" 404 Not Found
+INFO:     104.243.32.235:33926 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     104.243.32.235:33930 - "GET /v1/models HTTP/1.1" 404 Not Found
+INFO:     104.243.32.235:33926 - "GET /v2/models HTTP/1.1" 404 Not Found
+INFO:     104.243.32.235:33930 - "GET /metrics HTTP/1.1" 404 Not Found
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/unpaid-bills?q= HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?doc_type=receipt HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?doc_type=reserve HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list?doc_type=reserve HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/members/list?limit=100 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/6/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/2/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/statements/1/bills HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/list HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/pos/bills/detail/bill_1777341510_upe8 HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "POST /api/pos/bills/delete/bill_1777341510_upe8 HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.ProgrammingError: can't adapt type 'dict'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/httptools_impl.py", line 416, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/app/main.py", line 139, in rate_limiter
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/app/main.py", line 105, in inject_tenant
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/sessions.py", line 85, in __call__
+    await self.app(scope, receive, send_wrapper)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/app/main.py", line 69, in attach_req_id
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py", line 153, in simple_response
+    await self.app(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 326, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/app/api/pos_bills.py", line 438, in delete_bill
+    c.execute(text("INSERT INTO bill_void_log(id,tenant_id,bill_id,bill_no,void_type,void_reason,items_snapshot,total,voided_by) VALUES(:id,:tid,:bid,:bno,:vt,:vr,:items,:total,:uid)"),
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/viivadmin/viiv/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.ProgrammingError) can't adapt type 'dict'
+[SQL: INSERT INTO bill_void_log(id,tenant_id,bill_id,bill_no,void_type,void_reason,items_snapshot,total,voided_by) VALUES(%(id)s,%(tid)s,%(bid)s,%(bno)s,%(vt)s,%(vr)s,%(items)s,%(total)s,%(uid)s)]
+[parameters: {'id': 'vlog_1777360048_yivm', 'tid': 'ten_1', 'bid': 'bill_1777341510_upe8', 'bno': 'DRAFT-510_UPE8', 'vt': 'delete_with_stock', 'vr': '[Admin|Desktop] ผิด', 'items': [{'id': 'prd_1776145297_cx81', 'qty': 1, 'sku': 'pg003', 'name': 'โปรแกรมขาย', 'opts': [{'l': '399.00', 'v': 399}, {'l': '394.00', 'v': 394}, {'l': '3 ... (370 characters truncated) ... {'l': '319.00', 'v': 319}, {'l': '314.00', 'v': 314}, {'l': '309.00', 'v': 309}, {'l': '304.00', 'v': 304}, {'l': '299.00', 'v': 299}], 'price': 399}], 'total': Decimal('399.00'), 'uid': 'usr_1'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)

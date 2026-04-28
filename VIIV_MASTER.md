@@ -1135,3 +1135,22 @@ FILES CHANGED:
   frontend/pwa/index.html
 
 Version: v1.51 | Updated: 2026-04-28
+
+[v1.51.1 COMPLETED — 2026-04-28] Stock Check + PWA Bank Page
+PC create.html — stock_empty_sell check:
+✅ โหลด stock_empty_sell จาก store settings ตอน init
+✅ addProduct() — ถ้า setting=false + track_stock=true + stock_qty≤0 → alert "สินค้า [ชื่อ] หมด กรุณาเพิ่มสินค้าในสต็อก" + block
+✅ submitBill() — double-check ทุกรายการก่อน submit
+PWA billing.js — stock_empty_sell check:
+✅ โหลด store settings พร้อม products ใน Promise.all
+✅ สินค้าหมด → แสดงการ์ดจาง + ป้าย "หมด" + กดไม่ได้ (แยก inStock/outStock)
+✅ ปุ่มวิธีชำระกลุ่ม "ชำระแล้ว" 4 ปุ่ม — พื้นหลังเขียวอ่อนก่อนกด
+PWA billing.js — form เพิ่มสมาชิก:
+✅ เพิ่ม field ครบ: รหัสลูกค้า, Tax ID, วันเกิด, ที่อยู่, หมายเหตุ
+✅ saveNewMember() ส่ง field ครบไป /api/pos/members/create
+PWA bank.js (NEW):
+✅ สร้างหน้าบัญชีธนาคาร Router bank
+✅ list/add/edit/delete/setDefault บัญชี (สูงสุด 3)
+✅ อัปโหลด QR Code พร้อม preview ใช้ /api/pos/bank/upload-qr/{bid} และ /api/pos/bank/upload-qr-new
+✅ ดึงข้อมูล DB เดียวกับ PC (ไม่สร้าง DB แยก)
+✅ แก้ pos.js more sheet ชี้ "ธนาคาร" → Router.go('bank')
