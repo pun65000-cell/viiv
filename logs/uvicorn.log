@@ -177,3 +177,17 @@ INFO:     172.70.208.27:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
 INFO:     172.70.208.27:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
 INFO:     172.70.208.27:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
 INFO:     172.70.208.26:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40084 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48352 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "POST /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK

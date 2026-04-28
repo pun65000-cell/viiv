@@ -7,6 +7,7 @@
   let _customer = null; // {id,code,name,phone}
   let _q = '';
   let _draftId = null;
+  let _stockEmptySell = true;
 
   Router.register('billing', {
     title: 'ออกบิล',
@@ -16,6 +17,7 @@
       _customer = null;
       _q = '';
       _draftId = null;
+  let _stockEmptySell = true;
       _refreshHandler = () => _reload();
       document.addEventListener('viiv:refresh', _refreshHandler);
       await _reload();
@@ -32,9 +34,13 @@
     c.innerHTML = _shell();
     _bindSearch();
     try {
-      const data = await App.api('/api/pos/products/list');
+      const [data, ss] = await Promise.all([
+        App.api('/api/pos/products/list'),
+        App.api('/api/pos/store/settings').catch(()=>({}))
+      ]);
       if (_destroyed) return;
       _products = Array.isArray(data) ? data : (data.products || []);
+        _stockEmptySell = (ss.stock_empty_sell !== false);
       _renderProducts();
       _renderCart();
     } catch(e) {
@@ -87,15 +93,26 @@
     const q = _q.toLowerCase();
     const list = q ? _products.filter(p => p.name.toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q)) : _products.slice(0, 20);
     if (!list.length) { el.innerHTML = '<div class="empty-state" style="padding:12px 0">ไม่พบสินค้า</div>'; return; }
-    el.innerHTML = list.map(p => `
-      <div class="list-item" style="margin-bottom:6px;gap:10px" onclick="BillingPage.addItem('${p.id}')">
-        <div style="font-size:1.3rem;flex-shrink:0">📦</div>
-        <div class="li-left">
-          <div class="li-title">${_esc(p.name)}</div>
-          <div class="li-sub">฿${_fmt(p.price)}${p.sku?' · '+_esc(p.sku):''}</div>
-        </div>
-        <div style="background:var(--gold);color:#000;border-radius:8px;padding:4px 12px;font-weight:700;font-size:var(--fs-sm);flex-shrink:0">+</div>
-      </div>`).join('');
+      var inStock = list.filter(function(p){ return _stockEmptySell || !p.track_stock || (p.stock_qty||0) > 0; });
+      var outStock = list.filter(function(p){ return !_stockEmptySell && p.track_stock && (p.stock_qty||0) <= 0; });
+      function mkCard(p, dim) {
+        return '<div class="list-item" style="margin-bottom:6px;gap:10px'
+          + (dim ? ';opacity:0.38;pointer-events:none' : '')
+          + '"' + (dim ? '' : ' onclick="BillingPage.addItem(\'' + p.id + '\')"') + '>'
+          + '<div style="font-size:1.3rem;flex-shrink:0">' + (dim ? '⛔' : '📦') + '</div>'
+          + '<div class="li-left">'
+          + '<div class="li-title">' + _esc(p.name)
+            + (dim ? ' <span style="font-size:10px;color:#ef4444">หมด</span>' : '') + '</div>'
+          + '<div class="li-sub">฿' + _fmt(p.price) + (p.sku ? ' · ' + _esc(p.sku) : '') + '</div>'
+          + '</div>'
+          + '<div style="background:var(--gold);color:#000;border-radius:8px;padding:4px 12px;font-weight:700;font-size:var(--fs-sm);flex-shrink:0">+</div>'
+          + '</div>';
+      }
+      var outHtml = outStock.length
+        ? '<div style="font-size:11px;color:#9ca3af;padding:6px 2px">— สินค้าหมด —</div>'
+          + outStock.map(function(p){ return mkCard(p, true); }).join('')
+        : '';
+      el.innerHTML = inStock.map(function(p){ return mkCard(p, false); }).join('') + outHtml;
   }
 
   // ── CART ──
@@ -199,6 +216,9 @@
     addItem(pid) {
       const p = _products.find(x => x.id === pid);
       if (!p) return;
+      if (!_stockEmptySell && p.track_stock && (p.stock_qty||0) <= 0) {
+        App.toast('สินค้า ' + p.name + ' หมด กรุณาเพิ่มสินค้าในสต๊อก'); return;
+      }
       const existing = _cart.find(x => x.id === pid);
       if (existing) { existing.qty++; }
       else { _cart.push({id:p.id, name:p.name, price:p.price, qty:1, sku:p.sku||''}); }
