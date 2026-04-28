@@ -330,3 +330,178 @@ sqlalchemy.exc.ProgrammingError: (psycopg2.ProgrammingError) can't adapt type 'd
 [SQL: INSERT INTO bill_void_log(id,tenant_id,bill_id,bill_no,void_type,void_reason,items_snapshot,total,voided_by) VALUES(%(id)s,%(tid)s,%(bid)s,%(bno)s,%(vt)s,%(vr)s,%(items)s,%(total)s,%(uid)s)]
 [parameters: {'id': 'vlog_1777360048_yivm', 'tid': 'ten_1', 'bid': 'bill_1777341510_upe8', 'bno': 'DRAFT-510_UPE8', 'vt': 'delete_with_stock', 'vr': '[Admin|Desktop] ผิด', 'items': [{'id': 'prd_1776145297_cx81', 'qty': 1, 'sku': 'pg003', 'name': 'โปรแกรมขาย', 'opts': [{'l': '399.00', 'v': 399}, {'l': '394.00', 'v': 394}, {'l': '3 ... (370 characters truncated) ... {'l': '319.00', 'v': 319}, {'l': '314.00', 'v': 314}, {'l': '309.00', 'v': 309}, {'l': '304.00', 'v': 304}, {'l': '299.00', 'v': 299}], 'price': 399}], 'total': Decimal('399.00'), 'uid': 'usr_1'}]
 (Background on this error at: https://sqlalche.me/e/20/f405)
+INFO:     162.158.186.48:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     162.158.186.254:0 - "GET /sitemap.xml HTTP/1.1" 404 Not Found
+INFO:     172.70.214.51:0 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     162.158.186.254:0 - "GET /asset-manifest.json HTTP/1.1" 404 Not Found
+INFO:     162.158.186.254:0 - "GET /manifest.json HTTP/1.1" 404 Not Found
+INFO:     162.158.186.254:0 - "GET /build-manifest.json HTTP/1.1" 404 Not Found
+INFO:     104.23.251.117:0 - "GET /_next/static/buildManifest.js HTTP/1.1" 404 Not Found
+INFO:     162.158.186.254:0 - "GET /.aws/config HTTP/1.1" 404 Not Found
+INFO:     162.158.186.254:0 - "GET /.env.local HTTP/1.1" 404 Not Found
+INFO:     162.158.186.48:0 - "GET /public/.env HTTP/1.1" 404 Not Found
+INFO:     172.64.217.211:0 - "GET /.env HTTP/1.1" 404 Not Found
+INFO:     172.70.215.66:0 - "GET /.env.production.bak HTTP/1.1" 404 Not Found
+INFO:     104.23.251.27:0 - "GET /app/.env HTTP/1.1" 404 Not Found
+INFO:     104.23.251.27:0 - "GET /.env.production HTTP/1.1" 404 Not Found
+INFO:     104.23.251.26:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     104.23.251.26:0 - "GET /backend/.env HTTP/1.1" 404 Not Found
+INFO:     162.158.90.170:0 - "GET /.aws/credentials HTTP/1.1" 404 Not Found
+INFO:     162.158.90.170:0 - "GET /.env.development HTTP/1.1" 404 Not Found
+INFO:     162.158.90.171:0 - "GET /admin/.env HTTP/1.1" 404 Not Found
+INFO:     172.64.217.210:0 - "GET /.env.backup HTTP/1.1" 404 Not Found
+INFO:     104.23.251.26:0 - "GET /config.env HTTP/1.1" 404 Not Found
+INFO:     162.158.186.48:0 - "GET /.env.bak HTTP/1.1" 404 Not Found
+INFO:     162.158.186.48:0 - "GET /.env.example HTTP/1.1" 404 Not Found
+INFO:     172.64.217.211:0 - "GET /.env.old HTTP/1.1" 404 Not Found
+INFO:     162.158.90.170:0 - "GET /.git/config HTTP/1.1" 404 Not Found
+INFO:     162.158.90.170:0 - "GET /graphql HTTP/1.1" 404 Not Found
+INFO:     104.23.251.27:0 - "GET /api/env HTTP/1.1" 404 Not Found
+INFO:     104.23.251.27:0 - "GET /api/v1/config HTTP/1.1" 404 Not Found
+INFO:     162.158.186.48:0 - "GET /api/v1/settings HTTP/1.1" 404 Not Found
+INFO:     162.158.186.48:0 - "GET /api/config HTTP/1.1" 404 Not Found
+INFO:     172.64.217.210:0 - "GET /api/settings HTTP/1.1" 404 Not Found
+INFO:     162.158.90.170:0 - "GET /env.json HTTP/1.1" 404 Not Found
+INFO:     172.64.217.210:0 - "GET /settings.json HTTP/1.1" 404 Not Found
+INFO:     104.23.251.61:0 - "GET /config.json HTTP/1.1" 404 Not Found
+INFO:     172.70.215.120:0 - "GET /runtime-config.js HTTP/1.1" 404 Not Found
+INFO:     172.70.214.48:0 - "GET /env.js HTTP/1.1" 404 Not Found
+INFO:     172.69.33.22:0 - "GET /config.js HTTP/1.1" 404 Not Found
+INFO:     172.70.215.73:0 - "GET /app-config.json HTTP/1.1" 404 Not Found
+INFO:     104.23.251.213:0 - "GET /__env.js HTTP/1.1" 404 Not Found
+INFO:     162.158.90.171:0 - "GET /api/v1/env HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.159.106.49:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.env.local HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /php.php HTTP/1.1" 404 Not Found
+INFO:     162.159.106.48:0 - "GET /.env.prod HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env HTTP/1.1" 404 Not Found
+INFO:     172.71.167.34:0 - "GET /.env.production HTTP/1.1" 404 Not Found
+INFO:     172.68.26.170:0 - "GET /.aws/config HTTP/1.1" 404 Not Found
+INFO:     172.71.175.73:0 - "GET /.aws/credentials HTTP/1.1" 404 Not Found
+INFO:     162.158.174.204:0 - "GET /test.php HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /.docker/config.json HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     162.158.174.205:0 - "GET /i.php HTTP/1.1" 404 Not Found
+INFO:     172.69.67.65:0 - "GET /info.php HTTP/1.1" 404 Not Found
+INFO:     162.158.174.204:0 - "GET /.aws/config HTTP/1.1" 404 Not Found
+INFO:     198.41.227.148:0 - "GET /.aws/credentials HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /phpinfo.php HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env.staging HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /php_info.php HTTP/1.1" 404 Not Found
+INFO:     172.71.167.34:0 - "GET /.env.stage HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.dockerenv HTTP/1.1" 404 Not Found
+INFO:     172.71.167.34:0 - "GET /.netrc HTTP/1.1" 404 Not Found
+INFO:     162.158.174.204:0 - "GET /.npmrc HTTP/1.1" 404 Not Found
+INFO:     172.69.67.65:0 - "GET /phpinfo.php HTTP/1.1" 404 Not Found
+INFO:     172.71.167.34:0 - "GET /.env.test HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /php-info.php HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /test.php HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /php.php HTTP/1.1" 404 Not Found
+INFO:     172.69.67.65:0 - "GET /?=phpinfo() HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.git/config HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /.env.prod HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.env.dev HTTP/1.1" 404 Not Found
+INFO:     172.68.27.159:0 - "GET /.env.development HTTP/1.1" 404 Not Found
+INFO:     172.71.174.252:0 - "GET /.kube/config HTTP/1.1" 404 Not Found
+INFO:     162.158.174.186:0 - "GET /info.php HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /.htpasswd HTTP/1.1" 404 Not Found
+INFO:     198.41.227.201:0 - "GET /.htpasswd HTTP/1.1" 404 Not Found
+INFO:     162.158.174.205:0 - "GET /.git/config HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /?-s HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.%2567%2569%2574/%2563%256F%256E%2566%2569%2567 HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /server-status HTTP/1.1" 404 Not Found
+INFO:     172.69.67.65:0 - "GET /index.php?=phpinfo() HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /.env.staging HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env.production HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /server-status?auto HTTP/1.1" 404 Not Found
+INFO:     172.71.175.73:0 - "GET /server-info HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.env.dev HTTP/1.1" 404 Not Found
+INFO:     172.68.27.159:0 - "GET /.env.local HTTP/1.1" 404 Not Found
+INFO:     198.41.227.201:0 - "GET /.git/index HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.git/logs/HEAD HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.git/HEAD HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /.git/refs/heads/master HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.%2565%256Ev HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /.env.test HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.env.development HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /_profiler HTTP/1.1" 404 Not Found
+INFO:     172.71.175.73:0 - "GET /app_dev.php HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.git/refs/heads/main HTTP/1.1" 404 Not Found
+INFO:     172.69.67.65:0 - "GET /nginx_status HTTP/1.1" 404 Not Found
+INFO:     162.158.174.204:0 - "GET /_profiler/phpinfo HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.env%3A%3A%24DATA HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.git/packed-refs HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env.bak HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.git-credentials HTTP/1.1" 404 Not Found
+INFO:     198.41.227.201:0 - "GET /.git-credentials HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.env.backup HTTP/1.1" 404 Not Found
+INFO:     172.71.167.34:0 - "GET /.gitconfig HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /%2577%2570%252D%2563%256F%256E%2566%2569%2567.%2570%2568%2570.%2562%2561%256B HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.env.old HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env.save HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.env~ HTTP/1.1" 404 Not Found
+INFO:     162.158.174.186:0 - "GET /.env.swp HTTP/1.1" 404 Not Found
+INFO:     172.69.67.218:0 - "GET /.env%3B.jpg HTTP/1.1" 404 Not Found
+INFO:     172.70.94.52:0 - "GET /.env%3B.css HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.env_backup HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /wp-config-backup.php HTTP/1.1" 404 Not Found
+INFO:     162.158.174.187:0 - "GET /.env.production.local HTTP/1.1" 404 Not Found
+INFO:     172.68.27.159:0 - "GET /.env.dist HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /wp-config_old.php HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /wp-config-old.php HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /.env.backup HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /wp-content/debug.log HTTP/1.1" 404 Not Found
+INFO:     198.41.227.201:0 - "GET /.env.development.local HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /storage/logs/laravel.log HTTP/1.1" 404 Not Found
+INFO:     162.158.174.186:0 - "GET /.env.bak HTTP/1.1" 404 Not Found
+INFO:     172.68.27.159:0 - "GET /.env.old HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /config/database.php HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /config/database.php%3A%3A%24DATA HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /.env.save HTTP/1.1" 404 Not Found
+INFO:     162.159.104.149:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.158.174.186:0 - "GET /config/mail.php HTTP/1.1" 404 Not Found
+INFO:     162.159.106.49:0 - "GET /config/services.php HTTP/1.1" 404 Not Found
+INFO:     162.158.175.172:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     172.71.167.33:0 - "GET /config/services.php%3A%3A%24DATA HTTP/1.1" 404 Not Found
+INFO:     172.68.27.159:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     198.41.227.201:0 - "GET /backend/.env HTTP/1.1" 404 Not Found
+INFO:     172.69.67.126:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     172.70.94.104:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     198.41.227.8:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     172.68.26.46:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     172.71.166.80:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     172.69.67.170:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     162.159.104.151:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     172.69.64.151:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.158.175.74:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     172.70.94.30:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.159.106.102:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     162.159.106.16:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.159.104.81:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     162.159.106.17:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.158.174.33:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.159.104.111:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     172.71.166.45:0 - "GET /api/.env HTTP/1.1" 404 Not Found
+INFO:     162.158.174.215:0 - "GET /api/v1/.env HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:38940 - "POST / HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:41612 - "POST /_next HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:41628 - "POST /api HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:41640 - "POST /_next/server HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:41654 - "POST /app HTTP/1.1" 404 Not Found
+INFO:     45.205.1.26:41666 - "POST /api/route HTTP/1.1" 404 Not Found
+INFO:     172.70.189.35:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     45.135.193.131:61214 - "POST / HTTP/1.1" 404 Not Found
+INFO:     162.158.189.75:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+INFO:     172.68.44.133:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/list HTTP/1.1" 200 OK
