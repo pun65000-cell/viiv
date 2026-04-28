@@ -79,6 +79,7 @@ def create_bill(payload: dict, authorization: str = Header("")):
         "transfer_waiting": {"status": "paid",    "shipping": "paid_waiting",     "delay": 15},
         "deposit":          {"status": "partial", "shipping": "deposit_waiting",  "delay": 30},
         "credit":           {"status": "credit",  "shipping": "scheduled",        "delay": 45},
+        "cod":              {"status": "credit",  "shipping": "scheduled",        "delay": 0},
         "pending":          {"status": "pending", "shipping": None,               "delay": 0},
     }
     _map = PAY_MAP.get(pm, {"status": "pending", "shipping": None, "delay": 0})

@@ -1,13 +1,23 @@
-/* VIIV PWA — billing.js */
+/* VIIV PWA — billing.js v2.2 */
 (function() {
   let _destroyed = false;
   let _refreshHandler = null;
   let _products = [];
-  let _cart = [];       // [{id,name,price,qty,sku}]
-  let _customer = null; // {id,code,name,phone}
+  let _storeSettings = {};
+  let _cart = [];
+  let _customer = null;
   let _q = '';
-  let _draftId = null;
-  let _stockEmptySell = true;
+  let _custTimer = null;
+
+  // pay sheet state — persist across re-renders
+  let _docType    = 'receipt';
+  let _payMethod  = 'cash';
+  let _discount   = 0;
+  let _discountType = 'amount';  // 'amount' | 'percent'
+  let _vat        = 0;           // 0 | 7
+  let _vatType    = 'included';  // 'included' | 'added'
+  let _scheduledAt = '';
+  let _note       = '';
 
   Router.register('billing', {
     title: 'ออกบิล',
@@ -16,15 +26,24 @@
       _cart = [];
       _customer = null;
       _q = '';
-      _draftId = null;
-  let _stockEmptySell = true;
+      _docType = 'receipt';
+      _payMethod = 'cash';
+      _discount = 0;
+      _discountType = 'amount';
+      _vat = 0;
+      _vatType = 'included';
+      _scheduledAt = '';
+      _note = '';
       _refreshHandler = () => _reload();
       document.addEventListener('viiv:refresh', _refreshHandler);
       await _reload();
     },
     destroy() {
       _destroyed = true;
-      if (_refreshHandler) { document.removeEventListener('viiv:refresh', _refreshHandler); _refreshHandler = null; }
+      if (_refreshHandler) {
+        document.removeEventListener('viiv:refresh', _refreshHandler);
+        _refreshHandler = null;
+      }
     }
   });
 
@@ -34,36 +53,36 @@
     c.innerHTML = _shell();
     _bindSearch();
     try {
-      const [data, ss] = await Promise.all([
+      const [productData, settings] = await Promise.all([
         App.api('/api/pos/products/list'),
-        App.api('/api/pos/store/settings').catch(()=>({}))
+        App.api('/api/pos/store/settings').catch(() => ({}))
       ]);
       if (_destroyed) return;
-      _products = Array.isArray(data) ? data : (data.products || []);
-        _stockEmptySell = (ss.stock_empty_sell !== false);
+      _products = Array.isArray(productData) ? productData : (productData.products || []);
+      _storeSettings = settings || {};
+      _vatType = _storeSettings.vat_mode || 'included';
       _renderProducts();
       _renderCart();
     } catch(e) {
       if (_destroyed) return;
-      document.getElementById('bill-prod-list').innerHTML =
-        '<div class="empty-state">โหลดสินค้าไม่ได้: ' + _esc(e.message) + '</div>';
+      const el = document.getElementById('bill-prod-list');
+      if (el) el.innerHTML = '<div class="empty-state">โหลดสินค้าไม่ได้: ' + _esc(e.message) + '</div>';
     }
   }
 
   // ── SHELL ──
   function _shell() {
-    return `<div id="billing-wrap" style="max-width:768px;margin:0 auto;padding-bottom:80px">
+    return `<div id="billing-wrap" style="max-width:768px;margin:0 auto;padding-bottom:120px">
 
-      <!-- ค้นหาสินค้า -->
       <div style="padding:10px 14px 8px">
         <input id="bill-search" type="search" placeholder="🔍 ค้นหาสินค้าเพื่อเพิ่ม..."
           style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:9px 12px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
       </div>
 
-      <!-- รายการสินค้าเพิ่ม -->
-      <div id="bill-prod-list" style="padding:0 14px 4px"></div>
+      <div id="bill-prod-list" style="padding:0 14px 4px">
+        ${Array(6).fill('<div class="list-item skeleton-card" style="height:52px;margin-bottom:6px"></div>').join('')}
+      </div>
 
-      <!-- cart divider -->
       <div id="bill-cart-section" style="display:none;padding:0 14px">
         <div class="section-title" style="margin-top:8px">
           รายการในบิล
@@ -72,8 +91,7 @@
         <div id="bill-cart-items"></div>
       </div>
 
-      <!-- sticky total bar -->
-      <div id="bill-total-bar" style="display:none;position:fixed;bottom:calc(var(--navbar-h) + env(safe-area-inset-bottom,0px));left:0;right:0;background:var(--bg);border-top:1px solid var(--bdr);padding:10px 16px;z-index:50;display:flex;align-items:center;justify-content:space-between;max-width:768px;margin:0 auto">
+      <div id="bill-total-bar" style="display:none;position:fixed;bottom:calc(var(--navbar-h) + env(safe-area-inset-bottom,0px));left:0;right:0;background:var(--bg);border-top:1px solid var(--bdr);padding:10px 16px;z-index:50;display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:var(--fs-xs);color:var(--muted)">ยอดรวม</div>
           <div id="bill-total-amt" style="font-size:var(--fs-lg);font-weight:800;color:var(--gold)">฿0</div>
@@ -91,38 +109,38 @@
     const el = document.getElementById('bill-prod-list');
     if (!el) return;
     const q = _q.toLowerCase();
-    const list = q ? _products.filter(p => p.name.toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q)) : _products.slice(0, 20);
-    if (!list.length) { el.innerHTML = '<div class="empty-state" style="padding:12px 0">ไม่พบสินค้า</div>'; return; }
-      var inStock = list.filter(function(p){ return _stockEmptySell || !p.track_stock || (p.stock_qty||0) > 0; });
-      var outStock = list.filter(function(p){ return !_stockEmptySell && p.track_stock && (p.stock_qty||0) <= 0; });
-      function mkCard(p, dim) {
-        return '<div class="list-item" style="margin-bottom:6px;gap:10px'
-          + (dim ? ';opacity:0.38;pointer-events:none' : '')
-          + '"' + (dim ? '' : ' onclick="BillingPage.addItem(\'' + p.id + '\')"') + '>'
-          + '<div style="font-size:1.3rem;flex-shrink:0">' + (dim ? '⛔' : '📦') + '</div>'
-          + '<div class="li-left">'
-          + '<div class="li-title">' + _esc(p.name)
-            + (dim ? ' <span style="font-size:10px;color:#ef4444">หมด</span>' : '') + '</div>'
-          + '<div class="li-sub">฿' + _fmt(p.price) + (p.sku ? ' · ' + _esc(p.sku) : '') + '</div>'
-          + '</div>'
-          + '<div style="background:var(--gold);color:#000;border-radius:8px;padding:4px 12px;font-weight:700;font-size:var(--fs-sm);flex-shrink:0">+</div>'
-          + '</div>';
-      }
-      var outHtml = outStock.length
-        ? '<div style="font-size:11px;color:#9ca3af;padding:6px 2px">— สินค้าหมด —</div>'
-          + outStock.map(function(p){ return mkCard(p, true); }).join('')
-        : '';
-      el.innerHTML = inStock.map(function(p){ return mkCard(p, false); }).join('') + outHtml;
+    const allowEmptySell = _storeSettings.stock_empty_sell !== false;
+    const list = q
+      ? _products.filter(p => p.name.toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q))
+      : _products.slice(0, 30);
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:12px 0">ไม่พบสินค้า</div>';
+      return;
+    }
+    el.innerHTML = list.map(p => {
+      const isEmpty  = p.track_stock && Number(p.stock_qty || 0) <= 0;
+      const disabled = isEmpty && !allowEmptySell;
+      return `<div class="list-item" style="margin-bottom:6px;gap:10px;${disabled ? 'opacity:0.45;pointer-events:none;cursor:default' : 'cursor:pointer'}"
+               ${!disabled ? `onclick="BillingPage.addItem('${p.id}')"` : ''}>
+        <div style="font-size:1.3rem;flex-shrink:0">📦</div>
+        <div class="li-left">
+          <div class="li-title" style="${disabled ? 'color:var(--muted)' : ''}">${_esc(p.name)}</div>
+          <div class="li-sub">฿${_fmt(p.price)}${p.sku ? ' · ' + _esc(p.sku) : ''}</div>
+        </div>
+        ${disabled
+          ? `<div style="background:var(--bdr);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:var(--fs-xs);font-weight:700;flex-shrink:0">หมด</div>`
+          : `<div style="background:var(--gold);color:#000;border-radius:8px;padding:4px 12px;font-weight:700;font-size:var(--fs-sm);flex-shrink:0">+</div>`}
+      </div>`;
+    }).join('');
   }
 
   // ── CART ──
   function _renderCart() {
     const section = document.getElementById('bill-cart-section');
-    const bar = document.getElementById('bill-total-bar');
-    const items = document.getElementById('bill-cart-items');
-    const amt = document.getElementById('bill-total-amt');
+    const bar     = document.getElementById('bill-total-bar');
+    const items   = document.getElementById('bill-cart-items');
+    const amt     = document.getElementById('bill-total-amt');
     if (!section || !items) return;
-
     if (!_cart.length) {
       section.style.display = 'none';
       if (bar) bar.style.display = 'none';
@@ -130,7 +148,6 @@
     }
     section.style.display = 'block';
     if (bar) bar.style.display = 'flex';
-
     items.innerHTML = _cart.map((item, i) => `
       <div class="list-item" style="margin-bottom:6px">
         <div class="li-left">
@@ -141,19 +158,17 @@
           <button onclick="BillingPage.qty(${i},-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;line-height:1">−</button>
           <span style="font-weight:700;min-width:20px;text-align:center">${item.qty}</span>
           <button onclick="BillingPage.qty(${i},1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;line-height:1">+</button>
-          <div style="min-width:56px;text-align:right;font-weight:700">฿${_fmt(item.price*item.qty)}</div>
+          <div style="min-width:56px;text-align:right;font-weight:700">฿${_fmt(item.price * item.qty)}</div>
         </div>
       </div>`).join('');
-
-    const total = _cartTotal();
-    if (amt) amt.textContent = '฿' + _fmt(total);
+    if (amt) amt.textContent = '฿' + _fmt(_cartSubtotal());
   }
 
-  function _cartTotal() {
+  function _cartSubtotal() {
     return _cart.reduce((s, i) => s + i.price * i.qty, 0);
   }
 
-  // ── SEARCH ──
+  // ── PRODUCT SEARCH ──
   function _bindSearch() {
     const el = document.getElementById('bill-search');
     if (!el) return;
@@ -164,140 +179,407 @@
     });
   }
 
+  // ── TOTALS ──
+  function _calcTotals() {
+    const sub  = _cartSubtotal();
+    const disc = _discountType === 'percent' ? sub * _discount / 100 : _discount;
+    const after = Math.max(0, sub - disc);
+    let vatAmt = 0;
+    let total  = after;
+    if (_vat > 0) {
+      if (_vatType === 'included') {
+        vatAmt = Math.round((after - after / (1 + _vat / 100)) * 100) / 100;
+        total  = after;
+      } else {
+        vatAmt = Math.round(after * _vat / 100 * 100) / 100;
+        total  = after + vatAmt;
+      }
+    }
+    return { sub, disc, after, vatAmt, total };
+  }
+
+  function _updateSummary() {
+    const t = _calcTotals();
+    const g = id => document.getElementById(id);
+    if (g('pay-sum-sub'))   g('pay-sum-sub').textContent   = '฿' + _fmt(t.sub);
+    if (g('pay-sum-disc'))  g('pay-sum-disc').textContent  = t.disc > 0 ? '-฿' + _fmt(t.disc) : '฿0';
+    if (g('pay-sum-after')) g('pay-sum-after').textContent = '฿' + _fmt(t.after);
+    if (g('pay-sum-vat'))   g('pay-sum-vat').textContent   = t.vatAmt > 0 ? '฿' + _fmt(t.vatAmt) : '฿0';
+    if (g('pay-sum-total')) g('pay-sum-total').textContent = '฿' + _fmt(t.total);
+  }
+
+  // ── DOC TYPES & PAY METHODS ──
+  const DOC_TYPES = [
+    {id:'receipt',  label:'ใบเสร็จ'},
+    {id:'invoice',  label:'ใบแจ้งหนี้'},
+    {id:'reserve',  label:'ใบจอง'},
+    {id:'delivery', label:'ใบส่งของ'},
+  ];
+
+  const PAY_GROUPS = [
+    {
+      label: 'ชำระแล้ว',
+      methods: [
+        {id:'cash',        label:'💵 เงินสด'},
+        {id:'transfer',    label:'🏦 โอนเงิน'},
+        {id:'credit_card', label:'💳 บัตรเครดิต'},
+        {id:'qr',          label:'📱 QR Code'},
+      ]
+    },
+    {
+      label: 'รอชำระ / พิเศษ',
+      methods: [
+        {id:'cash_waiting',     label:'💵 เงินสด-รอส่ง'},
+        {id:'transfer_waiting', label:'🏦 โอน-รอส่ง'},
+        {id:'deposit',          label:'📦 มัดจำ'},
+        {id:'credit',           label:'📋 เครดิต'},
+        {id:'cod',              label:'🚚 จ่ายปลายทาง'},
+        {id:'pending',          label:'⏳ รอยืนยัน'},
+      ]
+    }
+  ];
+
+  const WAITING_METHODS = new Set(['cash_waiting','transfer_waiting','deposit','credit','cod']);
+
   // ── PAY SHEET ──
   function _paySheet() {
-    const total = _cartTotal();
-    const methods = [
-      {id:'cash',label:'💵 เงินสด'},
-      {id:'transfer',label:'🏦 โอนเงิน'},
-      {id:'credit_card',label:'💳 บัตรเครดิต'},
-      {id:'qr',label:'📱 QR Code'},
-    ];
-    return `<div style="padding:16px 0 8px">
-      <div style="font-size:var(--fs-xs);color:var(--muted);margin-bottom:4px">ยอดที่ต้องชำระ</div>
-      <div style="font-size:var(--fs-h);font-weight:800;color:var(--gold);margin-bottom:16px">฿${_fmt(total)}</div>
+    const t = _calcTotals();
+    const showSched = WAITING_METHODS.has(_payMethod);
+    return `<div style="padding:4px 0 8px">
 
-      <div style="font-size:var(--fs-sm);font-weight:600;margin-bottom:8px">ลูกค้า</div>
-      <div id="pay-customer-area">
-        ${_customer
-          ? `<div class="list-item" style="margin-bottom:8px">
-              <div class="li-left"><div class="li-title">${_esc(_customer.name)}</div><div class="li-sub">${_esc(_customer.phone||'')}</div></div>
-              <span onclick="BillingPage.clearCustomer()" style="color:var(--muted);cursor:pointer;font-size:var(--fs-xs)">เปลี่ยน</span>
-            </div>`
-          : `<div style="display:flex;gap:8px;margin-bottom:8px">
-              <input id="pay-cust-q" type="search" placeholder="ค้นหาลูกค้า..." style="flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
-              <button onclick="BillingPage.searchCust()" style="background:var(--gold);color:#000;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:var(--fs-sm);cursor:pointer">ค้นหา</button>
-            </div>
-            <div id="pay-cust-res" style="margin-bottom:8px"></div>`}
-      </div>
-
-      <div style="font-size:var(--fs-sm);font-weight:600;margin-bottom:8px">วิธีชำระ</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-        ${methods.map(m => `
-          <button id="pm-${m.id}" onclick="BillingPage.selPay('${m.id}')"
-            style="padding:10px;border-radius:10px;border:2px solid var(--bdr);background:var(--card);color:var(--txt);font-size:var(--fs-sm);font-weight:600;cursor:pointer">
-            ${m.label}
+      <!-- ประเภทเอกสาร -->
+      <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:6px">ประเภทเอกสาร</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">
+        ${DOC_TYPES.map(d => `
+          <button id="dt-${d.id}" onclick="BillingPage.selDoc('${d.id}')"
+            style="padding:8px 4px;border-radius:10px;border:2px solid ${_docType===d.id?'var(--gold)':'var(--bdr)'};
+                   background:${_docType===d.id?'rgba(var(--gold-rgb,232,185,62),0.13)':'var(--card)'};
+                   color:${_docType===d.id?'var(--gold)':'var(--txt)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer">
+            ${_esc(d.label)}
           </button>`).join('')}
       </div>
 
-      <div style="font-size:var(--fs-sm);font-weight:600;margin-bottom:6px">หมายเหตุ</div>
-      <textarea id="pay-note" rows="2" placeholder="หมายเหตุ (ถ้ามี)"
-        style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:var(--fs-sm);resize:none;outline:none;margin-bottom:16px"></textarea>
+      <!-- ลูกค้า -->
+      <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:6px">ลูกค้า</div>
+      <div id="pay-cust-wrap" style="margin-bottom:14px">${_customerBlock()}</div>
 
-      <button onclick="BillingPage.confirmBill()"
-        style="width:100%;background:var(--gold);color:#000;border:none;border-radius:12px;padding:14px;font-size:var(--fs-md);font-weight:800;cursor:pointer">
+      <!-- วิธีชำระ -->
+      <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:6px">วิธีชำระเงิน</div>
+      ${PAY_GROUPS.map((g, gi) => `
+        <div style="font-size:10px;color:var(--muted);letter-spacing:.3px;margin-bottom:5px;margin-top:${gi ? '10px' : '0'}">${_esc(g.label)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:2px">
+          ${g.methods.map(m => `
+            <button id="pm-${m.id}" onclick="BillingPage.selPay('${m.id}')"
+              style="padding:9px 6px;border-radius:10px;border:2px solid ${_payMethod===m.id?'var(--gold)':'var(--bdr)'};
+                     background:${_payMethod===m.id?'rgba(var(--gold-rgb,232,185,62),0.13)':'var(--card)'};
+                     color:${_payMethod===m.id?'var(--gold)':'var(--txt)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer">
+              ${_esc(m.label)}
+            </button>`).join('')}
+        </div>`).join('')}
+
+      <!-- กำหนดวันส่ง / นัดชำระ -->
+      <div id="pay-sched-wrap" style="margin-top:12px;${showSched ? '' : 'display:none'}">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">กำหนดวันส่ง / นัดชำระ</div>
+        <input id="pay-sched" type="datetime-local" value="${_esc(_scheduledAt)}"
+          oninput="BillingPage.onSched(this.value)"
+          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      </div>
+
+      <!-- ส่วนลด -->
+      <div style="margin-top:14px">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">ส่วนลด</div>
+        <div style="display:flex;gap:8px">
+          <input id="pay-disc" type="number" min="0" value="${_discount || ''}" placeholder="0"
+            oninput="BillingPage.onDisc(this.value)"
+            style="flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+          <select id="pay-disc-type" onchange="BillingPage.onDiscType(this.value)"
+            style="background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none">
+            <option value="amount"  ${_discountType==='amount'  ? 'selected' : ''}>฿</option>
+            <option value="percent" ${_discountType==='percent' ? 'selected' : ''}>%</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- VAT -->
+      <div style="margin-top:12px">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">VAT</div>
+        <div style="display:flex;gap:8px">
+          <select id="pay-vat" onchange="BillingPage.onVat(this.value)"
+            style="flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none">
+            <option value="0" ${_vat===0 ? 'selected' : ''}>ไม่มี VAT</option>
+            <option value="7" ${_vat===7 ? 'selected' : ''}>7%</option>
+          </select>
+          <select id="pay-vat-type" onchange="BillingPage.onVatType(this.value)"
+            style="flex:1;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none;${_vat===0 ? 'opacity:0.4' : ''}">
+            <option value="included" ${_vatType==='included' ? 'selected' : ''}>รวม VAT แล้ว</option>
+            <option value="added"    ${_vatType==='added'    ? 'selected' : ''}>บวกเพิ่ม</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- หมายเหตุ -->
+      <div style="margin-top:12px">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">หมายเหตุ</div>
+        <textarea id="pay-note" rows="2" placeholder="หมายเหตุ (ถ้ามี)"
+          oninput="BillingPage.onNote(this.value)"
+          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:var(--fs-sm);resize:none;outline:none">${_esc(_note)}</textarea>
+      </div>
+
+      <!-- สรุปยอด -->
+      <div style="margin-top:14px;background:var(--card);border-radius:12px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:5px">
+          <span style="color:var(--muted)">ยอดสินค้า</span>
+          <span id="pay-sum-sub">฿${_fmt(t.sub)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:5px">
+          <span style="color:var(--muted)">ส่วนลด</span>
+          <span id="pay-sum-disc" style="color:#ef4444">${t.disc > 0 ? '-฿' + _fmt(t.disc) : '฿0'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:5px">
+          <span style="color:var(--muted)">หลังลด</span>
+          <span id="pay-sum-after">฿${_fmt(t.after)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:10px">
+          <span style="color:var(--muted)">VAT ${_vat}%</span>
+          <span id="pay-sum-vat">${t.vatAmt > 0 ? '฿' + _fmt(t.vatAmt) : '฿0'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-md);font-weight:800;border-top:1px solid var(--bdr);padding-top:10px">
+          <span>ยอดรวม</span>
+          <span id="pay-sum-total" style="color:var(--gold)">฿${_fmt(t.total)}</span>
+        </div>
+      </div>
+
+      <button id="pay-confirm-btn" onclick="BillingPage.confirmBill()"
+        style="width:100%;background:var(--gold);color:#000;border:none;border-radius:12px;padding:14px;font-size:var(--fs-md);font-weight:800;cursor:pointer;margin-top:16px">
         ✅ ยืนยันออกบิล
+      </button>
+    </div>`;
+  }
+
+  // ── CUSTOMER BLOCK ──
+  function _customerBlock() {
+    if (_customer) {
+      return `<div class="list-item">
+        <div class="li-left">
+          <div class="li-title">${_esc(_customer.name)}</div>
+          <div class="li-sub">${_esc(_customer.phone || '')}${_customer.code ? ' · ' + _esc(_customer.code) : ''}</div>
+        </div>
+        <span onclick="BillingPage.clearCustomer()"
+          style="color:var(--muted);cursor:pointer;font-size:var(--fs-xs);flex-shrink:0">เปลี่ยน</span>
+      </div>`;
+    }
+    return `<div style="position:relative">
+      <input id="pay-cust-q" type="search" placeholder="ค้นหาชื่อ / เบอร์โทร..." autocomplete="off"
+        oninput="BillingPage.onCustSearch(this.value)"
+        style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      <div id="pay-cust-res"></div>
+    </div>`;
+  }
+
+  // ── ADD MEMBER SHEET ──
+  function _addMemberSheet() {
+    return `<div style="padding:4px 0 8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <button onclick="BillingPage.openPay()"
+          style="background:none;border:none;color:var(--gold);font-size:var(--fs-sm);font-weight:700;cursor:pointer;padding:0">← กลับ</button>
+        <div style="font-weight:700;font-size:var(--fs-md)">เพิ่มสมาชิกใหม่</div>
+        <div style="width:44px"></div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">ชื่อลูกค้า *</div>
+        <input type="text" id="nm-name" placeholder="ชื่อ-นามสกุล"
+          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">เบอร์โทร</div>
+        <input type="tel" id="nm-phone" placeholder="0812345678"
+          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      </div>
+      <div style="margin-bottom:22px">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">อีเมล</div>
+        <input type="email" id="nm-email" placeholder="email@example.com"
+          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      </div>
+      <button id="nm-save-btn" onclick="BillingPage.saveNewMember()"
+        style="width:100%;background:var(--gold);color:#000;border:none;border-radius:12px;padding:14px;font-size:var(--fs-md);font-weight:800;cursor:pointer">
+        สร้างสมาชิก
       </button>
     </div>`;
   }
 
   // ── PUBLIC API ──
   window.BillingPage = {
+
     addItem(pid) {
       const p = _products.find(x => x.id === pid);
       if (!p) return;
-      if (!_stockEmptySell && p.track_stock && (p.stock_qty||0) <= 0) {
-        App.toast('สินค้า ' + p.name + ' หมด กรุณาเพิ่มสินค้าในสต๊อก'); return;
+      const allowEmptySell = _storeSettings.stock_empty_sell !== false;
+      if (p.track_stock && Number(p.stock_qty || 0) <= 0 && !allowEmptySell) {
+        App.toast('สินค้าหมด');
+        return;
       }
       const existing = _cart.find(x => x.id === pid);
       if (existing) { existing.qty++; }
-      else { _cart.push({id:p.id, name:p.name, price:p.price, qty:1, sku:p.sku||''}); }
+      else { _cart.push({id:p.id, name:p.name, price:p.price, qty:1, sku:p.sku || ''}); }
       _renderCart();
       App.toast(p.name + ' +1');
     },
+
     qty(i, delta) {
       _cart[i].qty += delta;
       if (_cart[i].qty <= 0) _cart.splice(i, 1);
       _renderCart();
     },
-    clearCart() {
-      _cart = [];
-      _renderCart();
-    },
+
+    clearCart() { _cart = []; _renderCart(); },
+
     openPay() {
       if (!_cart.length) { App.toast('กรุณาเพิ่มสินค้าก่อน'); return; }
       openSheet(_paySheet());
-      // default payment method
-      setTimeout(() => BillingPage.selPay('cash'), 50);
     },
-    selPay(id) {
-      window._billingPayMethod = id;
-      document.querySelectorAll('[id^="pm-"]').forEach(b => {
-        b.style.borderColor = b.id === 'pm-'+id ? 'var(--gold)' : 'var(--bdr)';
-        b.style.background  = b.id === 'pm-'+id ? 'var(--gold)22' : 'var(--card)';
+
+    selDoc(id) {
+      _docType = id;
+      document.querySelectorAll('[id^="dt-"]').forEach(b => {
+        const sel = b.id === 'dt-' + id;
+        b.style.borderColor = sel ? 'var(--gold)' : 'var(--bdr)';
+        b.style.background  = sel ? 'rgba(232,185,62,0.13)' : 'var(--card)';
+        b.style.color       = sel ? 'var(--gold)' : 'var(--txt)';
       });
     },
+
+    selPay(id) {
+      _payMethod = id;
+      document.querySelectorAll('[id^="pm-"]').forEach(b => {
+        const sel = b.id === 'pm-' + id;
+        b.style.borderColor = sel ? 'var(--gold)' : 'var(--bdr)';
+        b.style.background  = sel ? 'rgba(232,185,62,0.13)' : 'var(--card)';
+        b.style.color       = sel ? 'var(--gold)' : 'var(--txt)';
+      });
+      const sw = document.getElementById('pay-sched-wrap');
+      if (sw) sw.style.display = WAITING_METHODS.has(id) ? 'block' : 'none';
+    },
+
+    onSched(v)      { _scheduledAt = v; },
+    onDisc(v)       { _discount = parseFloat(v) || 0; _updateSummary(); },
+    onDiscType(v)   { _discountType = v; _updateSummary(); },
+    onVat(v) {
+      _vat = parseInt(v) || 0;
+      const vtEl = document.getElementById('pay-vat-type');
+      if (vtEl) vtEl.style.opacity = _vat === 0 ? '0.4' : '1';
+      _updateSummary();
+    },
+    onVatType(v)    { _vatType = v; _updateSummary(); },
+    onNote(v)       { _note = v; },
+
     clearCustomer() {
       _customer = null;
-      closeSheet();
-      BillingPage.openPay();
+      const w = document.getElementById('pay-cust-wrap');
+      if (w) w.innerHTML = _customerBlock();
     },
-    async searchCust() {
-      const q = (document.getElementById('pay-cust-q') || {}).value || '';
+
+    async onCustSearch(q) {
+      clearTimeout(_custTimer);
       const res = document.getElementById('pay-cust-res');
       if (!res) return;
-      res.innerHTML = '<div style="color:var(--muted);font-size:var(--fs-xs)">กำลังค้นหา...</div>';
-      try {
-        const list = await App.api('/api/pos/members/search?q=' + encodeURIComponent(q));
-        if (!list.length) { res.innerHTML = '<div style="color:var(--muted);font-size:var(--fs-xs)">ไม่พบ</div>'; return; }
-        res.innerHTML = list.map(m => `<div class="list-item" style="margin-bottom:6px" onclick="BillingPage.pickCust('${m.id}','${_esc(m.name)}','${_esc(m.phone||'')}','${_esc(m.code||'')}')">
-          <div class="li-left"><div class="li-title">${_esc(m.name)}</div><div class="li-sub">${_esc(m.phone||'')} ${m.code?'· '+_esc(m.code):''}</div></div>
-        </div>`).join('');
-      } catch(e) { res.innerHTML = '<div style="color:var(--muted);font-size:var(--fs-xs)">ค้นหาไม่ได้</div>'; }
+      if (!q.trim()) { res.innerHTML = ''; return; }
+      _custTimer = setTimeout(async () => {
+        try {
+          res.innerHTML = '<div style="padding:6px 8px;font-size:var(--fs-xs);color:var(--muted)">กำลังค้นหา...</div>';
+          const list = await App.api('/api/pos/members/search?q=' + encodeURIComponent(q));
+          const members = Array.isArray(list) ? list : [];
+          if (!members.length) {
+            res.innerHTML = `<div style="border:1px solid var(--bdr);border-radius:8px;margin-top:4px;overflow:hidden">
+              <div style="padding:8px 12px;font-size:var(--fs-xs);color:var(--muted)">ไม่พบสมาชิก "${_esc(q)}"</div>
+              <button onclick="BillingPage.openAddMember()"
+                style="width:100%;padding:9px 12px;background:rgba(232,185,62,0.1);border:none;border-top:1px solid var(--bdr);color:var(--gold);font-size:var(--fs-xs);font-weight:700;cursor:pointer;text-align:left">
+                + เพิ่มสมาชิกใหม่
+              </button>
+            </div>`;
+            return;
+          }
+          res.innerHTML = `<div style="border:1px solid var(--bdr);border-radius:8px;margin-top:4px;overflow:hidden;max-height:200px;overflow-y:auto">
+            ${members.map(m => `
+              <div onclick="BillingPage.pickCust('${m.id}','${_esc(m.name)}','${_esc(m.phone||'')}','${_esc(m.code||'')}','${_esc(m.tax_id||'')}','${_esc(m.address||'')}')"
+                style="padding:9px 12px;border-bottom:1px solid var(--bdr);cursor:pointer">
+                <div style="font-weight:600;font-size:var(--fs-sm)">${_esc(m.name)}</div>
+                <div style="font-size:var(--fs-xs);color:var(--muted)">${_esc(m.phone||'')}${m.code?' · '+_esc(m.code):''}</div>
+              </div>`).join('')}
+            <button onclick="BillingPage.openAddMember()"
+              style="width:100%;padding:9px 12px;background:var(--card);border:none;color:var(--gold);font-size:var(--fs-xs);font-weight:700;cursor:pointer;text-align:left">
+              + เพิ่มสมาชิกใหม่
+            </button>
+          </div>`;
+        } catch(e) {
+          if (res) res.innerHTML = '<div style="font-size:var(--fs-xs);color:var(--muted);padding:4px 0">ค้นหาไม่ได้</div>';
+        }
+      }, 300);
     },
-    pickCust(id, name, phone, code) {
-      _customer = {id, name, phone, code};
-      closeSheet();
-      BillingPage.openPay();
-    },
-    async confirmBill() {
-      const pm = window._billingPayMethod || 'cash';
-      const note = (document.getElementById('pay-note') || {}).value || '';
-      if (!_cart.length) { App.toast('ไม่มีสินค้าในบิล'); return; }
 
-      const btn = document.querySelector('[onclick="BillingPage.confirmBill()"]');
+    pickCust(id, name, phone, code, taxId, address) {
+      _customer = {id, name, phone, code, tax_id: taxId, address};
+      const w = document.getElementById('pay-cust-wrap');
+      if (w) w.innerHTML = _customerBlock();
+    },
+
+    openAddMember() {
+      openSheet(_addMemberSheet());
+    },
+
+    async saveNewMember() {
+      const name  = document.getElementById('nm-name')?.value.trim();
+      const phone = document.getElementById('nm-phone')?.value.trim() || '';
+      const email = document.getElementById('nm-email')?.value.trim() || '';
+      if (!name) { App.toast('กรุณาระบุชื่อลูกค้า'); return; }
+      const btn = document.getElementById('nm-save-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+      try {
+        const res = await App.api('/api/pos/members/create', {
+          method: 'POST',
+          body: JSON.stringify({name, phone, email})
+        });
+        _customer = {id: res.id, name, phone, code: res.code || '', tax_id: '', address: ''};
+        App.toast('✅ สร้างสมาชิก ' + name + ' แล้ว');
+        openSheet(_paySheet());
+      } catch(e) {
+        App.toast('❌ ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'สร้างสมาชิก'; }
+      }
+    },
 
+    async confirmBill() {
+      if (!_cart.length) { App.toast('ไม่มีสินค้าในบิล'); return; }
+      const btn = document.getElementById('pay-confirm-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+      const t = _calcTotals();
       try {
         const payload = {
-          items: _cart.map(i => ({id:i.id, name:i.name, price:i.price, qty:i.qty})),
-          pay_method: pm,
-          status: 'paid',
-          customer: _customer ? _customer.name : '',
+          doc_type:      _docType,
+          pay_method:    _payMethod,
+          scheduled_at:  _scheduledAt || null,
+          items:         _cart.map(i => ({id:i.id, name:i.name, price:i.price, qty:i.qty, sku:i.sku})),
+          customer:      _customer ? _customer.name : '',
           customer_code: _customer ? _customer.code : '',
           customer_data: _customer || null,
-          note,
-          discount: 0,
-          vat: 0,
-          source: 'pwa',
+          discount:      _discount,
+          discount_type: _discountType,
+          vat:           _vat,
+          vat_type:      _vatType,
+          note:          _note,
+          source:        'pwa',
         };
         const res = await App.api('/api/pos/bills/create', {method:'POST', body: JSON.stringify(payload)});
         closeSheet();
         _cart = [];
         _customer = null;
+        _discount = 0;
+        _discountType = 'amount';
+        _vat = 0;
+        _note = '';
+        _scheduledAt = '';
         _renderCart();
         App.toast('✅ ออกบิล ' + res.bill_no + ' สำเร็จ');
-        setTimeout(() => Router.go('orders', {id: res.id}), 400);
+        setTimeout(() => Router.go('bill'), 400);
       } catch(e) {
         App.toast('❌ ' + e.message);
         if (btn) { btn.disabled = false; btn.textContent = '✅ ยืนยันออกบิล'; }
