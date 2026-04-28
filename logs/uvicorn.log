@@ -539,3 +539,7 @@ INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36784 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
