@@ -505,3 +505,16 @@ INFO:     45.135.193.131:61214 - "POST / HTTP/1.1" 404 Not Found
 INFO:     162.158.189.75:0 - "GET /api/staff/list HTTP/1.1" 200 OK
 INFO:     172.68.44.133:0 - "GET /api/staff/list HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     65.49.1.232:50782 - "GET / HTTP/1.1" 404 Not Found
+INFO:     65.49.1.233:42909 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+INFO:     65.49.1.241:49137 - "GET /?format=json HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/stores/ HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.155:0 - "GET /api/staff/list HTTP/1.1" 200 OK
+INFO:     104.22.1.179:0 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/staff/list HTTP/1.1" 200 OK
