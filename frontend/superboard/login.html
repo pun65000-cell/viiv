@@ -141,17 +141,21 @@ window.doLogin = async function(){
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-sm"></span>';
   try{
-    var res = await fetch('/api/login',{
+    var res = await fetch('/api/staff/login',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email:email, password:pass})
+      body: JSON.stringify({email:email, password:pass, tenant_id:'ten_1'})
     });
     var data = await res.json();
     if(res.ok && data.access_token){
       localStorage.setItem(TOKEN_KEY, data.access_token);
       window.location.href = '/superboard/';
+    } else if(res.status === 429){
+      showErr(data.detail || 'ลองใหม่อีกครั้งใน 1 นาที');
+    } else if(res.status === 401 || res.status === 404){
+      showErr('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     } else {
-      showErr('user/password ไม่ถูกต้อง โปรดตรวจสอบอีกครั้ง');
+      showErr(data.detail || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
     }
   } catch(e){
     showErr('เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่');

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
@@ -49,3 +49,77 @@ def set_plan(payload: dict):
     else:
         info = pkg_service.assign_trial(user_id)
     return {"success": True, "data": info}
+
+
+# ── Staff Login ────────────────────────────────────────────────────────────────
+import jwt as _jwt
+import datetime
+import os
+import time
+from sqlalchemy import text
+from app.core.db import engine as _db_engine
+from passlib.context import CryptContext
+
+_JWT_SECRET = os.getenv("JWT_SECRET", "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c")
+_pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_login_attempts: dict = {}  # key="{ip}:{email}" value={"count":int,"reset_at":float}
+
+
+@router.post("/staff/login")
+def staff_login(payload: dict, request: Request):
+    email = (payload.get("email") or "").strip().lower()
+    password = payload.get("password") or ""
+    tenant_id = (payload.get("tenant_id") or "").strip()
+
+    if not email or not password or not tenant_id:
+        raise HTTPException(status_code=400, detail="กรุณากรอกข้อมูลให้ครบถ้วน")
+
+    # Rate limit — 5 attempts/minute per ip:email
+    ip = request.client.host if request.client else "unknown"
+    key = f"{ip}:{email}"
+    now = time.time()
+    att = _login_attempts.get(key)
+    if att and now >= att["reset_at"]:
+        att = None
+    if att is None:
+        att = {"count": 0, "reset_at": now + 60}
+        _login_attempts[key] = att
+    att["count"] += 1
+    if att["count"] > 5:
+        raise HTTPException(status_code=429, detail="ลองใหม่อีกครั้งใน 1 นาที")
+
+    # Query tenant_staff (raw SQL, no ORM model)
+    with _db_engine.connect() as c:
+        row = c.execute(
+            text("""SELECT id, first_name, last_name, role, hashed_password
+                    FROM tenant_staff
+                    WHERE email=:email AND tenant_id=:tid AND is_active=true"""),
+            {"email": email, "tid": tenant_id},
+        ).fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="ไม่พบบัญชีนี้ในระบบ")
+
+    if not row.hashed_password or not _pwd_ctx.verify(password, str(row.hashed_password)):
+        raise HTTPException(status_code=401, detail="รหัสผ่านไม่ถูกต้อง")
+
+    # Clear rate limit on success
+    _login_attempts.pop(key, None)
+
+    name = f"{row.first_name or ''} {row.last_name or ''}".strip()
+    token_payload = {
+        "sub": str(row.id),
+        "tenant_id": tenant_id,
+        "role": row.role,
+        "name": name,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=8),
+    }
+    token = _jwt.encode(token_payload, _JWT_SECRET, algorithm="HS256")
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "role": row.role,
+        "name": name,
+        "tenant_id": tenant_id,
+    }
