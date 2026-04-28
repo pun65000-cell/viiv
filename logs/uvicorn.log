@@ -1,43 +1,40 @@
-INFO:     Started server process [165535]
+INFO:     Started server process [173099]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     104.23.172.90:0 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.143.215:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.70.143.214:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.70.143.215:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.70.143.215:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     104.23.166.8:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/public/store HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     104.22.17.224:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     162.158.162.63:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.69.176.36:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.69.176.37:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.69.176.37:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.69.176.36:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.69.176.36:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     172.69.176.36:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     172.69.166.94:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     162.158.189.74:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     162.158.189.74:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     162.158.189.74:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/bank/list HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     47.251.61.165:10080 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.68.44.155:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     47.251.61.165:10094 - "GET / HTTP/1.1" 404 Not Found
+INFO:     123.160.223.73:2877 - "GET / HTTP/1.1" 404 Not Found
