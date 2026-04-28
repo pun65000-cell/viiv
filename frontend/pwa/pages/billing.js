@@ -74,9 +74,14 @@
   function _shell() {
     return `<div id="billing-wrap" style="max-width:768px;margin:0 auto;padding-bottom:120px">
 
-      <div style="padding:10px 14px 8px">
-        <input id="bill-search" type="search" placeholder="🔍 ค้นหาสินค้าเพื่อเพิ่ม..."
-          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:9px 12px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      <div style="padding:10px 14px 8px;display:flex;align-items:center;gap:8px">
+        <input id="bill-search" type="text" autocomplete="off" placeholder="🔍 ค้นหาสินค้าเพื่อเพิ่ม..."
+          style="flex:1;min-width:0;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:9px 12px;color:var(--txt);font-size:16px;outline:none;-webkit-appearance:none;appearance:none"/>
+        <button onclick="Router.go('statement')"
+          style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:52px;height:42px;background:var(--card);border:1px solid var(--bdr);border-radius:10px;cursor:pointer;padding:0">
+          <span style="font-size:1rem;line-height:1">📋</span>
+          <span style="font-size:9px;font-weight:700;color:var(--txt);line-height:1">วางบิล</span>
+        </button>
       </div>
 
       <div id="bill-prod-list" style="padding:0 14px 4px">
