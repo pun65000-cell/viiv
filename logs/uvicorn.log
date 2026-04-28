@@ -1,20 +1,43 @@
-INFO:     Started server process [147003]
+INFO:     Started server process [165535]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     104.23.172.90:0 - "GET / HTTP/1.1" 404 Not Found
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/search?q=%E0%B8%97 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/search?q=%E0%B8%87 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/search?q=q HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/search?q=g HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     104.22.66.98:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.98:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     104.22.66.98:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
-INFO:     104.22.66.98:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
-INFO:     104.22.66.98:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
-INFO:     104.22.66.98:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     104.23.175.146:0 - "GET /api/pos/members/search?q=%E0%B8%A5 HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/members/search?q=g HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.69.166.94:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     172.69.166.94:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.189.74:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.189.74:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.189.74:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK

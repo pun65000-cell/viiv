@@ -271,7 +271,7 @@
           ${g.methods.map(m => `
             <button id="pm-${m.id}" onclick="BillingPage.selPay('${m.id}')"
               style="padding:9px 6px;border-radius:10px;border:2px solid ${_payMethod===m.id?'var(--gold)':'var(--bdr)'};
-                     background:${_payMethod===m.id?'rgba(var(--gold-rgb,232,185,62),0.13)':'var(--card)'};
+                     background:${_payMethod===m.id?'rgba(var(--gold-rgb,232,185,62),0.13)':(gi===0?'rgba(34,197,94,0.10)':'var(--card)')};
                      color:${_payMethod===m.id?'var(--gold)':'var(--txt)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer">
               ${_esc(m.label)}
             </button>`).join('')}
@@ -385,21 +385,35 @@
         <div style="font-weight:700;font-size:var(--fs-md)">เพิ่มสมาชิกใหม่</div>
         <div style="width:44px"></div>
       </div>
-      <div style="margin-bottom:10px">
-        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">ชื่อลูกค้า *</div>
-        <input type="text" id="nm-name" placeholder="ชื่อ-นามสกุล"
-          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">ชื่อลูกค้า *</div><input type="text" id="nm-name" placeholder="ชื่อ-นามสกุล" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">รหัสลูกค้า</div><input type="text" id="nm-code" placeholder="อัตโนมัติ" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">เบอร์โทร</div><input type="tel" id="nm-phone" placeholder="0812345678" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">Tax ID</div><input type="text" id="nm-taxid" placeholder="เลขผู้เสียภาษี" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">อีเมล</div><input type="email" id="nm-email" placeholder="email@example.com" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">วันเกิด</div><input type="date" id="nm-bday" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+      </div>
+      <div style="margin-bottom:10px"><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">ที่อยู่</div><input type="text" id="nm-addr" placeholder="ที่อยู่" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">พิกัด GPS</div><input type="text" id="nm-geo" placeholder="lat,lng" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">PV สะสม</div><input type="number" id="nm-pv" value="0" min="0" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">เงินสด (฿)</div><input type="number" id="nm-cash" value="0" min="0" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">Credit (฿)</div><input type="number" id="nm-credit" value="0" min="0" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
+        <div><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">วงเงินเชื่อ (฿)</div><input type="number" id="nm-cl" value="0" min="0" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
       </div>
       <div style="margin-bottom:10px">
-        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">เบอร์โทร</div>
-        <input type="tel" id="nm-phone" placeholder="0812345678"
-          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:6px">แพลตฟอร์ม</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="nm-pf-wrap">
+          <label id="nm-pf-lbl-facebook" style="padding:5px 12px;border-radius:20px;border:1px solid var(--bdr);cursor:pointer;font-size:var(--fs-xs);background:var(--card);color:var(--txt)"><input type="checkbox" name="nm-pf" value="facebook" style="display:none" onchange="this.closest('label').style.background=this.checked?'var(--gold)':'var(--card)';this.closest('label').style.color=this.checked?'#000':'var(--txt)'">facebook</label> <label id="nm-pf-lbl-line" style="padding:5px 12px;border-radius:20px;border:1px solid var(--bdr);cursor:pointer;font-size:var(--fs-xs);background:var(--card);color:var(--txt)"><input type="checkbox" name="nm-pf" value="line" style="display:none" onchange="this.closest('label').style.background=this.checked?'var(--gold)':'var(--card)';this.closest('label').style.color=this.checked?'#000':'var(--txt)'">line</label> <label id="nm-pf-lbl-instagram" style="padding:5px 12px;border-radius:20px;border:1px solid var(--bdr);cursor:pointer;font-size:var(--fs-xs);background:var(--card);color:var(--txt)"><input type="checkbox" name="nm-pf" value="instagram" style="display:none" onchange="this.closest('label').style.background=this.checked?'var(--gold)':'var(--card)';this.closest('label').style.color=this.checked?'#000':'var(--txt)'">instagram</label> <label id="nm-pf-lbl-tiktok" style="padding:5px 12px;border-radius:20px;border:1px solid var(--bdr);cursor:pointer;font-size:var(--fs-xs);background:var(--card);color:var(--txt)"><input type="checkbox" name="nm-pf" value="tiktok" style="display:none" onchange="this.closest('label').style.background=this.checked?'var(--gold)':'var(--card)';this.closest('label').style.color=this.checked?'#000':'var(--txt)'">tiktok</label> <label id="nm-pf-lbl-walk_in" style="padding:5px 12px;border-radius:20px;border:1px solid var(--bdr);cursor:pointer;font-size:var(--fs-xs);background:var(--card);color:var(--txt)"><input type="checkbox" name="nm-pf" value="walk_in" style="display:none" onchange="this.closest('label').style.background=this.checked?'var(--gold)':'var(--card)';this.closest('label').style.color=this.checked?'#000':'var(--txt)'">walk_in</label> <label id="nm-pf-lbl-manual" style="padding:5px 12px;border-radius:20px;border:1px solid var(--bdr);cursor:pointer;font-size:var(--fs-xs);background:var(--card);color:var(--txt)"><input type="checkbox" name="nm-pf" value="manual" style="display:none" onchange="this.closest('label').style.background=this.checked?'var(--gold)':'var(--card)';this.closest('label').style.color=this.checked?'#000':'var(--txt)'">manual</label>
+        </div>
       </div>
-      <div style="margin-bottom:22px">
-        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">อีเมล</div>
-        <input type="email" id="nm-email" placeholder="email@example.com"
-          style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
-      </div>
+      <div style="margin-bottom:22px"><div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">หมายเหตุ</div><input type="text" id="nm-note" placeholder="บันทึกเพิ่มเติม" style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/></div>
       <button id="nm-save-btn" onclick="BillingPage.saveNewMember()"
         style="width:100%;background:var(--gold);color:#000;border:none;border-radius:12px;padding:14px;font-size:var(--fs-md);font-weight:800;cursor:pointer">
         สร้างสมาชิก
@@ -536,7 +550,14 @@
       try {
         const res = await App.api('/api/pos/members/create', {
           method: 'POST',
-          body: JSON.stringify({name, phone, email})
+          body: JSON.stringify({
+            name, phone, email,
+            code:    (document.getElementById('nm-code')?.value.trim()||''),
+            tax_id:  (document.getElementById('nm-taxid')?.value.trim()||''),
+            address: (document.getElementById('nm-addr')?.value.trim()||''),
+            birthday:(document.getElementById('nm-bday')?.value||''),
+            note:    (document.getElementById('nm-note')?.value.trim()||'')
+          })
         });
         _customer = {id: res.id, name, phone, code: res.code || '', tax_id: '', address: ''};
         App.toast('✅ สร้างสมาชิก ' + name + ' แล้ว');

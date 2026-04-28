@@ -32,13 +32,14 @@
     const c = document.getElementById('page-container');
     c.innerHTML = _skeleton();
     try {
-      const [pos, recentData, membersData] = await Promise.all([
+      const [pos, recentData, membersData, storeData] = await Promise.all([
         App.api('/api/pos-mobile/summary'),
         App.api('/api/pos-mobile/bills/recent?limit=5'),
         App.api('/api/pos/members/list?limit=5&sort=created_at&order=desc'),
+        App.api('/api/pos/store/settings').catch(() => ({})),
       ]);
       if (_destroyed) return;
-      c.innerHTML = _html(pos, recentData.bills || [], membersData.members || membersData.data || []);
+      c.innerHTML = _html(pos, recentData.bills || [], membersData.members || membersData.data || [], storeData || {});
     } catch(e) {
       if (_destroyed) return;
       c.innerHTML = _fallback();
