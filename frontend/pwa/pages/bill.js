@@ -24,14 +24,17 @@
   async function _reload() {
     var c = document.getElementById('page-container');
     var html = '<div style="max-width:768px;margin:0 auto">';
-    html += '<div style="padding:12px 14px 8px;display:flex;gap:8px;flex-wrap:wrap">';
-    html += '<input id="bq" type="text" autocomplete="new-password" name="search_x_bill" placeholder="ค้นหาเลขบิล / ลูกค้า" style="flex:1;min-width:140px;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:9px 12px;color:var(--txt);font-size:var(--fs-sm);outline:none">';
-    html += '<select id="bs" style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:9px 8px;color:var(--txt);font-size:var(--fs-sm);outline:none">';
-    html += '<option value="">ทุกสถานะ</option><option value="paid">จ่ายแล้ว</option><option value="pending">รอชำระ</option><option value="credit">เครดิต</option><option value="partial">บางส่วน</option><option value="draft">ร่าง</option><option value="voided">ยกเลิก</option></select>';
-    html += '<select id="bt" style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:9px 8px;color:var(--txt);font-size:var(--fs-sm);outline:none">';
-    html += '<option value="">ทุกประเภท</option><option value="receipt">ใบเสร็จ</option><option value="reserve">ใบจอง</option><option value="delivery">ใบส่งของ</option><option value="invoice">ใบแจ้งหนี้</option></select>';
+    html += '<div style="padding:10px 14px 6px">';
+    html += '<input id="bq" type="text" autocomplete="off" placeholder="🔍 ค้นหาเลขบิล / ลูกค้า..." style="width:100%;box-sizing:border-box;background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:9px 12px;color:var(--txt);font-size:16px;outline:none;-webkit-appearance:none;transition:border-color .2s" onfocus="this.style.borderColor=\'var(--gold)\'" onblur="this.style.borderColor=\'var(--bdr)\'">';
+    html += '</div>';
+    html += '<div style="display:flex;gap:6px;padding:0 14px 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex-wrap:nowrap">';
+    html += '<select id="bs" style="flex-shrink:0;background:var(--card);border:1.5px solid var(--bdr);border-radius:20px;padding:7px 10px;color:var(--muted);font-size:11px;font-weight:600;outline:none;cursor:pointer">';
+    html += '<option value="">สถานะ</option><option value="paid">จ่ายแล้ว</option><option value="pending">รอชำระ</option><option value="credit">เครดิต</option><option value="partial">บางส่วน</option><option value="draft">ร่าง</option><option value="voided">ยกเลิก</option></select>';
+    html += '<select id="bt" style="flex-shrink:0;background:var(--card);border:1.5px solid var(--bdr);border-radius:20px;padding:7px 10px;color:var(--muted);font-size:11px;font-weight:600;outline:none;cursor:pointer">';
+    html += '<option value="">ประเภทบิล</option><option value="receipt">ใบเสร็จ</option><option value="reserve">ใบจอง</option><option value="delivery">ใบส่งของ</option><option value="invoice">ใบแจ้งหนี้</option></select>';
+    html += '<button onclick="Router.go(\'statement\')" style="flex-shrink:0;background:var(--card);border:1.5px solid var(--bdr);border-radius:20px;padding:7px 12px;color:var(--txt);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📋 วางบิล</button>';
     if (['admin','shop_admin','owner'].includes(App.user?.role)) {
-      html += '<button onclick="Router.go(\'bill-history\')" style="background:none;border:1px solid var(--bdr);border-radius:10px;padding:9px 10px;color:var(--muted);font-size:var(--fs-sm);cursor:pointer;white-space:nowrap">📋 ประวัติบิล</button>';
+      html += '<button onclick="Router.go(\'bill-history\')" style="flex-shrink:0;background:none;border:1.5px solid var(--bdr);border-radius:20px;padding:7px 12px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">ประวัติบิล</button>';
     }
     html += '</div>';
     html += '<div id="bc" style="padding:2px 14px 6px;font-size:var(--fs-xs);color:var(--muted)"></div>';
