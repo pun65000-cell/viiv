@@ -1,6 +1,6 @@
 # VIIV MASTER — Project Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
-> Version: v1.51 | Updated: 2026-04-28  
+> Version: v1.52 | Updated: 2026-04-28  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -77,6 +77,17 @@ PWA:       รับ token จาก Superboard ผ่าน postMessage
            ไม่มี login ตัวเอง — token มาจาก parent เสมอ
 Fallback:  localStorage.getItem('viiv_token')
 Dev token: ten_1/usr_1 (ชั่วคราว — ห้าม deploy production)
+```
+Staff Login Architecture (v1.52)
+```
+endpoint:  POST /api/staff/login
+table:     tenant_staff (id, tenant_id, email, hashed_password, role,
+                          first_name, last_name, is_active)
+JWT:       sub=staff_id, tenant_id, role, name, exp=8hr
+rate limit: 5 attempts/min per ip:email (in-memory dict)
+lib:       passlib CryptContext(bcrypt) + PyJWT encode HS256
+frontend:  frontend/superboard/login.html → /api/staff/login
+test acct: aaa@gmail.com / viiv1234 / tenant ten_1 / role:MD
 ```
 File Structure (v1.34)
 ```
@@ -1211,3 +1222,52 @@ modules/pos/merchant/ui/dashboard/billing/create.html
 - store.html ลบ tab LINE
 - fix more.js JSON.stringify onclick
 - fix auth.js atob padding + DEV_TOKEN ten_1
+
+---
+
+### [v1.52 COMPLETED — 2026-04-28]
+
+✅ Superboard connections.html — LINE tab เต็ม (OA ID, Token, Secret, Webhook URL, features toggles)
+   + Facebook / TikTok / IG / YouTube / API Keys แสดง "Coming Soon" tabs
+✅ Superboard index.html sidebar — เพิ่มเมนู "การเชื่อมต่อ" ก่อนบุคลากร
+✅ PC settings/store.html — ลบ tab LINE ออก (เหลือ 3 tabs: ทั่วไป / สโตร์ / เพิ่มเติม)
+✅ PWA more.js — เพิ่ม 5 social menus (LINE/Facebook/IG/TikTok/YouTube) + comingsoon.js page
+✅ fix more.js — onclick ใน innerHTML ที่มี JSON.stringify() ทำให้ quote หลุด → แก้ด้วย data-attr pattern
+✅ fix auth.js — atob base64 padding bug + DEV_TOKEN tenant ten_1 (role MD, sub stf_xxx)
+✅ POST /api/staff/login — bcrypt verify + PyJWT 8hr + rate limit 5/min per ip:email
+   - table: tenant_staff | lib: passlib+PyJWT | ไม่แตะ ORM ใช้ raw SQL engine.connect()
+✅ frontend/superboard/login.html — wired to /api/staff/login
+   - 401/404 → "อีเมลหรือรหัสผ่านไม่ถูกต้อง" | 429 → data.detail | tenant_id='ten_1'
+✅ PWA billing.js — price adjustment per item down to price_min floor (price_min stored in cart item)
+   - setPrice() updates DOM in-place (cart-price-i / cart-total-i / bill-total-amt) — no _renderCart() call
+   - fix: email input flickering caused by full _renderCart() re-render on every price change
+✅ PWA billing.js — mandatory customer selection on all bill creation points
+   - confirmBill() blocks if !_customer + price_min final validation
+   - pay sheet: "* บังคับ" red label next to "ลูกค้า"
+✅ "M" badge — bills created from mobile (source='pwa') marked inline with bill_no
+   - PWA bill.js: list + detail views
+   - PC: orders/all.html, orders/payment.html, orders/shipping.html
+   - PC: sales/today.html, sales/advance.html, sales/search.html
+✅ app/api/pos_bills.py — delete_bill fix: json.dumps() on bill.items (JSONB auto-parsed by psycopg2)
+✅ app/api/pos_statements.py — unpaid-bills + {sid}/bills: customer_data fallback chain
+   - bills[0] fallback in _openDetail for PWA-created bills missing customer_name column
+✅ frontend/pwa/pages/statement.js — customer lock using __NONE__ sentinel (null = "locked to no customer")
+
+FILES CHANGED:
+  app/api/login.py
+  app/api/pos_bills.py
+  app/api/pos_statements.py
+  frontend/superboard/login.html
+  frontend/pwa/pages/billing.js
+  frontend/pwa/pages/bill.js
+  frontend/pwa/pages/statement.js
+  frontend/pwa/pages/more.js
+  frontend/pwa/index.html
+  modules/pos/merchant/ui/dashboard/orders/all.html
+  modules/pos/merchant/ui/dashboard/orders/payment.html
+  modules/pos/merchant/ui/dashboard/orders/shipping.html
+  modules/pos/merchant/ui/dashboard/sales/today.html
+  modules/pos/merchant/ui/dashboard/sales/advance.html
+  modules/pos/merchant/ui/dashboard/sales/search.html
+
+Version: v1.52 | Updated: 2026-04-28

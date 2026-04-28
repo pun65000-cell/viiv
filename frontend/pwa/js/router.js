@@ -23,8 +23,12 @@ const Router = {
       Router.stack.push({ id: Router.current, params: Router._currentParams });
     }
 
-    // update history for back button
-    history.pushState({ page: id, params }, '', `#${id}`);
+    // update history — replace avoids duplicate entry (e.g. init call)
+    if (opts.replace) {
+      history.replaceState({ page: id, params }, '', `#${id}`);
+    } else {
+      history.pushState({ page: id, params }, '', `#${id}`);
+    }
 
     // render
     await Router._render(page, params);
@@ -83,14 +87,19 @@ const Router = {
     Router.go = Router.go.bind(this);
     Router.back = Router.back.bind(this);
     Router._render = Router._render.bind(this);
-    // Android back button
+    // Android / header back button
     window.addEventListener('popstate', async (e) => {
       const id = e.state?.page;
       const params = e.state?.params || {};
+      // keep stack in sync: pop one entry per back navigation
+      if (Router.stack.length > 0) Router.stack.pop();
       if (id && Router.pages[id]) {
         await Router._render(Router.pages[id], params);
       } else {
-        await Router._render(Router.pages['home'], {});
+        // unknown state — fall back to previous in stack or home
+        const prev = Router.stack.length > 0 ? Router.stack[Router.stack.length - 1] : null;
+        const fallbackId = prev?.id || 'home';
+        await Router._render(Router.pages[fallbackId] || Router.pages['home'], prev?.params || {});
       }
     });
 

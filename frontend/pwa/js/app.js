@@ -105,7 +105,10 @@ const App = {
       if (dy >= threshold) {
         spinner.classList.add('spin');
         spinner.style.opacity = '1';
-        document.dispatchEvent(new CustomEvent('viiv:refresh'));
+        // reload current page directly — works on every page without extra listener
+        const cur = window.Router?.current;
+        const page = cur ? window.Router?.pages?.[cur] : null;
+        if (page?.load) page.load(window.Router._currentParams || {});
         setTimeout(() => {
           ptr.classList.remove('show');
           spinner.classList.remove('spin');

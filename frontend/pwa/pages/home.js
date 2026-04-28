@@ -17,14 +17,11 @@
     async load(params) {
       _destroyed = false;
       _clearTimers();
-      _refreshHandler = () => _reload();
-      document.addEventListener('viiv:refresh', _refreshHandler);
       await _reload();
     },
     destroy() {
       _destroyed = true;
       _clearTimers();
-      if (_refreshHandler) { document.removeEventListener('viiv:refresh', _refreshHandler); _refreshHandler = null; }
     }
   });
 
@@ -70,15 +67,16 @@
         </div>
         <div class="ld-hub-right">
           <div class="ld-hub-total" id="hub-total">฿${ts}</div>
-          <div class="ld-hub-ord" id="hub-orders">${to} orders วันนี้</div>
+          <div class="ld-hub-ord" id="hub-orders">${to} orders · ${_shortDate()}</div>
         </div>
-        <div class="ld-hub-date">${_shortDate()}</div>
       </div>
 
       <!-- POS MODULE -->
       <div class="ld-card ld-card-pos" onclick="Router.go('pos')">
-        <div class="ld-card-badge" id="pos-badge">฿${ts}</div>
-        <div class="ld-card-label">🖥 POS MODULE</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="ld-card-label" style="margin-bottom:0">🖥 POS MODULE</div>
+          <div class="ld-card-badge" style="position:static">฿${ts}</div>
+        </div>
         <div class="ld-card-amount" id="pos-sales">฿${ts} <small>ยอดขายวันนี้</small></div>
         <div class="ld-ticker">
           <span class="ld-t-ico">🔔</span>
@@ -99,8 +97,10 @@
 
       <!-- CHAT & SHOWROOM -->
       <div class="ld-card ld-card-chat" onclick="Router.go('chat')">
-        <div class="ld-card-badge">◌</div>
-        <div class="ld-card-label">💬 CHAT &amp; SHOWROOM</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="ld-card-label" style="margin-bottom:0">💬 CHAT &amp; SHOWROOM</div>
+          <div class="ld-card-badge" style="position:static">◌</div>
+        </div>
         <div class="ld-card-amount">— <small>LINE · FB · IG</small></div>
         <div class="ld-ticker">
           <span class="ld-t-ico">🔔</span>
@@ -121,8 +121,10 @@
 
       <!-- POS-AFFILIATE -->
       <div class="ld-card ld-card-aff" onclick="Router.go('more')">
-        <div class="ld-card-badge">฿—</div>
-        <div class="ld-card-label">🔗 POS-AFFILIATE</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="ld-card-label" style="margin-bottom:0">🔗 POS-AFFILIATE</div>
+          <div class="ld-card-badge" style="position:static">฿—</div>
+        </div>
         <div class="ld-card-amount">— <small>คลิก × % = ยอดวันนี้</small></div>
         <div class="ld-ticker">
           <span class="ld-t-ico">🔔</span>
@@ -143,8 +145,10 @@
 
       <!-- AUTO POST -->
       <div class="ld-card ld-card-post" onclick="Router.go('autopost')">
-        <div class="ld-card-badge">↗</div>
-        <div class="ld-card-label">📲 AUTO POST MODULE</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="ld-card-label" style="margin-bottom:0">📲 AUTO POST MODULE</div>
+          <div class="ld-card-badge" style="position:static">↗</div>
+        </div>
         <div class="ld-card-amount">— <small>คลิปโพสวันนี้</small></div>
         <div class="ld-ticker">
           <span class="ld-t-ico">🔔</span>

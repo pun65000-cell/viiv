@@ -484,6 +484,28 @@ function saveProfile(){
 (function(){
   var p=JSON.parse(localStorage.getItem('viiv_profile')||'{}');
   if(p.first_name) document.getElementById('profileName').textContent=p.first_name;
+
+  // ── sync profile จาก JWT token ──
+  (function(){
+    try {
+      var t = localStorage.getItem('viiv_token');
+      if(!t) return;
+      var b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      var pad = b + '=='.slice((b.length%4)||4);
+      var jwt = JSON.parse(atob(pad));
+      if(!jwt.name) return;
+      var parts = jwt.name.split(' ');
+      var profile = JSON.parse(localStorage.getItem('viiv_profile')||'{}');
+      profile.first_name = parts[0] || jwt.name;
+      profile.last_name = parts.slice(1).join(' ') || '';
+      profile.role = jwt.role || profile.role || 'Staff';
+      profile.email = jwt.email || profile.email || '';
+      localStorage.setItem('viiv_profile', JSON.stringify(profile));
+      document.getElementById('profileName').textContent = profile.first_name;
+      var av = document.getElementById('profileAvatar');
+      if(av && !profile.avatar_url) av.textContent = profile.first_name.charAt(0).toUpperCase();
+    } catch(e) {}
+  })();
 })();
 </script>
 </body>
