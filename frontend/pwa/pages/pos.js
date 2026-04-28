@@ -68,11 +68,15 @@
     { icon:'⋯',  label:'เพิ่มเติม',   action:()=> _openMoreSheet()         },
   ];
 
-  function _html(pos, recent, members) {
+  function _html(pos, recent, members, settings) {
     const todaySales  = _fmt(pos?.today_sales  ?? 0);
     const todayOrders = pos?.today_orders ?? 0;
     const monthSales  = _fmt(pos?.month_sales  ?? 0);
     const lowStock    = pos?.low_stock ?? 0;
+    const logoUrl = settings?.logo_url || '';
+    const logoInner = logoUrl
+      ? `<img src="${_esc(logoUrl)}" style="width:32px;height:32px;border-radius:8px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/><span style="display:none;font-size:1.2rem;line-height:1">🛍️</span>`
+      : '<span style="font-size:1.2rem;line-height:1">🛍️</span>';
 
     return `<div class="sb-wrap">
 
@@ -89,13 +93,14 @@
             <span style="font-size:1.1rem;line-height:1">⚡</span>
             <span style="font-size:8px;font-weight:700">EasySale</span>
           </button>
-          <button onclick="PosHub.openEasySale('line')"
-            style="width:48px;height:48px;background:var(--card);border:2px solid #06C755;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;padding:0">
-            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-.3px">LINE</span>
-            <span style="font-size:8px;font-weight:700;color:#ef4444">LINE</span>
+          <button onclick="PosHub.openCatalog()"
+            style="width:48px;height:48px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;padding:0;overflow:hidden">
+            ${logoInner}
+            <span style="font-size:7px;font-weight:700;color:var(--txt);line-height:1;padding:0 2px">แคตตาล็อก</span>
           </button>
-          <button class="pos-new-bill-btn" onclick="Router.go('billing')">
-            +<br><span style="font-size:10px;font-weight:600">ออกบิล</span>
+          <button onclick="Router.go('billing')"
+            style="width:48px;height:48px;background:var(--gold);color:#000;border:none;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0;font-size:1.2rem;font-weight:700">
+            +<span style="font-size:10px;font-weight:600">ออกบิล</span>
           </button>
         </div>
       </div>
@@ -144,13 +149,14 @@
             <span style="font-size:1.1rem;line-height:1">⚡</span>
             <span style="font-size:8px;font-weight:700">EasySale</span>
           </button>
-          <button onclick="PosHub.openEasySale('line')"
-            style="width:48px;height:48px;background:var(--card);border:2px solid #06C755;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;padding:0">
-            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-.3px">LINE</span>
-            <span style="font-size:8px;font-weight:700;color:#ef4444">LINE</span>
+          <button onclick="PosHub.openCatalog()"
+            style="width:48px;height:48px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;padding:0">
+            <span style="font-size:1.2rem;line-height:1">🛍️</span>
+            <span style="font-size:7px;font-weight:700;color:var(--txt);line-height:1">แคตตาล็อก</span>
           </button>
-          <button class="pos-new-bill-btn" onclick="Router.go('billing')">
-            +<br><span style="font-size:10px;font-weight:600">ออกบิล</span>
+          <button onclick="Router.go('billing')"
+            style="width:48px;height:48px;background:var(--gold);color:#000;border:none;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0;font-size:1.2rem;font-weight:700">
+            +<span style="font-size:10px;font-weight:600">ออกบิล</span>
           </button>
         </div>
       </div>
@@ -500,7 +506,7 @@
       { icon:'📌', label:'จองสินค้า',  sub:'Pre-order, ใบจอง',      action:()=>{ closeSheet(); Router.go('reserve'); } },
       { icon:'🏪', label:'ร้านค้า',    sub:'ข้อมูลร้าน, โลโก้',     action:()=>{ closeSheet(); Router.go('shop');    } },
       { icon:'🧾', label:'ตั้งค่าบิล', sub:'รูปแบบบิล, VAT, หมายเหตุ', action:()=>{ closeSheet(); Router.go('shop');    } },
-      { icon:'🏦', label:'ธนาคาร',     sub:'บัญชีรับเงิน',           action:()=>{ closeSheet(); Router.go('shop');    } },
+      { icon:'🏦', label:'ธนาคาร',     sub:'บัญชีรับเงิน',           action:()=>{ closeSheet(); Router.go('bank');    } },
       { icon:'<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-0.3px">LINE</span>', label:'เชื่อม LINE', sub:'LINE OA, Token, Webhook',  action:()=>{ closeSheet(); Router.go('line');    } },
       { icon:'⏳', label:'รออนุมัติ',  sub:'บิลรอตรวจสอบ',           action:()=>{ closeSheet(); Router.go('reserve'); } },
       { icon:'🧾', label:'ออกบิล',     sub:'สร้างบิลใหม่',            action:()=>{ closeSheet(); _openBillingSheet();   } },
@@ -924,10 +930,30 @@
     },
   };
 
+  function _openCatalog() {
+    if (document.getElementById('viiv-catalog-overlay')) return;
+    const url = 'https://concore.viiv.me/catalog.html';
+    const ov = document.createElement('div');
+    ov.id = 'viiv-catalog-overlay';
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;display:flex;flex-direction:column;background:var(--bg)';
+    ov.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--bdr);flex-shrink:0">
+        <button onclick="document.getElementById('viiv-catalog-overlay').remove()"
+          style="background:none;border:none;color:var(--gold);font-weight:700;font-size:var(--fs-sm);cursor:pointer;padding:0">← กลับ</button>
+        <div style="flex:1;font-weight:700;font-size:var(--fs-sm);text-align:center">แคตตาล็อกสินค้า</div>
+        <a href="${url}" target="_blank" rel="noopener"
+          style="color:var(--muted);font-size:var(--fs-xs);text-decoration:none">🔗 เปิด</a>
+      </div>
+      <iframe src="${url}" style="flex:1;border:none;width:100%" allow="clipboard-write"></iframe>
+    `;
+    document.body.appendChild(ov);
+  }
+
 window.PosHub = {
     menu(i) { MENUS[i]?.action(); },
     moreAction(i) { window._moreItems?.[i]?.action(); },
     openEasySale(source) { _openEasySaleSheet(source); },
+    openCatalog() { _openCatalog(); },
     openAI() {
       openSheet(`
         <div style="padding:0 0 16px">
