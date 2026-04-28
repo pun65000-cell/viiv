@@ -3,6 +3,17 @@
   let _destroyed = false;
   let _refreshHandler = null;
 
+  // EasySale state
+  let _esProducts = [];
+  let _esStoreSettings = {};
+  let _esCart = [];
+  let _esCustomer = null;
+  let _esPm = 'cash';
+  let _esSource = 'pos';
+  let _esCustTimer = null;
+  let _esSearchTm = null;
+  let _esQ = '';
+
   Router.register('pos', {
     title: 'POS',
     async load(params) {
@@ -71,9 +82,21 @@
           <div class="pos-sum-amt">฿${todaySales}</div>
           <div class="pos-sum-sub">${todayOrders} บิล &nbsp;·&nbsp; เดือนนี้ ฿${monthSales}${lowStock > 0 ? ' &nbsp;·&nbsp; ⚠ สต็อกต่ำ '+lowStock+' รายการ' : ''}</div>
         </div>
-        <button class="pos-new-bill-btn" onclick="Router.go('billing')">
-          +<br><span style="font-size:10px;font-weight:600">ออกบิล</span>
-        </button>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button onclick="PosHub.openEasySale('pos')"
+            style="width:48px;height:48px;background:#22c55e;color:#fff;border:none;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0">
+            <span style="font-size:1.1rem;line-height:1">⚡</span>
+            <span style="font-size:8px;font-weight:700">EasySale</span>
+          </button>
+          <button onclick="PosHub.openEasySale('line')"
+            style="width:48px;height:48px;background:var(--card);border:2px solid #06C755;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;padding:0">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-.3px">LINE</span>
+            <span style="font-size:8px;font-weight:700;color:#ef4444">LINE</span>
+          </button>
+          <button class="pos-new-bill-btn" onclick="Router.go('billing')">
+            +<br><span style="font-size:10px;font-weight:600">ออกบิล</span>
+          </button>
+        </div>
       </div>
 
       <!-- 9-MENU GRID -->
@@ -114,9 +137,21 @@
           <div class="pos-sum-label">ยอดขายวันนี้</div>
           <div class="pos-sum-amt">฿—</div>
         </div>
-        <button class="pos-new-bill-btn" onclick="Router.go('billing')">
-          +<br><span style="font-size:10px;font-weight:600">ออกบิล</span>
-        </button>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button onclick="PosHub.openEasySale('pos')"
+            style="width:48px;height:48px;background:#22c55e;color:#fff;border:none;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0">
+            <span style="font-size:1.1rem;line-height:1">⚡</span>
+            <span style="font-size:8px;font-weight:700">EasySale</span>
+          </button>
+          <button onclick="PosHub.openEasySale('line')"
+            style="width:48px;height:48px;background:var(--card);border:2px solid #06C755;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex-shrink:0;padding:0">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#06C755;border-radius:5px;font-size:7px;font-weight:800;color:#fff;font-family:Arial,sans-serif;letter-spacing:-.3px">LINE</span>
+            <span style="font-size:8px;font-weight:700;color:#ef4444">LINE</span>
+          </button>
+          <button class="pos-new-bill-btn" onclick="Router.go('billing')">
+            +<br><span style="font-size:10px;font-weight:600">ออกบิล</span>
+          </button>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
         ${MENUS.map((m, i) => `
@@ -132,10 +167,15 @@
     const ST = {paid:'tag-green', pending:'tag-yellow', voided:'tag-red'};
     const TH = {paid:'ชำระแล้ว', pending:'ค้างชำระ', voided:'ยกเลิก'};
     const st = b.status || 'pending';
+    const srcBadge = b.source === 'pos'
+      ? '<span style="display:inline-block;background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:4px">M-POS</span>'
+      : b.source === 'line'
+      ? '<span style="display:inline-block;background:#06C755;color:#fff;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;margin-left:4px">LINE</span>'
+      : '';
     return `<div class="list-item" onclick="Router.go('orders',{id:'${b.id}'})">
       <div class="li-left">
         <div class="li-title">${_esc(b.bill_no ?? b.id)}</div>
-        <div class="li-sub">${_esc(b.customer_name||'ลูกค้าทั่วไป')} · ${_timeAgo(b.created_at)}</div>
+        <div class="li-sub">${_esc(b.customer_name||'ลูกค้าทั่วไป')} · ${_timeAgo(b.created_at)}${srcBadge}</div>
       </div>
       <div class="li-right">
         <div class="li-amount">฿${_fmt(b.total??0)}</div>
@@ -158,6 +198,278 @@
       <div style="color:var(--muted);font-size:0.75rem">${_timeAgo(m.created_at)}</div>
     </div>`;
   }
+
+  // ─── EASYSALE ─────────────────────────────────────────────────────────────────
+
+  const ES_FIN_LABEL = {
+    cash:     'เงินสด-จ่ายแล้ว',
+    transfer: 'โอน/QR-จ่ายแล้ว',
+    qr:       'โอน/QR-จ่ายแล้ว',
+    credit:   'เครดิต-ชำระปลายทาง',
+  };
+
+  function _openEasySaleSheet(source) {
+    _esSource = source;
+    _esCart = [];
+    _esCustomer = null;
+    _esPm = 'cash';
+    _esQ = '';
+    openSheet(_esShellHtml(source));
+    Promise.all([
+      App.api('/api/pos/products/list'),
+      App.api('/api/pos/store/settings').catch(() => ({}))
+    ]).then(([pd, settings]) => {
+      _esProducts = Array.isArray(pd) ? pd : (pd.products || []);
+      _esStoreSettings = settings || {};
+      _esRenderProducts();
+    }).catch(() => {
+      const el = document.getElementById('es-prod-list');
+      if (el) el.innerHTML = '<div class="empty-state" style="padding:8px 0">โหลดสินค้าไม่ได้</div>';
+    });
+  }
+
+  function _esShellHtml(source) {
+    const isLine = source === 'line';
+    return `<div style="padding:0 0 12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;border-bottom:1px solid var(--bdr)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:700;font-size:var(--fs-md)">${isLine ? 'LINE EasySale' : '⚡ EasySale'}</span>
+          ${isLine ? '<span style="background:#06C755;color:#fff;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800">LINE</span>' : '<span style="background:#dcfce7;color:#166534;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">M-POS</span>'}
+        </div>
+        <button onclick="closeSheet()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);padding:0">✕</button>
+      </div>
+
+      <div style="padding:10px 14px 6px">
+        <input id="es-search" type="search" placeholder="🔍 ค้นหาสินค้า..." autocomplete="off"
+          oninput="EasySale.search(this.value)"
+          style="width:100%;box-sizing:border-box;background:var(--bg);border:1.5px solid var(--bdr);border-radius:20px;padding:8px 14px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      </div>
+
+      <div id="es-prod-list" style="padding:0 14px 4px;max-height:32vh;overflow-y:auto">
+        ${Array(4).fill('<div class="list-item skeleton-card" style="height:46px;margin-bottom:5px"></div>').join('')}
+      </div>
+
+      <div id="es-cart-section" style="display:none;border-top:1px solid var(--bdr);padding:8px 14px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:var(--fs-xs);font-weight:600;color:var(--muted)">ตะกร้า</span>
+          <span onclick="EasySale.clearCart()" style="font-size:var(--fs-xs);color:var(--gold);cursor:pointer">ล้าง</span>
+        </div>
+        <div id="es-cart-items"></div>
+      </div>
+
+      <div style="padding:10px 14px 0">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:5px">ลูกค้า *</div>
+        <div id="es-cust-wrap">${_esCustBlock()}</div>
+      </div>
+
+      <div style="padding:10px 14px 0">
+        <div style="font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-bottom:6px">วิธีชำระ</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          ${[
+            {id:'cash',     label:'💵 สด'},
+            {id:'transfer', label:'🏦 โอน'},
+            {id:'qr',       label:'📱 QR'},
+            {id:'credit',   label:'📋 เครดิต'},
+          ].map(m => `<button id="es-pm-${m.id}" onclick="EasySale.selPay('${m.id}')"
+            style="padding:8px 4px;border-radius:10px;border:2px solid ${_esPm===m.id?'var(--gold)':'var(--bdr)'};
+                   background:${_esPm===m.id?'rgba(232,185,62,0.13)':'var(--card)'};
+                   color:${_esPm===m.id?'var(--gold)':'var(--txt)'};font-size:var(--fs-xs);font-weight:600;cursor:pointer">
+            ${_esc(m.label)}
+          </button>`).join('')}
+        </div>
+      </div>
+
+      <div style="padding:12px 14px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:var(--fs-sm);font-weight:600">ยอดรวม</span>
+          <span id="es-total" style="font-size:var(--fs-lg);font-weight:800;color:var(--gold)">฿0</span>
+        </div>
+        <button id="es-checkout-btn" onclick="EasySale.checkout()"
+          style="width:100%;background:${isLine?'#06C755':'var(--gold)'};color:${isLine?'#fff':'#000'};border:none;border-radius:12px;padding:13px;font-size:var(--fs-md);font-weight:800;cursor:pointer">
+          จบการขาย
+        </button>
+        <div style="text-align:center;margin-top:6px;font-size:10px;color:var(--muted)">
+          ${isLine ? '📱 LINE EasySale · บันทึก source: line' : '⚡ M-POS · EasySale POS'}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function _esRenderProducts() {
+    const el = document.getElementById('es-prod-list');
+    if (!el) return;
+    const q = _esQ.toLowerCase();
+    const allowEmpty = _esStoreSettings.stock_empty_sell !== false;
+    const list = q
+      ? _esProducts.filter(p => p.name.toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q))
+      : _esProducts.filter(p => p.status !== 'inactive').slice(0, 40);
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:8px 0">ไม่พบสินค้า</div>';
+      return;
+    }
+    el.innerHTML = list.map(p => {
+      const isEmpty  = p.track_stock && Number(p.stock_qty || 0) <= 0;
+      const disabled = isEmpty && !allowEmpty;
+      return `<div class="list-item" style="margin-bottom:5px;gap:8px;${disabled ? 'opacity:0.4;pointer-events:none;cursor:default' : 'cursor:pointer'}"
+               ${!disabled ? `onclick="EasySale.add('${p.id}')"` : ''}>
+        <div class="li-left">
+          <div class="li-title" style="font-size:var(--fs-sm)">${_esc(p.name)}</div>
+          <div class="li-sub">฿${_fmt(p.price)}${p.sku ? ' · ' + _esc(p.sku) : ''}</div>
+        </div>
+        ${disabled
+          ? '<div style="background:var(--bdr);color:var(--muted);border-radius:6px;padding:3px 8px;font-size:var(--fs-xs);font-weight:700;flex-shrink:0">หมด</div>'
+          : '<div style="background:var(--gold);color:#000;border-radius:8px;padding:3px 10px;font-weight:700;font-size:var(--fs-sm);flex-shrink:0">+</div>'}
+      </div>`;
+    }).join('');
+  }
+
+  function _esRenderCart() {
+    const section = document.getElementById('es-cart-section');
+    const items   = document.getElementById('es-cart-items');
+    const total   = document.getElementById('es-total');
+    if (!section || !items) return;
+    const sub = _esCart.reduce((s, i) => s + i.price * i.qty, 0);
+    if (!_esCart.length) {
+      section.style.display = 'none';
+      if (total) total.textContent = '฿0';
+      return;
+    }
+    section.style.display = 'block';
+    items.innerHTML = _esCart.map((item, i) => `
+      <div class="list-item" style="margin-bottom:4px">
+        <div class="li-left">
+          <div class="li-title" style="font-size:var(--fs-sm)">${_esc(item.name)}</div>
+          <div class="li-sub">฿${_fmt(item.price)}/ชิ้น</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+          <button onclick="EasySale.qty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer;font-size:14px;line-height:1">−</button>
+          <span style="font-weight:700;min-width:16px;text-align:center;font-size:var(--fs-sm)">${item.qty}</span>
+          <button onclick="EasySale.qty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr);background:var(--card);color:var(--txt);cursor:pointer;font-size:14px;line-height:1">+</button>
+          <span style="min-width:48px;text-align:right;font-weight:700;font-size:var(--fs-sm)">฿${_fmt(item.price*item.qty)}</span>
+        </div>
+      </div>`).join('');
+    if (total) total.textContent = '฿' + _fmt(sub);
+  }
+
+  function _esCustBlock() {
+    if (_esCustomer) {
+      return `<div class="list-item">
+        <div class="li-left">
+          <div class="li-title" style="font-size:var(--fs-sm)">${_esc(_esCustomer.name)}</div>
+          <div class="li-sub">${_esc(_esCustomer.phone||'')}${_esCustomer.code?' · '+_esc(_esCustomer.code):''}</div>
+        </div>
+        <span onclick="EasySale.clearCust()" style="color:var(--muted);cursor:pointer;font-size:var(--fs-xs);flex-shrink:0">เปลี่ยน</span>
+      </div>`;
+    }
+    return `<div style="position:relative">
+      <input id="es-cust-q" type="search" placeholder="ค้นหาชื่อ / เบอร์..." autocomplete="off"
+        oninput="EasySale.custSearch(this.value)"
+        style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;color:var(--txt);font-size:var(--fs-sm);outline:none"/>
+      <div id="es-cust-res"></div>
+    </div>`;
+  }
+
+  window.EasySale = {
+    search(q) {
+      _esQ = q;
+      clearTimeout(_esSearchTm);
+      _esSearchTm = setTimeout(_esRenderProducts, 200);
+    },
+    add(pid) {
+      const p = _esProducts.find(x => x.id === pid);
+      if (!p) return;
+      const ex = _esCart.find(x => x.id === pid);
+      if (ex) ex.qty++;
+      else _esCart.push({id:p.id, name:p.name, price:p.price, qty:1, sku:p.sku||''});
+      _esRenderCart();
+      App.toast(p.name + ' +1');
+    },
+    qty(i, delta) {
+      _esCart[i].qty += delta;
+      if (_esCart[i].qty <= 0) _esCart.splice(i, 1);
+      _esRenderCart();
+    },
+    clearCart() { _esCart = []; _esRenderCart(); },
+    selPay(id) {
+      _esPm = id;
+      document.querySelectorAll('[id^="es-pm-"]').forEach(b => {
+        const sel = b.id === 'es-pm-' + id;
+        b.style.borderColor = sel ? 'var(--gold)' : 'var(--bdr)';
+        b.style.background  = sel ? 'rgba(232,185,62,0.13)' : 'var(--card)';
+        b.style.color       = sel ? 'var(--gold)' : 'var(--txt)';
+      });
+    },
+    clearCust() {
+      _esCustomer = null;
+      const w = document.getElementById('es-cust-wrap');
+      if (w) w.innerHTML = _esCustBlock();
+    },
+    async custSearch(q) {
+      clearTimeout(_esCustTimer);
+      const res = document.getElementById('es-cust-res');
+      if (!res) return;
+      if (!q.trim()) { res.innerHTML = ''; return; }
+      _esCustTimer = setTimeout(async () => {
+        try {
+          res.innerHTML = '<div style="padding:5px 8px;font-size:var(--fs-xs);color:var(--muted)">กำลังค้นหา...</div>';
+          const list = await App.api('/api/pos/members/search?q=' + encodeURIComponent(q));
+          const members = Array.isArray(list) ? list : [];
+          if (!members.length) {
+            res.innerHTML = `<div style="border:1px solid var(--bdr);border-radius:8px;margin-top:4px">
+              <div style="padding:7px 10px;font-size:var(--fs-xs);color:var(--muted)">ไม่พบสมาชิก</div>
+            </div>`;
+            return;
+          }
+          res.innerHTML = `<div style="border:1px solid var(--bdr);border-radius:8px;margin-top:4px;overflow:hidden;max-height:140px;overflow-y:auto">
+            ${members.map(m => `<div onclick="EasySale.pickCust('${m.id}','${_esc(m.name)}','${_esc(m.phone||'')}','${_esc(m.code||'')}')"
+              style="padding:8px 10px;border-bottom:1px solid var(--bdr);cursor:pointer">
+              <div style="font-weight:600;font-size:var(--fs-sm)">${_esc(m.name)}</div>
+              <div style="font-size:var(--fs-xs);color:var(--muted)">${_esc(m.phone||'')}${m.code?' · '+_esc(m.code):''}</div>
+            </div>`).join('')}
+          </div>`;
+        } catch(e) {
+          if (res) res.innerHTML = '<div style="font-size:var(--fs-xs);color:var(--muted);padding:4px 0">ค้นหาไม่ได้</div>';
+        }
+      }, 300);
+    },
+    pickCust(id, name, phone, code) {
+      _esCustomer = {id, name, phone, code};
+      const w = document.getElementById('es-cust-wrap');
+      if (w) w.innerHTML = _esCustBlock();
+    },
+    async checkout() {
+      if (!_esCart.length) { App.toast('กรุณาเพิ่มสินค้า'); return; }
+      if (!_esCustomer)    { App.toast('กรุณาเลือกลูกค้า'); return; }
+      const btn = document.getElementById('es-checkout-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+      try {
+        const payload = {
+          doc_type:      'receipt',
+          pay_method:    _esPm,
+          source:        _esSource,
+          items:         _esCart.map(i => ({id:i.id, name:i.name, price:i.price, qty:i.qty, sku:i.sku})),
+          customer:      _esCustomer.name,
+          customer_code: _esCustomer.code || '',
+          customer_data: _esCustomer,
+          discount:      0,
+          discount_type: 'amount',
+          vat:           0,
+          note:          '',
+        };
+        const res = await App.api('/api/pos/bills/create', {method:'POST', body: JSON.stringify(payload)});
+        const label = ES_FIN_LABEL[_esPm] || 'บันทึกแล้ว';
+        closeSheet();
+        App.toast('✅ ' + res.bill_no + ' · ' + label);
+        _esCart = [];
+        _esCustomer = null;
+        _esPm = 'cash';
+        _render();
+      } catch(e) {
+        App.toast('❌ ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'จบการขาย'; }
+      }
+    }
+  };
 
   function _openBillingSheet() {
     openSheet(`
@@ -614,6 +926,7 @@
 window.PosHub = {
     menu(i) { MENUS[i]?.action(); },
     moreAction(i) { window._moreItems?.[i]?.action(); },
+    openEasySale(source) { _openEasySaleSheet(source); },
     openAI() {
       openSheet(`
         <div style="padding:0 0 16px">
