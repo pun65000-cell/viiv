@@ -7,7 +7,7 @@
  *   4. ทุกส่วนของระบบอ่าน/เขียน token ผ่าน Auth เท่านั้น
  */
 
-const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMSIsInRlbmFudF9pZCI6InRlbl8xIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IkFkbWluIn0.thOZ_qfo1QjGEbz3UD76XP7gfXxV_HHIRSC4NInF_EU';
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMSIsInRlbmFudF9pZCI6InRlbl9mYTdmMmM5OC1lN2EzLTRlZWMtYmJiYS03NTgwZDlmODg4NzAiLCJyb2xlIjoib3duZXIiLCJuYW1lIjoiQWRtaW4iLCJhZG1pbiI6dHJ1ZX0.vbVHbsLK4R76UL3yNyl8JBeJWER72K8LerUB_NxpPUY';
 
 const Auth = {
   _token: DEV_TOKEN,

@@ -26,6 +26,13 @@
           <input id="stStoreName" type="text" class="st-input" placeholder="ชื่อร้านค้าของคุณ"/>
         </div>
         <div class="st-field full">
+          <label>Shop ID <span style="font-size:11px;color:#9ca3af;font-weight:400">(ใช้ยืนยันการเชื่อมต่อทุกโมดูล)</span></label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input id="stShopId" type="text" class="st-input" readonly style="background:#f8f8f8;color:#6b7280;cursor:default;font-family:monospace;font-size:13px;" placeholder="กำลังโหลด..."/>
+            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('stShopId').value).then(()=>alert('คัดลอกแล้ว'))" style="padding:8px 14px;border:1px solid #d1d5db;border-radius:7px;background:#fff;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">คัดลอก</button>
+          </div>
+        </div>
+        <div class="st-field full">
           <label>เลขประจำตัวผู้เสียภาษี</label>
           <input id="stTaxId" type="text" class="st-input" placeholder="0000000000000"/>
         </div>
@@ -572,6 +579,14 @@ function loadSettings(){
     _origData=d;
     // store tab
     document.getElementById('stStoreName').value=d.store_name||'';
+    var sid=document.getElementById('stShopId');
+    if(sid){
+      try{
+        var tok=localStorage.getItem('viiv_token')||'';
+        var pl=JSON.parse(atob(tok.split('.')[1]));
+        sid.value=pl.tenant_id||'—';
+      }catch(e){sid.value='—';}
+    }
     document.getElementById('stTaxId').value=d.tax_id||'';
     document.getElementById('stPhone').value=d.phone||'';
   var bc=document.getElementById('stBranchCode');if(bc)bc.value=d.branch_code||'';
