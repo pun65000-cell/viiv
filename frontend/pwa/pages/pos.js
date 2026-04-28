@@ -75,8 +75,8 @@
     const lowStock    = pos?.low_stock ?? 0;
     const logoUrl = settings?.logo_url || '';
     const logoInner = logoUrl
-      ? `<img src="${_esc(logoUrl)}" style="width:32px;height:32px;border-radius:8px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/><span style="display:none;font-size:1.2rem;line-height:1">🛍️</span>`
-      : '<span style="font-size:1.2rem;line-height:1">🛍️</span>';
+      ? `<img src="${_esc(logoUrl)}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span style="display:none;width:48px;height:48px;align-items:center;justify-content:center;font-size:1.5rem">🛍️</span>`
+      : '<span style="font-size:1.5rem;line-height:1">🛍️</span>';
 
     return `<div class="sb-wrap">
 
@@ -94,9 +94,8 @@
             <span style="font-size:8px;font-weight:700">EasySale</span>
           </button>
           <button onclick="PosHub.openCatalog()"
-            style="width:48px;height:48px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;padding:0;overflow:hidden">
+            style="width:48px;height:48px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;overflow:hidden">
             ${logoInner}
-            <span style="font-size:7px;font-weight:700;color:var(--txt);line-height:1;padding:0 2px">แคตตาล็อก</span>
           </button>
           <button onclick="Router.go('billing')"
             style="width:48px;height:48px;background:var(--gold);color:#000;border:none;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0;font-size:1.2rem;font-weight:700">
@@ -150,9 +149,8 @@
             <span style="font-size:8px;font-weight:700">EasySale</span>
           </button>
           <button onclick="PosHub.openCatalog()"
-            style="width:48px;height:48px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;padding:0">
-            <span style="font-size:1.2rem;line-height:1">🛍️</span>
-            <span style="font-size:7px;font-weight:700;color:var(--txt);line-height:1">แคตตาล็อก</span>
+            style="width:48px;height:48px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">
+            <span style="font-size:1.5rem;line-height:1">🛍️</span>
           </button>
           <button onclick="Router.go('billing')"
             style="width:48px;height:48px;background:var(--gold);color:#000;border:none;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0;font-size:1.2rem;font-weight:700">
