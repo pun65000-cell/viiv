@@ -57,23 +57,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .av:nth-child(4){background:linear-gradient(135deg,#e07858,#f09878);border-color:#c05030;}
 .av:nth-child(5){background:linear-gradient(135deg,#a878d8,#c898f0);border-color:#8050b0;}
 
+
+
 /* ── TAB-PLATFORMS BAR ── */
 #tab-platforms{
-  position:fixed;top:var(--hh);left:0;right:0;
+  position:fixed;top:0;left:0;right:0;
   height:var(--ph);
   background:var(--bg2);
   border-bottom:1px solid var(--bdr);
-  display:flex;align-items:center;justify-content:center;
+  display:flex;flex-direction:row;align-items:center;justify-content:center;
   gap:8px;
   padding:0 var(--mg);
   z-index:190;
   cursor:pointer;user-select:none;
-  transition:background .2s;
 }
-#tab-platforms:hover{background:var(--bg3);}
 
 /* ── CANVAS ── */
-#canvas{position:fixed;top:calc(var(--hh) + var(--ph));left:52px;right:0;bottom:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+#canvas{position:fixed;top:var(--ph);left:0;right:0;bottom:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 #xsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}
 
 /* ── GRID ──
