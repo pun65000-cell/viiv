@@ -36,11 +36,13 @@
       c.innerHTML = _html(pos);
       _startTickers();
       _startClock();
+      _loadPlatformStatus();
     } catch(e) {
       if (_destroyed) return;
       c.innerHTML = _html({});
       _startTickers();
       _startClock();
+      _loadPlatformStatus();
     }
   }
 
@@ -62,8 +64,15 @@
       <!-- HUB STRIP -->
       <div class="ld-hub">
         <div class="ld-hub-left">
-          <div class="ld-hub-title">CONCORE</div>
-          <div class="ld-hub-sub">Multi-Agent Platform</div>
+          <div class="ld-platforms" id="pwa-platforms" onclick="Router.go('line')">
+            <span class="ld-pl-label">Platforms</span>
+            <div class="ld-pl-item" id="ppl-line"><div class="ld-pl-icon" style="background:#06C755">LINE</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-fb"><div class="ld-pl-icon" style="background:#1877F2">f</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-tk"><div class="ld-pl-icon" style="background:#010101">TK</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-ig"><div class="ld-pl-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">Ig</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-yt"><div class="ld-pl-icon" style="background:#FF0000">YT</div><div class="ld-pl-dot"></div></div>
+            <span class="ld-pl-action">ตั้งค่า →</span>
+          </div>
         </div>
         <div class="ld-hub-right">
           <div class="ld-hub-total" id="hub-total">฿${ts}</div>
@@ -189,6 +198,16 @@
       }, delays[key] + Math.random()*600);
       _timers.push(id);
     });
+  }
+
+  async function _loadPlatformStatus() {
+    try {
+      const d = await App.api('/api/pos/line/settings');
+      if (d && d.channel_access_token) {
+        const el = document.getElementById('ppl-line');
+        if (el) el.classList.add('connected');
+      }
+    } catch(_) {}
   }
 
   // ── Clock in hub ──
