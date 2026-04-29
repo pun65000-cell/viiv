@@ -14,7 +14,31 @@
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('/superboard/sw.js');
     }
-  </script>
+    window.addEventListener('message', function(e){
+    if(!e.data || e.data.type !== 'staff_update') return;
+    var el = document.getElementById('sb-staff-count');
+    if(el) el.textContent = e.data.count + ' online';
+    var av = document.getElementById('sb-staff-avatars');
+    if(av){
+      av.innerHTML = '';
+      (e.data.names||[]).slice(0,5).forEach(function(n){
+        var d = document.createElement('div');
+        d.style.cssText = 'width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#d4a84c,#f0d070);border:2px solid #2aaa58;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#231908;';
+        d.textContent = n.charAt(0);
+        av.appendChild(d);
+      });
+    }
+  });
+  // re-request เมื่อ iframe โหลดเสร็จ
+  document.addEventListener('DOMContentLoaded', function(){
+    var fr = document.getElementById('dashFrame');
+    if(fr) fr.addEventListener('load', function(){
+      setTimeout(function(){
+        fr.contentWindow.postMessage({type:'request_staff'},'*');
+      }, 500);
+    });
+  });
+</script>
 <style>
 /* === CONTENT FONT SCALE === */
 #sbContent:not(.home-fullscreen), #sbContent:not(.home-fullscreen) * { font-size: 15px !important; }
@@ -67,6 +91,11 @@
   <div class="sb-spacer"></div>
 
     <div class="sb-top-actions">
+    <!-- Staff Online -->
+    <div id="sb-staff-wrap" style="display:flex;align-items:center;gap:6px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.26);border-radius:20px;padding:4px 12px 4px 6px;margin-right:4px;">
+      <div id="sb-staff-avatars" style="display:flex;gap:2px;"></div>
+      <span id="sb-staff-count" style="font-size:12px;font-weight:600;color:#8a6820;white-space:nowrap;">0 online</span>
+    </div>
 
     <!-- เพิ่มยอดขาย -->
     <button class="sb-topaction-boost" onclick="sbNav('boost')" title="เพิ่มยอดขายด้วย AI">

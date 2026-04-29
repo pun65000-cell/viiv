@@ -231,6 +231,11 @@ function renderHeaderStaff(){
     d.textContent=s.name.slice(0,2);row.appendChild(d);
   });
   setText('h-online',STAFF_DEFS.length+' online');
+  if(window.parent !== window) window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
+  window.addEventListener('message', function(e){
+    if(e.data && e.data.type==='request_staff')
+      if(window.parent !== window) window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
+  });
 }
 
 // ── renders ────────────────────────────────────
@@ -332,6 +337,9 @@ function init(){
   const _canvas = document.getElementById('canvas');
   if (_canvas) _canvas.style.top = 'calc(var(--hh) + var(--tbh))';
   clearTimers();
+  if(window.parent !== window) setInterval(function(){
+    window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
+  }, 5000);
   const db=$('h-date');
   if(db)db.textContent=new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
   tick();addTimer(tick,1000);
