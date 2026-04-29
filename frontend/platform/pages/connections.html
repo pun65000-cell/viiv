@@ -54,7 +54,6 @@
 /* ── FORM ── */
 .cx-field{ margin-bottom:16px; }
 .cx-label{ font-size:14px; font-weight:600; color:#374151; margin-bottom:6px; }
-.cx-req{ color:#ef4444; }
 .cx-input{
   width:100%; padding:10px 14px; border:2px solid #e5e7eb;
   border-radius:10px; font-size:15px; color:#1f2937;
@@ -201,19 +200,19 @@
           </div>
 
           <div class="cx-field">
-            <div class="cx-label">LINE OA ID <span class="cx-req">*</span></div>
+            <div class="cx-label">LINE OA ID </div>
             <input id="cx-line-oa" class="cx-input" placeholder="abc1234d (ไม่ต้องใส่ @)"/>
             <div style="font-size:12px;color:#9ca3af;margin-top:4px">ดูได้ที่ LINE Official Account Manager → Basic information</div>
           </div>
           <div class="cx-field">
-            <div class="cx-label">Channel Access Token <span class="cx-req">*</span></div>
+            <div class="cx-label">Channel Access Token </div>
             <div class="cx-input-wrap">
               <input id="cx-line-token" type="password" class="cx-input" placeholder="Channel Access Token"/>
               <button class="cx-eye" onclick="cxEye('cx-line-token',this)">👁</button>
             </div>
           </div>
           <div class="cx-field">
-            <div class="cx-label">Channel Secret <span class="cx-req">*</span></div>
+            <div class="cx-label">Channel Secret </div>
             <div class="cx-input-wrap">
               <input id="cx-line-secret" type="password" class="cx-input" placeholder="Channel Secret"/>
               <button class="cx-eye" onclick="cxEye('cx-line-secret',this)">👁</button>
