@@ -353,7 +353,49 @@ function init(){
   }));
   addTimer(()=>{if(Math.random()<.35)spawnCustomer();},14000);
   fetchSales();addTimer(fetchSales,30000);
+  hpLoad();
   log('v6 OK');
+}
+
+async function hpLoad(){
+  const t=W.token||localStorage.getItem('viiv_token');
+  if(!t) return;
+  try{
+    const r=await fetch('/api/pos/line/settings',{headers:{'Authorization':'Bearer '+t}});
+    const d=await r.json();
+    const el=document.getElementById('hp-line');
+    if(el){
+      if((d.line_oa_id||d.oa_id)&&d.channel_token) el.classList.add('connected');
+      else el.classList.remove('connected');
+    }
+  }catch(e){}
+  hpBindTooltip();
+}
+
+function hpBindTooltip(){
+  const tip=document.getElementById('hp-tooltip');
+  if(!tip) return;
+  const msgs={
+    warning:'โปรดตรวจสอบการเชื่อมต่อเพื่อการใช้งานอย่างต่อเนื่อง',
+    error:'โปรดทำการเชื่อมต่อบัญชีเพื่อใช้งาน'
+  };
+  document.querySelectorAll('.hp-item').forEach(function(item){
+    item.addEventListener('mouseenter',function(){
+      var s=item.classList.contains('warning')?'warning':item.classList.contains('error')?'error':null;
+      if(!s){tip.classList.remove('show');return;}
+      var name=item.dataset.name||'';
+      tip.textContent=(name?name+' — ':'')+msgs[s];
+      tip.style.visibility='hidden';
+      tip.classList.add('show');
+      var r=item.getBoundingClientRect();
+      var tl=r.left+r.width/2-tip.offsetWidth/2;
+      tl=Math.max(8,Math.min(tl,window.innerWidth-tip.offsetWidth-8));
+      tip.style.left=tl+'px';
+      tip.style.top=(r.bottom+10)+'px';
+      tip.style.visibility='';
+    });
+    item.addEventListener('mouseleave',function(){tip.classList.remove('show');});
+  });
 }
 
 window.vDash={setLoad,togglePopup,resetDash,fetchSales};

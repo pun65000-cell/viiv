@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+
+/* ── TAB BAR ── */
+.cn-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+.cn-tab{display:flex;align-items:center;gap:6px;padding:6px 13px;border:1.5px solid #e5e1da;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#6b7280;transition:.15s;}
+.cn-tab:hover{border-color:var(--accent,#e8b93e);color:#1a1200;}
+.cn-tab.active{border-color:var(--accent,#e8b93e);background:var(--accent,#e8b93e);color:#1a1200;box-shadow:0 2px 6px rgba(232,185,62,0.35);}
+.cn-tab-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+
+/* ── PANEL ── */
+.cn-panel{display:none;}
+.cn-panel.active{display:block;}
+
+/* ── CARD ── */
+.cn-card{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:16px;border:1px solid #e5e1da;}
+.cn-card-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.cn-card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cn-card-title{font-weight:700;font-size:14px;color:#1a1a1a;}
+.cn-card-sub{font-size:11px;color:#9ca3af;margin-top:2px;}
+
+/* ── STATUS BANNER ── */
+.cn-status-banner{border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.cn-status-banner.connected{background:#06C755;color:#fff;}
+.cn-status-banner.disconnected{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;}
+.cn-status-dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.9;}
+.cn-status-badge{margin-left:auto;background:rgba(255,255,255,.25);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+
+/* ── FORM ── */
+.cn-label{font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
+.cn-req{color:#ef4444;}
+.cn-input{width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:13px;color:#1f2937;background:#fff;outline:none;transition:.15s;}
+.cn-input:focus{border-color:var(--accent,#e8b93e);}
+.cn-field{margin-bottom:14px;}
+.cn-input-wrap{position:relative;}
+.cn-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;background:none;border:none;font-size:14px;}
+
+/* ── WEBHOOK BOX ── */
+.cn-webhook{background:#f9f7f3;border:1px solid #e5e1da;border-radius:10px;padding:12px 14px;margin-top:4px;}
+.cn-webhook-label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.cn-webhook-row{display:flex;align-items:center;gap:10px;}
+.cn-webhook-url{flex:1;font-size:12px;color:#374151;word-break:break-all;}
+.cn-copy-btn{flex-shrink:0;padding:5px 12px;background:var(--accent,#e8b93e);border:none;border-radius:7px;font-size:12px;font-weight:700;color:#1a1200;cursor:pointer;}
+
+/* ── BUTTONS ── */
+.cn-btn-row{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+.cn-btn{padding:9px 20px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;}
+.cn-btn-cancel{background:#f3f4f6;color:#374151;}
+.cn-btn-save{background:var(--accent,#e8b93e);color:#1a1200;}
+.cn-btn-save:hover{opacity:.9;}
+
+/* ── FEATURE ROW ── */
+.cn-feature-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid #f3f4f6;}
+.cn-feature-row:last-child{border-bottom:none;}
+.cn-feature-title{font-weight:600;font-size:13px;color:#1a1a1a;margin-bottom:3px;}
+.cn-feature-desc{font-size:11px;color:#6b7280;line-height:1.5;}
+.cn-feature-body{flex:1;}
+.cn-feature-extra{margin-top:12px;padding:14px;background:#f9f7f3;border-radius:10px;border:1px solid #e5e1da;}
+
+/* ── TOGGLE ── */
+.cn-toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.cn-toggle input{opacity:0;width:0;height:0;}
+.cn-toggle-slider{position:absolute;inset:0;background:#d1d5db;border-radius:24px;cursor:pointer;transition:.2s;}
+.cn-toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+.cn-toggle input:checked+.cn-toggle-slider{background:#06C755;}
+.cn-toggle input:checked+.cn-toggle-slider:before{transform:translateX(20px);}
+
+/* ── RADIO ── */
+.cn-radio-group{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.cn-radio-item{display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.cn-radio-item input{margin-top:3px;accent-color:#06C755;}
+.cn-radio-title{font-weight:600;font-size:13px;color:#1a1a1a;}
+.cn-radio-desc{font-size:11px;color:#6b7280;margin-top:2px;}
+
+/* ── NOTIFY ── */
+.cn-notify-box{margin-top:12px;background:#f9f7f3;border-radius:10px;border:1px solid #e5e1da;padding:14px;}
+.cn-notify-warn{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:11px;color:#92400e;line-height:1.6;margin-top:10px;}
+
+/* ── QR UPLOAD ── */
+.cn-qr-upload{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.cn-qr-preview{width:64px;height:64px;border-radius:8px;background:#f3f4f6;border:1.5px dashed #d1d5db;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.cn-qr-preview img{width:100%;height:100%;object-fit:cover;}
+
+/* ── STEPS ── */
+.cn-step{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f3f4f6;}
+.cn-step:last-child{border-bottom:none;}
+.cn-step-num{width:24px;height:24px;border-radius:50%;background:var(--accent,#e8b93e);color:#1a1200;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.cn-step-text{font-size:13px;color:#374151;line-height:1.6;}
+
+/* ── COMING SOON ── */
+.cn-coming{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;}
+.cn-coming-icon{font-size:48px;margin-bottom:16px;opacity:.4;}
+.cn-coming-title{font-size:16px;font-weight:700;color:#374151;margin-bottom:6px;}
+.cn-coming-desc{font-size:13px;color:#9ca3af;}
+
+/* ── MSG ── */
+.cn-msg{display:none;margin-top:8px;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;}
+</style>
+</head>
+<body>
+<div style="padding:4px 0;">
+
+<!-- TAB BAR -->
+<div class="cn-tabs">
+  <button class="cn-tab active" data-tab="line" onclick="cnTab('line')">
+    <div class="cn-tab-icon" style="background:#06C755;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+    </div>
+    LINE
+  </button>
+  <button class="cn-tab" data-tab="facebook" onclick="cnTab('facebook')">
+    <div class="cn-tab-icon" style="background:#1877F2;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    </div>
+    Facebook
+  </button>
+  <button class="cn-tab" data-tab="tiktok" onclick="cnTab('tiktok')">
+    <div class="cn-tab-icon" style="background:#000;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.15 8.15 0 004.77 1.52V6.76a4.85 4.85 0 01-1-.07z"/></svg>
+    </div>
+    TikTok
+  </button>
+  <button class="cn-tab" data-tab="instagram" onclick="cnTab('instagram')">
+    <div class="cn-tab-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+    </div>
+    Instagram
+  </button>
+  <button class="cn-tab" data-tab="youtube" onclick="cnTab('youtube')">
+    <div class="cn-tab-icon" style="background:#FF0000;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+    </div>
+    YouTube
+  </button>
+  <button class="cn-tab" data-tab="apikeys" onclick="cnTab('apikeys')">
+    <div class="cn-tab-icon" style="background:#6366f1;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+    </div>
+    API Keys
+  </button>
+</div>
+
+<!-- PANEL: LINE -->
+<div class="cn-panel active" id="cn-panel-line">
+
+  <div id="cnLineStatusBanner" class="cn-status-banner disconnected">
+    <div class="cn-status-dot"></div>
+    <div>
+      <div style="font-weight:700;font-size:14px;" id="cnLineStatusTitle">ยังไม่ได้เชื่อมต่อ LINE OA</div>
+      <div style="font-size:12px;opacity:.8;" id="cnLineStatusSub">กรอก credentials ด้านล่างเพื่อเชื่อมต่อ</div>
+    </div>
+    <span class="cn-status-badge" id="cnLineStatusBadge" style="display:none;">● Active</span>
+  </div>
+
+  <!-- Card 1: Credentials -->
+  <div class="cn-card">
+    <div class="cn-card-header">
+      <div class="cn-card-icon" style="background:#06C755;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      </div>
+      <div>
+        <div class="cn-card-title">ตั้งค่า LINE Official Account</div>
+        <div class="cn-card-sub">กรอก credentials จาก LINE Developer Console</div>
+      </div>
+      <button onclick="window.open('https://developers.line.biz/console/','_blank')" style="margin-left:auto;padding:7px 14px;background:#06C755;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">ⓘ วิธีสมัครสร้าง Channel</button>
+    </div>
+    <div class="cn-field">
+      <div class="cn-label">LINE OA ID <span class="cn-req">*</span></div>
+      <input id="cnLineOaId" type="text" class="cn-input" placeholder="เช่น @abc1234d (ไม่ต้องใส่ @)"/>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">เช่น @abc1234d (ไม่ต้องใส่ @)</div>
+    </div>
+    <div class="cn-field">
+      <div class="cn-label">Channel Access Token <span class="cn-req">*</span></div>
+      <div class="cn-input-wrap">
+        <input id="cnLineToken" type="password" class="cn-input" placeholder="Channel Access Token"/>
+        <button class="cn-eye" onclick="cnToggleEye('cnLineToken',this)">👁</button>
+      </div>
+    </div>
+    <div class="cn-field">
+      <div class="cn-label">Channel Secret <span class="cn-req">*</span></div>
+      <div class="cn-input-wrap">
+        <input id="cnLineSecret" type="password" class="cn-input" placeholder="Channel Secret"/>
+        <button class="cn-eye" onclick="cnToggleEye('cnLineSecret',this)">👁</button>
+      </div>
+    </div>
+    <div class="cn-webhook">
+      <div class="cn-webhook-label">Webhook URL (ตั้งใน LINE Console)</div>
+      <div class="cn-webhook-row">
+        <span class="cn-webhook-url">https://concore.viiv.me/api/line/webhook</span>
+        <button class="cn-copy-btn" onclick="cnCopyWebhook(this)">Copy</button>
+      </div>
+    </div>
+    <div id="cnCredMsg" class="cn-msg"></div>
+    <div class="cn-btn-row">
+      <button class="cn-btn cn-btn-cancel" onclick="cnLoadSettings()">ยกเลิก</button>
+      <button class="cn-btn cn-btn-save" onclick="cnSaveCred()">บันทึก</button>
+    </div>
+  </div>
+
+  <!-- Card 2: Features -->
+  <div class="cn-card">
+    <div class="cn-card-header">
+      <div class="cn-card-icon" style="background:#ede9fe;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div>
+        <div class="cn-card-title">ฟีเจอร์ LINE</div>
+        <div class="cn-card-sub">เปิด/ปิดการทำงานแต่ละส่วน</div>
+      </div>
+    </div>
+    <div class="cn-feature-row">
+      <div class="cn-feature-body">
+        <div class="cn-feature-title">ส่งบิลอัตโนมัติผ่าน LINE</div>
+        <div class="cn-feature-desc">เมื่อออกบิล ระบบจะ Push Message ไปหาลูกค้าที่เชื่อม LINE ไว้อัตโนมัติ</div>
+      </div>
+      <label class="cn-toggle"><input type="checkbox" id="cnFeatBill" onchange="cnSaveFeatures()"/><span class="cn-toggle-slider"></span></label>
+    </div>
+    <div class="cn-feature-row">
+      <div class="cn-feature-body">
+        <div class="cn-feature-title">ส่งใบเสนอราคาผ่าน LINE</div>
+        <div class="cn-feature-desc">ปุ่ม "ส่งใบเสนอราคา" ใน Catalog จะ Push ข้อความไปยังลูกค้า</div>
+        <div id="cnQuoteSection" style="display:none;">
+          <div class="cn-feature-extra">
+            <div style="font-weight:700;font-size:13px;color:#1a1a1a;margin-bottom:10px;">ตั้งค่าใบเสนอราคา</div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">QR หรือรูปช่องทางติดต่อ (แสดงมุมขวาล่างของใบเสนอราคา)</div>
+            <div class="cn-qr-upload">
+              <div class="cn-qr-preview" id="cnQuoteQrPreview">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <button onclick="document.getElementById('cnQrFile').click()" style="padding:7px 14px;background:#f3f4f6;border:1.5px dashed #d1d5db;border-radius:8px;font-size:12px;font-weight:600;color:#374151;cursor:pointer;">อัพโหลดรูป</button>
+              <input type="file" id="cnQrFile" accept="image/*" style="display:none" onchange="cnUploadQr(this)"/>
+            </div>
+            <div class="cn-field">
+              <div class="cn-label">ข้อความช่องทางติดต่อ</div>
+              <input id="cnQuoteContact" type="text" class="cn-input" placeholder="เช่น LINE: @myshop หรือ Tel: 081-xxx-xxxx"/>
+            </div>
+            <div class="cn-field" style="margin-bottom:0;">
+              <div class="cn-label">ข้อความหมายเหตุ</div>
+              <textarea id="cnQuoteNote" class="cn-input" rows="2" placeholder="เช่น ใบเสนอราคานี้มีผล 7 วัน" style="resize:vertical;"></textarea>
+            </div>
+            <div style="text-align:right;margin-top:10px;">
+              <button class="cn-btn cn-btn-save" onclick="cnSaveQuote()">บันทึกการตั้งค่าใบเสนอราคา</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <label class="cn-toggle"><input type="checkbox" id="cnFeatQuote" onchange="cnToggleQuote();cnSaveFeatures()"/><span class="cn-toggle-slider"></span></label>
+    </div>
+    <div class="cn-feature-row">
+      <div class="cn-feature-body">
+        <div class="cn-feature-title">ปุ่ม LINE Chat ใน Catalog</div>
+        <div class="cn-feature-desc">แสดงปุ่มลอยมุมขวาล่างให้ลูกค้า Chat ผ่าน LINE ได้ทันที</div>
+        <div id="cnChatSection" style="display:none;">
+          <div class="cn-feature-extra">
+            <div class="cn-field">
+              <div class="cn-label">ข้อความบนปุ่ม <span style="color:#9ca3af;">(สูงสุด 10 ตัวอักษร)</span></div>
+              <input id="cnChatLabel" type="text" class="cn-input" maxlength="10" placeholder="Chat" style="max-width:200px;"/>
+            </div>
+            <div>
+              <div class="cn-label" style="margin-bottom:8px;">เมื่อลูกค้ากดปุ่มครั้งแรก</div>
+              <div class="cn-radio-group">
+                <label class="cn-radio-item">
+                  <input type="radio" name="cnChatAction" value="add_friend" id="cnActionAddFriend"/>
+                  <div><div class="cn-radio-title">บังคับเพิ่มเพื่อนก่อน</div><div class="cn-radio-desc">เปิด line.me/R/ti/p/@oaid → ลูกค้าต้อง Add Friend แล้วค่อย Chat</div></div>
+                </label>
+                <label class="cn-radio-item">
+                  <input type="radio" name="cnChatAction" value="direct_chat" id="cnActionDirect"/>
+                  <div><div class="cn-radio-title">เปิด LINE Chat ทันที</div><div class="cn-radio-desc">เปิด line.me/R/oaMessage/@oaid → Chat ได้เลยไม่ต้อง Add Friend</div></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <label class="cn-toggle"><input type="checkbox" id="cnFeatChat" onchange="cnToggleChat();cnSaveFeatures()"/><span class="cn-toggle-slider"></span></label>
+    </div>
+    <div class="cn-feature-row">
+      <div class="cn-feature-body">
+        <div class="cn-feature-title">แจ้งเตือน Order ใหม่</div>
+        <div class="cn-feature-desc">Push notify ไปยัง LINE ของเจ้าของร้านเมื่อมี Order เข้า</div>
+        <div id="cnNotifySection" style="display:none;">
+          <div class="cn-feature-extra">
+            <div class="cn-label" style="margin-bottom:6px;">LINE User ID หรือ Group ID ที่รับแจ้งเตือน</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input id="cnNotifyUid" type="text" class="cn-input" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style="flex:1;"/>
+              <button onclick="cnFetchPendingUid()" style="flex-shrink:0;padding:8px 14px;background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:600;color:#374151;cursor:pointer;">ดึงล่าสุด</button>
+            </div>
+            <div class="cn-notify-warn">
+              ⚠ บัญชีที่ใช้รับแจ้งเตือนต้องเป็นเพื่อนกับ LINE OA ก่อน จึงจะรับ Push Message ได้<br/>
+              วิธีหา User ID: เปิด LINE OA Manager → Chats → คลิกชื่อผู้ใช้ → ดู User ID ใต้ชื่อ
+            </div>
+          </div>
+        </div>
+      </div>
+      <label class="cn-toggle"><input type="checkbox" id="cnFeatNotify" onchange="cnToggleNotify();cnSaveFeatures()"/><span class="cn-toggle-slider"></span></label>
+    </div>
+    <div id="cnFeatMsg" class="cn-msg"></div>
+  </div>
+
+  <!-- Card 3: วิธีเชื่อมต่อ -->
+  <div class="cn-card">
+    <div class="cn-card-header">
+      <div class="cn-card-icon" style="background:#fff7ed;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="cn-card-title">วิธีเชื่อมต่อ</div>
+    </div>
+    <div class="cn-step"><span class="cn-step-num">1</span><span class="cn-step-text">เข้า <strong>LINE Developer Console</strong> → สร้าง Provider → สร้าง Channel (Messaging API)</span></div>
+    <div class="cn-step"><span class="cn-step-num">2</span><span class="cn-step-text">คัดลอก <strong>Channel ID, Channel Secret, Channel Access Token</strong> กรอกในฟอร์มด้านบน</span></div>
+    <div class="cn-step"><span class="cn-step-num">3</span><span class="cn-step-text">ในหน้า Messaging API ตั้ง <strong>Webhook URL</strong> เป็น URL ด้านบน แล้วกด Verify</span></div>
+    <div class="cn-step"><span class="cn-step-num">4</span><span class="cn-step-text">ลูกค้า <strong>Add Friend</strong> LINE OA → ระบบจะจำ LINE User ID ให้อัตโนมัติ</span></div>
+    <div class="cn-step"><span class="cn-step-num">5</span><span class="cn-step-text">กลับมาที่หน้าเชื่อมต่อ LINE แล้วกด <strong>บันทึก</strong> เพื่อเปิดใช้งาน</span></div>
+  </div>
+</div><!-- /panel-line -->
+
+<!-- PANELS: Coming Soon -->
+<div class="cn-panel" id="cn-panel-facebook">
+  <div class="cn-card"><div class="cn-coming">
+    <div class="cn-coming-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="#1877F2" opacity=".4"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+    <div class="cn-coming-title">Facebook — Coming Soon</div>
+    <div class="cn-coming-desc">เร็วๆ นี้ เชื่อมต่อ Facebook Page เพื่อรับ Order และส่งข้อความอัตโนมัติ</div>
+  </div></div>
+</div>
+<div class="cn-panel" id="cn-panel-tiktok">
+  <div class="cn-card"><div class="cn-coming">
+    <div class="cn-coming-icon">🎵</div>
+    <div class="cn-coming-title">TikTok — Coming Soon</div>
+    <div class="cn-coming-desc">เร็วๆ นี้ เชื่อมต่อ TikTok Shop และ TikTok Live</div>
+  </div></div>
+</div>
+<div class="cn-panel" id="cn-panel-instagram">
+  <div class="cn-card"><div class="cn-coming">
+    <div class="cn-coming-icon">📸</div>
+    <div class="cn-coming-title">Instagram — Coming Soon</div>
+    <div class="cn-coming-desc">เร็วๆ นี้ เชื่อมต่อ Instagram Business Account</div>
+  </div></div>
+</div>
+<div class="cn-panel" id="cn-panel-youtube">
+  <div class="cn-card"><div class="cn-coming">
+    <div class="cn-coming-icon">▶️</div>
+    <div class="cn-coming-title">YouTube — Coming Soon</div>
+    <div class="cn-coming-desc">เร็วๆ นี้ เชื่อมต่อ YouTube Channel สำหรับ Live Commerce</div>
+  </div></div>
+</div>
+<div class="cn-panel" id="cn-panel-apikeys">
+  <div class="cn-card"><div class="cn-coming">
+    <div class="cn-coming-icon">🔑</div>
+    <div class="cn-coming-title">API Keys — Coming Soon</div>
+    <div class="cn-coming-desc">สร้าง API Key สำหรับ Developer ที่ต้องการ Integrate กับ VIIV Platform</div>
+  </div></div>
+</div>
+
+</div><!-- /wrapper -->
+
+<script>
+var _tok = '';
+
+// รับ token จาก viiv_token_ready (dashboard mechanism)
+window.addEventListener('viiv_token_ready', function(e){
+  if(e.detail && e.detail.token){ _tok = e.detail.token; cnLoadSettings(); }
+});
+// รับ token จาก postMessage (superboard parent)
+window.addEventListener('message', function(e){
+  if(e.data && e.data.type==='viiv_token' && e.data.token){ _tok=e.data.token; cnLoadSettings(); }
+});
+// fallback: localStorage / window.VIIV_TOKEN
+(function(){
+  var t = window.VIIV_TOKEN || localStorage.getItem('viiv_token') || '';
+  if(t){ _tok=t; cnLoadSettings(); }
+})();
+
+function cnTab(name){
+  document.querySelectorAll('.cn-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===name); });
+  document.querySelectorAll('.cn-panel').forEach(function(p){ p.classList.toggle('active', p.id==='cn-panel-'+name); });
+}
+
+function cnLoadSettings(){
+  if(!_tok) return;
+  var h={'Authorization':'Bearer '+_tok};
+  fetch('/api/pos/line/settings',{headers:h})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      document.getElementById('cnLineOaId').value=d.line_oa_id||'';
+      document.getElementById('cnLineToken').value=d.channel_token||'';
+      document.getElementById('cnLineSecret').value=d.channel_secret||'';
+      var connected=!!(d.line_oa_id && d.channel_token);
+      var banner=document.getElementById('cnLineStatusBanner');
+      var badge=document.getElementById('cnLineStatusBadge');
+      if(connected){
+        banner.className='cn-status-banner connected';
+        document.getElementById('cnLineStatusTitle').textContent='เชื่อมต่อ LINE OA สำเร็จ';
+        document.getElementById('cnLineStatusSub').textContent='@'+(d.line_oa_id||'');
+        badge.style.display='block';
+      } else {
+        banner.className='cn-status-banner disconnected';
+        document.getElementById('cnLineStatusTitle').textContent='ยังไม่ได้เชื่อมต่อ LINE OA';
+        document.getElementById('cnLineStatusSub').textContent='กรอก credentials ด้านล่างเพื่อเชื่อมต่อ';
+        badge.style.display='none';
+      }
+      var f=d.line_features||{};
+      document.getElementById('cnFeatBill').checked=!!f.send_bill;
+      document.getElementById('cnFeatQuote').checked=!!f.send_quote;
+      document.getElementById('cnFeatChat').checked=!!f.chat_button;
+      document.getElementById('cnFeatNotify').checked=!!f.notify_order;
+      document.getElementById('cnChatLabel').value=f.chat_label||'Chat';
+      var action=f.chat_action||'add_friend';
+      document.getElementById('cnActionAddFriend').checked=(action==='add_friend');
+      document.getElementById('cnActionDirect').checked=(action==='direct_chat');
+      document.getElementById('cnNotifyUid').value=f.notify_uid||'';
+      document.getElementById('cnQuoteContact').value=d.quote_contact||'';
+      document.getElementById('cnQuoteNote').value=d.quote_note||'';
+      if(d.quote_qr_url){
+        document.getElementById('cnQuoteQrPreview').innerHTML='<img src="'+d.quote_qr_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px;"/>';
+      }
+      cnToggleQuote(); cnToggleChat(); cnToggleNotify();
+    })
+    .catch(function(){ console.log('LINE settings load failed'); });
+}
+
+function cnToggleQuote(){
+  document.getElementById('cnQuoteSection').style.display=document.getElementById('cnFeatQuote').checked?'block':'none';
+}
+function cnToggleChat(){
+  document.getElementById('cnChatSection').style.display=document.getElementById('cnFeatChat').checked?'block':'none';
+}
+function cnToggleNotify(){
+  document.getElementById('cnNotifySection').style.display=document.getElementById('cnFeatNotify').checked?'block':'none';
+}
+
+function cnSaveCred(){
+  if(!_tok) return;
+  var h={'Authorization':'Bearer '+_tok,'Content-Type':'application/json'};
+  var body=JSON.stringify({
+    line_oa_id: document.getElementById('cnLineOaId').value.trim(),
+    channel_token: document.getElementById('cnLineToken').value.trim(),
+    channel_secret: document.getElementById('cnLineSecret').value.trim()
+  });
+  var msg=document.getElementById('cnCredMsg');
+  fetch('/api/pos/line/credentials',{method:'POST',headers:h,body:body})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      msg.style.display='block';
+      if(d.ok||d.status==='ok'){
+        msg.style.background='#f0fdf4'; msg.style.color='#16a34a';
+        msg.textContent='✅ บันทึก credentials เรียบร้อย';
+        cnLoadSettings();
+      } else {
+        msg.style.background='#fef2f2'; msg.style.color='#ef4444';
+        msg.textContent='❌ '+(d.detail||'เกิดข้อผิดพลาด');
+      }
+      setTimeout(function(){msg.style.display='none';},3000);
+    })
+    .catch(function(){
+      msg.style.display='block'; msg.style.background='#fef2f2'; msg.style.color='#ef4444';
+      msg.textContent='❌ เชื่อมต่อ server ไม่ได้';
+      setTimeout(function(){msg.style.display='none';},3000);
+    });
+}
+
+function cnSaveFeatures(){
+  if(!_tok) return;
+  var h={'Authorization':'Bearer '+_tok,'Content-Type':'application/json'};
+  var action=document.querySelector('input[name="cnChatAction"]:checked');
+  var body=JSON.stringify({
+    send_bill: document.getElementById('cnFeatBill').checked,
+    send_quote: document.getElementById('cnFeatQuote').checked,
+    chat_button: document.getElementById('cnFeatChat').checked,
+    notify_order: document.getElementById('cnFeatNotify').checked,
+    chat_label: document.getElementById('cnChatLabel').value||'Chat',
+    chat_action: action?action.value:'add_friend',
+    notify_uid: document.getElementById('cnNotifyUid').value.trim()
+  });
+  fetch('/api/pos/line/features',{method:'POST',headers:h,body:body})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var msg=document.getElementById('cnFeatMsg');
+      msg.style.display='block';
+      if(d.ok||d.status==='ok'){
+        msg.style.background='#f0fdf4'; msg.style.color='#16a34a';
+        msg.textContent='✅ บันทึกฟีเจอร์เรียบร้อย';
+      } else {
+        msg.style.background='#fef2f2'; msg.style.color='#ef4444';
+        msg.textContent='❌ '+(d.detail||'เกิดข้อผิดพลาด');
+      }
+      setTimeout(function(){msg.style.display='none';},2000);
+    }).catch(function(){});
+}
+
+function cnSaveQuote(){
+  if(!_tok) return;
+  var h={'Authorization':'Bearer '+_tok,'Content-Type':'application/json'};
+  var body=JSON.stringify({
+    quote_contact: document.getElementById('cnQuoteContact').value.trim(),
+    quote_note: document.getElementById('cnQuoteNote').value.trim()
+  });
+  fetch('/api/pos/line/quote-config',{method:'POST',headers:h,body:body})
+    .then(function(r){return r.json();})
+    .then(function(d){ alert(d.ok?'✅ บันทึกเรียบร้อย':'❌ '+(d.detail||'เกิดข้อผิดพลาด')); })
+    .catch(function(){alert('เชื่อมต่อไม่ได้');});
+}
+
+function cnUploadQr(input){
+  if(!input.files||!input.files[0]||!_tok) return;
+  var fd=new FormData();
+  fd.append('file',input.files[0]);
+  fetch('/api/pos/line/upload-quote-qr',{method:'POST',headers:{'Authorization':'Bearer '+_tok},body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.url){ document.getElementById('cnQuoteQrPreview').innerHTML='<img src="'+d.url+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px;"/>'; }
+    }).catch(function(){});
+}
+
+function cnFetchPendingUid(){
+  if(!_tok) return;
+  fetch('/api/line/pending-uid',{headers:{'Authorization':'Bearer '+_tok}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.uid){ document.getElementById('cnNotifyUid').value=d.uid; cnSaveFeatures(); }
+      else { alert('ยังไม่มี UID ใหม่ — ให้เจ้าของร้าน Add Friend LINE OA ก่อน'); }
+    }).catch(function(){alert('เชื่อมต่อไม่ได้');});
+}
+
+function cnCopyWebhook(btn){
+  navigator.clipboard.writeText('https://concore.viiv.me/api/line/webhook').then(function(){
+    var orig=btn.textContent; btn.textContent='✓ copied';
+    setTimeout(function(){btn.textContent=orig;},1500);
+  });
+}
+
+function cnToggleEye(inputId,btn){
+  var inp=document.getElementById(inputId);
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁'; }
+}
+</script>
+</body>
+</html>

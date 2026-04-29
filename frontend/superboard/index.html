@@ -20,6 +20,8 @@
 #sbContent:not(.home-fullscreen), #sbContent:not(.home-fullscreen) * { font-size: 15px !important; }
 #sbContent th { font-size: 13px !important; }
 #sbContent .pos-tab, #sbContent .pos-sub-tab { font-size: 13px !important; }
+
+
 </style>
 </head>
 <body>
@@ -30,6 +32,7 @@
       style="width:36px;height:36px;object-fit:contain;border-radius:8px;display:none;">
     <span id="sbLogoText">VIIV</span>
   </a>
+
 
   <div class="sb-shop-wrap">
     <div class="sb-shop-btn" id="shopBtn" onclick="toggleShopDD()">
@@ -158,9 +161,6 @@
     </a>
     <div class="sb-sidebar-divider"></div>
     <div class="sb-nav-group-label">Settings</div>
-    <a class="sb-nav-item" data-page="connections" onclick="sbNav('connections')">
-      <span class="sb-nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><span class="sb-nav-label">การเชื่อมต่อ</span>
-    </a>
     <a class="sb-nav-item" data-page="staff" onclick="sbNav('staff')">
       <span class="sb-nav-icon">◎</span><span class="sb-nav-label">บุคลากร</span>
     </a>
@@ -484,6 +484,8 @@ function saveProfile(){
 (function(){
   var p=JSON.parse(localStorage.getItem('viiv_profile')||'{}');
   if(p.first_name) document.getElementById('profileName').textContent=p.first_name;
+
+  
 
   // ── sync profile จาก JWT token ──
   (function(){

@@ -1,6 +1,6 @@
 # VIIV MASTER — Project Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
-> Version: v1.52 | Updated: 2026-04-28  
+> Version: v1.53 | Updated: 2026-04-29  
 > Claude Code อัปเดต Section [E] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -1271,3 +1271,63 @@ FILES CHANGED:
   modules/pos/merchant/ui/dashboard/sales/search.html
 
 Version: v1.52 | Updated: 2026-04-28
+
+Superboard Connections Page:
+
+สร้าง frontend/superboard/pages/connections.html — LINE tab เต็ม + Facebook/TikTok/IG/YouTube/API Keys Coming Soon
+index.html เพิ่ม sidebar "การเชื่อมต่อ" ก่อนบุคลากร
+store.html ลบ tab LINE ออก (เหลือ 3 tabs)
+
+PWA more.js:
+
+เพิ่ม Facebook/TikTok/IG/YouTube/API Keys → comingsoon
+สร้าง comingsoon.js PWA page
+fix onclick JSON.stringify undefined bug
+
+Auth & Login:
+
+fix auth.js atob base64 padding
+fix DEV_TOKEN tenant_id คืนเป็น ten_1
+POST /api/staff/login — bcrypt + PyJWT 8hr + rate limit 5/min
+login.html wired to /api/staff/login
+test account: aaa@gmail.com / viiv1234 / ten_1 / role:MD
+fix profileName อ่านจาก JWT → แสดง "Mtest"
+
+Rules เพิ่ม:
+Rule 59 — dashboard/index.html JS anchor คือ "vDash = {" ไม่ใช่ "window.vDash = {"
+Rule 60 — patch dashboard ต้องทำผ่าน Claude Code เท่านั้น ห้าม patch ผ่าน AI แชท
+
+### [v1.53 COMPLETED — 2026-04-29] Connections Menu + Platform Status Widget Move
+
+✅ modules/pos/merchant/ui/dashboard/dashboard.html
+   - เพิ่มเมนู "การเชื่อมต่อ" ลำดับที่ 11 (ก่อน จัดการร้านค้า)
+   - เพิ่ม PAGES.connections → loadSubPage('connections/main.html')
+   - connections/main.html: LINE tab เต็ม + Facebook/TikTok/IG/YouTube/API Keys Coming Soon
+
+✅ frontend/superboard/index.html
+   - ลบ Platform Status Widget ออกจาก topbar (#sb-platform-status div)
+   - ลบ CSS .psw-item/.psw-icon/.psw-dot/.psw-grey/.psw-green
+   - ลบ JS pswSet() + pswLoad()
+
+✅ frontend/superboard/dashboard/style.css
+   - เพิ่ม .hp-item/.hp-icon/.hp-dot CSS
+   - connected = สีเขียว / grey = จาง / warning/error + animation
+
+✅ frontend/superboard/dashboard/index.html
+   - #hub-platforms: แก้ position จาก top:10px → top:calc(var(--hh)+8px) (ใต้ header)
+   - ลบ hardcoded class "connected" บน hp-line (JS ตั้งจาก API)
+   - เพิ่ม onclick → window.parent.sbNav('connections')
+   - title="คลิกเพื่อจัดการการเชื่อมต่อ"
+
+✅ frontend/superboard/dashboard/app.js
+   - เพิ่ม hpLoad() — fetch /api/pos/line/settings → set hp-line.connected
+   - เรียก hpLoad() ใน init()
+
+FILES CHANGED:
+  modules/pos/merchant/ui/dashboard/dashboard.html
+  frontend/superboard/index.html
+  frontend/superboard/dashboard/style.css
+  frontend/superboard/dashboard/index.html
+  frontend/superboard/dashboard/app.js
+
+Version: v1.53 | Updated: 2026-04-29

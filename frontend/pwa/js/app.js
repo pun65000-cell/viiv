@@ -83,41 +83,46 @@ const App = {
     const ptr       = document.getElementById('ptr');
     const spinner   = document.getElementById('ptr-spinner');
     if (!container || !ptr) return;
-    let startY = 0, pulling = false;
-    const threshold = 70;
+    let startY = 0, pulling = false, triggered = false;
+    const threshold = 55;   // lower threshold — easier to trigger on mobile
+
     container.addEventListener('touchstart', e => {
-      if (container.scrollTop === 0) { startY = e.touches[0].clientY; pulling = true; }
+      triggered = false;
+      if (container.scrollTop <= 0) {
+        startY  = e.touches[0].clientY;
+        pulling = true;
+      }
     }, { passive: true });
+
     container.addEventListener('touchmove', e => {
-      if (!pulling) return;
+      if (!pulling || triggered) return;
       const dy = e.touches[0].clientY - startY;
       if (dy > 0) {
         ptr.classList.add('show');
         const pct = Math.min(dy / threshold, 1);
         spinner.style.transform = `rotate(${pct * 360}deg)`;
-        spinner.style.opacity = String(pct);
+        spinner.style.opacity   = String(pct);
+      } else {
+        pulling = false;
+        ptr.classList.remove('show');
       }
     }, { passive: true });
+
     container.addEventListener('touchend', e => {
-      if (!pulling) return;
+      if (!pulling || triggered) return;
       pulling = false;
       const dy = e.changedTouches[0].clientY - startY;
       if (dy >= threshold) {
+        triggered = true;
+        // show full spin then reload the page (true refresh — new JS + new data)
         spinner.classList.add('spin');
         spinner.style.opacity = '1';
-        // reload current page directly — works on every page without extra listener
-        const cur = window.Router?.current;
-        const page = cur ? window.Router?.pages?.[cur] : null;
-        if (page?.load) page.load(window.Router._currentParams || {});
-        setTimeout(() => {
-          ptr.classList.remove('show');
-          spinner.classList.remove('spin');
-          spinner.style.transform = '';
-        }, 1000);
+        ptr.classList.add('show');
+        setTimeout(() => { window.location.reload(); }, 600);
       } else {
         ptr.classList.remove('show');
         spinner.style.transform = '';
-        spinner.style.opacity = '';
+        spinner.style.opacity   = '';
       }
     }, { passive: true });
   },

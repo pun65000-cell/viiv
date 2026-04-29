@@ -1,4 +1,9 @@
-INFO:     Started server process [323244]
+INFO:     Started server process [389176]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
