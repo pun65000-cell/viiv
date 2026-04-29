@@ -506,3 +506,51 @@ INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.23.175.146:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.23.175.146:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shop-detail?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shop-members?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shop-history?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shop-detail?shop_id=ten_1 HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shop-members?shop_id=ten_1 HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/platform/shop-history?shop_id=ten_1 HTTP/1.1" 404 Not Found
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shop-members?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shop-history?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shop-detail?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "GET /api/staff/presence HTTP/1.1" 200 OK

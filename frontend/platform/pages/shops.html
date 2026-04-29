@@ -4,36 +4,36 @@
 .pg-shops{ display:flex; flex-direction:column; gap:16px; }
 /* ── action bar ── */
 .pg-actionbar{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:10px 16px; box-shadow:0 1px 4px rgba(0,0,0,.05); }
-.pg-actionbar input{ flex:1; padding:7px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; outline:none; background:#faf9f7; }
+.pg-actionbar input{ flex:1; padding:8px 14px; border:1px solid #e5e7eb; border-radius:8px; font-size:15px; outline:none; background:#faf9f7; }
 .pg-actionbar input:focus{ border-color:#e8b93e; }
-.pg-btn{ padding:7px 15px; border-radius:9px; border:1px solid #e5e7eb; background:#fff; color:#1f2937; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; transition:background .1s; }
+.pg-btn{ padding:8px 16px; border-radius:9px; border:1px solid #e5e7eb; background:#fff; color:#1f2937; font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap; transition:background .1s; }
 .pg-btn:hover{ background:#f5f3ef; border-color:rgba(0,0,0,.18); }
 .pg-btn-accent{ background:#e8b93e; border-color:#bf941e; color:#1a1200; font-weight:700; }
 .pg-btn-accent:hover{ background:#d4a52c; }
 /* ── stats ── */
 .pg-stats{ display:flex; gap:12px; }
 .pg-stat{ flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; }
-.pg-stat-lbl{ font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:500; }
-.pg-stat-val{ font-size:24px; font-weight:700; color:#1f2937; }
+.pg-stat-lbl{ font-size:13px; color:#6b7280; margin-bottom:6px; font-weight:500; }
+.pg-stat-val{ font-size:28px; font-weight:700; color:#1f2937; }
 .pg-stat-val.gold{ color:#a07820; }
 .pg-stat-val.green{ color:#1e6b42; }
 .pg-stat-val.red{ color:#b91c1c; }
 /* ── shop table ── */
 .pg-card{ background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
 .pg-table{ width:100%; border-collapse:collapse; font-size:13px; }
-.pg-table th{ padding:10px 16px; text-align:left; font-size:11px; font-weight:600; color:#6b7280; background:#f8f6f2; border-bottom:1px solid #e5e7eb; letter-spacing:.4px; text-transform:uppercase; white-space:nowrap; }
-.pg-table td{ padding:11px 16px; border-bottom:1px solid #f0ede8; color:#1f2937; vertical-align:middle; }
+.pg-table th{ padding:12px 18px; text-align:left; font-size:12px; font-weight:600; color:#6b7280; background:#f8f6f2; border-bottom:1px solid #e5e7eb; letter-spacing:.4px; text-transform:uppercase; white-space:nowrap; }
+.pg-table td{ padding:13px 18px; border-bottom:1px solid #f0ede8; color:#1f2937; vertical-align:middle; font-size:14px; }
 .pg-table tr:last-child td{ border-bottom:none; }
 .pg-table tr:hover td{ background:#faf9f7; }
-.shop-name{ font-weight:600; }
-.shop-id{ font-size:11px; color:#aaa; font-family:monospace; margin-top:2px; }
-.pill{ font-size:11px; font-weight:600; padding:3px 11px; border-radius:20px; }
+.shop-name{ font-weight:600; font-size:15px; }
+.shop-id{ font-size:12px; color:#aaa; font-family:monospace; margin-top:3px; }
+.pill{ font-size:12px; font-weight:600; padding:4px 13px; border-radius:20px; }
 .pill-active{ background:#e4f3ec; color:#1e6b42; }
 .pill-inactive{ background:#f5f0e5; color:#9a7020; }
 .pill-blocked{ background:#fef2f2; color:#b91c1c; }
 .pill-pending{ background:#fffbeb; color:#92400e; }
 .pg-table-action{ display:flex; gap:6px; }
-.tbl-btn{ padding:4px 10px; border:1px solid #e5e7eb; border-radius:6px; background:#fff; font-size:11px; cursor:pointer; color:#1f2937; }
+.tbl-btn{ padding:6px 14px; border:1px solid #e5e7eb; border-radius:7px; background:#fff; font-size:13px; cursor:pointer; color:#1f2937; }
 .tbl-btn:hover{ background:#f5f3ef; }
 .tbl-btn.primary{ background:#e8b93e; border-color:#bf941e; color:#1a1200; font-weight:600; }
 .tbl-btn.primary:hover{ background:#d4a52c; }
@@ -43,67 +43,138 @@
 .pg-loading{ display:flex; align-items:center; justify-content:center; padding:40px; color:#9ca3af; gap:8px; }
 .pg-loading::before{ content:''; width:14px; height:14px; border:2px solid #e5e7eb; border-top-color:#e8b93e; border-radius:50%; animation:pgSpin .7s linear infinite; }
 @keyframes pgSpin{ to{ transform:rotate(360deg); } }
-/* ── Manage Drawer ── */
-#mgr-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:800; display:none; align-items:stretch; justify-content:flex-end; }
+/* ── Manage Modal ── */
+#mgr-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:800;
+  display:none; align-items:center; justify-content:center;
+  padding:24px;
+}
 #mgr-overlay.open{ display:flex; }
-#mgr-drawer{ width:460px; background:#fff; height:100vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:-4px 0 24px rgba(0,0,0,.15); }
-.md-hdr{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #e5e7eb; flex-shrink:0; background:#f8f6f2; }
-.md-hdr-title{ font-size:15px; font-weight:700; }
-.md-close{ background:none; border:none; font-size:18px; cursor:pointer; color:#6b7280; padding:2px 6px; line-height:1; border-radius:5px; }
+#mgr-drawer{
+  width:min(1080px,100%); max-height:calc(100vh - 48px);
+  background:#fff; border-radius:16px;
+  display:flex; flex-direction:column; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.md-hdr{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 28px; border-bottom:1px solid #e5e7eb;
+  flex-shrink:0; background:#f8f6f2; border-radius:16px 16px 0 0;
+}
+.md-hdr-title{ font-size:17px; font-weight:700; }
+.md-close{
+  background:none; border:none; font-size:20px; cursor:pointer;
+  color:#6b7280; padding:4px 8px; line-height:1; border-radius:6px;
+}
 .md-close:hover{ background:#e5e7eb; }
-.md-shop-bar{ display:flex; align-items:center; gap:8px; padding:12px 20px; border-bottom:1px solid #e5e7eb; flex-shrink:0; background:#fff; }
-.md-shop-id-badge{ font-family:monospace; font-size:12px; background:#f8f6f2; border:1px solid #e5e7eb; border-radius:6px; padding:4px 10px; color:#374151; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#mgr-status{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; flex-shrink:0; }
+.md-shop-bar{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 28px; border-bottom:1px solid #e5e7eb;
+  flex-shrink:0; background:#fff;
+}
+.md-shop-id-badge{
+  font-family:monospace; font-size:13px; background:#f8f6f2;
+  border:1px solid #e5e7eb; border-radius:7px; padding:5px 12px;
+  color:#374151; flex:1; min-width:0; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;
+}
+#mgr-status{ font-size:12px; font-weight:700; padding:4px 12px; border-radius:20px; flex-shrink:0; }
 #mgr-status.active{ background:#e4f3ec; color:#1e6b42; }
 #mgr-status.blocked{ background:#fef2f2; color:#b91c1c; }
 #mgr-status.pending{ background:#fffbeb; color:#92400e; }
-.md-body{ flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+
+/* ── Modal body: left info + right sections ── */
+.md-body{
+  flex:1; min-height:0; display:grid;
+  grid-template-columns:280px 1fr;
+  overflow:hidden;
+}
 .md-body::-webkit-scrollbar{ width:4px; }
-.md-body::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:2px; }
-/* info grid */
-.md-info{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#e5e7eb; border-bottom:1px solid #e5e7eb; flex-shrink:0; }
-.md-info-cell{ background:#fff; padding:12px 16px; }
-.md-info-cell.full{ grid-column:1/-1; }
-.md-info-lbl{ font-size:10px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
-.md-info-val{ font-size:13px; font-weight:600; color:#1f2937; word-break:break-all; }
-.md-info-val.mono{ font-family:monospace; font-size:11px; }
-.md-info-val.big{ font-size:16px; }
+
+/* LEFT — info panel */
+.md-left{
+  border-right:1px solid #e5e7eb; overflow-y:auto;
+  display:flex; flex-direction:column; background:#fafafa;
+}
+.md-left::-webkit-scrollbar{ width:3px; }
+.md-left::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:2px; }
+.md-info{ display:flex; flex-direction:column; gap:0; }
+.md-info-cell{ padding:14px 20px; border-bottom:1px solid #f0ede8; }
+.md-info-cell.full{ }
+.md-info-lbl{ font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+.md-info-val{ font-size:15px; font-weight:600; color:#1f2937; word-break:break-all; }
+.md-info-val.mono{ font-family:monospace; font-size:13px; }
+.md-info-val.big{ font-size:20px; }
+
+/* RIGHT — sections */
+.md-right{ overflow-y:auto; display:flex; flex-direction:column; }
+.md-right::-webkit-scrollbar{ width:5px; }
+.md-right::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:3px; }
+
 /* sections */
 .md-sec{ border-bottom:1px solid #f0ede8; }
-.md-sec-hdr{ display:flex; align-items:center; justify-content:space-between; padding:11px 20px; cursor:pointer; font-size:13px; font-weight:600; color:#374151; user-select:none; background:#fff; transition:background .1s; }
+.md-sec-hdr{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 24px; cursor:pointer; font-size:14px; font-weight:600;
+  color:#374151; user-select:none; background:#fff; transition:background .1s;
+}
 .md-sec-hdr:hover{ background:#f8f6f2; }
-.md-sec-body{ display:none; padding:14px 20px; flex-direction:column; gap:10px; background:#fafafa; }
+.md-sec-body{ display:none; padding:18px 24px; flex-direction:column; gap:12px; background:#fafafa; }
 .md-sec-body.open{ display:flex; }
-.md-row{ display:flex; gap:8px; align-items:center; }
-.md-row label{ font-size:12px; color:#6b7280; white-space:nowrap; min-width:60px; }
-.md-row select, .md-row input[type=number], .md-row input[type=text]{ flex:1; padding:6px 10px; border:1px solid #e5e7eb; border-radius:7px; font-size:13px; outline:none; background:#fff; }
+.md-row{ display:flex; gap:10px; align-items:center; }
+.md-row label{ font-size:13px; color:#6b7280; white-space:nowrap; min-width:80px; }
+.md-row select, .md-row input[type=number], .md-row input[type=text]{
+  flex:1; padding:8px 12px; border:1px solid #e5e7eb;
+  border-radius:8px; font-size:13px; outline:none; background:#fff;
+}
 .md-row select:focus, .md-row input:focus{ border-color:#e8b93e; }
-.md-save{ padding:6px 14px; border-radius:7px; border:none; background:#e8b93e; color:#1a1200; font-size:12px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap; }
+.md-save{
+  padding:8px 18px; border-radius:8px; border:none;
+  background:#e8b93e; color:#1a1200; font-size:13px;
+  font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap;
+}
 .md-save:hover{ background:#d4a52c; }
 .md-toggle-list{ display:flex; flex-direction:column; }
-.md-toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid #f0ede8; }
+.md-toggle-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px solid #f0ede8;
+}
 .md-toggle-row:last-child{ border-bottom:none; }
-.md-toggle-lbl{ font-size:12px; color:#374151; }
-.md-sw{ position:relative; width:34px; height:20px; flex-shrink:0; }
+.md-toggle-lbl{ font-size:13px; color:#374151; }
+.md-sw{ position:relative; width:40px; height:22px; flex-shrink:0; }
 .md-sw input{ opacity:0; width:0; height:0; position:absolute; }
 .md-sw-sl{ position:absolute; inset:0; background:#d1d5db; border-radius:20px; cursor:pointer; transition:.2s; }
-.md-sw-sl::before{ content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:#fff; bottom:3px; left:3px; transition:.2s; }
+.md-sw-sl::before{ content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:#fff; bottom:3px; left:3px; transition:.2s; }
 .md-sw input:checked+.md-sw-sl{ background:#e8b93e; }
-.md-sw input:checked+.md-sw-sl::before{ transform:translateX(14px); }
-.md-btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
-.md-action-btn{ padding:7px 14px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; color:#374151; font-size:12px; font-weight:600; cursor:pointer; }
+.md-sw input:checked+.md-sw-sl::before{ transform:translateX(18px); }
+.md-btn-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.md-action-btn{
+  padding:9px 18px; border-radius:9px; border:1px solid #e5e7eb;
+  background:#fff; color:#374151; font-size:13px; font-weight:600; cursor:pointer;
+}
 .md-action-btn:hover{ background:#f5f3ef; }
 .md-action-btn.success{ background:#e4f3ec; border-color:#b0d9c3; color:#1e6b42; }
 .md-action-btn.warn{ background:#fffbeb; border-color:#fcd34d; color:#92400e; }
 .md-action-btn.danger{ background:#fef2f2; border-color:#fca5a5; color:#b91c1c; }
-.md-textarea{ width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:12px; resize:vertical; min-height:60px; outline:none; font-family:inherit; }
+.md-textarea{
+  width:100%; padding:10px 12px; border:1px solid #e5e7eb;
+  border-radius:9px; font-size:13px; resize:vertical; min-height:80px;
+  outline:none; font-family:inherit;
+}
 .md-textarea:focus{ border-color:#e8b93e; }
-.md-list{ display:flex; flex-direction:column; gap:5px; max-height:180px; overflow-y:auto; }
-.md-list-row{ display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:#fff; border:1px solid #e5e7eb; border-radius:7px; font-size:12px; }
+.md-list{ display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
+.md-list-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 12px; background:#fff; border:1px solid #e5e7eb;
+  border-radius:8px; font-size:13px;
+}
 .md-list-name{ font-weight:600; }
-.md-list-sub{ color:#9ca3af; font-size:11px; }
-.md-warn-box{ font-size:11px; color:#92400e; background:#fffbeb; border:1px solid #fcd34d; border-radius:7px; padding:8px 10px; line-height:1.5; }
-.md-empty{ font-size:12px; color:#9ca3af; text-align:center; padding:16px 0; }
+.md-list-sub{ color:#9ca3af; font-size:12px; }
+.md-warn-box{
+  font-size:12px; color:#92400e; background:#fffbeb;
+  border:1px solid #fcd34d; border-radius:8px; padding:10px 14px; line-height:1.6;
+}
+.md-empty{ font-size:13px; color:#9ca3af; text-align:center; padding:20px 0; }
 </style>
 
 <div class="pg-shops">
@@ -113,7 +184,7 @@
     <input id="sh-search" placeholder="ค้นหา Shop ID หรือชื่อร้าน..." autocomplete="off"
       onkeydown="if(event.key==='Enter')searchShops()"/>
     <button class="pg-btn" onclick="searchShops()">ค้นหา</button>
-    <button class="pg-btn" id="sh-mgr-btn" onclick="openMgr()" style="display:none">⚙ จัดการ</button>
+    <button class="pg-btn pg-btn-accent" id="sh-mgr-btn" onclick="openMgrPrompt()">⚙ จัดการ</button>
     <button class="pg-btn pg-btn-accent" onclick="window.platformNav(document.querySelector('[data-page=shops]'));setTimeout(()=>{document.getElementById('sh-search').value='';loadShops();},10)">↺ รีเฟรช</button>
     <button class="pg-btn pg-btn-accent" onclick="alert('Coming soon')">+ สร้างร้าน</button>
   </div>
@@ -164,110 +235,117 @@
 
     <div class="md-body">
 
-      <!-- Info -->
-      <div class="md-info">
-        <div class="md-info-cell"><div class="md-info-lbl">ชื่อร้าน</div><div class="md-info-val big" id="mi-name">—</div></div>
-        <div class="md-info-cell"><div class="md-info-lbl">แพ็กเกจ</div><div class="md-info-val" id="mi-pkg">—</div></div>
-        <div class="md-info-cell"><div class="md-info-lbl">เครดิต AI</div><div class="md-info-val" id="mi-credits">—</div></div>
-        <div class="md-info-cell"><div class="md-info-lbl">สมาชิก</div><div class="md-info-val" id="mi-members-count">—</div></div>
-        <div class="md-info-cell"><div class="md-info-lbl">วันเริ่ม</div><div class="md-info-val" id="mi-start">—</div></div>
-        <div class="md-info-cell"><div class="md-info-lbl">วันครบอายุ</div><div class="md-info-val" id="mi-exp">—</div></div>
-        <div class="md-info-cell full"><div class="md-info-lbl">ระยะเวลา / Shop ID</div><div class="md-info-val mono" id="mi-dur-id">—</div></div>
-      </div>
-
-      <!-- ① Package & Credits -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)">📦 แพ็กเกจ &amp; เครดิต AI <span>▸</span></div>
-        <div class="md-sec-body">
-          <div class="md-row">
-            <label>แพ็กเกจ</label>
-            <select id="mgr-pkg">
-              <option value="free">Free</option>
-              <option value="starter">Starter — ฿299/เดือน</option>
-              <option value="pro">Pro — ฿799/เดือน</option>
-              <option value="enterprise">Enterprise — ฿1,999/เดือน</option>
-            </select>
-          </div>
-          <div class="md-row">
-            <label>เครดิต AI</label>
-            <input type="number" id="mgr-credits" min="0" placeholder="0"/>
-            <button class="md-save" onclick="savePkg()">บันทึก</button>
-          </div>
+      <!-- LEFT: Info Panel -->
+      <div class="md-left">
+        <div class="md-info">
+          <div class="md-info-cell"><div class="md-info-lbl">ชื่อร้าน</div><div class="md-info-val big" id="mi-name">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">แพ็กเกจ</div><div class="md-info-val" id="mi-pkg">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">เครดิต AI</div><div class="md-info-val" id="mi-credits">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">สมาชิก</div><div class="md-info-val" id="mi-members-count">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">วันเริ่ม</div><div class="md-info-val" id="mi-start">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">วันครบอายุ</div><div class="md-info-val" id="mi-exp">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">เหลือ (วัน)</div><div class="md-info-val" id="mi-dur-id">—</div></div>
+          <div class="md-info-cell"><div class="md-info-lbl">Shop ID</div><div class="md-info-val mono" id="mi-shop-id-text">—</div></div>
         </div>
       </div>
 
-      <!-- ② Features -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)">⚙ ฟังก์ชัน <span>▸</span></div>
-        <div class="md-sec-body">
-          <div class="md-toggle-list">
-            <div class="md-toggle-row"><span class="md-toggle-lbl">🖥 POS ระบบขาย</span><label class="md-sw"><input type="checkbox" id="ft-pos" checked><span class="md-sw-sl"></span></label></div>
-            <div class="md-toggle-row"><span class="md-toggle-lbl">🤖 AI Chat ตอบอัตโนมัติ</span><label class="md-sw"><input type="checkbox" id="ft-ai" checked><span class="md-sw-sl"></span></label></div>
-            <div class="md-toggle-row"><span class="md-toggle-lbl">📲 Auto Post</span><label class="md-sw"><input type="checkbox" id="ft-post"><span class="md-sw-sl"></span></label></div>
-            <div class="md-toggle-row"><span class="md-toggle-lbl">💬 Chat &amp; Showroom</span><label class="md-sw"><input type="checkbox" id="ft-chat" checked><span class="md-sw-sl"></span></label></div>
-            <div class="md-toggle-row"><span class="md-toggle-lbl">🔗 Affiliate</span><label class="md-sw"><input type="checkbox" id="ft-aff"><span class="md-sw-sl"></span></label></div>
-            <div class="md-toggle-row"><span class="md-toggle-lbl">📄 Statement / บิล</span><label class="md-sw"><input type="checkbox" id="ft-stmt" checked><span class="md-sw-sl"></span></label></div>
-            <div class="md-toggle-row"><span class="md-toggle-lbl">🔌 API Access</span><label class="md-sw"><input type="checkbox" id="ft-api"><span class="md-sw-sl"></span></label></div>
-          </div>
-          <button class="md-save" onclick="saveFeatures()" style="align-self:flex-end">บันทึกฟังก์ชัน</button>
-        </div>
-      </div>
+      <!-- RIGHT: Action Sections -->
+      <div class="md-right">
 
-      <!-- ③ สถานะร้าน -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)">🏪 สถานะร้าน <span>▸</span></div>
-        <div class="md-sec-body">
-          <div class="md-btn-row">
-            <button class="md-action-btn success" onclick="shopAction('approve')">✅ อนุมัติร้าน</button>
-            <button class="md-action-btn warn"    onclick="shopAction('suspend')">⏸ พักการใช้งาน</button>
-            <button class="md-action-btn danger"  onclick="shopAction('block')">🚫 บล็อกร้าน</button>
+        <!-- ① Package & Credits -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)">📦 แพ็กเกจ &amp; เครดิต AI <span>▸</span></div>
+          <div class="md-sec-body">
+            <div class="md-row">
+              <label>แพ็กเกจ</label>
+              <select id="mgr-pkg">
+                <option value="free">Free</option>
+                <option value="starter">Starter — ฿299/เดือน</option>
+                <option value="pro">Pro — ฿799/เดือน</option>
+                <option value="enterprise">Enterprise — ฿1,999/เดือน</option>
+              </select>
+            </div>
+            <div class="md-row">
+              <label>เครดิต AI</label>
+              <input type="number" id="mgr-credits" min="0" placeholder="0"/>
+              <button class="md-save" onclick="savePkg()">บันทึก</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- ④ แจ้งเตือน -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)">🔔 ส่งข้อความ → กระดิ่ง <span>▸</span></div>
-        <div class="md-sec-body">
-          <textarea class="md-textarea" id="mgr-notify-msg" placeholder="ข้อความที่จะส่งไปแสดงที่กระดิ่งของร้านค้า..."></textarea>
-          <button class="md-save" onclick="sendNotify()" style="align-self:flex-end">ส่งข้อความ</button>
-        </div>
-      </div>
-
-      <!-- ⑤ ประวัติ -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)">📋 ประวัติการใช้งาน <span>▸</span></div>
-        <div class="md-sec-body">
-          <div class="md-list" id="mgr-history"><div class="md-empty">กำลังโหลด...</div></div>
-        </div>
-      </div>
-
-      <!-- ⑥ สมาชิก -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)">👥 สมาชิกในร้าน <span>▸</span></div>
-        <div class="md-sec-body">
-          <div class="md-list" id="mgr-members"><div class="md-empty">กำลังโหลด...</div></div>
-        </div>
-      </div>
-
-      <!-- ⑦ Token Control -->
-      <div class="md-sec">
-        <div class="md-sec-hdr" onclick="toggleSec(this)" style="color:#b91c1c">🔑 ควบคุมโทเคน <span>▸</span></div>
-        <div class="md-sec-body">
-          <div class="md-warn-box">⚠ การกระทำด้านนี้ส่งผลทันที — โทเคนที่ถูกเพิกถอนต้อง Login ใหม่ทั้งหมด</div>
-          <div class="md-btn-row">
-            <button class="md-action-btn warn"   onclick="tokenAction('expire-all')">🔄 หมดอายุโทเคนทั้งหมด</button>
-            <button class="md-action-btn danger" onclick="tokenAction('block-access')">🔒 บล็อกการเข้าถึง</button>
-            <button class="md-action-btn danger" onclick="tokenAction('kick-all')">⏏ เตะออกทั้งหมด</button>
-          </div>
-          <div class="md-row" style="margin-top:4px">
-            <label>User ID</label>
-            <input type="text" id="mgr-kick-uid" placeholder="usr_xxxxx"/>
-            <button class="md-save" onclick="tokenAction('kick-one')" style="background:#b91c1c">เตะ 1 คน</button>
+        <!-- ② Features -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)">⚙ ฟังก์ชัน <span>▸</span></div>
+          <div class="md-sec-body">
+            <div class="md-toggle-list">
+              <div class="md-toggle-row"><span class="md-toggle-lbl">🖥 POS ระบบขาย</span><label class="md-sw"><input type="checkbox" id="ft-pos" checked><span class="md-sw-sl"></span></label></div>
+              <div class="md-toggle-row"><span class="md-toggle-lbl">🤖 AI Chat ตอบอัตโนมัติ</span><label class="md-sw"><input type="checkbox" id="ft-ai" checked><span class="md-sw-sl"></span></label></div>
+              <div class="md-toggle-row"><span class="md-toggle-lbl">📲 Auto Post</span><label class="md-sw"><input type="checkbox" id="ft-post"><span class="md-sw-sl"></span></label></div>
+              <div class="md-toggle-row"><span class="md-toggle-lbl">💬 Chat &amp; Showroom</span><label class="md-sw"><input type="checkbox" id="ft-chat" checked><span class="md-sw-sl"></span></label></div>
+              <div class="md-toggle-row"><span class="md-toggle-lbl">🔗 Affiliate</span><label class="md-sw"><input type="checkbox" id="ft-aff"><span class="md-sw-sl"></span></label></div>
+              <div class="md-toggle-row"><span class="md-toggle-lbl">📄 Statement / บิล</span><label class="md-sw"><input type="checkbox" id="ft-stmt" checked><span class="md-sw-sl"></span></label></div>
+              <div class="md-toggle-row"><span class="md-toggle-lbl">🔌 API Access</span><label class="md-sw"><input type="checkbox" id="ft-api"><span class="md-sw-sl"></span></label></div>
+            </div>
+            <button class="md-save" onclick="saveFeatures()" style="align-self:flex-end">บันทึกฟังก์ชัน</button>
           </div>
         </div>
-      </div>
 
+        <!-- ③ สถานะร้าน -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)">🏪 สถานะร้าน <span>▸</span></div>
+          <div class="md-sec-body">
+            <div class="md-btn-row">
+              <button class="md-action-btn success" onclick="shopAction('approve')">✅ อนุมัติร้าน</button>
+              <button class="md-action-btn warn"    onclick="shopAction('suspend')">⏸ พักการใช้งาน</button>
+              <button class="md-action-btn danger"  onclick="shopAction('block')">🚫 บล็อกร้าน</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ④ แจ้งเตือน -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)">🔔 ส่งข้อความ → กระดิ่ง <span>▸</span></div>
+          <div class="md-sec-body">
+            <textarea class="md-textarea" id="mgr-notify-msg" placeholder="ข้อความที่จะส่งไปแสดงที่กระดิ่งของร้านค้า..."></textarea>
+            <button class="md-save" onclick="sendNotify()" style="align-self:flex-end">ส่งข้อความ</button>
+          </div>
+        </div>
+
+        <!-- ⑤ ประวัติ -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)">📋 ประวัติการใช้งาน <span>▸</span></div>
+          <div class="md-sec-body">
+            <div class="md-list" id="mgr-history"><div class="md-empty">กำลังโหลด...</div></div>
+          </div>
+        </div>
+
+        <!-- ⑥ สมาชิก -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)">👥 สมาชิกในร้าน <span>▸</span></div>
+          <div class="md-sec-body">
+            <div class="md-list" id="mgr-members"><div class="md-empty">กำลังโหลด...</div></div>
+          </div>
+        </div>
+
+        <!-- ⑦ Token Control -->
+        <div class="md-sec">
+          <div class="md-sec-hdr" onclick="toggleSec(this)" style="color:#b91c1c">🔑 ควบคุมโทเคน <span>▸</span></div>
+          <div class="md-sec-body">
+            <div class="md-warn-box">⚠ การกระทำด้านนี้ส่งผลทันที — โทเคนที่ถูกเพิกถอนต้อง Login ใหม่ทั้งหมด</div>
+            <div class="md-btn-row">
+              <button class="md-action-btn warn"   onclick="tokenAction('expire-all')">🔄 หมดอายุโทเคนทั้งหมด</button>
+              <button class="md-action-btn danger" onclick="tokenAction('block-access')">🔒 บล็อกการเข้าถึง</button>
+              <button class="md-action-btn danger" onclick="tokenAction('kick-all')">⏏ เตะออกทั้งหมด</button>
+            </div>
+            <div class="md-row">
+              <label>User ID</label>
+              <input type="text" id="mgr-kick-uid" placeholder="usr_xxxxx"/>
+              <button class="md-save" onclick="tokenAction('kick-one')" style="background:#b91c1c">เตะ 1 คน</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /md-right -->
     </div><!-- /md-body -->
   </div><!-- /mgr-drawer -->
 </div><!-- /mgr-overlay -->
@@ -333,9 +411,29 @@
       }).join('');
     })
     .catch(function(e){
-      // Fallback: show mock data if API doesn't exist yet
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af;font-size:12px;">API ยังไม่พร้อม ('+e+') — <button class="tbl-btn" onclick="loadShops()">ลองใหม่</button></td></tr>';
-      ['st-total','st-active','st-inactive','st-blocked'].forEach(function(id){document.getElementById(id).textContent='—';});
+      // Fallback mock data when API not ready
+      var mock = [
+        {tenant_id:'ten_1', store_name:'ร้านตัวอย่าง (Demo)', package:'Pro', status:'active', expires_at:'2026-12-31', member_count:3},
+        {tenant_id:'ten_2', store_name:'ร้านทดสอบ',           package:'Starter', status:'active', expires_at:'2026-06-30', member_count:1},
+      ];
+      _shops = mock;
+      document.getElementById('st-total').textContent   = mock.length;
+      document.getElementById('st-active').textContent  = mock.length;
+      document.getElementById('st-inactive').textContent= 0;
+      document.getElementById('st-blocked').textContent = 0;
+      tbody.innerHTML = mock.map(function(s){
+        var st=s.status||'active';
+        return '<tr>'+
+          '<td><div class="shop-name">'+htmlEsc(s.store_name||'—')+'</div><div class="shop-id">'+htmlEsc(s.tenant_id||'')+'</div></td>'+
+          '<td>'+(s.package||'Free')+'</td>'+
+          '<td><span class="pill '+pillClass(st)+'">'+pillTxt(st)+'</span></td>'+
+          '<td>'+fmtDate(s.expires_at)+'</td>'+
+          '<td>'+(s.member_count||'—')+'</td>'+
+          '<td><div class="pg-table-action">'+
+            '<button class="tbl-btn primary" onclick="openMgr(\''+htmlEsc(s.tenant_id||s.id||'')+'\')">⚙ จัดการ</button>'+
+          '</div></td>'+
+        '</tr>';
+      }).join('')+'<tr><td colspan="6" style="text-align:center;padding:8px 16px;font-size:11px;color:#9ca3af;background:#faf9f7">⚠ API ยังไม่พร้อม — แสดง Mock Data ('+e+')</td></tr>';
     });
   }
 
@@ -377,9 +475,10 @@
       document.getElementById('mi-pkg').textContent     = d.package||'Free';
       document.getElementById('mi-credits').textContent = d.ai_credits??'—';
       document.getElementById('mi-members-count').textContent = d.member_count??'—';
-      document.getElementById('mi-start').textContent   = fmtDate(d.started_at||d.created_at);
-      document.getElementById('mi-exp').textContent     = fmtDate(d.expires_at);
-      document.getElementById('mi-dur-id').textContent  = diffDays(d.started_at||d.created_at,d.expires_at)+' · '+_mgrId;
+      document.getElementById('mi-start').textContent        = fmtDate(d.started_at||d.created_at);
+      document.getElementById('mi-exp').textContent          = fmtDate(d.expires_at);
+      document.getElementById('mi-dur-id').textContent       = diffDays(d.started_at||d.created_at,d.expires_at);
+      document.getElementById('mi-shop-id-text').textContent = _mgrId;
       document.getElementById('mgr-pkg').value          = (d.package||'free').toLowerCase();
       document.getElementById('mgr-credits').value      = d.ai_credits||0;
       var ft=d.features||{};
@@ -389,7 +488,7 @@
     })
     .catch(function(){
       document.getElementById('mi-name').textContent=_mgrId;
-      document.getElementById('mi-dur-id').textContent=_mgrId;
+      document.getElementById('mi-shop-id-text').textContent=_mgrId;
     });
     // History
     api('/api/platform/shop-history?shop_id='+encodeURIComponent(_mgrId))
@@ -453,8 +552,15 @@
     .catch(function(){ alert('❌ เชื่อมต่อไม่ได้'); });
   }
 
+  function openMgrPrompt(){
+    if(_mgrId){ openMgr(_mgrId); return; }
+    var sid = document.getElementById('sh-search').value.trim();
+    if(!sid) sid = prompt('ใส่ Shop ID หรือค้นหาร้านก่อน:','ten_');
+    if(sid) openMgr(sid);
+  }
+
   // expose to inline onclick
-  window.openMgr=openMgr; window.closeMgr=closeMgr; window.toggleSec=toggleSec;
+  window.openMgr=openMgr; window.openMgrPrompt=openMgrPrompt; window.closeMgr=closeMgr; window.toggleSec=toggleSec;
   window.reloadMgr=reloadMgr; window.savePkg=savePkg; window.saveFeatures=saveFeatures;
   window.shopAction=shopAction; window.sendNotify=sendNotify; window.tokenAction=tokenAction;
   window.searchShops=searchShops; window.loadShops=loadShops;
