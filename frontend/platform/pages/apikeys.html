@@ -1,0 +1,96 @@
+<!doctype html><html><body>
+<style>
+.ak-wrap{padding:0}
+.ak-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.ak-bar-title{font-size:15px;font-weight:700;color:#1f2937;flex:1}
+.ak-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:#e8b93e;color:#1a1200}
+.ak-btn:hover{background:#d4a52c}
+.ak-info{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:12px;color:#92400e;margin-bottom:18px;display:flex;gap:8px}
+.ak-table-wrap{background:#fff;border-radius:12px;border:1px solid rgba(0,0,0,.07);overflow:hidden;margin-bottom:16px}
+.ak-table-head{padding:14px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px}
+.ak-table-head-title{font-size:13px;font-weight:700;color:#374151;flex:1}
+table.ak-tbl{width:100%;border-collapse:collapse;font-size:12px}
+table.ak-tbl th{padding:10px 16px;text-align:left;color:#6b7280;font-weight:600;background:#fafafa;border-bottom:1px solid #f3f4f6;font-size:11px}
+table.ak-tbl td{padding:11px 16px;border-bottom:1px solid #f9fafb;color:#374151}
+table.ak-tbl tr:last-child td{border:none}
+table.ak-tbl tr:hover td{background:#fffbf2}
+.ak-key{font-family:monospace;font-size:11px;color:#6b7280;background:#f9fafb;padding:2px 8px;border-radius:4px;cursor:pointer}
+.ak-key:hover{background:#f0ede8;color:#374151}
+.ak-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.ak-badge.ok{background:#dcfce7;color:#166534}
+.ak-badge.rev{background:#fee2e2;color:#991b1b}
+.ak-act{font-size:11px;color:#dc2626;cursor:pointer;text-decoration:underline}
+</style>
+
+<div class="ak-wrap">
+  <div class="ak-bar">
+    <div class="ak-bar-title">🔌 API Keys</div>
+    <button class="ak-btn" onclick="akNew()">+ สร้าง Key ใหม่</button>
+  </div>
+
+  <div class="ak-info">
+    ⚠ API Key มีสิทธิ์เต็มในบัญชีที่ออกให้ อย่าแชร์กับบุคคลภายนอก หากสงสัยว่าถูก compromise ให้ Revoke ทันที
+  </div>
+
+  <div class="ak-table-wrap">
+    <div class="ak-table-head">
+      <div class="ak-table-head-title">Platform API Keys</div>
+    </div>
+    <table class="ak-tbl">
+      <thead><tr>
+        <th>ชื่อ</th><th>Key</th><th>ร้าน/Owner</th><th>สร้างเมื่อ</th><th>ใช้ล่าสุด</th><th>สถานะ</th><th></th>
+      </tr></thead>
+      <tbody id="ak-rows">
+        <tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:30px">กำลังโหลด...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tok = (window.platformToken && window.platformToken()) || '';
+  var h = tok ? {'Authorization':'Bearer '+tok} : {};
+
+  function load(){
+    fetch('/api/platform/api-keys',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+      if(!d||!d.keys) return;
+      if(d.keys.length){
+        document.getElementById('ak-rows').innerHTML = d.keys.map(k=>`
+          <tr>
+            <td style="font-weight:500">${k.name||'—'}</td>
+            <td><span class="ak-key" title="คลิกเพื่อคัดลอก" onclick="akCopy('${k.key||''}')">${k.key_preview||'••••••••'}</span></td>
+            <td>${k.shop||k.owner||'—'}</td>
+            <td style="color:#9ca3af">${k.created_at||'—'}</td>
+            <td style="color:#9ca3af">${k.last_used||'—'}</td>
+            <td><span class="ak-badge ${k.active?'ok':'rev'}">${k.active?'Active':'Revoked'}</span></td>
+            <td>${k.active?'<span class="ak-act" onclick="akRevoke(\''+k.id+'\')">Revoke</span>':'—'}</td>
+          </tr>`).join('');
+      } else {
+        document.getElementById('ak-rows').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:30px">ยังไม่มี API Key</td></tr>';
+      }
+    }).catch(()=>{
+      document.getElementById('ak-rows').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:30px">ยังไม่เปิดใช้งาน</td></tr>';
+    });
+  }
+
+  window.akCopy = function(key){
+    navigator.clipboard.writeText(key).then(()=>alert('คัดลอกแล้ว ✓')).catch(()=>prompt('คัดลอกเอง:',key));
+  };
+  window.akRevoke = function(id){
+    if(!confirm('Revoke key นี้? จะใช้งานไม่ได้ทันที')) return;
+    fetch('/api/platform/api-keys/'+id+'/revoke',{method:'POST',headers:h})
+      .then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.ok) load(); else alert('ไม่สำเร็จ'); })
+      .catch(()=>alert('🚧 ยังไม่เปิดใช้งาน'));
+  };
+  window.akNew = function(){
+    var name = prompt('ชื่อ API Key:');
+    if(!name) return;
+    fetch('/api/platform/api-keys',{method:'POST',headers:{...h,'Content-Type':'application/json'},body:JSON.stringify({name})})
+      .then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.key){ alert('Key ใหม่:\n'+d.key+'\n\nบันทึกเก็บไว้ ไม่สามารถดูซ้ำได้'); load(); } else alert('ไม่สำเร็จ'); })
+      .catch(()=>alert('🚧 ยังไม่เปิดใช้งาน'));
+  };
+  load();
+})();
+</script>
+</body></html>

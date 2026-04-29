@@ -1,0 +1,147 @@
+<!doctype html><html><body>
+<style>
+.ms-wrap{padding:0}
+.ms-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.ms-bar-title{font-size:15px;font-weight:700;color:#1f2937;flex:1}
+.ms-row2{display:grid;grid-template-columns:320px 1fr;gap:16px}
+.ms-card{background:#fff;border-radius:12px;padding:20px;border:1px solid rgba(0,0,0,.07)}
+.ms-card-title{font-size:13px;font-weight:700;color:#374151;margin-bottom:16px}
+.ms-avatar{width:64px;height:64px;border-radius:50%;background:#e8b93e;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#1a1200;margin:0 auto 14px}
+.ms-shop-name{font-size:18px;font-weight:700;color:#1f2937;text-align:center;margin-bottom:4px}
+.ms-shop-pkg{font-size:12px;color:#9ca3af;text-align:center;margin-bottom:16px}
+.ms-info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.ms-info-row:last-child{border:none}
+.ms-info-lbl{color:#6b7280}
+.ms-info-val{font-weight:600;color:#374151}
+.ms-badge-ok{background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.ms-badge-warn{background:#fef9c3;color:#854d0e;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.ms-feats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.ms-feat{background:#f9fafb;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:8px}
+.ms-feat-icon{font-size:18px}
+.ms-feat-label{font-size:12px;font-weight:500;color:#374151}
+.ms-feat-status{font-size:10px;color:#9ca3af;margin-top:2px}
+.ms-feat.on .ms-feat-label{color:#1f2937}
+.ms-feat.on .ms-feat-status{color:#16a34a;font-weight:600}
+.ms-form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.ms-form-row label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.ms-form-row input,.ms-form-row select{padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;outline:none}
+.ms-form-row input:focus,.ms-form-row select:focus{border-color:#e8b93e}
+.ms-save-btn{padding:8px 24px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+.ms-save-btn:hover{background:#d4a52c}
+</style>
+
+<div class="ms-wrap">
+  <div class="ms-bar">
+    <div class="ms-bar-title">🏠 My Shop — ร้านของฉัน</div>
+  </div>
+
+  <div class="ms-row2">
+    <div>
+      <div class="ms-card" style="margin-bottom:14px">
+        <div id="ms-avatar" class="ms-avatar">?</div>
+        <div id="ms-name" class="ms-shop-name">กำลังโหลด...</div>
+        <div id="ms-pkg" class="ms-shop-pkg">—</div>
+        <div class="ms-info-row"><span class="ms-info-lbl">สถานะ</span><span id="ms-status" class="ms-badge-ok">Active</span></div>
+        <div class="ms-info-row"><span class="ms-info-lbl">วันสร้าง</span><span id="ms-created" class="ms-info-val">—</span></div>
+        <div class="ms-info-row"><span class="ms-info-lbl">ครบอายุ</span><span id="ms-expire" class="ms-info-val">—</span></div>
+        <div class="ms-info-row"><span class="ms-info-lbl">Tenant ID</span><span id="ms-tid" class="ms-info-val" style="font-family:monospace;font-size:11px">—</span></div>
+      </div>
+
+      <div class="ms-card">
+        <div class="ms-card-title">⚡ ฟีเจอร์ที่ใช้งานได้</div>
+        <div class="ms-feats" id="ms-feats">
+          <div class="ms-feat"><div class="ms-feat-icon">🖥</div><div><div class="ms-feat-label">POS</div><div class="ms-feat-status">กำลังโหลด...</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="ms-card" style="margin-bottom:14px">
+        <div class="ms-card-title">📊 สรุปยอด</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:#b45309" id="ms-tsales">—</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:2px">ยอดวันนี้</div>
+          </div>
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:#16a34a" id="ms-msales">—</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:2px">ยอด/เดือน</div>
+          </div>
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:#1d4ed8" id="ms-morders">—</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:2px">ออเดอร์/เดือน</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ms-card">
+        <div class="ms-card-title">⚙ ตั้งค่าร้าน</div>
+        <div class="ms-form-row"><label>ชื่อร้าน</label><input id="ms-edit-name" placeholder="ชื่อร้านค้า"></div>
+        <div class="ms-form-row"><label>อีเมลติดต่อ</label><input id="ms-edit-email" placeholder="email@shop.com" type="email"></div>
+        <div class="ms-form-row"><label>เบอร์โทร</label><input id="ms-edit-phone" placeholder="08x-xxx-xxxx"></div>
+        <div class="ms-form-row"><label>ที่อยู่</label><input id="ms-edit-addr" placeholder="ที่อยู่ร้าน"></div>
+        <button class="ms-save-btn" onclick="msSave()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tok = (window.platformToken && window.platformToken()) || '';
+  var h = tok ? {'Authorization':'Bearer '+tok} : {};
+  var fmt = n => Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
+  var FEATS = [
+    {key:'pos',icon:'🖥',label:'POS'},
+    {key:'ai_bot',icon:'🤖',label:'AI Chatbot'},
+    {key:'line_oa',icon:'💬',label:'LINE OA'},
+    {key:'affiliate',icon:'🔗',label:'Affiliate'},
+    {key:'auto_post',icon:'📲',label:'Auto Post'},
+    {key:'multi_branch',icon:'🏢',label:'Multi Branch'},
+  ];
+
+  fetch('/api/pos/store/settings',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d) return;
+    var av = document.getElementById('ms-avatar');
+    av.textContent = (d.store_name||'?').charAt(0).toUpperCase();
+    document.getElementById('ms-name').textContent = d.store_name||'—';
+    document.getElementById('ms-pkg').textContent = d.package||'Starter';
+    document.getElementById('ms-created').textContent = d.created_at||'—';
+    document.getElementById('ms-expire').textContent = d.expire_at||'—';
+    document.getElementById('ms-tid').textContent = d.tenant_id||'—';
+    document.getElementById('ms-edit-name').value = d.store_name||'';
+    document.getElementById('ms-edit-email').value = d.email||'';
+    document.getElementById('ms-edit-phone').value = d.phone||'';
+    document.getElementById('ms-edit-addr').value = d.address||'';
+    var feats = d.features || {};
+    document.getElementById('ms-feats').innerHTML = FEATS.map(f=>{
+      var on = !!feats[f.key];
+      return `<div class="ms-feat ${on?'on':''}">
+        <div class="ms-feat-icon">${f.icon}</div>
+        <div><div class="ms-feat-label">${f.label}</div>
+        <div class="ms-feat-status">${on?'● เปิดใช้':'ปิด'}</div></div>
+      </div>`;
+    }).join('');
+  }).catch(()=>{});
+
+  fetch('/api/pos-mobile/summary',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d) return;
+    document.getElementById('ms-tsales').textContent = '฿'+fmt(d.today_sales||0);
+    document.getElementById('ms-msales').textContent = '฿'+fmt(d.month_sales||0);
+    document.getElementById('ms-morders').textContent = fmt(d.month_orders||0);
+  }).catch(()=>{});
+
+  window.msSave = function(){
+    var body = {
+      store_name: document.getElementById('ms-edit-name').value,
+      email: document.getElementById('ms-edit-email').value,
+      phone: document.getElementById('ms-edit-phone').value,
+      address: document.getElementById('ms-edit-addr').value,
+    };
+    fetch('/api/pos/store/settings',{method:'PUT',headers:{...h,'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.ok) alert('บันทึกแล้ว ✓'); else alert('ไม่สำเร็จ'); })
+      .catch(()=>alert('🚧 ยังไม่เปิดใช้งาน'));
+  };
+})();
+</script>
+</body></html>

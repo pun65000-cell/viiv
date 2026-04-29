@@ -1,0 +1,466 @@
+<!doctype html><html><head><meta charset="utf-8"></head>
+<body>
+<style>
+.pg-shops{ display:flex; flex-direction:column; gap:16px; }
+/* ── action bar ── */
+.pg-actionbar{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:10px 16px; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+.pg-actionbar input{ flex:1; padding:7px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; outline:none; background:#faf9f7; }
+.pg-actionbar input:focus{ border-color:#e8b93e; }
+.pg-btn{ padding:7px 15px; border-radius:9px; border:1px solid #e5e7eb; background:#fff; color:#1f2937; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; transition:background .1s; }
+.pg-btn:hover{ background:#f5f3ef; border-color:rgba(0,0,0,.18); }
+.pg-btn-accent{ background:#e8b93e; border-color:#bf941e; color:#1a1200; font-weight:700; }
+.pg-btn-accent:hover{ background:#d4a52c; }
+/* ── stats ── */
+.pg-stats{ display:flex; gap:12px; }
+.pg-stat{ flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; }
+.pg-stat-lbl{ font-size:11px; color:#6b7280; margin-bottom:5px; font-weight:500; }
+.pg-stat-val{ font-size:24px; font-weight:700; color:#1f2937; }
+.pg-stat-val.gold{ color:#a07820; }
+.pg-stat-val.green{ color:#1e6b42; }
+.pg-stat-val.red{ color:#b91c1c; }
+/* ── shop table ── */
+.pg-card{ background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
+.pg-table{ width:100%; border-collapse:collapse; font-size:13px; }
+.pg-table th{ padding:10px 16px; text-align:left; font-size:11px; font-weight:600; color:#6b7280; background:#f8f6f2; border-bottom:1px solid #e5e7eb; letter-spacing:.4px; text-transform:uppercase; white-space:nowrap; }
+.pg-table td{ padding:11px 16px; border-bottom:1px solid #f0ede8; color:#1f2937; vertical-align:middle; }
+.pg-table tr:last-child td{ border-bottom:none; }
+.pg-table tr:hover td{ background:#faf9f7; }
+.shop-name{ font-weight:600; }
+.shop-id{ font-size:11px; color:#aaa; font-family:monospace; margin-top:2px; }
+.pill{ font-size:11px; font-weight:600; padding:3px 11px; border-radius:20px; }
+.pill-active{ background:#e4f3ec; color:#1e6b42; }
+.pill-inactive{ background:#f5f0e5; color:#9a7020; }
+.pill-blocked{ background:#fef2f2; color:#b91c1c; }
+.pill-pending{ background:#fffbeb; color:#92400e; }
+.pg-table-action{ display:flex; gap:6px; }
+.tbl-btn{ padding:4px 10px; border:1px solid #e5e7eb; border-radius:6px; background:#fff; font-size:11px; cursor:pointer; color:#1f2937; }
+.tbl-btn:hover{ background:#f5f3ef; }
+.tbl-btn.primary{ background:#e8b93e; border-color:#bf941e; color:#1a1200; font-weight:600; }
+.tbl-btn.primary:hover{ background:#d4a52c; }
+.tbl-btn.danger{ background:#fef2f2; border-color:#fca5a5; color:#b91c1c; }
+.pg-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 0; color:#9ca3af; gap:8px; }
+.pg-empty-icon{ font-size:32px; }
+.pg-loading{ display:flex; align-items:center; justify-content:center; padding:40px; color:#9ca3af; gap:8px; }
+.pg-loading::before{ content:''; width:14px; height:14px; border:2px solid #e5e7eb; border-top-color:#e8b93e; border-radius:50%; animation:pgSpin .7s linear infinite; }
+@keyframes pgSpin{ to{ transform:rotate(360deg); } }
+/* ── Manage Drawer ── */
+#mgr-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:800; display:none; align-items:stretch; justify-content:flex-end; }
+#mgr-overlay.open{ display:flex; }
+#mgr-drawer{ width:460px; background:#fff; height:100vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:-4px 0 24px rgba(0,0,0,.15); }
+.md-hdr{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #e5e7eb; flex-shrink:0; background:#f8f6f2; }
+.md-hdr-title{ font-size:15px; font-weight:700; }
+.md-close{ background:none; border:none; font-size:18px; cursor:pointer; color:#6b7280; padding:2px 6px; line-height:1; border-radius:5px; }
+.md-close:hover{ background:#e5e7eb; }
+.md-shop-bar{ display:flex; align-items:center; gap:8px; padding:12px 20px; border-bottom:1px solid #e5e7eb; flex-shrink:0; background:#fff; }
+.md-shop-id-badge{ font-family:monospace; font-size:12px; background:#f8f6f2; border:1px solid #e5e7eb; border-radius:6px; padding:4px 10px; color:#374151; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#mgr-status{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; flex-shrink:0; }
+#mgr-status.active{ background:#e4f3ec; color:#1e6b42; }
+#mgr-status.blocked{ background:#fef2f2; color:#b91c1c; }
+#mgr-status.pending{ background:#fffbeb; color:#92400e; }
+.md-body{ flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+.md-body::-webkit-scrollbar{ width:4px; }
+.md-body::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:2px; }
+/* info grid */
+.md-info{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#e5e7eb; border-bottom:1px solid #e5e7eb; flex-shrink:0; }
+.md-info-cell{ background:#fff; padding:12px 16px; }
+.md-info-cell.full{ grid-column:1/-1; }
+.md-info-lbl{ font-size:10px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+.md-info-val{ font-size:13px; font-weight:600; color:#1f2937; word-break:break-all; }
+.md-info-val.mono{ font-family:monospace; font-size:11px; }
+.md-info-val.big{ font-size:16px; }
+/* sections */
+.md-sec{ border-bottom:1px solid #f0ede8; }
+.md-sec-hdr{ display:flex; align-items:center; justify-content:space-between; padding:11px 20px; cursor:pointer; font-size:13px; font-weight:600; color:#374151; user-select:none; background:#fff; transition:background .1s; }
+.md-sec-hdr:hover{ background:#f8f6f2; }
+.md-sec-body{ display:none; padding:14px 20px; flex-direction:column; gap:10px; background:#fafafa; }
+.md-sec-body.open{ display:flex; }
+.md-row{ display:flex; gap:8px; align-items:center; }
+.md-row label{ font-size:12px; color:#6b7280; white-space:nowrap; min-width:60px; }
+.md-row select, .md-row input[type=number], .md-row input[type=text]{ flex:1; padding:6px 10px; border:1px solid #e5e7eb; border-radius:7px; font-size:13px; outline:none; background:#fff; }
+.md-row select:focus, .md-row input:focus{ border-color:#e8b93e; }
+.md-save{ padding:6px 14px; border-radius:7px; border:none; background:#e8b93e; color:#1a1200; font-size:12px; font-weight:700; cursor:pointer; flex-shrink:0; white-space:nowrap; }
+.md-save:hover{ background:#d4a52c; }
+.md-toggle-list{ display:flex; flex-direction:column; }
+.md-toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid #f0ede8; }
+.md-toggle-row:last-child{ border-bottom:none; }
+.md-toggle-lbl{ font-size:12px; color:#374151; }
+.md-sw{ position:relative; width:34px; height:20px; flex-shrink:0; }
+.md-sw input{ opacity:0; width:0; height:0; position:absolute; }
+.md-sw-sl{ position:absolute; inset:0; background:#d1d5db; border-radius:20px; cursor:pointer; transition:.2s; }
+.md-sw-sl::before{ content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:#fff; bottom:3px; left:3px; transition:.2s; }
+.md-sw input:checked+.md-sw-sl{ background:#e8b93e; }
+.md-sw input:checked+.md-sw-sl::before{ transform:translateX(14px); }
+.md-btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.md-action-btn{ padding:7px 14px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; color:#374151; font-size:12px; font-weight:600; cursor:pointer; }
+.md-action-btn:hover{ background:#f5f3ef; }
+.md-action-btn.success{ background:#e4f3ec; border-color:#b0d9c3; color:#1e6b42; }
+.md-action-btn.warn{ background:#fffbeb; border-color:#fcd34d; color:#92400e; }
+.md-action-btn.danger{ background:#fef2f2; border-color:#fca5a5; color:#b91c1c; }
+.md-textarea{ width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:12px; resize:vertical; min-height:60px; outline:none; font-family:inherit; }
+.md-textarea:focus{ border-color:#e8b93e; }
+.md-list{ display:flex; flex-direction:column; gap:5px; max-height:180px; overflow-y:auto; }
+.md-list-row{ display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:#fff; border:1px solid #e5e7eb; border-radius:7px; font-size:12px; }
+.md-list-name{ font-weight:600; }
+.md-list-sub{ color:#9ca3af; font-size:11px; }
+.md-warn-box{ font-size:11px; color:#92400e; background:#fffbeb; border:1px solid #fcd34d; border-radius:7px; padding:8px 10px; line-height:1.5; }
+.md-empty{ font-size:12px; color:#9ca3af; text-align:center; padding:16px 0; }
+</style>
+
+<div class="pg-shops">
+
+  <!-- Action bar -->
+  <div class="pg-actionbar">
+    <input id="sh-search" placeholder="ค้นหา Shop ID หรือชื่อร้าน..." autocomplete="off"
+      onkeydown="if(event.key==='Enter')searchShops()"/>
+    <button class="pg-btn" onclick="searchShops()">ค้นหา</button>
+    <button class="pg-btn" id="sh-mgr-btn" onclick="openMgr()" style="display:none">⚙ จัดการ</button>
+    <button class="pg-btn pg-btn-accent" onclick="window.platformNav(document.querySelector('[data-page=shops]'));setTimeout(()=>{document.getElementById('sh-search').value='';loadShops();},10)">↺ รีเฟรช</button>
+    <button class="pg-btn pg-btn-accent" onclick="alert('Coming soon')">+ สร้างร้าน</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="pg-stats" id="sh-stats">
+    <div class="pg-stat"><div class="pg-stat-lbl">ร้านทั้งหมด</div><div class="pg-stat-val" id="st-total">—</div></div>
+    <div class="pg-stat"><div class="pg-stat-lbl">Active</div><div class="pg-stat-val green" id="st-active">—</div></div>
+    <div class="pg-stat"><div class="pg-stat-lbl">Inactive</div><div class="pg-stat-val gold" id="st-inactive">—</div></div>
+    <div class="pg-stat"><div class="pg-stat-lbl">Blocked</div><div class="pg-stat-val red" id="st-blocked">—</div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="pg-card">
+    <table class="pg-table">
+      <thead>
+        <tr>
+          <th>ร้านค้า</th>
+          <th>แพ็กเกจ</th>
+          <th>สถานะ</th>
+          <th>วันครบอายุ</th>
+          <th>สมาชิก</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="sh-tbody">
+        <tr><td colspan="6"><div class="pg-loading">กำลังโหลด</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ── MANAGE DRAWER ── -->
+<div id="mgr-overlay" onclick="if(event.target===this)closeMgr()">
+  <div id="mgr-drawer">
+
+    <div class="md-hdr">
+      <span class="md-hdr-title">⚙ จัดการร้านค้า</span>
+      <button class="md-close" onclick="closeMgr()">✕</button>
+    </div>
+
+    <div class="md-shop-bar">
+      <span class="md-shop-id-badge" id="mgr-shop-id-lbl">—</span>
+      <span id="mgr-status" class="active">● Active</span>
+      <button class="md-save" onclick="reloadMgr()" style="font-size:11px;padding:4px 10px;">↺</button>
+    </div>
+
+    <div class="md-body">
+
+      <!-- Info -->
+      <div class="md-info">
+        <div class="md-info-cell"><div class="md-info-lbl">ชื่อร้าน</div><div class="md-info-val big" id="mi-name">—</div></div>
+        <div class="md-info-cell"><div class="md-info-lbl">แพ็กเกจ</div><div class="md-info-val" id="mi-pkg">—</div></div>
+        <div class="md-info-cell"><div class="md-info-lbl">เครดิต AI</div><div class="md-info-val" id="mi-credits">—</div></div>
+        <div class="md-info-cell"><div class="md-info-lbl">สมาชิก</div><div class="md-info-val" id="mi-members-count">—</div></div>
+        <div class="md-info-cell"><div class="md-info-lbl">วันเริ่ม</div><div class="md-info-val" id="mi-start">—</div></div>
+        <div class="md-info-cell"><div class="md-info-lbl">วันครบอายุ</div><div class="md-info-val" id="mi-exp">—</div></div>
+        <div class="md-info-cell full"><div class="md-info-lbl">ระยะเวลา / Shop ID</div><div class="md-info-val mono" id="mi-dur-id">—</div></div>
+      </div>
+
+      <!-- ① Package & Credits -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">📦 แพ็กเกจ &amp; เครดิต AI <span>▸</span></div>
+        <div class="md-sec-body">
+          <div class="md-row">
+            <label>แพ็กเกจ</label>
+            <select id="mgr-pkg">
+              <option value="free">Free</option>
+              <option value="starter">Starter — ฿299/เดือน</option>
+              <option value="pro">Pro — ฿799/เดือน</option>
+              <option value="enterprise">Enterprise — ฿1,999/เดือน</option>
+            </select>
+          </div>
+          <div class="md-row">
+            <label>เครดิต AI</label>
+            <input type="number" id="mgr-credits" min="0" placeholder="0"/>
+            <button class="md-save" onclick="savePkg()">บันทึก</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② Features -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">⚙ ฟังก์ชัน <span>▸</span></div>
+        <div class="md-sec-body">
+          <div class="md-toggle-list">
+            <div class="md-toggle-row"><span class="md-toggle-lbl">🖥 POS ระบบขาย</span><label class="md-sw"><input type="checkbox" id="ft-pos" checked><span class="md-sw-sl"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-lbl">🤖 AI Chat ตอบอัตโนมัติ</span><label class="md-sw"><input type="checkbox" id="ft-ai" checked><span class="md-sw-sl"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-lbl">📲 Auto Post</span><label class="md-sw"><input type="checkbox" id="ft-post"><span class="md-sw-sl"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-lbl">💬 Chat &amp; Showroom</span><label class="md-sw"><input type="checkbox" id="ft-chat" checked><span class="md-sw-sl"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-lbl">🔗 Affiliate</span><label class="md-sw"><input type="checkbox" id="ft-aff"><span class="md-sw-sl"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-lbl">📄 Statement / บิล</span><label class="md-sw"><input type="checkbox" id="ft-stmt" checked><span class="md-sw-sl"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-lbl">🔌 API Access</span><label class="md-sw"><input type="checkbox" id="ft-api"><span class="md-sw-sl"></span></label></div>
+          </div>
+          <button class="md-save" onclick="saveFeatures()" style="align-self:flex-end">บันทึกฟังก์ชัน</button>
+        </div>
+      </div>
+
+      <!-- ③ สถานะร้าน -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">🏪 สถานะร้าน <span>▸</span></div>
+        <div class="md-sec-body">
+          <div class="md-btn-row">
+            <button class="md-action-btn success" onclick="shopAction('approve')">✅ อนุมัติร้าน</button>
+            <button class="md-action-btn warn"    onclick="shopAction('suspend')">⏸ พักการใช้งาน</button>
+            <button class="md-action-btn danger"  onclick="shopAction('block')">🚫 บล็อกร้าน</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ แจ้งเตือน -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">🔔 ส่งข้อความ → กระดิ่ง <span>▸</span></div>
+        <div class="md-sec-body">
+          <textarea class="md-textarea" id="mgr-notify-msg" placeholder="ข้อความที่จะส่งไปแสดงที่กระดิ่งของร้านค้า..."></textarea>
+          <button class="md-save" onclick="sendNotify()" style="align-self:flex-end">ส่งข้อความ</button>
+        </div>
+      </div>
+
+      <!-- ⑤ ประวัติ -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">📋 ประวัติการใช้งาน <span>▸</span></div>
+        <div class="md-sec-body">
+          <div class="md-list" id="mgr-history"><div class="md-empty">กำลังโหลด...</div></div>
+        </div>
+      </div>
+
+      <!-- ⑥ สมาชิก -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">👥 สมาชิกในร้าน <span>▸</span></div>
+        <div class="md-sec-body">
+          <div class="md-list" id="mgr-members"><div class="md-empty">กำลังโหลด...</div></div>
+        </div>
+      </div>
+
+      <!-- ⑦ Token Control -->
+      <div class="md-sec">
+        <div class="md-sec-hdr" onclick="toggleSec(this)" style="color:#b91c1c">🔑 ควบคุมโทเคน <span>▸</span></div>
+        <div class="md-sec-body">
+          <div class="md-warn-box">⚠ การกระทำด้านนี้ส่งผลทันที — โทเคนที่ถูกเพิกถอนต้อง Login ใหม่ทั้งหมด</div>
+          <div class="md-btn-row">
+            <button class="md-action-btn warn"   onclick="tokenAction('expire-all')">🔄 หมดอายุโทเคนทั้งหมด</button>
+            <button class="md-action-btn danger" onclick="tokenAction('block-access')">🔒 บล็อกการเข้าถึง</button>
+            <button class="md-action-btn danger" onclick="tokenAction('kick-all')">⏏ เตะออกทั้งหมด</button>
+          </div>
+          <div class="md-row" style="margin-top:4px">
+            <label>User ID</label>
+            <input type="text" id="mgr-kick-uid" placeholder="usr_xxxxx"/>
+            <button class="md-save" onclick="tokenAction('kick-one')" style="background:#b91c1c">เตะ 1 คน</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /md-body -->
+  </div><!-- /mgr-drawer -->
+</div><!-- /mgr-overlay -->
+
+<script>
+(function(){
+  var _shops = [];
+  var _mgrId = null;
+
+  function tok(){ return (window.platformToken && window.platformToken()) || localStorage.getItem('viiv_token') || ''; }
+  function api(path, opts){
+    return fetch(path, Object.assign({ headers: { 'Authorization':'Bearer '+tok(), 'Content-Type':'application/json' } }, opts||{}));
+  }
+  function fmtDate(d){ return d ? new Date(d).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : '—'; }
+  function diffDays(a,b){
+    if(!a||!b) return '—';
+    var ms = new Date(b)-new Date(a);
+    if(ms<0) return '⚠ หมดอายุแล้ว';
+    return Math.ceil(ms/86400000)+' วัน';
+  }
+  function pillClass(s){ return s==='active'?'pill-active':s==='blocked'?'pill-blocked':s==='pending'?'pill-pending':'pill-inactive'; }
+  function pillTxt(s){ return s==='active'?'active':s==='blocked'?'blocked':s==='pending'?'pending':'inactive'; }
+
+  // ── Load shop list ──
+  function loadShops(q){
+    var tbody = document.getElementById('sh-tbody');
+    tbody.innerHTML = '<tr><td colspan="6"><div class="pg-loading">กำลังโหลด</div></td></tr>';
+    var url = '/api/platform/shops' + (q?'?q='+encodeURIComponent(q):'');
+    api(url)
+    .then(function(r){ return r.ok?r.json():Promise.reject('HTTP '+r.status); })
+    .then(function(data){
+      var shops = Array.isArray(data)?data:(data.shops||data.items||[]);
+      _shops = shops;
+      // stats
+      var total=shops.length, active=0, inactive=0, blocked=0;
+      shops.forEach(function(s){
+        var st=s.status||'active';
+        if(st==='active') active++;
+        else if(st==='blocked') blocked++;
+        else inactive++;
+      });
+      document.getElementById('st-total').textContent=total;
+      document.getElementById('st-active').textContent=active;
+      document.getElementById('st-inactive').textContent=inactive;
+      document.getElementById('st-blocked').textContent=blocked;
+      // table
+      if(!shops.length){
+        tbody.innerHTML='<tr><td colspan="6"><div class="pg-empty"><div class="pg-empty-icon">🏪</div><div>ยังไม่มีร้านค้า</div></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = shops.map(function(s){
+        var st=s.status||'active';
+        return '<tr>'+
+          '<td><div class="shop-name">'+htmlEsc(s.store_name||s.name||'—')+'</div><div class="shop-id">'+htmlEsc(s.tenant_id||s.id||'')+'</div></td>'+
+          '<td>'+(s.package||'Free')+'</td>'+
+          '<td><span class="pill '+pillClass(st)+'">'+pillTxt(st)+'</span></td>'+
+          '<td>'+fmtDate(s.expires_at)+'</td>'+
+          '<td>'+(s.member_count||'—')+'</td>'+
+          '<td><div class="pg-table-action">'+
+            '<button class="tbl-btn primary" onclick="openMgr(\''+htmlEsc(s.tenant_id||s.id||'')+'\')">⚙ จัดการ</button>'+
+          '</div></td>'+
+        '</tr>';
+      }).join('');
+    })
+    .catch(function(e){
+      // Fallback: show mock data if API doesn't exist yet
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af;font-size:12px;">API ยังไม่พร้อม ('+e+') — <button class="tbl-btn" onclick="loadShops()">ลองใหม่</button></td></tr>';
+      ['st-total','st-active','st-inactive','st-blocked'].forEach(function(id){document.getElementById(id).textContent='—';});
+    });
+  }
+
+  function htmlEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function searchShops(){
+    var q = document.getElementById('sh-search').value.trim();
+    loadShops(q);
+  }
+
+  // ── Drawer ──
+  function openMgr(sid){
+    if(!sid) sid = document.getElementById('sh-search').value.trim();
+    if(!sid){ alert('กรุณาระบุ Shop ID หรือค้นหาก่อน'); return; }
+    _mgrId = sid;
+    document.getElementById('mgr-overlay').classList.add('open');
+    document.getElementById('sh-mgr-btn').style.display='inline-flex';
+    reloadMgr();
+  }
+  function closeMgr(){ document.getElementById('mgr-overlay').classList.remove('open'); }
+  function toggleSec(hdr){
+    var body=hdr.nextElementSibling;
+    var arrow=hdr.querySelector('span');
+    var open=body.classList.toggle('open');
+    if(arrow) arrow.textContent=open?'▾':'▸';
+  }
+
+  function reloadMgr(){
+    if(!_mgrId) return;
+    document.getElementById('mgr-shop-id-lbl').textContent = _mgrId;
+    // Shop detail
+    api('/api/platform/shop-detail?shop_id='+encodeURIComponent(_mgrId))
+    .then(function(r){ return r.ok?r.json():{}; })
+    .then(function(d){
+      var st=d.status||'active';
+      var sb=document.getElementById('mgr-status');
+      sb.className=st; sb.textContent='● '+st;
+      document.getElementById('mi-name').textContent    = d.store_name||d.name||_mgrId;
+      document.getElementById('mi-pkg').textContent     = d.package||'Free';
+      document.getElementById('mi-credits').textContent = d.ai_credits??'—';
+      document.getElementById('mi-members-count').textContent = d.member_count??'—';
+      document.getElementById('mi-start').textContent   = fmtDate(d.started_at||d.created_at);
+      document.getElementById('mi-exp').textContent     = fmtDate(d.expires_at);
+      document.getElementById('mi-dur-id').textContent  = diffDays(d.started_at||d.created_at,d.expires_at)+' · '+_mgrId;
+      document.getElementById('mgr-pkg').value          = (d.package||'free').toLowerCase();
+      document.getElementById('mgr-credits').value      = d.ai_credits||0;
+      var ft=d.features||{};
+      ['pos','ai','post','chat','aff','stmt','api'].forEach(function(k){
+        var el=document.getElementById('ft-'+k); if(el) el.checked=ft[k]!==false;
+      });
+    })
+    .catch(function(){
+      document.getElementById('mi-name').textContent=_mgrId;
+      document.getElementById('mi-dur-id').textContent=_mgrId;
+    });
+    // History
+    api('/api/platform/shop-history?shop_id='+encodeURIComponent(_mgrId))
+    .then(function(r){ return r.ok?r.json():[]; })
+    .then(function(logs){
+      document.getElementById('mgr-history').innerHTML = logs.length
+        ? logs.map(function(l){ return '<div class="md-list-row"><span class="md-list-name">'+htmlEsc(l.action||'')+'</span><span class="md-list-sub">'+fmtDate(l.created_at)+'</span></div>'; }).join('')
+        : '<div class="md-empty">ยังไม่มีประวัติ</div>';
+    }).catch(function(){ document.getElementById('mgr-history').innerHTML='<div class="md-empty">API ยังไม่พร้อม</div>'; });
+    // Members
+    api('/api/platform/shop-members?shop_id='+encodeURIComponent(_mgrId))
+    .then(function(r){ return r.ok?r.json():[]; })
+    .then(function(members){
+      document.getElementById('mgr-members').innerHTML = members.length
+        ? members.map(function(m){ return '<div class="md-list-row"><span class="md-list-name">'+htmlEsc((m.first_name||'')+' '+(m.last_name||''))+'</span><span class="md-list-sub">'+htmlEsc(m.role||'staff')+'</span></div>'; }).join('')
+        : '<div class="md-empty">ไม่มีสมาชิก</div>';
+    }).catch(function(){ document.getElementById('mgr-members').innerHTML='<div class="md-empty">API ยังไม่พร้อม</div>'; });
+  }
+
+  function savePkg(){
+    if(!_mgrId) return;
+    api('/api/platform/shop-package',{method:'POST',body:JSON.stringify({shop_id:_mgrId,package:document.getElementById('mgr-pkg').value,ai_credits:Number(document.getElementById('mgr-credits').value)||0})})
+    .then(function(r){ alert(r.ok?'✅ บันทึกแล้ว':'❌ ไม่สำเร็จ ('+r.status+')'); if(r.ok) reloadMgr(); })
+    .catch(function(){ alert('❌ เชื่อมต่อไม่ได้'); });
+  }
+  function saveFeatures(){
+    if(!_mgrId) return;
+    var ft={};
+    ['pos','ai','post','chat','aff','stmt','api'].forEach(function(k){ ft[k]=(document.getElementById('ft-'+k)||{}).checked!==false; });
+    api('/api/platform/shop-features',{method:'POST',body:JSON.stringify({shop_id:_mgrId,features:ft})})
+    .then(function(r){ alert(r.ok?'✅ บันทึกแล้ว':'❌ ไม่สำเร็จ'); })
+    .catch(function(){ alert('❌ เชื่อมต่อไม่ได้'); });
+  }
+  function shopAction(action){
+    if(!_mgrId) return;
+    var lb={approve:'อนุมัติร้าน',suspend:'พักการใช้งาน',block:'บล็อกร้าน'};
+    if(!confirm('ยืนยัน: '+lb[action]+' '+_mgrId+'?')) return;
+    api('/api/platform/shop-status',{method:'POST',body:JSON.stringify({shop_id:_mgrId,action:action})})
+    .then(function(r){ if(r.ok){alert('✅ สำเร็จ');reloadMgr();loadShops();}else alert('❌ ไม่สำเร็จ'); })
+    .catch(function(){ alert('❌ เชื่อมต่อไม่ได้'); });
+  }
+  function sendNotify(){
+    if(!_mgrId) return;
+    var msg=document.getElementById('mgr-notify-msg').value.trim();
+    if(!msg){alert('กรุณาใส่ข้อความ');return;}
+    api('/api/platform/shop-notify',{method:'POST',body:JSON.stringify({shop_id:_mgrId,message:msg})})
+    .then(function(r){ if(r.ok){document.getElementById('mgr-notify-msg').value='';alert('✅ ส่งแล้ว');}else alert('❌ ส่งไม่สำเร็จ'); })
+    .catch(function(){ alert('❌ เชื่อมต่อไม่ได้'); });
+  }
+  function tokenAction(action){
+    if(!_mgrId) return;
+    var lb={'expire-all':'หมดอายุโทเคนทั้งหมด','block-access':'บล็อกการเข้าถึง','kick-all':'เตะออกทั้งหมด','kick-one':'เตะ User นี้'};
+    if(!confirm('⚠ ยืนยัน: '+lb[action]+'?')) return;
+    var body={shop_id:_mgrId,action:action};
+    if(action==='kick-one'){
+      body.user_id=document.getElementById('mgr-kick-uid').value.trim();
+      if(!body.user_id){alert('กรุณาใส่ User ID');return;}
+    }
+    api('/api/platform/shop-token-control',{method:'POST',body:JSON.stringify(body)})
+    .then(function(r){ alert(r.ok?'✅ '+lb[action]+' สำเร็จ':'❌ ไม่สำเร็จ'); })
+    .catch(function(){ alert('❌ เชื่อมต่อไม่ได้'); });
+  }
+
+  // expose to inline onclick
+  window.openMgr=openMgr; window.closeMgr=closeMgr; window.toggleSec=toggleSec;
+  window.reloadMgr=reloadMgr; window.savePkg=savePkg; window.saveFeatures=saveFeatures;
+  window.shopAction=shopAction; window.sendNotify=sendNotify; window.tokenAction=tokenAction;
+  window.searchShops=searchShops; window.loadShops=loadShops;
+
+  // init
+  loadShops();
+})();
+</script>
+</body></html>

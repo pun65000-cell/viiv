@@ -1,0 +1,106 @@
+<!doctype html><html><body>
+<style>
+.nt-wrap{padding:0}
+.nt-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.nt-bar-title{font-size:15px;font-weight:700;color:#1f2937;flex:1}
+.nt-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:#e8b93e;color:#1a1200}
+.nt-btn:hover{background:#d4a52c}
+.nt-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.nt-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07)}
+.nt-card-title{font-size:13px;font-weight:700;color:#374151;margin-bottom:14px}
+.nt-form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.nt-form-row label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+.nt-form-row input,.nt-form-row select,.nt-form-row textarea{padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;outline:none;resize:vertical}
+.nt-form-row input:focus,.nt-form-row select:focus,.nt-form-row textarea:focus{border-color:#e8b93e}
+.nt-send-btn{padding:8px 20px;background:#e8b93e;color:#1a1200;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;width:100%}
+.nt-log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.nt-log-item:last-child{border:none}
+.nt-log-dot{width:8px;height:8px;border-radius:50%;background:#e8b93e;flex-shrink:0;margin-top:3px}
+.nt-log-body{flex:1}
+.nt-log-msg{color:#374151;line-height:1.4}
+.nt-log-meta{font-size:10px;color:#9ca3af;margin-top:2px}
+</style>
+
+<div class="nt-wrap">
+  <div class="nt-bar">
+    <div class="nt-bar-title">🔔 การแจ้งเตือน</div>
+    <button class="nt-btn" onclick="ntSendModal()">+ ส่งแจ้งเตือนใหม่</button>
+  </div>
+
+  <div class="nt-row2">
+    <div class="nt-card">
+      <div class="nt-card-title">📤 ส่งแจ้งเตือนด่วน</div>
+      <div class="nt-form-row">
+        <label>ถึง</label>
+        <select id="nt-to">
+          <option value="all">ทุกร้าน</option>
+          <option value="active">เฉพาะ Active</option>
+          <option value="expire_soon">ใกล้หมดอายุ (7 วัน)</option>
+        </select>
+      </div>
+      <div class="nt-form-row">
+        <label>ประเภท</label>
+        <select id="nt-type">
+          <option value="system">System</option>
+          <option value="payment">ชำระเงิน</option>
+          <option value="promo">โปรโมชัน</option>
+          <option value="update">อัปเดต</option>
+        </select>
+      </div>
+      <div class="nt-form-row">
+        <label>ข้อความ</label>
+        <textarea id="nt-msg" rows="4" placeholder="พิมพ์ข้อความแจ้งเตือน..."></textarea>
+      </div>
+      <button class="nt-send-btn" onclick="ntSend()">📤 ส่งแจ้งเตือน</button>
+    </div>
+
+    <div class="nt-card">
+      <div class="nt-card-title">📋 ประวัติการส่ง</div>
+      <div id="nt-log">
+        <div style="text-align:center;color:#9ca3af;padding:20px;font-size:12px">กำลังโหลด...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tok = (window.platformToken && window.platformToken()) || '';
+  var h = tok ? {'Authorization':'Bearer '+tok} : {};
+
+  fetch('/api/platform/notify-log',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!d.logs) return;
+    if(d.logs.length){
+      document.getElementById('nt-log').innerHTML = d.logs.map(l=>`
+        <div class="nt-log-item">
+          <div class="nt-log-dot"></div>
+          <div class="nt-log-body">
+            <div class="nt-log-msg">${l.message||'—'}</div>
+            <div class="nt-log-meta">${l.sent_at||'—'} · ${l.target||'—'} · ${l.count||0} ร้าน</div>
+          </div>
+        </div>`).join('');
+    } else {
+      document.getElementById('nt-log').innerHTML = '<div style="text-align:center;color:#9ca3af;padding:20px;font-size:12px">ยังไม่มีประวัติ</div>';
+    }
+  }).catch(()=>{
+    document.getElementById('nt-log').innerHTML = '<div style="text-align:center;color:#9ca3af;padding:20px;font-size:12px">ยังไม่เปิดใช้งาน</div>';
+  });
+
+  window.ntSend = function(){
+    var to  = document.getElementById('nt-to').value;
+    var tp  = document.getElementById('nt-type').value;
+    var msg = document.getElementById('nt-msg').value.trim();
+    if(!msg){ alert('กรุณาพิมพ์ข้อความ'); return; }
+    if(!confirm('ส่งแจ้งเตือนไปยัง: '+to+'?')) return;
+    fetch('/api/platform/notify-send',{
+      method:'POST',headers:{...h,'Content-Type':'application/json'},
+      body:JSON.stringify({target:to, type:tp, message:msg})
+    }).then(r=>r.ok?r.json():null).then(d=>{
+      if(d && d.ok){ alert('ส่งสำเร็จ ✓'); document.getElementById('nt-msg').value=''; }
+      else alert('ส่งไม่สำเร็จ');
+    }).catch(()=>alert('🚧 ยังไม่เปิดใช้งาน'));
+  };
+  window.ntSendModal = window.ntSend;
+})();
+</script>
+</body></html>

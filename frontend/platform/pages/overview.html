@@ -1,0 +1,95 @@
+<!doctype html><html><body>
+<style>
+.ov-wrap{padding:0}
+.ov-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.ov-stat{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07)}
+.ov-stat-lbl{font-size:11px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.ov-stat-val{font-size:28px;font-weight:700;color:#1f2937}
+.ov-stat-sub{font-size:11px;color:#9ca3af;margin-top:4px}
+.ov-stat.accent .ov-stat-val{color:#b45309}
+.ov-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.ov-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07)}
+.ov-card-title{font-size:13px;font-weight:700;color:#374151;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.ov-act-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:12px;color:#4b5563}
+.ov-act-item:last-child{border:none}
+.ov-act-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ov-act-dot.g{background:#22c55e}.ov-act-dot.y{background:#f59e0b}.ov-act-dot.r{background:#ef4444}
+.ov-sys-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.ov-sys-row:last-child{border:none}
+.ov-sys-lbl{color:#6b7280}.ov-sys-val{font-weight:600;color:#1f2937}
+.ov-badge-ok{background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.ov-badge-warn{background:#fef9c3;color:#854d0e;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+</style>
+
+<div class="ov-wrap">
+
+  <div class="ov-stats" id="ov-stats">
+    <div class="ov-stat accent">
+      <div class="ov-stat-lbl">ร้านทั้งหมด</div>
+      <div class="ov-stat-val" id="ov-total">—</div>
+      <div class="ov-stat-sub">ในระบบ</div>
+    </div>
+    <div class="ov-stat">
+      <div class="ov-stat-lbl">Active</div>
+      <div class="ov-stat-val" style="color:#16a34a" id="ov-active">—</div>
+      <div class="ov-stat-sub">ใช้งานอยู่</div>
+    </div>
+    <div class="ov-stat">
+      <div class="ov-stat-lbl">ยอดขาย/เดือน</div>
+      <div class="ov-stat-val" id="ov-msales">—</div>
+      <div class="ov-stat-sub">รวมทุกร้าน</div>
+    </div>
+    <div class="ov-stat">
+      <div class="ov-stat-lbl">Transaction/เดือน</div>
+      <div class="ov-stat-val" id="ov-mtx">—</div>
+      <div class="ov-stat-sub">bills ทั้งระบบ</div>
+    </div>
+  </div>
+
+  <div class="ov-row2">
+    <div class="ov-card">
+      <div class="ov-card-title">⚡ กิจกรรมล่าสุด</div>
+      <div id="ov-activity">
+        <div class="ov-act-item"><div class="ov-act-dot g"></div><span>ร้าน — เข้าสู่ระบบ</span></div>
+        <div class="ov-act-item"><div class="ov-act-dot y"></div><span>กำลังโหลดข้อมูล...</span></div>
+      </div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-card-title">🖥 System Status</div>
+      <div id="ov-sys">
+        <div class="ov-sys-row"><span class="ov-sys-lbl">API Server</span><span class="ov-badge-ok">● Online</span></div>
+        <div class="ov-sys-row"><span class="ov-sys-lbl">Database</span><span class="ov-badge-ok">● Online</span></div>
+        <div class="ov-sys-row"><span class="ov-sys-lbl">LINE Webhook</span><span id="ov-line-status" class="ov-badge-warn">— ตรวจสอบ</span></div>
+        <div class="ov-sys-row"><span class="ov-sys-lbl">Payment Gateway</span><span class="ov-badge-ok">● Online</span></div>
+        <div class="ov-sys-row"><span class="ov-sys-lbl">Uptime</span><span class="ov-sys-val" id="ov-uptime">—</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var tok = (window.platformToken && window.platformToken()) || '';
+  var h = tok ? {'Authorization':'Bearer '+tok} : {};
+
+  fetch('/api/platform/overview',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d) return;
+    var fmt = n => Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
+    document.getElementById('ov-total').textContent = fmt(d.total_shops||0);
+    document.getElementById('ov-active').textContent = fmt(d.active_shops||0);
+    document.getElementById('ov-msales').textContent = '฿'+fmt(d.month_sales||0);
+    document.getElementById('ov-mtx').textContent = fmt(d.month_tx||0);
+  }).catch(()=>{});
+
+  fetch('/api/platform/health',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d) return;
+    var el = document.getElementById('ov-line-status');
+    if(el) el.className = d.line_webhook ? 'ov-badge-ok' : 'ov-badge-warn';
+    if(el) el.textContent = d.line_webhook ? '● Online' : '⚠ ออฟไลน์';
+    var ut = document.getElementById('ov-uptime');
+    if(ut && d.uptime) ut.textContent = d.uptime;
+  }).catch(()=>{});
+})();
+</script>
+</body></html>

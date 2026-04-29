@@ -1,0 +1,97 @@
+<!doctype html><html><body>
+<style>
+.lg-wrap{padding:0}
+.lg-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.lg-bar-title{font-size:15px;font-weight:700;color:#1f2937;flex:1}
+.lg-filter{display:flex;gap:6px;align-items:center}
+.lg-filter select,.lg-filter input{padding:6px 10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;outline:none}
+.lg-filter select:focus,.lg-filter input:focus{border-color:#e8b93e}
+.lg-btn-ref{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #e5e7eb;background:#fff;color:#374151}
+.lg-btn-ref:hover{background:#f5f3ef}
+.lg-terminal{background:#0d1117;border-radius:12px;padding:0;overflow:hidden;border:1px solid #21262d;font-family:'Courier New',monospace;font-size:12px}
+.lg-terminal-head{padding:10px 16px;background:#161b22;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:10px}
+.lg-dot{width:10px;height:10px;border-radius:50%}
+.lg-dot-r{background:#ff5f57}.lg-dot-y{background:#ffbd2e}.lg-dot-g{background:#28c840}
+.lg-terminal-title{font-size:11px;color:#8b949e;flex:1;text-align:center}
+.lg-terminal-body{padding:14px 16px;max-height:500px;overflow-y:auto;line-height:1.6}
+.lg-terminal-body::-webkit-scrollbar{width:4px}
+.lg-terminal-body::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px}
+.lg-line{display:flex;gap:10px;padding:2px 0}
+.lg-time{color:#3fb950;flex-shrink:0}
+.lg-level{flex-shrink:0;font-weight:700;width:50px}
+.lg-level.info{color:#58a6ff}
+.lg-level.warn{color:#d29922}
+.lg-level.error{color:#f85149}
+.lg-level.debug{color:#8b949e}
+.lg-msg{color:#e6edf3;word-break:break-all}
+</style>
+
+<div class="lg-wrap">
+  <div class="lg-bar">
+    <div class="lg-bar-title">📋 System Logs</div>
+    <div class="lg-filter">
+      <select id="lg-level-filter" onchange="lgLoad()">
+        <option value="">ทุก Level</option>
+        <option value="error">ERROR</option>
+        <option value="warn">WARN</option>
+        <option value="info">INFO</option>
+        <option value="debug">DEBUG</option>
+      </select>
+      <input id="lg-search" placeholder="ค้นหา..." oninput="lgDebounce()" style="width:160px">
+      <button class="lg-btn-ref" onclick="lgLoad()">↺ Refresh</button>
+    </div>
+  </div>
+
+  <div class="lg-terminal">
+    <div class="lg-terminal-head">
+      <div class="lg-dot lg-dot-r"></div>
+      <div class="lg-dot lg-dot-y"></div>
+      <div class="lg-dot lg-dot-g"></div>
+      <div class="lg-terminal-title">uvicorn.log — VIIV Platform</div>
+    </div>
+    <div class="lg-terminal-body" id="lg-body">
+      <div style="color:#8b949e">กำลังโหลด log...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tok = (window.platformToken && window.platformToken()) || '';
+  var h = tok ? {'Authorization':'Bearer '+tok} : {};
+  var _t;
+
+  function lgLoad(){
+    var lv  = document.getElementById('lg-level-filter').value;
+    var q   = document.getElementById('lg-search').value.trim();
+    var url = '/api/platform/logs?limit=200'+(lv?'&level='+lv:'')+(q?'&q='+encodeURIComponent(q):'');
+    fetch(url,{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
+      if(!d||!d.lines){ lgFallback(); return; }
+      var html = d.lines.map(ln=>{
+        var lv2 = (ln.level||'info').toLowerCase();
+        return `<div class="lg-line"><span class="lg-time">${ln.time||''}</span><span class="lg-level ${lv2}">${(ln.level||'INFO').toUpperCase()}</span><span class="lg-msg">${ln.message||''}</span></div>`;
+      }).join('');
+      document.getElementById('lg-body').innerHTML = html || '<div style="color:#8b949e">ไม่มี log ที่ตรงกัน</div>';
+      var b = document.getElementById('lg-body');
+      b.scrollTop = b.scrollHeight;
+    }).catch(()=>lgFallback());
+  }
+
+  function lgFallback(){
+    fetch('/logs/uvicorn.log',{headers:h}).then(r=>r.ok?r.text():null).then(txt=>{
+      if(!txt){ document.getElementById('lg-body').innerHTML='<div style="color:#8b949e">ไม่สามารถอ่าน log ได้</div>'; return; }
+      var lines = txt.trim().split('\n').slice(-100);
+      document.getElementById('lg-body').innerHTML = lines.map(l=>{
+        var lv2 = l.includes('ERROR')?'error':l.includes('WARNING')||l.includes('WARN')?'warn':l.includes('DEBUG')?'debug':'info';
+        return `<div class="lg-line"><span class="lg-level ${lv2}">${lv2.toUpperCase()}</span><span class="lg-msg">${l}</span></div>`;
+      }).join('');
+      var b = document.getElementById('lg-body'); b.scrollTop = b.scrollHeight;
+    }).catch(()=>{ document.getElementById('lg-body').innerHTML='<div style="color:#8b949e">ไม่สามารถอ่าน log ได้</div>'; });
+  }
+
+  window.lgLoad = lgLoad;
+  window.lgDebounce = function(){ clearTimeout(_t); _t=setTimeout(lgLoad,400); };
+  lgLoad();
+})();
+</script>
+</body></html>
