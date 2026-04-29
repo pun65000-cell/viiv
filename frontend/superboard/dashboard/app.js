@@ -328,14 +328,9 @@ function updateChatFeed() {
 
 // ── init ───────────────────────────────────────
 function init(){
-  // ถ้าอยู่ใน iframe → ซ่อน header (mobile shell มี header แล้ว)
-  if (window.self !== window.top) {
-    const hdr = document.getElementById('hdr');
-    if (hdr) {
-      hdr.style.display = 'none';
-      document.getElementById('canvas').style.top = '0';
-    }
-  }
+  // canvas ต้องอยู่ใต้ header + tab bar เสมอ
+  const _canvas = document.getElementById('canvas');
+  if (_canvas) _canvas.style.top = 'calc(var(--hh) + var(--tbh))';
   clearTimers();
   const db=$('h-date');
   if(db)db.textContent=new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
