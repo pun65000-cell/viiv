@@ -30,24 +30,24 @@
       border-bottom:1px solid var(--sb-bdr);flex-shrink:0;
     }
     .sb-brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);}
-    .sb-brand-title{font-size:20px;font-weight:700;letter-spacing:1px;color:var(--accent);}
-    .sb-brand-sub{font-size:14px;color:#484848;margin-top:2px;}
+    .sb-brand-title{font-size:18px;font-weight:700;letter-spacing:1px;color:var(--accent);}
+    .sb-brand-sub{font-size:12px;color:#484848;margin-top:2px;}
     .sb-nav{flex:1;padding:8px 0;overflow-y:auto;}
     .sb-nav::-webkit-scrollbar{width:3px;}
     .sb-nav::-webkit-scrollbar-thumb{background:var(--sb-bdr);}
-    .sb-group{font-size:13px;font-weight:600;color:var(--nav-lbl);padding:16px 18px 5px;letter-spacing:.8px;text-transform:uppercase;}
+    .sb-group{font-size:11px;font-weight:600;color:var(--nav-lbl);padding:16px 18px 5px;letter-spacing:.8px;text-transform:uppercase;}
     .sb-item{
       display:flex;align-items:center;gap:12px;
-      padding:12px 18px;font-size:17px;color:var(--nav-txt);
+      padding:10px 18px;font-size:15px;color:var(--nav-txt);
       cursor:pointer;transition:background .1s,color .1s;
       border-left:3px solid transparent;
       -webkit-tap-highlight-color:transparent;
     }
     .sb-item:hover{background:var(--nav-hover);color:#fff;}
     .sb-item.active{background:var(--nav-hover);color:var(--accent);border-left-color:var(--accent);}
-    .sb-item-icon{width:22px;text-align:center;flex-shrink:0;font-size:18px;}
+    .sb-item-icon{width:22px;text-align:center;flex-shrink:0;font-size:16px;}
     .sb-footer{padding:14px 18px;border-top:1px solid var(--sb-bdr);flex-shrink:0;}
-    .sb-version{font-size:14px;color:#383838;}
+    .sb-version{font-size:12px;color:#383838;}
 
     /* ── MAIN ── */
     #main{margin-left:var(--sb-w);height:100vh;display:flex;flex-direction:column;}
@@ -165,6 +165,9 @@
     <div class="sb-item" data-page="settings" onclick="nav(this)">
       <span class="sb-item-icon">⚙</span> ตั้งค่าระบบ
     </div>
+    <div class="sb-item" data-page="connections" onclick="nav(this)" style="padding-left:30px;font-size:14px;color:#686868;">
+      <span class="sb-item-icon" style="font-size:14px">🔗</span> เชื่อมต่อ
+    </div>
 
     <div class="sb-group">Merchant</div>
     <div class="sb-item" data-page="myshop" onclick="nav(this)">
@@ -256,8 +259,9 @@ const PAGE_META = {
   notify:   { title:'การแจ้งเตือน', badge:'Admin'    },
   apikeys:  { title:'API Keys',     badge:'System'   },
   logs:     { title:'System Logs',  badge:'System'   },
-  settings: { title:'ตั้งค่าระบบ',  badge:'System'   },
-  myshop:   { title:'My Shop',      badge:'Merchant' },
+  settings:    { title:'ตั้งค่าระบบ',  badge:'System'   },
+  connections: { title:'การเชื่อมต่อ', badge:'System'   },
+  myshop:      { title:'My Shop',      badge:'Merchant' },
 };
 
 function nav(el){

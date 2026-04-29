@@ -1,0 +1,438 @@
+<!doctype html><html><head><meta charset="utf-8"></head>
+<body>
+<style>
+.cx-wrap{ display:flex; flex-direction:column; gap:0; }
+
+/* ── TAB BAR ── */
+.cx-tabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.cx-tab{
+  display:flex; align-items:center; gap:7px;
+  padding:8px 16px; border:2px solid #e5e7eb; border-radius:10px;
+  font-size:14px; font-weight:600; cursor:pointer;
+  background:#fff; color:#6b7280; transition:.15s;
+}
+.cx-tab:hover{ border-color:#e8b93e; color:#1a1200; }
+.cx-tab.active{ border-color:#e8b93e; background:#e8b93e; color:#1a1200; box-shadow:0 2px 8px rgba(232,185,62,.3); }
+.cx-tab-icon{
+  width:24px; height:24px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; overflow:hidden;
+}
+
+/* ── PANEL ── */
+.cx-panel{ display:none; }
+.cx-panel.active{ display:block; }
+
+/* ── LAYOUT ── */
+.cx-cols{ display:grid; grid-template-columns:1fr 340px; gap:18px; }
+
+/* ── CARD ── */
+.cx-card{
+  background:#fff; border-radius:14px; padding:22px 26px;
+  margin-bottom:16px; border:1px solid #e5e7eb;
+}
+.cx-card-hdr{ display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+.cx-card-icon{ width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cx-card-title{ font-weight:700; font-size:16px; color:#1a1a1a; }
+.cx-card-sub{ font-size:13px; color:#9ca3af; margin-top:3px; }
+
+/* ── STATUS BANNER ── */
+.cx-banner{
+  border-radius:12px; padding:16px 20px; margin-bottom:18px;
+  display:flex; align-items:center; gap:14px;
+}
+.cx-banner.connected{ background:#06C755; color:#fff; }
+.cx-banner.disconnected{ background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
+.cx-banner-dot{ width:10px; height:10px; border-radius:50%; background:currentColor; opacity:.85; flex-shrink:0; }
+.cx-banner-title{ font-weight:700; font-size:16px; }
+.cx-banner-sub{ font-size:13px; opacity:.8; margin-top:2px; }
+.cx-banner-badge{
+  margin-left:auto; background:rgba(255,255,255,.25);
+  padding:4px 12px; border-radius:20px; font-size:13px; font-weight:700;
+}
+
+/* ── FORM ── */
+.cx-field{ margin-bottom:16px; }
+.cx-label{ font-size:14px; font-weight:600; color:#374151; margin-bottom:6px; }
+.cx-req{ color:#ef4444; }
+.cx-input{
+  width:100%; padding:10px 14px; border:2px solid #e5e7eb;
+  border-radius:10px; font-size:15px; color:#1f2937;
+  background:#fff; outline:none; transition:.15s;
+}
+.cx-input:focus{ border-color:#e8b93e; }
+.cx-input-wrap{ position:relative; }
+.cx-eye{
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  cursor:pointer; color:#9ca3af; background:none; border:none; font-size:16px;
+}
+
+/* ── WEBHOOK BOX ── */
+.cx-webhook{
+  background:#f9f7f3; border:1px solid #e5e1da;
+  border-radius:11px; padding:14px 16px; margin-top:6px;
+}
+.cx-webhook-lbl{
+  font-size:12px; font-weight:700; color:#6b7280;
+  text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;
+}
+.cx-webhook-row{ display:flex; align-items:center; gap:10px; }
+.cx-webhook-url{ flex:1; font-size:14px; color:#374151; word-break:break-all; }
+.cx-copy-btn{
+  flex-shrink:0; padding:7px 16px; background:#e8b93e;
+  border:none; border-radius:8px; font-size:13px;
+  font-weight:700; color:#1a1200; cursor:pointer; white-space:nowrap;
+}
+.cx-copy-btn:hover{ background:#d4a52c; }
+.cx-copy-btn.copied{ background:#22c55e; color:#fff; }
+
+/* ── BUTTONS ── */
+.cx-btn-row{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+.cx-btn{ padding:10px 22px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; border:none; }
+.cx-btn-cancel{ background:#f3f4f6; color:#374151; }
+.cx-btn-save{ background:#e8b93e; color:#1a1200; }
+.cx-btn-save:hover{ background:#d4a52c; }
+.cx-btn-danger{ background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+
+/* ── MSG ── */
+.cx-msg{ display:none; margin-top:10px; font-size:14px; font-weight:600; padding:10px 14px; border-radius:9px; }
+.cx-msg.ok{ background:#dcfce7; color:#166534; display:block; }
+.cx-msg.err{ background:#fee2e2; color:#b91c1c; display:block; }
+
+/* ── QR SECTION ── */
+.cx-qr-box{
+  background:#fff; border-radius:14px; padding:22px 26px;
+  border:1px solid #e5e7eb; margin-bottom:16px;
+}
+.cx-qr-title{ font-size:16px; font-weight:700; color:#1a1a1a; margin-bottom:16px; }
+.cx-qr-upload-area{
+  border:2px dashed #d1d5db; border-radius:12px;
+  padding:24px; text-align:center; cursor:pointer;
+  transition:.15s; background:#fafafa; margin-bottom:14px;
+}
+.cx-qr-upload-area:hover{ border-color:#e8b93e; background:#fffbf0; }
+.cx-qr-preview{
+  width:160px; height:160px; border-radius:10px;
+  border:2px solid #e5e7eb; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:#f3f4f6; margin:0 auto 12px;
+}
+.cx-qr-preview img{ width:100%; height:100%; object-fit:contain; }
+.cx-qr-hint{ font-size:13px; color:#9ca3af; }
+.cx-qr-actions{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.cx-qr-btn{
+  padding:8px 16px; border-radius:9px; font-size:14px;
+  font-weight:600; cursor:pointer; border:1px solid #e5e7eb;
+  background:#fff; color:#374151;
+}
+.cx-qr-btn:hover{ background:#f5f3ef; }
+.cx-qr-btn.primary{ background:#e8b93e; border-color:#d4a52c; color:#1a1200; }
+.cx-link-section{ background:#f9f7f3; border-radius:10px; padding:14px 16px; border:1px solid #e5e1da; }
+.cx-link-lbl{ font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.cx-link-row{ display:flex; align-items:center; gap:8px; }
+.cx-link-input{ flex:1; padding:8px 12px; border:1.5px solid #e5e7eb; border-radius:8px; font-size:14px; outline:none; font-family:monospace; color:#374151; }
+.cx-link-input:focus{ border-color:#e8b93e; }
+
+/* ── COMING SOON ── */
+.cx-coming{
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; padding:80px 20px; text-align:center;
+}
+.cx-coming-icon{ font-size:56px; margin-bottom:18px; opacity:.35; }
+.cx-coming-title{ font-size:18px; font-weight:700; color:#374151; margin-bottom:8px; }
+.cx-coming-desc{ font-size:14px; color:#9ca3af; }
+</style>
+
+<div class="cx-wrap">
+
+  <!-- TAB BAR -->
+  <div class="cx-tabs">
+    <button class="cx-tab active" data-tab="line" onclick="cxTab('line')">
+      <div class="cx-tab-icon" style="background:#06C755">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+      </div> LINE OA
+    </button>
+    <button class="cx-tab" data-tab="facebook" onclick="cxTab('facebook')">
+      <div class="cx-tab-icon" style="background:#1877F2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      </div> Facebook
+    </button>
+    <button class="cx-tab" data-tab="tiktok" onclick="cxTab('tiktok')">
+      <div class="cx-tab-icon" style="background:#111">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.15 8.15 0 004.77 1.52V6.76a4.85 4.85 0 01-1-.07z"/></svg>
+      </div> TikTok
+    </button>
+    <button class="cx-tab" data-tab="instagram" onclick="cxTab('instagram')">
+      <div class="cx-tab-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      </div> Instagram
+    </button>
+    <button class="cx-tab" data-tab="youtube" onclick="cxTab('youtube')">
+      <div class="cx-tab-icon" style="background:#FF0000">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+      </div> YouTube
+    </button>
+  </div>
+
+  <!-- PANEL: LINE -->
+  <div class="cx-panel active" id="cx-panel-line">
+    <div id="cx-line-banner" class="cx-banner disconnected">
+      <div class="cx-banner-dot"></div>
+      <div>
+        <div class="cx-banner-title" id="cx-line-banner-title">ยังไม่ได้เชื่อมต่อ LINE OA</div>
+        <div class="cx-banner-sub" id="cx-line-banner-sub">กรอก credentials ด้านล่างเพื่อเชื่อมต่อ</div>
+      </div>
+      <span class="cx-banner-badge" id="cx-line-banner-badge" style="display:none">● Active</span>
+    </div>
+
+    <div class="cx-cols">
+      <!-- LEFT: Credentials -->
+      <div>
+        <div class="cx-card">
+          <div class="cx-card-hdr">
+            <div class="cx-card-icon" style="background:#06C755">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            </div>
+            <div>
+              <div class="cx-card-title">ตั้งค่า LINE Official Account</div>
+              <div class="cx-card-sub">กรอก credentials จาก LINE Developer Console</div>
+            </div>
+            <a href="https://developers.line.biz/console/" target="_blank" style="margin-left:auto;padding:8px 16px;background:#06C755;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none">ⓘ LINE Console</a>
+          </div>
+
+          <div class="cx-field">
+            <div class="cx-label">LINE OA ID <span class="cx-req">*</span></div>
+            <input id="cx-line-oa" class="cx-input" placeholder="abc1234d (ไม่ต้องใส่ @)"/>
+            <div style="font-size:12px;color:#9ca3af;margin-top:4px">ดูได้ที่ LINE Official Account Manager → Basic information</div>
+          </div>
+          <div class="cx-field">
+            <div class="cx-label">Channel Access Token <span class="cx-req">*</span></div>
+            <div class="cx-input-wrap">
+              <input id="cx-line-token" type="password" class="cx-input" placeholder="Channel Access Token"/>
+              <button class="cx-eye" onclick="cxEye('cx-line-token',this)">👁</button>
+            </div>
+          </div>
+          <div class="cx-field">
+            <div class="cx-label">Channel Secret <span class="cx-req">*</span></div>
+            <div class="cx-input-wrap">
+              <input id="cx-line-secret" type="password" class="cx-input" placeholder="Channel Secret"/>
+              <button class="cx-eye" onclick="cxEye('cx-line-secret',this)">👁</button>
+            </div>
+          </div>
+
+          <div class="cx-webhook">
+            <div class="cx-webhook-lbl">Webhook URL (ตั้งใน LINE Console)</div>
+            <div class="cx-webhook-row">
+              <span class="cx-webhook-url">https://concore.viiv.me/api/line/webhook</span>
+              <button class="cx-copy-btn" onclick="cxCopy('https://concore.viiv.me/api/line/webhook',this)">Copy</button>
+            </div>
+          </div>
+
+          <div id="cx-line-cred-msg" class="cx-msg"></div>
+          <div class="cx-btn-row">
+            <button class="cx-btn cx-btn-cancel" onclick="cxLoad('line')">ยกเลิก</button>
+            <button class="cx-btn cx-btn-save" onclick="cxSaveLine()">💾 บันทึก</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: QR Code -->
+      <div>
+        <div class="cx-qr-box">
+          <div class="cx-qr-title">📱 QR Code เพิ่มเพื่อน</div>
+
+          <div class="cx-qr-upload-area" onclick="document.getElementById('cx-qr-file').click()">
+            <div class="cx-qr-preview" id="cx-qr-preview">
+              <span style="font-size:36px;color:#d1d5db">📷</span>
+            </div>
+            <div class="cx-qr-hint">คลิกเพื่ออัปโหลดรูป QR Code<br><small>PNG, JPG, WebP — สูงสุด 5MB</small></div>
+          </div>
+          <input type="file" id="cx-qr-file" accept="image/*" style="display:none" onchange="cxUploadQR(this)">
+
+          <div class="cx-qr-actions">
+            <button class="cx-qr-btn primary" onclick="document.getElementById('cx-qr-file').click()">📤 อัปโหลด QR</button>
+            <button class="cx-qr-btn" onclick="cxDeleteQR()" id="cx-qr-del-btn" style="display:none;color:#b91c1c;border-color:#fca5a5">🗑 ลบ QR</button>
+          </div>
+
+          <div class="cx-link-section">
+            <div class="cx-link-lbl">🔗 URL สำหรับ QR / ลิงก์เพิ่มเพื่อน</div>
+            <div class="cx-link-row">
+              <input id="cx-qr-link" class="cx-link-input" placeholder="https://line.me/R/ti/p/@oa_id" oninput="cxSaveQrLink()"/>
+              <button class="cx-copy-btn" id="cx-qr-link-copy" onclick="cxCopy(document.getElementById('cx-qr-link').value,this)">Copy</button>
+            </div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:8px">
+              กรอก LINE OA ID แล้วจะสร้างให้อัตโนมัติ หรือพิมพ์ URL เอง
+            </div>
+            <div style="margin-top:10px">
+              <div class="cx-link-lbl" style="margin-bottom:6px">URL ของรูป QR (สำหรับแชร์)</div>
+              <div class="cx-link-row">
+                <input id="cx-qr-img-url" class="cx-link-input" readonly placeholder="— อัปโหลด QR ก่อน —"/>
+                <button class="cx-copy-btn" id="cx-qr-img-copy" onclick="cxCopy(document.getElementById('cx-qr-img-url').value,this)">Copy</button>
+              </div>
+            </div>
+          </div>
+          <div id="cx-qr-msg" class="cx-msg" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div><!-- /cx-cols -->
+  </div><!-- /panel line -->
+
+  <!-- PANEL: Others (Coming Soon) -->
+  <div class="cx-panel" id="cx-panel-facebook">
+    <div class="cx-coming"><div class="cx-coming-icon">📘</div><div class="cx-coming-title">Facebook Page</div><div class="cx-coming-desc">กำลังพัฒนา</div></div>
+  </div>
+  <div class="cx-panel" id="cx-panel-tiktok">
+    <div class="cx-coming"><div class="cx-coming-icon">🎵</div><div class="cx-coming-title">TikTok Business</div><div class="cx-coming-desc">กำลังพัฒนา</div></div>
+  </div>
+  <div class="cx-panel" id="cx-panel-instagram">
+    <div class="cx-coming"><div class="cx-coming-icon">📸</div><div class="cx-coming-title">Instagram</div><div class="cx-coming-desc">กำลังพัฒนา</div></div>
+  </div>
+  <div class="cx-panel" id="cx-panel-youtube">
+    <div class="cx-coming"><div class="cx-coming-icon">▶️</div><div class="cx-coming-title">YouTube Channel</div><div class="cx-coming-desc">กำลังพัฒนา</div></div>
+  </div>
+
+</div><!-- /cx-wrap -->
+
+<script>
+(function(){
+  var tok = function(){ return (window.platformToken && window.platformToken()) || ''; };
+  var h = function(){ return {'Authorization':'Bearer '+tok(),'Content-Type':'application/json'}; };
+  var _saveTimer = null;
+
+  // ── Tab ──
+  window.cxTab = function(tab){
+    document.querySelectorAll('.cx-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===tab); });
+    document.querySelectorAll('.cx-panel').forEach(function(p){ p.classList.toggle('active', p.id==='cx-panel-'+tab); });
+  };
+
+  // ── Eye toggle ──
+  window.cxEye = function(id, btn){
+    var el = document.getElementById(id);
+    el.type = el.type==='password' ? 'text' : 'password';
+    btn.textContent = el.type==='password' ? '👁' : '🙈';
+  };
+
+  // ── Copy ──
+  window.cxCopy = function(text, btn){
+    if(!text){ return; }
+    navigator.clipboard.writeText(text).then(function(){
+      var orig = btn.textContent;
+      btn.textContent = '✓ คัดลอกแล้ว';
+      btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent=orig; btn.classList.remove('copied'); }, 2000);
+    }).catch(function(){ prompt('คัดลอกเอง:', text); });
+  };
+
+  // ── Load LINE ──
+  function cxLoad(platform){
+    fetch('/api/platform/connections/'+platform, {headers:h()})
+    .then(function(r){ return r.ok?r.json():{}; })
+    .then(function(d){
+      if(platform !== 'line') return;
+      var oa = d.oa_id || '';
+      document.getElementById('cx-line-oa').value    = oa;
+      document.getElementById('cx-line-token').value  = d.channel_token || '';
+      document.getElementById('cx-line-secret').value = d.channel_secret || '';
+      // Banner
+      var connected = !!(d.channel_token && d.channel_token.length > 10);
+      var banner = document.getElementById('cx-line-banner');
+      banner.className = 'cx-banner ' + (connected?'connected':'disconnected');
+      document.getElementById('cx-line-banner-title').textContent = connected ? '● เชื่อมต่อ LINE OA แล้ว' : 'ยังไม่ได้เชื่อมต่อ LINE OA';
+      document.getElementById('cx-line-banner-sub').textContent   = connected ? (oa ? '@'+oa : 'Connected') : 'กรอก credentials ด้านล่างเพื่อเชื่อมต่อ';
+      var badge = document.getElementById('cx-line-banner-badge');
+      badge.style.display = connected ? '' : 'none';
+      // QR
+      if(d.qr_image_url){
+        var prev = document.getElementById('cx-qr-preview');
+        prev.innerHTML = '<img src="'+d.qr_image_url+'" alt="QR">';
+        document.getElementById('cx-qr-del-btn').style.display = '';
+        document.getElementById('cx-qr-img-url').value = 'https://concore.viiv.me'+d.qr_image_url;
+      }
+      // QR link
+      var ql = d.qr_link_url || (oa ? 'https://line.me/R/ti/p/%40'+oa : '');
+      document.getElementById('cx-qr-link').value = ql;
+    }).catch(function(){});
+  }
+  window.cxLoad = cxLoad;
+
+  // ── Save LINE creds ──
+  window.cxSaveLine = function(){
+    var oa  = document.getElementById('cx-line-oa').value.trim().replace(/^@/,'');
+    var tok2= document.getElementById('cx-line-token').value.trim();
+    var sec = document.getElementById('cx-line-secret').value.trim();
+    var ql  = document.getElementById('cx-qr-link').value.trim();
+    // auto-set QR link from OA
+    if(oa && !ql){ ql = 'https://line.me/R/ti/p/%40'+oa; document.getElementById('cx-qr-link').value=ql; }
+    var msg = document.getElementById('cx-line-cred-msg');
+    msg.className='cx-msg'; msg.textContent='';
+    fetch('/api/platform/connections/line',{
+      method:'POST', headers:h(),
+      body: JSON.stringify({oa_id:oa, channel_token:tok2, channel_secret:sec, qr_link_url:ql, is_active:true})
+    }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+      if(d && d.ok){
+        msg.className='cx-msg ok'; msg.textContent='✓ บันทึกแล้ว';
+        cxLoad('line');
+      } else { msg.className='cx-msg err'; msg.textContent='❌ ไม่สำเร็จ'; }
+    }).catch(function(){ msg.className='cx-msg err'; msg.textContent='❌ เชื่อมต่อไม่ได้'; });
+  };
+
+  // ── Auto-fill QR link when OA changes ──
+  document.getElementById('cx-line-oa').addEventListener('input', function(){
+    var oa = this.value.trim().replace(/^@/,'');
+    if(oa) document.getElementById('cx-qr-link').value = 'https://line.me/R/ti/p/%40'+oa;
+  });
+
+  // ── Save QR link (debounced) ──
+  window.cxSaveQrLink = function(){
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(function(){
+      var ql = document.getElementById('cx-qr-link').value.trim();
+      if(!ql) return;
+      fetch('/api/platform/connections/line',{
+        method:'POST', headers:h(), body: JSON.stringify({qr_link_url:ql})
+      }).catch(function(){});
+    }, 1000);
+  };
+
+  // ── Upload QR image ──
+  window.cxUploadQR = function(input){
+    var file = input.files[0];
+    if(!file) return;
+    if(file.size > 5*1024*1024){ alert('ไฟล์ใหญ่เกิน 5MB'); return; }
+    var msg = document.getElementById('cx-qr-msg');
+    msg.className='cx-msg'; msg.textContent='';
+    var fd = new FormData(); fd.append('file', file);
+    fetch('/api/platform/connections/line/upload-qr',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+tok()},
+      body: fd
+    }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+      if(d && d.ok){
+        var prev = document.getElementById('cx-qr-preview');
+        prev.innerHTML = '<img src="'+d.url+'?t='+Date.now()+'" alt="QR">';
+        document.getElementById('cx-qr-del-btn').style.display = '';
+        document.getElementById('cx-qr-img-url').value = 'https://concore.viiv.me'+d.url;
+        msg.className='cx-msg ok'; msg.textContent='✓ อัปโหลดสำเร็จ';
+      } else { msg.className='cx-msg err'; msg.textContent='❌ อัปโหลดไม่สำเร็จ'; }
+    }).catch(function(){ msg.className='cx-msg err'; msg.textContent='❌ เชื่อมต่อไม่ได้'; });
+    input.value = '';
+  };
+
+  // ── Delete QR ──
+  window.cxDeleteQR = function(){
+    if(!confirm('ลบรูป QR Code?')) return;
+    fetch('/api/platform/connections/line/qr',{method:'DELETE',headers:h()})
+    .then(function(r){ return r.ok?r.json():null; }).then(function(d){
+      if(d && d.ok){
+        document.getElementById('cx-qr-preview').innerHTML='<span style="font-size:36px;color:#d1d5db">📷</span>';
+        document.getElementById('cx-qr-del-btn').style.display='none';
+        document.getElementById('cx-qr-img-url').value='';
+      }
+    }).catch(function(){});
+  };
+
+  // ── Init ──
+  cxLoad('line');
+})();
+</script>
+</body></html>

@@ -1416,3 +1416,71 @@ FILES CHANGED:
   frontend/superboard/index.html            (#sb-staff-wrap + presence JS)
 
 Version: v1.54 | Updated: 2026-04-29
+
+---
+
+### [v1.55 COMPLETED — 2026-04-29] Platform Dashboard — Full PC Shell + Page Isolation + Connections Module
+
+SUMMARY: สร้าง Platform Dashboard ใหม่ทั้งหมดแบบ PC-only shell ที่โหลดแต่ละเมนูเป็นไฟล์แยก
+พร้อม error isolation ต่อเมนู และสร้าง Connections module (LINE) ที่บันทึกลง DB จริง
+
+PLATFORM DASHBOARD SHELL (frontend/platform/dashboard.html):
+- PC-only: min-width 1200px, dark sidebar 240px, white topbar 56px
+- `loadPage(name)` fetch `/platform/pages/{name}.html` + try/catch error boundary
+- ถ้าเมนูพัง จะ error เฉพาะ content area ไม่กระทบเมนูอื่น
+- Hash routing: `#shops`, `#overview`, `#connections` ฯลฯ
+- Exposes `window.platformToken`, `window.platformNav`, `window.platformLoadPage`
+- Font ขยายขึ้นทุก session: base 18px, sidebar items 17px, topbar title 19px
+
+PLATFORM PAGE FILES (frontend/platform/pages/):
+- overview.html   — Stats 4 ช่อง + กิจกรรมล่าสุด + System Status
+- shops.html      — Shop table + Manage modal (7 accordion sections) + mock fallback
+- packet.html     — Cards Starter/Pro/Enterprise
+- finance.html    — รายรับ + transaction table
+- orders.html     — Orders table + search
+- ai.html         — AI stats + toggle per shop
+- notify.html     — ส่งแจ้งเตือน + ประวัติ
+- apikeys.html    — API key management + revoke
+- logs.html       — Terminal-style log viewer + filter
+- myshop.html     — ข้อมูลร้าน + ยอดขาย + ตั้งค่า
+- connections.html — LINE connection + QR upload (ใหม่ v1.55)
+
+CONNECTIONS MODULE — LINE OA (v1.55 ใหม่):
+- Backend: `app/api/platform_connections.py`
+  - สร้างตาราง `platform_connections` อัตโนมัติ (5 rows: line/fb/tiktok/ig/yt)
+  - GET/POST `/api/platform/connections/{platform}`
+  - POST `/api/platform/connections/{platform}/upload-qr` → บันทึกไฟล์ + URL
+  - DELETE `/api/platform/connections/{platform}/qr`
+- Frontend: connections.html
+  - Tab: LINE / Facebook / TikTok / Instagram / YouTube
+  - Status banner (connected/disconnected ตาม channel_token)
+  - OA ID → auto-generate line.me link
+  - QR image upload → preview + shareable URL + copy button
+  - Webhook URL display + copy
+- Sidebar: เพิ่ม "🔗 เชื่อมต่อ" ใต้ ตั้งค่าระบบ (indent sub-item)
+
+MANAGE DRAWER (shops.html — ปรับรูปแบบ):
+- เปลี่ยนจาก side drawer → centered modal ขนาดใหญ่ min(1080px,100vw)
+- Layout 2 คอลัมน์: ซ้าย info panel (สีเทาดำเข้ม #374151), ขวา 7 accordion sections
+- Mock fallback: เมื่อ API ยังไม่พร้อม แสดง 2 แถว demo ให้ปุ่มจัดการใช้งานได้
+
+DB TABLES CREATED:
+  platform_connections — platform-level LINE/social credentials + QR storage
+
+FILES CHANGED:
+  frontend/platform/dashboard.html              (shell + font size + sidebar connections)
+  frontend/platform/pages/connections.html      (NEW — LINE connection management)
+  frontend/platform/pages/shops.html            (modal redesign + mock fallback)
+  frontend/platform/pages/overview.html         (NEW)
+  frontend/platform/pages/packet.html           (NEW)
+  frontend/platform/pages/finance.html          (NEW)
+  frontend/platform/pages/orders.html           (NEW)
+  frontend/platform/pages/ai.html               (NEW)
+  frontend/platform/pages/notify.html           (NEW)
+  frontend/platform/pages/apikeys.html          (NEW)
+  frontend/platform/pages/logs.html             (NEW)
+  frontend/platform/pages/myshop.html           (NEW)
+  app/api/platform_connections.py               (NEW)
+  app/main.py                                   (register platform_connections router)
+
+Version: v1.55 | Updated: 2026-04-29
