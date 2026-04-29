@@ -112,7 +112,7 @@ def staff_login(payload: dict, request: Request):
         "tenant_id": tenant_id,
         "role": row.role,
         "name": name,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=8),
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30),
     }
     token = _jwt.encode(token_payload, _JWT_SECRET, algorithm="HS256")
 

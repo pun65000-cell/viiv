@@ -231,11 +231,8 @@ function renderHeaderStaff(){
     d.textContent=s.name.slice(0,2);row.appendChild(d);
   });
   setText('h-online',STAFF_DEFS.length+' online');
+  if(window.parent !== window) window.parent.postMessage({type:'dashboard_ready'},'*');
   if(window.parent !== window) window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
-  window.addEventListener('message', function(e){
-    if(e.data && e.data.type==='request_staff')
-      if(window.parent !== window) window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
-  });
 }
 
 // ── renders ────────────────────────────────────
@@ -337,6 +334,27 @@ function init(){
   const _canvas = document.getElementById('canvas');
   if (_canvas) _canvas.style.top = 'calc(var(--hh) + var(--tbh))';
   clearTimers();
+  // Staff heartbeat
+  (function(){
+    var tok = localStorage.getItem('viiv_token');
+    var sid = null;
+    try { var p=JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); sid=p.sub||p.user_id; } catch(ex){}
+    if(!tok || !sid) return;
+    var lastMove = Date.now();
+    document.addEventListener('mousemove', function(){ lastMove = Date.now(); });
+    document.addEventListener('keydown', function(){ lastMove = Date.now(); });
+    function beat(){
+      if(Date.now() - lastMove > 3600000) return; // idle > 60 min
+      fetch('/api/staff/heartbeat', {
+        method:'POST',
+        headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},
+        body:JSON.stringify({staff_id:sid})
+      }).catch(function(){});
+    }
+    beat();
+    setInterval(beat, 60000);
+  })();
+
   if(window.parent !== window) setInterval(function(){
     window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
   }, 5000);
@@ -405,3 +423,13 @@ window.vDash={setLoad,togglePopup,resetDash,fetchSales};
 document.readyState==='loading'
   ? document.addEventListener('DOMContentLoaded',init)
   : init();
+
+// Global message listener
+window.addEventListener('message', function(e){
+  if(e.data && e.data.type==='init_staff'){
+    window._viivToken = e.data.token;
+    window._staffId = e.data.staff_id;
+  }
+  if(e.data && e.data.type==='request_staff')
+    if(window.parent !== window) window.parent.postMessage({type:'staff_update',count:STAFF_DEFS.length,names:STAFF_DEFS.map(s=>s.name)},'*');
+});

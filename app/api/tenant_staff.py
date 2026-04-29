@@ -125,6 +125,33 @@ def update_staff(staff_id: str, payload: dict,
             raise HTTPException(404, "ไม่พบพนักงาน")
     return {"message": "อัพเดทสำเร็จ"}
 
+
+@router.post("/heartbeat")
+def staff_heartbeat(payload: dict, tenant_id: str = Depends(get_tenant_id)):
+    staff_id = payload.get("staff_id")
+    if not staff_id:
+        raise HTTPException(400, "staff_id required")
+    with engine.begin() as c:
+        c.execute(text("""
+            UPDATE tenant_staff SET last_seen=NOW()
+            WHERE id=:sid AND tenant_id=:tid
+        """), {"sid": staff_id, "tid": tenant_id})
+    return {"ok": True}
+
+@router.get("/presence")
+def staff_presence(tenant_id: str = Depends(get_tenant_id)):
+    with engine.begin() as c:
+        rows = c.execute(text("""
+            SELECT id, first_name, last_name, role,
+                   last_seen,
+                   CASE WHEN last_seen > NOW() - INTERVAL '60 minutes' 
+                        THEN true ELSE false END as is_online
+            FROM tenant_staff
+            WHERE tenant_id=:tid AND is_active=TRUE
+            ORDER BY is_online DESC, first_name
+        """), {"tid": tenant_id}).fetchall()
+    return {"staff": [dict(r._mapping) for r in rows]}
+
 @router.delete("/delete/{staff_id}")
 def delete_staff(staff_id: str, tenant_id: str = Depends(get_tenant_id)):
     with engine.begin() as c:

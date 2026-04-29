@@ -1331,3 +1331,88 @@ FILES CHANGED:
   frontend/superboard/dashboard/app.js
 
 Version: v1.53 | Updated: 2026-04-29
+
+[v1.53 COMPLETED — 2026-04-29]
+DASHBOARD LAYOUT FIX:
+
+แก้ bug #hdr display:none ใน dashboard/app.js (if window.self !== window.top)
+ลบ #hdr ออกจาก dashboard เพราะย้าย staff ขึ้น Superboard topbar แล้ว
+เพิ่ม #tab-platforms CSS ให้แสดงเป็นแถวแนวนอน
+แก้ #canvas layout: left:0, padding-left:0 → center grid ถูกต้อง
+แก้ Cache-Control header บน /superboard/* ใน Caddyfile
+
+STAFF ONLINE WIDGET (Superboard Topbar):
+
+เพิ่ม #sb-staff-wrap ใน superboard/index.html (ซ้ายปุ่ม AI)
+Avatar สีต่างกันตาม index + green dot แสดง online
+รับ postMessage staff_update จาก dashboard iframe
+ส่ง interval ทุก 5 วินาทีจาก dashboard
+
+STAFF PRESENCE SYSTEM (Backend):
+
+เพิ่ม column last_seen timestamptz ใน tenant_staff table
+POST /api/staff/heartbeat — อัปเดต last_seen
+GET /api/staff/presence — ดึง staff + is_online (last_seen > 60 นาที)
+Dashboard ส่ง heartbeat ทุก 60 วินาที ผ่าน localStorage token
+Superboard poll /api/staff/presence ทุก 60 วินาที
+Border avatar เปลี่ยนสีตาม online/offline
+
+PLATFORM STATUS WIDGET:
+
+ย้ายจาก Superboard topbar → dashboard tabbar (ใต้ topbar)
+#tab-platforms แสดงเป็นแถวกลางหน้า
+ลบ #hdr ออกจาก dashboard index.html
+
+JWT:
+
+ขยาย exp จาก 8 ชั่วโมง → 30 วัน (ไม่ต้อง login บ่อย)
+
+FILES CHANGED:
+app/api/tenant_staff.py     (+heartbeat, +presence endpoints)
+app/api/login.py            (exp 8hr → 30days)
+frontend/superboard/index.html
+frontend/superboard/dashboard/index.html
+frontend/superboard/dashboard/app.js
+frontend/superboard/dashboard/style.css
+/etc/caddy/Caddyfile        (Cache-Control /superboard/*)
+RULES เพิ่ม:
+
+Rule 59 — dashboard/index.html JS anchor คือ vDash = { ไม่ใช่ window.vDash = {
+Rule 60 — patch dashboard ต้องทำผ่าน Claude Code เท่านั้น
+Rule 61 — ทุกครั้งที่แก้ Superboard ต้อง bump version timestamp
+
+KNOWN ISSUES:
+
+staff_update postMessage จาก dashboard ทับ presence avatar ทุก 5 วินาที (แก้แล้วด้วย guard)
+heartbeat ใน dashboard อ่าน token จาก localStorage โดยตรง (ไม่ผ่าน postMessage)
+
+Version: v1.53 | Updated: 2026-04-29
+
+### [v1.54 COMPLETED — 2026-04-29] Platform Status Widget — Final Architecture
+
+SUMMARY: ย้าย Platform Status Widget ออกจาก Superboard topbar ลงไปอยู่ใน Dashboard iframe
+และย้าย Staff Online Widget จาก Dashboard header ขึ้นไปอยู่ใน Superboard topbar แทน
+
+PLATFORM STATUS WIDGET (dashboard/index.html):
+- `#tab-platforms` แสดงเป็นแถบเต็มความกว้างด้านบนสุดของ iframe (top:0, z-index:190)
+- มี 5 platforms: LINE OA / Facebook / TikTok / Instagram / YouTube
+- คลิกทั้งแถบ → `window.parent.sbNav('connections')` นำทางไปหน้า Connections
+- `#canvas` เริ่มที่ `top:var(--ph)` (ใต้แถบ platform เท่านั้น ไม่มี header ซ้อน)
+- `#hdr` ถูกลบออกจาก dashboard แล้ว — Superboard topbar ทำหน้าที่แทน
+
+STAFF ONLINE WIDGET (superboard/index.html):
+- `#sb-staff-wrap` อยู่ใน `.sb-top-actions` ก่อนปุ่ม bell
+- IDs: `#sb-staff-avatars` (avatar row) + `#sb-staff-count` (count text)
+- Poll `/api/staff/presence` ทุก 60 วินาที (ไม่พึ่ง postMessage จาก iframe)
+- รับ `postMessage staff_update` จาก dashboard เป็น fallback
+
+DASHBOARD GRID (dashboard/style.css):
+- `#grid`: `1fr 160px 1fr` / `1fr 80px 1fr` / `min(1380px,100%)` × `min(690px,100%)`
+- Fluid layout ไม่ fixed px — ปรับตาม viewport
+
+FILES CHANGED:
+  frontend/superboard/dashboard/index.html  (ลบ #hdr, #tab-platforms top:0)
+  frontend/superboard/dashboard/style.css   (canvas top:var(--ph), grid fluid)
+  frontend/superboard/index.html            (#sb-staff-wrap + presence JS)
+
+Version: v1.54 | Updated: 2026-04-29
