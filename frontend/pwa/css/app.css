@@ -100,8 +100,9 @@ input, textarea { font-family: inherit; }
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 #tb-clock { display: none; }
 
@@ -172,12 +173,12 @@ input, textarea { font-family: inherit; }
 /* ── TOPBAR PROFILE BUTTON ──────────────────────────────────────────────────── */
 #tb-profile-wrap { position: relative; }
 #tb-profile-btn {
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 26px; height: 26px; border-radius: 50%;
   background: var(--gold);
-  border: 2px solid var(--gold);
+  border: 1.5px solid var(--gold-d, #8a6820);
   display: flex; align-items: center; justify-content: center;
   font-family: 'Chakra Petch', sans-serif;
-  font-size: 12px; font-weight: 700; color: #1a1200;
+  font-size: 10px; font-weight: 700; color: #1a1200;
   cursor: pointer; flex-shrink: 0; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1012,4 +1013,4 @@ input, textarea { font-family: inherit; }
   0%,100% { opacity:1; transform:scale(1); }
   50%      { opacity:.3; transform:scale(.5); }
 }
-#tb-ai-label.show { max-width:100px !important; opacity:1 !important; }
+#tb-ai-label.show { max-width:28px !important; opacity:1 !important; }
