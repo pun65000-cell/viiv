@@ -275,6 +275,69 @@
     .pill-active   { background: #e4f3ec; color: #1e6b42; }
     .pill-inactive { background: #f5f0e5; color: #9a7020; }
 
+    /* ─── MANAGE DRAWER ─── */
+    #mgr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;display:none;align-items:stretch;justify-content:flex-end;}
+    #mgr-overlay.open{display:flex;}
+    #mgr-drawer{
+      width:440px;max-width:100vw;background:#fff;height:100vh;
+      display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:-4px 0 24px rgba(0,0,0,.15);
+    }
+    .md-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eae8e2;flex-shrink:0;}
+    .md-hdr-title{font-size:15px;font-weight:700;color:var(--text);}
+    .md-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;}
+    .md-close:hover{color:var(--text);}
+    .md-picker{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid #eae8e2;flex-shrink:0;}
+    .md-picker input{flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;}
+    .md-picker input:focus{border-color:var(--accent);}
+    .md-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+    .md-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .md-info-cell{background:#f8f6f2;border:1px solid #eae8e2;border-radius:8px;padding:10px 12px;}
+    .md-info-cell.full{grid-column:1/-1;}
+    .md-info-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+    .md-info-val{font-size:13px;font-weight:600;color:var(--text);word-break:break-all;font-family:monospace;}
+    .md-info-val.big{font-size:15px;}
+    .md-section{border:1px solid #eae8e2;border-radius:10px;overflow:hidden;}
+    .md-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8f6f2;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);user-select:none;}
+    .md-sec-hdr:hover{background:#f0ede8;}
+    .md-sec-body{padding:14px;border-top:1px solid #eae8e2;display:none;flex-direction:column;gap:10px;}
+    .md-sec-body.open{display:flex;}
+    .md-row{display:flex;gap:8px;align-items:center;}
+    .md-row label{font-size:12px;color:var(--muted);white-space:nowrap;}
+    .md-row select,.md-row input[type=number],.md-row input[type=text]{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;outline:none;background:#fff;}
+    .md-row select:focus,.md-row input:focus{border-color:var(--accent);}
+    .md-save{padding:7px 16px;border-radius:8px;border:none;background:var(--accent);color:#1a1200;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;}
+    .md-save:hover{background:var(--accent-hover);}
+    .md-toggle-list{display:flex;flex-direction:column;gap:6px;}
+    .md-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0ede8;}
+    .md-toggle-row:last-child{border-bottom:none;}
+    .md-toggle-label{font-size:12px;color:var(--text);}
+    .md-toggle{position:relative;width:34px;height:20px;flex-shrink:0;}
+    .md-toggle input{opacity:0;width:0;height:0;position:absolute;}
+    .md-toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:20px;cursor:pointer;transition:.2s;}
+    .md-toggle-slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;bottom:3px;left:3px;transition:.2s;}
+    .md-toggle input:checked+.md-toggle-slider{background:var(--accent);}
+    .md-toggle input:checked+.md-toggle-slider::before{transform:translateX(14px);}
+    .md-btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .md-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;}
+    .md-btn:hover{background:#f5f3ef;}
+    .md-btn.success{background:#e4f3ec;border-color:#b0d9c3;color:#1e6b42;}
+    .md-btn.danger{background:#fef2f2;border-color:#fca5a5;color:#b91c1c;}
+    .md-btn.warn{background:#fffbeb;border-color:#fcd34d;color:#92400e;}
+    .md-textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;resize:vertical;min-height:64px;outline:none;font-family:inherit;}
+    .md-textarea:focus{border-color:var(--accent);}
+    .md-member-list{display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;}
+    .md-member-row{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f6f2;border-radius:7px;font-size:12px;}
+    .md-member-name{font-weight:600;}
+    .md-member-role{color:var(--muted);}
+    .md-history{display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto;}
+    .md-hist-row{font-size:11px;color:var(--muted);padding:4px 8px;background:#f8f6f2;border-radius:6px;}
+    .md-empty{font-size:12px;color:var(--muted);text-align:center;padding:16px 0;}
+    #mgr-status-bar{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;}
+    #mgr-status-bar.active{background:#e4f3ec;color:#1e6b42;}
+    #mgr-status-bar.blocked{background:#fef2f2;color:#b91c1c;}
+    #mgr-status-bar.pending{background:#fffbeb;color:#92400e;}
+
     /* placeholder page */
     .page-placeholder {
       display: flex; flex-direction: column; align-items: center;
@@ -381,6 +444,7 @@
         style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);padding:0;display:none;">👁</button>
     </div>
     <button class="btn" id="searchBtn">ค้นหา</button>
+    <button class="btn" id="manageBtn" onclick="openMgr()" style="white-space:nowrap;">⚙ จัดการ</button>
     <button class="btn btn-accent" id="createBtn">+ สร้างร้าน</button>
   </div>
 
@@ -394,6 +458,139 @@
   </div>
 
 </div>
+
+<!-- ── MANAGE DRAWER ── -->
+<div id="mgr-overlay" onclick="if(event.target===this)closeMgr()">
+  <div id="mgr-drawer">
+
+    <div class="md-hdr">
+      <div class="md-hdr-title">⚙ จัดการร้านค้า</div>
+      <button class="md-close" onclick="closeMgr()">✕</button>
+    </div>
+
+    <div class="md-picker">
+      <input id="mgr-input" placeholder="พิมพ์ Shop ID..." autocomplete="off"/>
+      <button class="md-save" onclick="loadMgr()">โหลด</button>
+    </div>
+
+    <div class="md-body" id="mgr-body" style="display:none">
+
+      <!-- Status bar -->
+      <div id="mgr-status-bar" class="active">● Active</div>
+
+      <!-- Info grid -->
+      <div class="md-info-grid" id="mgr-info-grid">
+        <div class="md-info-cell"><div class="md-info-label">ชื่อร้าน</div><div class="md-info-val big" id="mi-name">—</div></div>
+        <div class="md-info-cell"><div class="md-info-label">Shop ID</div><div class="md-info-val" id="mi-id">—</div></div>
+        <div class="md-info-cell"><div class="md-info-label">แพ็กเกจ</div><div class="md-info-val" id="mi-pkg">—</div></div>
+        <div class="md-info-cell"><div class="md-info-label">เครดิต AI</div><div class="md-info-val" id="mi-credits">—</div></div>
+        <div class="md-info-cell"><div class="md-info-label">วันเริ่ม</div><div class="md-info-val" id="mi-start">—</div></div>
+        <div class="md-info-cell"><div class="md-info-label">วันครบอายุ</div><div class="md-info-val" id="mi-exp">—</div></div>
+        <div class="md-info-cell full"><div class="md-info-label">ระยะเวลาใช้งาน</div><div class="md-info-val" id="mi-dur">—</div></div>
+      </div>
+
+      <!-- ① Package & Credits -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">📦 แพ็กเกจ &amp; เครดิต AI <span>▾</span></div>
+        <div class="md-sec-body">
+          <div class="md-row">
+            <label>แพ็กเกจ</label>
+            <select id="mgr-pkg">
+              <option value="free">Free</option>
+              <option value="starter">Starter — ฿299/เดือน</option>
+              <option value="pro">Pro — ฿799/เดือน</option>
+              <option value="enterprise">Enterprise — ฿1,999/เดือน</option>
+            </select>
+          </div>
+          <div class="md-row">
+            <label>เครดิต AI</label>
+            <input type="number" id="mgr-credits" placeholder="0" min="0"/>
+            <button class="md-save" onclick="savePkg()">บันทึก</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② Feature toggles -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">⚙ ฟังก์ชัน <span>▾</span></div>
+        <div class="md-sec-body">
+          <div class="md-toggle-list">
+            <div class="md-toggle-row"><span class="md-toggle-label">🖥 POS ระบบขาย</span><label class="md-toggle"><input type="checkbox" id="ft-pos" checked/><span class="md-toggle-slider"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-label">🤖 AI Chat ตอบอัตโนมัติ</span><label class="md-toggle"><input type="checkbox" id="ft-ai" checked/><span class="md-toggle-slider"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-label">📲 Auto Post</span><label class="md-toggle"><input type="checkbox" id="ft-post"/><span class="md-toggle-slider"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-label">💬 Chat &amp; Showroom</span><label class="md-toggle"><input type="checkbox" id="ft-chat" checked/><span class="md-toggle-slider"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-label">🔗 Affiliate</span><label class="md-toggle"><input type="checkbox" id="ft-aff"/><span class="md-toggle-slider"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-label">📄 Statement / บิล</span><label class="md-toggle"><input type="checkbox" id="ft-stmt" checked/><span class="md-toggle-slider"></span></label></div>
+            <div class="md-toggle-row"><span class="md-toggle-label">🔌 API Access</span><label class="md-toggle"><input type="checkbox" id="ft-api"/><span class="md-toggle-slider"></span></label></div>
+          </div>
+          <button class="md-save" onclick="saveFeatures()" style="align-self:flex-end">บันทึกฟังก์ชัน</button>
+        </div>
+      </div>
+
+      <!-- ③ สถานะร้าน -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">🏪 สถานะร้าน <span>▾</span></div>
+        <div class="md-sec-body">
+          <div class="md-btn-row">
+            <button class="md-btn success" onclick="shopAction('approve')">✅ อนุมัติร้าน</button>
+            <button class="md-btn warn"    onclick="shopAction('suspend')">⏸ พักการใช้งาน</button>
+            <button class="md-btn danger"  onclick="shopAction('block')">🚫 บล็อกร้าน</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ ส่งข้อความแจ้งเตือน -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">🔔 ส่งข้อความเตือน → กระดิ่ง <span>▾</span></div>
+        <div class="md-sec-body">
+          <textarea class="md-textarea" id="mgr-notify-msg" placeholder="ข้อความที่จะส่งไปยังกระดิ่งของร้านค้า..."></textarea>
+          <button class="md-save" onclick="sendNotify()" style="align-self:flex-end">ส่งข้อความ</button>
+        </div>
+      </div>
+
+      <!-- ⑤ ประวัติ -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">📋 ประวัติการใช้งาน <span>▾</span></div>
+        <div class="md-sec-body">
+          <div class="md-history" id="mgr-history">
+            <div class="md-empty">กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ สมาชิกในร้าน -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)">👥 สมาชิกในร้าน <span>▾</span></div>
+        <div class="md-sec-body">
+          <div class="md-member-list" id="mgr-members">
+            <div class="md-empty">กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑦ Token Control -->
+      <div class="md-section">
+        <div class="md-sec-hdr" onclick="toggleSec(this)" style="color:#b91c1c">🔑 ควบคุมโทเคน <span>▾</span></div>
+        <div class="md-sec-body">
+          <div style="font-size:11px;color:var(--muted);background:#fff8f8;border:1px solid #fca5a5;border-radius:7px;padding:8px 10px;">
+            ⚠ การกระทำด้านนี้จะส่งผลทันที — โทเคนที่ถูกเพิกถอนจะต้อง Login ใหม่ทั้งหมด
+          </div>
+          <div class="md-btn-row">
+            <button class="md-btn warn"   onclick="tokenAction('expire-all')">🔄 หมดอายุโทเคนทั้งหมด</button>
+            <button class="md-btn danger" onclick="tokenAction('block-access')">🔒 บล็อกการใช้งาน</button>
+            <button class="md-btn danger" onclick="tokenAction('kick-all')">⏏ เตะออกจากระบบ</button>
+          </div>
+          <div class="md-row" style="margin-top:4px">
+            <label>เตะเฉพาะ User ID</label>
+            <input type="text" id="mgr-kick-uid" placeholder="usr_xxxxx"/>
+            <button class="md-save" onclick="tokenAction('kick-one')" style="background:#b91c1c;color:#fff">เตะ</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /md-body -->
+  </div><!-- /mgr-drawer -->
+</div><!-- /mgr-overlay -->
 
 <script type="module">
 // ─── Page config ───────────────────────────────────────────────────────────
@@ -630,6 +827,171 @@ function toggleSearchType() {
   if (el.type === 'password') { el.type = 'text'; btn.textContent = '🙈'; }
   else { el.type = 'password'; btn.textContent = '👁'; }
 }
+
+// ─── MANAGE DRAWER ──────────────────────────────────────────────────────────
+let _mgrShopId = null;
+
+function openMgr() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (q) document.getElementById('mgr-input').value = q;
+  document.getElementById('mgr-overlay').classList.add('open');
+  if (document.getElementById('mgr-input').value) loadMgr();
+}
+function closeMgr() {
+  document.getElementById('mgr-overlay').classList.remove('open');
+}
+function toggleSec(hdr) {
+  hdr.nextElementSibling.classList.toggle('open');
+}
+
+function getToken() {
+  return localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+}
+function apiCall(path, opts) {
+  return fetch(path, Object.assign({ headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' } }, opts));
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+}
+function diffDays(a, b) {
+  if (!a || !b) return '—';
+  const ms = new Date(b) - new Date(a);
+  if (ms < 0) return 'หมดอายุแล้ว';
+  const d = Math.ceil(ms / 86400000);
+  return d + ' วัน';
+}
+
+async function loadMgr() {
+  const sid = document.getElementById('mgr-input').value.trim();
+  if (!sid) return alert('กรุณาใส่ Shop ID');
+  _mgrShopId = sid;
+
+  const body = document.getElementById('mgr-body');
+  body.style.display = 'flex';
+
+  // ── ข้อมูลร้าน ──
+  try {
+    const r = await apiCall('/api/platform/shop-detail?shop_id=' + encodeURIComponent(sid));
+    const d = r.ok ? await r.json() : {};
+    const status = d.status || 'active';
+    const sb = document.getElementById('mgr-status-bar');
+    sb.className = 'active';
+    sb.textContent = '● ' + (status === 'active' ? 'Active' : status === 'blocked' ? 'Blocked' : 'Pending');
+    if (status === 'blocked') sb.className = 'blocked';
+    if (status === 'pending') sb.className = 'pending';
+
+    document.getElementById('mi-name').textContent    = d.store_name || d.name || sid;
+    document.getElementById('mi-id').textContent      = sid;
+    document.getElementById('mi-pkg').textContent     = d.package || 'Free';
+    document.getElementById('mi-credits').textContent = d.ai_credits ?? '—';
+    document.getElementById('mi-start').textContent   = fmtDate(d.started_at || d.created_at);
+    document.getElementById('mi-exp').textContent     = fmtDate(d.expires_at);
+    document.getElementById('mi-dur').textContent     = diffDays(d.started_at || d.created_at, d.expires_at);
+
+    // package select
+    const pkg = d.package || 'free';
+    document.getElementById('mgr-pkg').value = pkg.toLowerCase();
+    document.getElementById('mgr-credits').value = d.ai_credits || 0;
+
+    // features
+    const ft = d.features || {};
+    ['pos','ai','post','chat','aff','stmt','api'].forEach(k => {
+      const el = document.getElementById('ft-' + k);
+      if (el) el.checked = ft[k] !== false;
+    });
+  } catch(e) {
+    document.getElementById('mi-name').textContent = sid;
+    document.getElementById('mi-id').textContent   = sid;
+  }
+
+  // ── ประวัติ ──
+  try {
+    const r = await apiCall('/api/platform/shop-history?shop_id=' + encodeURIComponent(sid));
+    const logs = r.ok ? await r.json() : [];
+    const hel = document.getElementById('mgr-history');
+    hel.innerHTML = logs.length
+      ? logs.map(l => `<div class="md-hist-row">${fmtDate(l.created_at)} — ${l.action||''} ${l.note||''}</div>`).join('')
+      : '<div class="md-empty">ยังไม่มีประวัติ</div>';
+  } catch(_) {
+    document.getElementById('mgr-history').innerHTML = '<div class="md-empty">โหลดไม่ได้</div>';
+  }
+
+  // ── สมาชิก ──
+  try {
+    const r = await apiCall('/api/platform/shop-members?shop_id=' + encodeURIComponent(sid));
+    const members = r.ok ? await r.json() : [];
+    const mel = document.getElementById('mgr-members');
+    mel.innerHTML = members.length
+      ? members.map(m => `<div class="md-member-row">
+          <span class="md-member-name">${m.first_name||''} ${m.last_name||''}</span>
+          <span class="md-member-role">${m.role||'staff'}</span>
+        </div>`).join('')
+      : '<div class="md-empty">ไม่มีสมาชิก</div>';
+  } catch(_) {
+    document.getElementById('mgr-members').innerHTML = '<div class="md-empty">โหลดไม่ได้</div>';
+  }
+}
+
+async function savePkg() {
+  if (!_mgrShopId) return;
+  const pkg = document.getElementById('mgr-pkg').value;
+  const credits = Number(document.getElementById('mgr-credits').value) || 0;
+  try {
+    const r = await apiCall('/api/platform/shop-package', { method: 'POST', body: JSON.stringify({ shop_id: _mgrShopId, package: pkg, ai_credits: credits }) });
+    alert(r.ok ? '✅ บันทึกแพ็กเกจแล้ว' : '❌ บันทึกไม่สำเร็จ');
+  } catch(_) { alert('❌ เชื่อมต่อไม่ได้'); }
+}
+
+async function saveFeatures() {
+  if (!_mgrShopId) return;
+  const ft = {};
+  ['pos','ai','post','chat','aff','stmt','api'].forEach(k => {
+    ft[k] = document.getElementById('ft-' + k)?.checked ?? true;
+  });
+  try {
+    const r = await apiCall('/api/platform/shop-features', { method: 'POST', body: JSON.stringify({ shop_id: _mgrShopId, features: ft }) });
+    alert(r.ok ? '✅ บันทึกฟังก์ชันแล้ว' : '❌ บันทึกไม่สำเร็จ');
+  } catch(_) { alert('❌ เชื่อมต่อไม่ได้'); }
+}
+
+async function shopAction(action) {
+  if (!_mgrShopId) return;
+  const labels = { approve: 'อนุมัติร้าน', suspend: 'พักการใช้งาน', block: 'บล็อกร้าน' };
+  if (!confirm('ยืนยัน: ' + (labels[action]||action) + ' ' + _mgrShopId + '?')) return;
+  try {
+    const r = await apiCall('/api/platform/shop-status', { method: 'POST', body: JSON.stringify({ shop_id: _mgrShopId, action }) });
+    if (r.ok) { alert('✅ ' + labels[action] + ' สำเร็จ'); loadMgr(); }
+    else alert('❌ ไม่สำเร็จ');
+  } catch(_) { alert('❌ เชื่อมต่อไม่ได้'); }
+}
+
+async function sendNotify() {
+  if (!_mgrShopId) return;
+  const msg = document.getElementById('mgr-notify-msg').value.trim();
+  if (!msg) return alert('กรุณาใส่ข้อความ');
+  try {
+    const r = await apiCall('/api/platform/shop-notify', { method: 'POST', body: JSON.stringify({ shop_id: _mgrShopId, message: msg }) });
+    if (r.ok) { document.getElementById('mgr-notify-msg').value = ''; alert('✅ ส่งข้อความแล้ว'); }
+    else alert('❌ ส่งไม่สำเร็จ');
+  } catch(_) { alert('❌ เชื่อมต่อไม่ได้'); }
+}
+
+async function tokenAction(action) {
+  if (!_mgrShopId) return;
+  const labels = { 'expire-all': 'หมดอายุโทเคนทั้งหมด', 'block-access': 'บล็อกการใช้งาน', 'kick-all': 'เตะออกจากระบบ', 'kick-one': 'เตะ User นี้' };
+  if (!confirm('⚠ ยืนยัน: ' + (labels[action]||action) + '?')) return;
+  const body = { shop_id: _mgrShopId, action };
+  if (action === 'kick-one') body.user_id = document.getElementById('mgr-kick-uid').value.trim();
+  if (action === 'kick-one' && !body.user_id) return alert('กรุณาใส่ User ID');
+  try {
+    const r = await apiCall('/api/platform/shop-token-control', { method: 'POST', body: JSON.stringify(body) });
+    alert(r.ok ? '✅ ' + labels[action] + ' สำเร็จ' : '❌ ไม่สำเร็จ');
+  } catch(_) { alert('❌ เชื่อมต่อไม่ได้'); }
+}
+
+// expose globals (script type=module scoping bypass)
+Object.assign(window, { openMgr, closeMgr, toggleSec, loadMgr, savePkg, saveFeatures, shopAction, sendNotify, tokenAction });
 </script>
 
 </body>

@@ -857,7 +857,7 @@ input, textarea { font-family: inherit; }
   font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   color: rgba(255,255,255,.35); flex-shrink: 0; margin-right: 2px;
 }
-.ld-pl-item { position: relative; flex-shrink: 0; }
+.ld-pl-item { position: relative; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .ld-pl-icon {
   width: 22px; height: 22px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
@@ -1013,4 +1013,4 @@ input, textarea { font-family: inherit; }
   0%,100% { opacity:1; transform:scale(1); }
   50%      { opacity:.3; transform:scale(.5); }
 }
-#tb-ai-label.show { max-width:28px !important; opacity:1 !important; }
+#tb-ai-label.show { max-width:60px !important; opacity:1 !important; }

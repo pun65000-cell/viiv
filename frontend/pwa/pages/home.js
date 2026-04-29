@@ -64,12 +64,12 @@
       <!-- HUB STRIP -->
       <div class="ld-hub">
         <div class="ld-hub-left">
-          <div class="ld-platforms" id="pwa-platforms" onclick="Router.go('line')">
-            <div class="ld-pl-item" id="ppl-line"><div class="ld-pl-icon" style="background:#06C755">LINE</div><div class="ld-pl-dot"></div></div>
-            <div class="ld-pl-item" id="ppl-fb"><div class="ld-pl-icon" style="background:#1877F2">f</div><div class="ld-pl-dot"></div></div>
-            <div class="ld-pl-item" id="ppl-tk"><div class="ld-pl-icon" style="background:#010101">TK</div><div class="ld-pl-dot"></div></div>
-            <div class="ld-pl-item" id="ppl-ig"><div class="ld-pl-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">Ig</div><div class="ld-pl-dot"></div></div>
-            <div class="ld-pl-item" id="ppl-yt"><div class="ld-pl-icon" style="background:#FF0000">YT</div><div class="ld-pl-dot"></div></div>
+          <div class="ld-platforms" id="pwa-platforms">
+            <div class="ld-pl-item" id="ppl-line" onclick="Router.go('line')"><div class="ld-pl-icon" style="background:#06C755">LINE</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-fb"   onclick="Router.go('comingsoon')"><div class="ld-pl-icon" style="background:#1877F2">f</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-tk"   onclick="Router.go('comingsoon')"><div class="ld-pl-icon" style="background:#010101">TK</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-ig"   onclick="Router.go('comingsoon')"><div class="ld-pl-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">Ig</div><div class="ld-pl-dot"></div></div>
+            <div class="ld-pl-item" id="ppl-yt"   onclick="Router.go('comingsoon')"><div class="ld-pl-icon" style="background:#FF0000">YT</div><div class="ld-pl-dot"></div></div>
           </div>
         </div>
         <div class="ld-hub-right">
