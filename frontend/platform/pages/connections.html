@@ -298,6 +298,14 @@
   var h = function(){ return {'Authorization':'Bearer '+tok(),'Content-Type':'application/json'}; };
   var _saveTimer = null;
 
+  // backend อาจคืน full URL หรือ relative path — normalize ให้เป็น absolute เสมอ
+  // (กันต่อ base URL ซ้อนกัน 2 ชั้นถ้า backend คืน https://... อยู่แล้ว)
+  function absUrl(u){
+    if(!u) return '';
+    if(/^https?:\/\//i.test(u)) return u;
+    return 'https://viiv.me' + (u.charAt(0)==='/' ? '' : '/') + u;
+  }
+
   // ── Tab ──
   window.cxTab = function(tab){
     document.querySelectorAll('.cx-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===tab); });
@@ -342,10 +350,11 @@
       badge.style.display = connected ? '' : 'none';
       // QR
       if(d.qr_image_url){
+        var qrUrl = absUrl(d.qr_image_url);
         var prev = document.getElementById('cx-qr-preview');
-        prev.innerHTML = '<img src="'+d.qr_image_url+'" alt="QR">';
+        prev.innerHTML = '<img src="'+qrUrl+'" alt="QR">';
         document.getElementById('cx-qr-del-btn').style.display = '';
-        document.getElementById('cx-qr-img-url').value = 'https://concore.viiv.me'+d.qr_image_url;
+        document.getElementById('cx-qr-img-url').value = qrUrl;
       }
       // QR link
       var ql = d.qr_link_url || (oa ? 'https://line.me/R/ti/p/%40'+oa : '');
@@ -407,10 +416,11 @@
       body: fd
     }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
       if(d && d.ok){
+        var qrUrl = absUrl(d.url);
         var prev = document.getElementById('cx-qr-preview');
-        prev.innerHTML = '<img src="'+d.url+'?t='+Date.now()+'" alt="QR">';
+        prev.innerHTML = '<img src="'+qrUrl+'?t='+Date.now()+'" alt="QR">';
         document.getElementById('cx-qr-del-btn').style.display = '';
-        document.getElementById('cx-qr-img-url').value = 'https://concore.viiv.me'+d.url;
+        document.getElementById('cx-qr-img-url').value = qrUrl;
         msg.className='cx-msg ok'; msg.textContent='✓ อัปโหลดสำเร็จ';
       } else { msg.className='cx-msg err'; msg.textContent='❌ อัปโหลดไม่สำเร็จ'; }
     }).catch(function(){ msg.className='cx-msg err'; msg.textContent='❌ เชื่อมต่อไม่ได้'; });
