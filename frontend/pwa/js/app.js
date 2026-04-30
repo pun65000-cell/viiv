@@ -161,99 +161,24 @@ window.App = App;
   setInterval(pulse, 12000);
 })();
 
-// Shop Switcher
+// Shop topbar — แสดงชื่อ/avatar ของร้านปัจจุบัน (รายการร้านอยู่ที่ Router.go('shops'))
 window.ShopSwitcher = {
-  _open: false,
-  _shops: [],
-  _activeId: null,
-
-  toggle() {
-    this._open = !this._open;
-    document.getElementById('tb-shop-dd').classList.toggle('open', this._open);
-    if (this._open) this._render();
-  },
-
-  close() {
-    this._open = false;
-    const dd = document.getElementById('tb-shop-dd');
-    if (dd) dd.classList.remove('open');
-  },
-
   async init() {
-    try { this._shops = JSON.parse(localStorage.getItem('pwa_shops') || '[]'); } catch(_) { this._shops = []; }
-    this._activeId = localStorage.getItem('pwa_active_shop') || null;
     try {
       const d = await App.api('/api/pos/store/settings');
-      const id = d.tenant_id || App.tenantId || '';
-      const name = d.store_name || 'My Shop';
-      const logo = d.logo_url || null;
-      const idx = this._shops.findIndex(s => s.id === id);
-      if (idx < 0) this._shops.unshift({ id, name, logo });
-      else { this._shops[idx].name = name; this._shops[idx].logo = logo; }
-      if (!this._activeId) this._activeId = id;
-      localStorage.setItem('pwa_shops', JSON.stringify(this._shops));
-      localStorage.setItem('pwa_active_shop', this._activeId);
+      this._update(d.store_name || 'My Shop', d.logo_url || null);
     } catch(_) {}
-    this._updateBtn();
   },
 
-  _updateBtn() {
-    const s = this._shops.find(x => x.id === this._activeId) || this._shops[0];
-    if (!s) return;
-    document.getElementById('tb-shop-name').textContent = s.name;
+  _update(name, logo) {
+    const nameEl = document.getElementById('tb-shop-name');
     const av = document.getElementById('tb-shop-av');
-    if (s.logo) av.innerHTML = '<img src="'+s.logo+'" style="width:100%;height:100%;object-fit:cover;">';
-    else av.textContent = s.name.charAt(0).toUpperCase();
-  },
-
-  _render() {
-    const list = document.getElementById('tb-shop-list');
-    if (!list) return;
-    if (!this._shops.length) {
-      list.innerHTML = '<div style="padding:10px 14px;color:var(--muted);font-size:12px">ยังไม่มีร้าน</div>';
-      return;
+    if (nameEl) nameEl.textContent = name;
+    if (av) {
+      if (logo) av.innerHTML = '<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;">';
+      else av.textContent = (name||'S').charAt(0).toUpperCase();
     }
-    list.innerHTML = this._shops.map(s => {
-      const active = s.id === this._activeId ? ' active' : '';
-      const av = s.logo
-        ? '<img src="'+s.logo+'" style="width:24px;height:24px;object-fit:cover;border-radius:5px;flex-shrink:0;">'
-        : '<div class="tb-shop-item-av">'+s.name.charAt(0).toUpperCase()+'</div>';
-      return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+s.id+'\')">'
-        + av
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.name+'</div>'
-        + '<div style="font-size:10px;color:var(--muted);font-family:monospace">'+s.id+'</div>'
-        + '</div></div>';
-    }).join('');
   },
-
-  select(id) {
-    this._activeId = id;
-    localStorage.setItem('pwa_active_shop', id);
-    this._updateBtn();
-    this.close();
-    window.location.reload();
-  },
-
-  showAdd() {
-    document.getElementById('tb-shop-add-row').style.display = 'none';
-    document.getElementById('tb-shop-add-form').classList.add('open');
-    document.getElementById('tb-shop-id-in').focus();
-  },
-
-  addShop() {
-    const input = document.getElementById('tb-shop-id-in');
-    const id = input.value.trim();
-    if (!id) { App.toast('กรุณาใส่ Shop ID'); return; }
-    if (this._shops.find(s => s.id === id)) { App.toast('มีร้านนี้แล้ว'); return; }
-    this._shops.push({ id, name: id, logo: null });
-    localStorage.setItem('pwa_shops', JSON.stringify(this._shops));
-    input.value = '';
-    document.getElementById('tb-shop-add-form').classList.remove('open');
-    document.getElementById('tb-shop-add-row').style.display = 'flex';
-    this._render();
-    App.toast('เพิ่มร้านแล้ว');
-  }
 };
 
 // Bell notification
@@ -289,6 +214,5 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dd) dd.style.display = 'none';
       Bell._open = false;
     }
-    if (!e.target.closest('#tb-shop-wrap')) ShopSwitcher.close();
   });
 });

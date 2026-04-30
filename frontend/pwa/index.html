@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=2929"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=2409"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -24,21 +24,10 @@
     <div id="tb-back" onclick="Router.back()">←</div>
     <div id="tb-logo">○ ViiV</div>
     <div id="tb-shop-wrap">
-      <div id="tb-shop-btn" onclick="ShopSwitcher.toggle()">
+      <div id="tb-shop-btn" onclick="Router.go('shops')" title="จัดการร้านสาขา">
         <div id="tb-shop-av">S</div>
         <span id="tb-shop-name">My Shop</span>
-        <span class="tb-shop-arrow">▾</span>
-      </div>
-      <div id="tb-shop-dd">
-        <div id="tb-shop-list"><div style="padding:10px 14px;color:var(--muted);font-size:12px">กำลังโหลด...</div></div>
-        <div id="tb-shop-add-row" onclick="ShopSwitcher.showAdd()">
-          <div class="tb-shop-add-icon">+</div>
-          <span>เพิ่มร้าน</span>
-        </div>
-        <div id="tb-shop-add-form">
-          <input id="tb-shop-id-in" type="text" placeholder="Shop ID (เช่น ten_2)" autocomplete="off">
-          <button onclick="ShopSwitcher.addShop()">บันทึก</button>
-        </div>
+        <span class="tb-shop-arrow">›</span>
       </div>
     </div>
     <div id="tb-title" style="display:none"></div>
@@ -80,15 +69,7 @@
         </div>
       </div>
       <div id="tb-profile-wrap">
-        <div id="tb-profile-btn" onclick="Profile.toggleDD()">A</div>
-        <div id="tb-profile-dd">
-          <div class="pd-header">
-            <div class="pd-name" id="pd-name">Admin</div>
-            <div class="pd-role" id="pd-role">ผู้ดูแลระบบ</div>
-          </div>
-          <div class="pd-item" onclick="Profile.openSheet()">⚙ แก้ไขโปรไฟล์</div>
-          <div class="pd-item danger" onclick="Profile.logout()">⏻ ออกจากระบบ</div>
-        </div>
+        <div id="tb-profile-btn" onclick="Profile.openSheet()">A</div>
       </div>
     </div>
   </header>
@@ -135,36 +116,20 @@
           <input type="file" id="pm-avatar-inp" accept="image/*" style="display:none" onchange="Profile.previewAvatar(this)">
         </div>
         <div>
-          <div class="pm-status-badge" id="pm-badge"><span class="pm-status-dot"></span> Admin · Online</div>
+          <div class="pm-status-badge" id="pm-badge"><span class="pm-status-dot"></span> Online</div>
           <div class="pm-role-lbl" id="pm-role-lbl"></div>
         </div>
       </div>
-      <div class="pm-section-lbl">ข้อมูลส่วนตัว</div>
-      <div class="pm-row2">
-        <div class="pm-field"><label>ชื่อ</label><input type="text" id="pm-fname" placeholder="ชื่อ"></div>
-        <div class="pm-field"><label>นามสกุล</label><input type="text" id="pm-lname" placeholder="นามสกุล"></div>
-      </div>
-      <div class="pm-row2">
-        <div class="pm-field"><label>เบอร์โทร</label><input type="tel" id="pm-phone" placeholder="0812345678"></div>
-        <div class="pm-field"><label>อีเมล</label><input type="email" id="pm-email" placeholder="email@example.com"></div>
-      </div>
-      <div class="pm-field">
-        <label>ตำแหน่ง / สิทธิ์</label>
-        <input type="text" id="pm-role" readonly>
-        <div class="pm-hint">ปรับได้เฉพาะผู้ดูแลระบบ</div>
-      </div>
-      <div class="pm-divider"></div>
-      <div class="pm-section-lbl">เปลี่ยนรหัสผ่าน</div>
-      <div class="pm-field"><label>รหัสผ่านปัจจุบัน</label><input type="password" id="pm-pw-old" placeholder="••••••••" autocomplete="current-password"></div>
-      <div class="pm-row2">
-        <div class="pm-field"><label>รหัสผ่านใหม่</label><input type="password" id="pm-pw-new" placeholder="••••••••" autocomplete="new-password"></div>
-        <div class="pm-field"><label>ยืนยันรหัสผ่าน</label><input type="password" id="pm-pw-cf" placeholder="••••••••" autocomplete="new-password"></div>
-      </div>
-      <div class="pm-hint">เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยนรหัสผ่าน</div>
+      <div class="pm-field"><label>ชื่อเล่น</label><input type="text" id="pm-nick" placeholder="ชื่อเล่นของคุณ" autocomplete="off"></div>
+      <div class="pm-field"><label>อีเมล</label><input type="email" id="pm-email" placeholder="email@example.com" autocomplete="off"></div>
+      <div class="pm-field"><label>เบอร์โทร</label><input type="tel" id="pm-phone" placeholder="0812345678" autocomplete="off"></div>
     </div>
     <div class="pm-actions">
       <button class="pm-btn pm-btn-cancel" onclick="Profile.closeSheet()">ยกเลิก</button>
       <button class="pm-btn pm-btn-save" onclick="Profile.save()">บันทึก</button>
+    </div>
+    <div class="pm-actions" style="margin-top:8px">
+      <button class="pm-btn pm-btn-logout" onclick="Profile.logout()">⏻ ออกจากระบบ</button>
     </div>
   </div>
 </div>
@@ -179,58 +144,61 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/auth.js?v=2929"></script>
-<script src="/pwa/js/router.js?v=2929"></script>
-<script src="/pwa/js/app.js?v=2929"></script>
-<script src="/pwa/pages/home.js?v=2929"></script>
-<script src="/pwa/pages/pos.js?v=2929"></script>
-<script src="/pwa/pages/billing.js?v=2929"></script>
-<script src="/pwa/pages/statement.js?v=2929"></script>
-<script src="/pwa/pages/orders-upload.js?v=2929"></script>
-<script src="/pwa/pages/orders.js?v=2929"></script>
-<script src="/pwa/pages/orders-detail.js?v=2929"></script>
-<script src="/pwa/pages/bill-history.js?v=2929"></script>
-<script src="/pwa/pages/products.js?v=2929"></script>
-<script src="/pwa/pages/members.js?v=2929"></script>
-    <script src="/pwa/pages/bill.js?v=2929"></script>
-    <script src="/pwa/pages/sales.js?v=2929"></script>
-<script src="/pwa/pages/chat.js?v=2929"></script>
-<script src="/pwa/pages/autopost.js?v=2929"></script>
-<script src="/pwa/pages/affiliate.js?v=2929"></script>
-<script src="/pwa/pages/partners.js?v=2929"></script>
-<script src="/pwa/pages/store.js?v=2929"></script>
-<script src="/pwa/pages/line.js?v=2929"></script>
-<script src="/pwa/pages/comingsoon.js?v=2929"></script>
-  <script src="/pwa/pages/more.js?v=2929"></script>
+<script src="/pwa/js/auth.js?v=2409"></script>
+<script src="/pwa/js/router.js?v=2409"></script>
+<script src="/pwa/js/app.js?v=2409"></script>
+<script src="/pwa/pages/home.js?v=2409"></script>
+<script src="/pwa/pages/pos.js?v=2409"></script>
+<script src="/pwa/pages/billing.js?v=2409"></script>
+<script src="/pwa/pages/statement.js?v=2409"></script>
+<script src="/pwa/pages/orders-upload.js?v=2409"></script>
+<script src="/pwa/pages/orders.js?v=2409"></script>
+<script src="/pwa/pages/orders-detail.js?v=2409"></script>
+<script src="/pwa/pages/bill-history.js?v=2409"></script>
+<script src="/pwa/pages/products.js?v=2409"></script>
+<script src="/pwa/pages/members.js?v=2409"></script>
+    <script src="/pwa/pages/bill.js?v=2409"></script>
+    <script src="/pwa/pages/sales.js?v=2409"></script>
+<script src="/pwa/pages/chat.js?v=2409"></script>
+<script src="/pwa/pages/autopost.js?v=2409"></script>
+<script src="/pwa/pages/affiliate.js?v=2409"></script>
+<script src="/pwa/pages/partners.js?v=2409"></script>
+<script src="/pwa/pages/store.js?v=2409"></script>
+<script src="/pwa/pages/shops.js?v=2409"></script>
+<script src="/pwa/pages/line.js?v=2409"></script>
+<script src="/pwa/pages/comingsoon.js?v=2409"></script>
+  <script src="/pwa/pages/more.js?v=2409"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
 const Profile = {
-  toggleDD() {
-    document.getElementById('tb-profile-dd').classList.toggle('open');
-  },
-  closeDD() {
-    var _dd = document.getElementById('tb-profile-dd'); if(_dd) _dd.classList.remove('open');
+  _initialFromJwt() {
+    try {
+      const t = (window.Auth && Auth.token) || localStorage.getItem('viiv_token') || '';
+      const b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      const p = JSON.parse(atob(b + '=='.slice((b.length%4)||4)));
+      return { name: p.name || '', email: p.email || '', role: p.role || '' };
+    } catch { return { name:'', email:'', role:'' }; }
   },
   openSheet() {
-    this.closeDD();
-    const p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
-    document.getElementById('pm-fname').value = p.first_name || '';
-    document.getElementById('pm-lname').value  = p.last_name  || '';
-    document.getElementById('pm-phone').value  = p.phone      || '';
-    document.getElementById('pm-email').value  = p.email      || '';
-    document.getElementById('pm-role').value   = p.role       || '—';
-    document.getElementById('pm-pw-old').value = '';
-    document.getElementById('pm-pw-new').value = '';
-    document.getElementById('pm-pw-cf').value  = '';
-    // avatar
+    const stored = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+    const jwt = this._initialFromJwt();
+    const p = {
+      nickname:   stored.nickname   || jwt.name  || '',
+      email:      stored.email      || jwt.email || '',
+      phone:      stored.phone      || '',
+      avatar_url: stored.avatar_url || '',
+      role:       stored.role       || jwt.role  || '',
+    };
+    document.getElementById('pm-nick').value  = p.nickname;
+    document.getElementById('pm-email').value = p.email;
+    document.getElementById('pm-phone').value = p.phone;
+
     const av = document.getElementById('pm-avatar');
     const inp = '<div class="pm-avatar-edit">✎</div><input type="file" id="pm-avatar-inp" accept="image/*" style="display:none" onchange="Profile.previewAvatar(this)">';
     if (p.avatar_url) av.innerHTML = '<img src="' + p.avatar_url + '">' + inp;
-    else av.innerHTML = (p.first_name || 'A').charAt(0).toUpperCase() + inp;
-    // badge
-    const badge = document.getElementById('pm-badge');
-    badge.innerHTML = '<span class="pm-status-dot"></span> ' + (p.role || 'Admin') + ' · Online';
+    else av.innerHTML = (p.nickname || 'A').charAt(0).toUpperCase() + inp;
+
     document.getElementById('pm-role-lbl').textContent = p.role || '';
     document.getElementById('profile-modal').classList.add('open');
   },
@@ -251,24 +219,16 @@ const Profile = {
     reader.readAsDataURL(inp.files[0]);
   },
   save() {
-    const pwNew = document.getElementById('pm-pw-new').value.trim();
-    const pwCf  = document.getElementById('pm-pw-cf').value.trim();
-    const pwOld = document.getElementById('pm-pw-old').value.trim();
-    if (pwNew || pwCf) {
-      if (!pwOld) { App.toast('กรุณากรอกรหัสผ่านปัจจุบัน'); return; }
-      if (pwNew !== pwCf) { App.toast('รหัสผ่านใหม่ไม่ตรงกัน'); return; }
-      if (pwNew.length < 6) { App.toast('รหัสผ่านใหม่อย่างน้อย 6 ตัว'); return; }
-    }
     const old = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
     const p = {
-      first_name: document.getElementById('pm-fname').value.trim(),
-      last_name:  document.getElementById('pm-lname').value.trim(),
-      phone:      document.getElementById('pm-phone').value.trim(),
-      email:      document.getElementById('pm-email').value.trim(),
-      role:       old.role || '',
+      nickname: document.getElementById('pm-nick').value.trim(),
+      email:    document.getElementById('pm-email').value.trim(),
+      phone:    document.getElementById('pm-phone').value.trim(),
+      role:     old.role || this._initialFromJwt().role || '',
     };
     const img = document.querySelector('#pm-avatar img');
     if (img) p.avatar_url = img.src;
+    else if (old.avatar_url) p.avatar_url = old.avatar_url;
     localStorage.setItem('viiv_profile', JSON.stringify(p));
     this._applyUI(p);
     this.closeSheet();
@@ -276,22 +236,21 @@ const Profile = {
   },
   _applyUI(p) {
     const btn = document.getElementById('tb-profile-btn');
+    if (!btn) return;
     if (p.avatar_url) btn.innerHTML = '<img src="' + p.avatar_url + '">';
-    else btn.textContent = (p.first_name || 'A').charAt(0).toUpperCase();
-    const name = (p.first_name ? p.first_name + ' ' + (p.last_name || '') : 'Admin').trim();
-    document.getElementById('pd-name').textContent = name;
-    document.getElementById('pd-role').textContent = p.role || 'ผู้ดูแลระบบ';
+    else btn.textContent = (p.nickname || 'A').charAt(0).toUpperCase();
   },
   logout() { Auth.logout(); },
   init() {
-    const p = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
-    if (p.first_name || p.avatar_url) this._applyUI(p);
+    const stored = JSON.parse(localStorage.getItem('viiv_profile') || '{}');
+    const jwt = this._initialFromJwt();
+    const p = {
+      nickname: stored.nickname || jwt.name || '',
+      avatar_url: stored.avatar_url || '',
+    };
+    if (p.nickname || p.avatar_url) this._applyUI(p);
   }
 };
-
-document.addEventListener('click', e => {
-  if (!e.target.closest('#tb-profile-wrap')) Profile.closeDD();
-});
 
 // ถ้ายังไม่มี hash → บังคับเป็น #home เพื่อให้ URL bar แสดง state ชัดเจน
 if (!location.hash) location.replace('/pwa/#home');
@@ -314,10 +273,10 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/pwa/sw.js', { scope: '/pwa/' }).catch(() => {});
 }
 </script>
-  <script src="/pwa/pages/finance.js?v=2929"></script>
-  <script src="/pwa/pages/reserve.js?v=2929"></script>
-  <script src="/pwa/pages/staff.js?v=2929"></script>
-  <script src="/pwa/pages/bank.js?v=2929"></script>
-  <script src="/pwa/pages/receive.js?v=2929"></script>
+  <script src="/pwa/pages/finance.js?v=2409"></script>
+  <script src="/pwa/pages/reserve.js?v=2409"></script>
+  <script src="/pwa/pages/staff.js?v=2409"></script>
+  <script src="/pwa/pages/bank.js?v=2409"></script>
+  <script src="/pwa/pages/receive.js?v=2409"></script>
 </body>
 </html>
