@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
@@ -126,6 +126,28 @@ def staff_login(payload: dict, request: Request):
 
 
 # ── Platform Owner Login ──────────────────────────────────────────────────────
+
+@router.get("/platform/me")
+def platform_me(authorization: str = Header(default=None)):
+    """Validate JWT token + return user identity. Used by login.html (token check)
+    and dashboard (display user info)."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="missing token")
+    try:
+        tok = authorization.replace("Bearer ", "").strip()
+        payload = _jwt.decode(tok, _JWT_SECRET, algorithms=["HS256"])
+    except _jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="token expired")
+    except Exception:
+        raise HTTPException(status_code=401, detail="invalid token")
+    return {
+        "user_id":   payload.get("user_id") or payload.get("sub"),
+        "email":     payload.get("email"),
+        "role":      payload.get("role"),
+        "tenant_id": payload.get("tenant_id"),
+        "name":      payload.get("name"),
+    }
+
 
 @router.post("/platform/login")
 def platform_login(payload: dict, request: Request):

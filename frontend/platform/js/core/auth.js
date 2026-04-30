@@ -49,3 +49,13 @@ export function authHeader() {
   const token = getToken();
   return token ? { 'Authorization': 'Bearer ' + token } : {};
 }
+
+/**
+ * เรียกเมื่อเจอ 401 จาก API — ลบ token + redirect login (เว้นว่าอยู่ login page อยู่แล้ว)
+ */
+export function handle401() {
+  localStorage.removeItem(TOKEN_KEY);
+  if (!isLoginPage()) {
+    window.location.href = LOGIN_PATH;
+  }
+}

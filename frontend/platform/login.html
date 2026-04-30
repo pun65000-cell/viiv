@@ -228,9 +228,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') document.getElementById('password').focus();
   });
 
-  // ถ้า login อยู่แล้ว redirect ไปเลย
-  if (localStorage.getItem('platform_token')) {
-    window.location.href = '/platform/dashboard.html';
+  // ถ้ามี token → validate กับ backend ก่อน redirect
+  const t = localStorage.getItem('platform_token');
+  if (t) {
+    fetch('/api/platform/me', {
+      headers: { 'Authorization': 'Bearer ' + t }
+    }).then(r => {
+      if (r.ok) {
+        window.location.href = '/platform/dashboard.html';
+      } else {
+        localStorage.removeItem('platform_token'); // token เสีย/หมดอายุ → ลบทิ้ง
+      }
+    }).catch(() => localStorage.removeItem('platform_token'));
   }
 });
 </script>
