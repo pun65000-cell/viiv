@@ -30,20 +30,41 @@
   async function _reload() {
     const c = document.getElementById('page-container');
     c.innerHTML = _skeleton();
-    try {
-      const pos = await App.api('/api/pos-mobile/summary');
-      if (_destroyed) return;
-      c.innerHTML = _html(pos);
-      _startTickers();
-      _startClock();
-      _loadPlatformStatus();
-    } catch(e) {
-      if (_destroyed) return;
-      c.innerHTML = _html({});
-      _startTickers();
-      _startClock();
-      _loadPlatformStatus();
+    const data = {};
+    // 3 endpoints แบบ parallel — ตัวไหน fail ก็ปล่อยให้ field นั้นเป็นค่าเริ่มต้น
+    const [posR, affR, billsR] = await Promise.allSettled([
+      App.api('/api/pos/dashboard/summary'),
+      App.api('/api/pos/affiliate/summary'),
+      App.api('/api/pos/bills/list?limit=100'),
+    ]);
+    if (_destroyed) return;
+    if (posR.status === 'fulfilled') {
+      const d = posR.value || {};
+      data.today_orders  = d.orders_today  || 0;
+      data.month_sales   = d.revenue_month || 0;
+      data.month_orders  = d.orders_month  || 0;
+      data.staff_online  = d.staff_online  || 0;
     }
+    if (affR.status === 'fulfilled') {
+      const d = affR.value || {};
+      data.aff_clicks_today     = d.clicks_today     || 0;
+      data.aff_clicks_month     = d.clicks_month     || 0;
+      data.aff_commission_month = d.commission_month || 0;
+      data.aff_commission_rate  = d.commission_rate  || 0;
+    }
+    if (billsR.status === 'fulfilled') {
+      // today_sales: รวม total เฉพาะ status=paid วันนี้ (summary endpoint ไม่มี)
+      const body = billsR.value || [];
+      const list = body.data || body || [];
+      const today = new Date().toISOString().slice(0,10);
+      data.today_sales = list.reduce((s,b) =>
+        (b.status==='paid' && (b.created_at||'').slice(0,10)===today)
+          ? s + parseFloat(b.total||0) : s, 0);
+    }
+    c.innerHTML = _html(data);
+    _startTickers();
+    _startClock();
+    _loadPlatformStatus();
   }
 
   function _skeleton() {
@@ -57,7 +78,14 @@
     const to = pos?.today_orders ?? 0;
     const ms = _fmt(pos?.month_sales  ?? 0);
     const mo = pos?.month_orders ?? 0;
-    const lw = pos?.low_stock ?? 0;
+    const so = pos?.staff_online ?? 0;
+    // affiliate
+    const aClicks   = pos?.aff_clicks_today     ?? 0;
+    const aMSales   = _fmt(pos?.aff_commission_month ?? 0);
+    const aMClicks  = pos?.aff_clicks_month     ?? 0;
+    const aRate     = pos?.aff_commission_rate ? (pos.aff_commission_rate.toFixed(1)+'%') : '—';
+    const aDaily    = aClicks > 0 && pos?.aff_commission_month
+                      ? _fmt(pos.aff_commission_month / 30) : '0';
 
     return `<div class="ld-wrap">
 
@@ -93,7 +121,7 @@
           <div class="ld-kb"><div class="ld-kl">ออเดอร์วันนี้</div><div class="ld-kv ld-bl" id="pos-orders">${to}</div></div>
           <div class="ld-kb"><div class="ld-kl">ยอด/เดือน</div><div class="ld-kv ld-gd" id="pos-msales">฿${ms}</div></div>
           <div class="ld-kb"><div class="ld-kl">ออเดอร์/เดือน</div><div class="ld-kv" id="pos-morder">${mo}</div></div>
-          <div class="ld-kb"><div class="ld-kl">สต็อกใกล้หมด</div><div class="ld-kv ${lw>0?'ld-warn':''}" id="pos-stock">${lw > 0 ? '⚠ '+lw : '✓ ปกติ'}</div></div>
+          <div class="ld-kb"><div class="ld-kl">Staff Online</div><div class="ld-kv" id="pos-staff">${so} คน</div></div>
         </div>
         <div class="ld-strow">
           <span class="ld-st ld-st-g">●POS ทำงาน</span>
@@ -127,21 +155,21 @@
       </div>
 
       <!-- POS-AFFILIATE -->
-      <div class="ld-card ld-card-aff" onclick="Router.go('more')">
+      <div class="ld-card ld-card-aff" onclick="Router.go('affiliate')">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <div class="ld-card-label" style="margin-bottom:0">🔗 POS-AFFILIATE</div>
-          <div class="ld-card-badge" style="position:static">฿—</div>
+          <div class="ld-card-badge" style="position:static">฿${aDaily}</div>
         </div>
-        <div class="ld-card-amount">— <small>คลิก × % = ยอดวันนี้</small></div>
+        <div class="ld-card-amount">฿${aDaily} <small>คลิก × % = ยอดวันนี้</small></div>
         <div class="ld-ticker">
           <span class="ld-t-ico">🔔</span>
           <span class="ld-t-txt" id="ticker-aff">${TICKERS.aff[0]}</span>
         </div>
         <div class="ld-kpi">
-          <div class="ld-kb"><div class="ld-kl">คลิกวันนี้</div><div class="ld-kv ld-bl">—</div></div>
-          <div class="ld-kb"><div class="ld-kl">ยอด/เดือน</div><div class="ld-kv ld-gd">—</div></div>
-          <div class="ld-kb"><div class="ld-kl">คลิก/เดือน</div><div class="ld-kv">—</div></div>
-          <div class="ld-kb"><div class="ld-kl">% Commission</div><div class="ld-kv">—</div></div>
+          <div class="ld-kb"><div class="ld-kl">คลิกวันนี้</div><div class="ld-kv ld-bl" id="aff-clicks-today">${aClicks}</div></div>
+          <div class="ld-kb"><div class="ld-kl">ยอด/เดือน</div><div class="ld-kv ld-gd" id="aff-msales">฿${aMSales}</div></div>
+          <div class="ld-kb"><div class="ld-kl">คลิก/เดือน</div><div class="ld-kv" id="aff-mclicks">${aMClicks}</div></div>
+          <div class="ld-kb"><div class="ld-kl">% Commission</div><div class="ld-kv" id="aff-rate">${aRate}</div></div>
         </div>
         <div class="ld-strow">
           <span class="ld-st ld-st-g">●Affiliate Active</span>
