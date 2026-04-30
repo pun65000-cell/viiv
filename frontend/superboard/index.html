@@ -520,8 +520,10 @@ async function loadShopBadge(){
 // Dropdown: รายการร้านทั้งหมดที่ user มีสิทธิ์ — fetch ทุกครั้งที่เปิด
 async function loadShopList(){
   var token = getToken();
-  if(!token) return;
   var listEl = document.getElementById('shopList');
+  console.log('[loadShopList] token?', !!token, 'listEl?', !!listEl);
+  if(!token){ console.warn('[loadShopList] no token'); return; }
+  if(!listEl){ console.warn('[loadShopList] no shopList element'); return; }
   listEl.innerHTML = '<div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div>';
   try{
     var curTid = '';
@@ -531,9 +533,11 @@ async function loadShopList(){
       curTid = (JSON.parse(atob(pad))).tenant_id || '';
     }catch(_){}
     var lres = await fetch('/api/platform/my-shops', { headers:{'Authorization':'Bearer '+token} });
-    if(!lres.ok) throw new Error(lres.status);
+    console.log('[loadShopList] HTTP', lres.status);
+    if(!lres.ok) throw new Error('HTTP '+lres.status);
     var shops = await lres.json();
-    var html = (shops||[]).map(function(s){
+    console.log('[loadShopList] shops:', shops);
+    var items = (shops||[]).map(function(s){
       var n = s.store_name||s.subdomain||'Shop';
       var sd = s.subdomain||'';
       var active = s.id===curTid ? ' active' : '';
@@ -546,6 +550,7 @@ async function loadShopList(){
         '</div>'+
       '</div>';
     }).join('');
+    var html = items || '';
     if(!shops || !shops.length){
       html = '<div class="sb-shop-dd-item"><span style="color:var(--muted);font-size:12px">ยังไม่มีร้าน</span></div>';
     }
@@ -553,8 +558,13 @@ async function loadShopList(){
       '<div style="width:22px;height:22px;border-radius:5px;background:var(--accent-dim);border:1px dashed var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);">+</div>'+
       '<span>เพิ่มสาขา</span></div>';
     listEl.innerHTML = html;
+    console.log('[loadShopList] rendered', (shops||[]).length, 'shops, html chars:', html.length);
+    // Force dropdown open หลัง refresh (UX: หลัง save user ควรเห็นร้านใหม่ทันที)
+    var dd = document.getElementById('shopDropdown');
+    if(dd) dd.classList.add('open');
   }catch(e){
-    listEl.innerHTML = '<div class="sb-shop-dd-item"><span>โหลดไม่สำเร็จ</span></div>';
+    console.error('[loadShopList] error', e);
+    listEl.innerHTML = '<div class="sb-shop-dd-item"><span>โหลดไม่สำเร็จ — '+escHtml(e.message||'')+'</span></div>';
   }
 }
 
