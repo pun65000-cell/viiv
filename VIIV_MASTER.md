@@ -2064,3 +2064,53 @@ PENDING / FOLLOW-UP
 - AI_MODE.txt ลบแล้ว (user); AI_RULES.md เก็บไว้
 
 Version: v1.60 | Updated: 2026-04-30 (EOD)
+
+
+### [J.1] POST-EOD ADDENDUM 2026-04-30 — PWA polish + Caddy /pwa redir
+
+ADDITIONAL FIXES (4 commits หลัง EOD doc)
+
+1. PWA URL ROUTING (Caddy)
+   - Bug: พิมพ์ test7.viiv.me/pwa (ไม่มี slash) → ตกที่ catch-all → serve
+     /superboard/index.html (ผู้ใช้เห็น superboard แทน PWA)
+   - Caddy *.viiv.me block: เพิ่ม `redir /pwa /pwa/ 308` ก่อน
+     `handle /pwa/* {...}` — กลับมา /pwa/ ที่ตรง handler
+   - Backup: /etc/caddy/Caddyfile.bak.20260430_1500ish
+
+2. PWA HOME DEFENSIVE
+   - Bug: หน้า home โหลดได้ topbar+navbar แต่ #page-container ว่าง
+   - _reload(): try/catch แยก
+       • Promise.allSettled fetch wrapper — silent catch
+       • _html(data) render — ถ้า throw แสดง error UI + ปุ่ม "ลองใหม่"
+         (เดิม throw แล้ว skeleton ค้าง / blank)
+       • _startTickers/_startClock/_loadPlatformStatus แยก try/catch
+         ถ้า 1 ตัวพัง 2 ตัวที่เหลือยังทำงาน
+
+3. DEBUG CLEANUP
+   - ลบ console.log/warn/error 24 จุดที่เพิ่มตอน debug switch-shop:
+       • superboard/index.html: [shop popup], [saveShopAdd], [loadShopList]
+       • pwa/pages/home.js: [home._reload] + [home] tickers/clock/platform
+       • pwa/js/app.js: [ShopSwitcher.saveAdd]
+   - เก็บ try/catch defensive ทั้งหมด — เปลี่ยน catch body จาก
+     console.error เป็น silent
+   - เก็บ error UI fallback ใน home.js _html() catch (มี user value)
+
+4. PWA META TAG (Android compatibility)
+   - เพิ่ม <meta name="mobile-web-app-capable" content="yes"> ใน
+     superboard/index.html ก่อน apple-mobile-web-app-capable
+     (deprecation warning จาก Chrome/Android — ต้องคู่กัน)
+   - PWA index.html มีทั้งคู่อยู่แล้ว
+
+COMMITS (4 commits, branch main, post-EOD)
+  a05f6a4  fix: Caddy redir /pwa → /pwa/ 308 for mobile PWA (user)
+  b382f18  fix(pwa home): try/catch รอบ _html — ป้องกันหน้าว่างเงียบ
+  ede05cd  chore: remove debug console.log จาก switch-shop + home.js
+  eea772d  fix: เพิ่ม mobile-web-app-capable meta — รองรับ Android
+
+FILES TOUCHED
+  Caddy:      /etc/caddy/Caddyfile (+redir /pwa /pwa/ 308 ใน *.viiv.me)
+  Frontend:   frontend/pwa/pages/home.js     (defensive try/catch + render error UI)
+              frontend/pwa/js/app.js          (debug cleanup)
+              frontend/superboard/index.html  (debug cleanup + meta tag)
+
+Version: v1.60.1 | Updated: 2026-04-30 (post-EOD)
