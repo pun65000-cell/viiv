@@ -3,7 +3,12 @@
  */
 const App = {
   get token() { return Auth.token; },
-  tenantId: 'ten_1',
+  get tenantId() {
+    try {
+      const b = (Auth.token||'').split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      return JSON.parse(atob(b + '=='.slice((b.length%4)||4))).tenant_id || '';
+    } catch { return ''; }
+  },
 
   _parseJwt(t) {
     try {
@@ -19,12 +24,7 @@ const App = {
   initToken() {
     // Delegate ทั้งหมดให้ Auth.init() — Auth คือ single source of truth
     Auth.init();
-    // sync tenantId ถ้า Superboard ส่งมา
-    window.addEventListener('message', e => {
-      if (e.data?.type === 'viiv_token' && e.data.tenant_id) {
-        this.tenantId = e.data.tenant_id;
-      }
-    });
+    // tenant_id อ่านจาก JWT ผ่าน getter — ไม่ต้อง sync แยก
   },
 
   async api(path, opts) {
@@ -184,7 +184,7 @@ window.ShopSwitcher = {
     this._activeId = localStorage.getItem('pwa_active_shop') || null;
     try {
       const d = await App.api('/api/pos/store/settings');
-      const id = d.tenant_id || 'ten_1';
+      const id = d.tenant_id || App.tenantId || '';
       const name = d.store_name || 'My Shop';
       const logo = d.logo_url || null;
       const idx = this._shops.findIndex(s => s.id === id);

@@ -7,10 +7,8 @@
  *   4. ทุกส่วนของระบบอ่าน/เขียน token ผ่าน Auth เท่านั้น
  */
 
-const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3JfMSIsInRlbmFudF9pZCI6InRlbl8xIiwicm9sZSI6Im93bmVyIiwibmFtZSI6IkFkbWluIiwiYWRtaW4iOnRydWV9.K0OzKuZqWAr5fdZ7gPruRiEebNK6gFqB_fRi3nPQGkw';
-
 const Auth = {
-  _token: DEV_TOKEN,
+  _token: null,
   _key: 'viiv_token',
 
   // ── READ ──────────────────────────────────────────────────────────────────
@@ -34,44 +32,42 @@ const Auth = {
       if (e.data?.type === 'viiv_token' && e.data.token) this.setToken(e.data.token);
     });
 
-    // 3. localStorage (reload / tab restore) — ถ้า token เก่าไม่มี role ให้ upgrade
+    // 3. localStorage (reload / tab restore)
     const stored = localStorage.getItem(this._key);
     if (stored) {
       try {
         const b = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
         const pad = b + '=='.slice((b.length%4)||4);
         const p = JSON.parse(atob(pad));
-        if (p.role) { this._token = stored; return; }
-        // token เก่าไม่มี role → upgrade เป็น DEV_TOKEN
+        if (p.role || p.tenant_id) { this._token = stored; return; }
       } catch {}
-      // ถ้า decode ไม่ได้ หรือไม่มี role → ใช้ DEV_TOKEN แทน
     }
 
-    // 4. dev token fallback — เขียน localStorage เพื่อให้ merchant dashboard ใช้ได้
-    this.setToken(DEV_TOKEN);
-
-    // 5. แจ้ง Superboard parent ขอ token ถ้าอยู่ใน iframe
+    // 4. ไม่มี token — ถ้าอยู่ top-level → redirect login
+    //    ถ้าอยู่ใน iframe → ขอ token จาก parent
     if (window.parent !== window) {
       window.parent.postMessage({ type: 'viiv_request_token' }, '*');
+    } else {
+      window.location.href = '/platform/login.html';
     }
   },
 
   // ── 401 RECOVERY ─────────────────────────────────────────────────────────
-  // เรียกเมื่อ API ได้ 401 — fallback dev token, ไม่แตะ localStorage
-  // (localStorage อาจมี real token ของ merchant dashboard อยู่)
+  // 401 จริง = session หมดอายุ → clear + redirect login
   fallbackToken() {
-    this._token = DEV_TOKEN;
-    // *** ไม่ setToken() ที่นี่ — ไม่แตะ localStorage ***
-    // ถ้า dev token ก็ยังไม่ผ่าน → redirect login (production ใส่ที่นี่)
+    try { localStorage.removeItem(this._key); } catch(e) {}
+    this._token = null;
+    if (window.parent === window) {
+      window.location.href = '/platform/login.html';
+    }
   },
 
   // ── LOGOUT ────────────────────────────────────────────────────────────────
-  // เรียกได้จาก UI เท่านั้น — จุดเดียวที่ลบ localStorage ได้
   logout() {
     if (!confirm('ออกจากระบบ?')) return;
     try { localStorage.removeItem(this._key); } catch(e) {}
-    this._token = DEV_TOKEN;
-    window.location.href = '/superboard/login.html';
+    this._token = null;
+    window.location.href = '/platform/login.html';
   },
 };
 window.Auth = Auth;
