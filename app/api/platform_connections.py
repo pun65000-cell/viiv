@@ -49,14 +49,18 @@ def platform_overview(authorization: str = Header(None)):
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def _admin_auth(authorization: str):
+    """Permissive auth (dev): ผ่านถ้า decode JWT ได้และมี identity field ใดๆ
+    field ที่ยอมรับ: is_admin, role∈{admin,superadmin}, tenant_id, sub, user_id, email
+    (token จาก /api/platform/login เก่ามี user_id แต่ไม่มี sub —
+    fix นี้ทำให้ใช้งานได้โดยไม่ต้อง force re-login)"""
     try:
         tok = authorization.replace("Bearer ", "").strip()
         payload = jwt.decode(tok, JWT_SECRET, algorithms=["HS256"],
                              options={"leeway": 864000, "verify_exp": False})
         if payload.get("is_admin") or payload.get("role") in ("admin", "superadmin"):
             return payload
-        # allow tenant_id-based tokens for now (dev)
-        if payload.get("tenant_id") or payload.get("sub"):
+        if (payload.get("tenant_id") or payload.get("sub")
+                or payload.get("user_id") or payload.get("email")):
             return payload
     except Exception:
         pass
