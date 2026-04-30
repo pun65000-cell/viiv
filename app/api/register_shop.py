@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, constr
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-import traceback
+from passlib.context import CryptContext
+import traceback, uuid
 from app.core.database import SessionLocal
 from app.services import auth as auth_service
 from app.repositories import tenants as tenant_repo
+
+_pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter()
 
@@ -77,6 +81,49 @@ def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
                 phone=payload.phone,
                 status="pending",
             )
+
+            # ── Provision login records ──────────────────────────────────────
+            # 1) viiv_accounts: ใช้สำหรับ /api/platform/login (เจ้าของร้าน)
+            # 2) tenant_staff:  ใช้สำหรับ /api/staff/login (login จาก viiv.me)
+            # 3) tenants.owner_id → viiv_accounts.id (เพื่อ /my-shops list ร้าน)
+            hashed_pw = _pwd_ctx.hash(payload.password)
+            pfu_id = "pfu_" + str(uuid.uuid4())
+            db.execute(text("""
+                INSERT INTO viiv_accounts (id, email, full_name, hashed_password, is_active)
+                VALUES (:id, :em, :fn, :hp, true)
+                ON CONFLICT (email) DO UPDATE
+                  SET hashed_password = EXCLUDED.hashed_password,
+                      full_name = EXCLUDED.full_name
+            """), {"id": pfu_id, "em": payload.email,
+                   "fn": payload.full_name, "hp": hashed_pw})
+            row = db.execute(text(
+                "SELECT id FROM viiv_accounts WHERE email=:em"
+            ), {"em": payload.email}).fetchone()
+            account_id = row[0] if row else pfu_id
+
+            db.execute(text(
+                "UPDATE tenants SET owner_id=:oid WHERE id=:tid"
+            ), {"oid": account_id, "tid": t.id})
+
+            parts = (payload.full_name or "").strip().split(" ", 1)
+            stf_id = "stf_" + uuid.uuid4().hex[:12]
+            db.execute(text("""
+                INSERT INTO tenant_staff (
+                    id, tenant_id, first_name, last_name, email, phone,
+                    role, hashed_password, permissions, user_id, is_active,
+                    created_at, updated_at
+                ) VALUES (
+                    :id, :tid, :fn, :ln, :em, :ph,
+                    'owner', :hp, '{}'::jsonb, :uid, true,
+                    NOW(), NOW()
+                )
+                ON CONFLICT DO NOTHING
+            """), {"id": stf_id, "tid": t.id,
+                   "fn": parts[0] if parts else "",
+                   "ln": parts[1] if len(parts) > 1 else "",
+                   "em": payload.email, "ph": payload.phone,
+                   "hp": hashed_pw, "uid": account_id})
+
             db.commit()
         except Exception as e:
             db.rollback()
