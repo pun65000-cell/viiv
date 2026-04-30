@@ -1,6 +1,6 @@
 # platform_connections.py — Platform-level connection management
 
-import os, jwt, shutil, uuid
+import os, jwt, shutil, uuid, datetime
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from sqlalchemy import text
 from app.core.db import engine
@@ -301,6 +301,123 @@ def my_shops(authorization: str = Header("")):
             shops.append({"id": s.id, "store_name": s.store_name,
                           "subdomain": s.subdomain, "status": s.status, "role": s.role})
     return shops
+
+
+# ── Join Shop ────────────────────────────────────────────────────────────────
+def _decode_user(authorization: str):
+    """Decode Bearer JWT → return (sub, email_from_db, identity_row).
+    sub = tenant_staff.id ที่ user login มา; identity_row = current row (email/name/pw)."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "No token")
+    try:
+        payload = jwt.decode(authorization.split(" ", 1)[1], JWT_SECRET, algorithms=["HS256"])
+    except Exception:
+        raise HTTPException(401, "Invalid token")
+    sub = payload.get("sub") or payload.get("user_id")
+    if not sub:
+        raise HTTPException(401, "Invalid token payload")
+    with engine.connect() as c:
+        row = c.execute(text("""
+            SELECT id, email, first_name, last_name, hashed_password,
+                   phone, avatar_url, role
+            FROM tenant_staff WHERE id=:sid
+        """), {"sid": sub}).fetchone()
+    if not row:
+        raise HTTPException(401, "ไม่พบข้อมูลผู้ใช้")
+    return sub, row
+
+
+@router.post("/join-shop")
+def join_shop(payload: dict, authorization: str = Header(None)):
+    sub, me = _decode_user(authorization)
+    subdomain = (payload.get("subdomain") or "").strip().lower()
+    if not subdomain:
+        raise HTTPException(400, "กรุณาระบุ Shop ID")
+
+    with engine.begin() as c:
+        tenant = c.execute(text("""
+            SELECT id, store_name, subdomain
+            FROM tenants WHERE LOWER(subdomain)=:s
+        """), {"s": subdomain}).fetchone()
+        if not tenant:
+            raise HTTPException(404, "ไม่พบร้านนี้ในระบบ")
+
+        existing = c.execute(text("""
+            SELECT id, role FROM tenant_staff
+            WHERE tenant_id=:tid AND email=:email AND is_active=true
+        """), {"tid": tenant.id, "email": me.email}).fetchone()
+
+        if existing:
+            new_id = existing.id
+            role = existing.role
+        else:
+            new_id = "stf_" + uuid.uuid4().hex[:12]
+            role = "staff"
+            c.execute(text("""
+                INSERT INTO tenant_staff (
+                    id, tenant_id, first_name, last_name, email, phone,
+                    role, hashed_password, permissions, avatar_url,
+                    is_active, created_at, updated_at
+                ) VALUES (
+                    :id, :tid, :fn, :ln, :em, :ph,
+                    :role, :hpw, '{}'::jsonb, :av,
+                    true, NOW(), NOW()
+                )
+            """), {
+                "id": new_id, "tid": tenant.id,
+                "fn": me.first_name or "", "ln": me.last_name or "",
+                "em": me.email, "ph": me.phone,
+                "role": role, "hpw": me.hashed_password,
+                "av": me.avatar_url,
+            })
+
+    name = f"{me.first_name or ''} {me.last_name or ''}".strip() or me.email
+    new_token = jwt.encode({
+        "sub": new_id,
+        "tenant_id": tenant.id,
+        "role": role,
+        "name": name,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30),
+    }, JWT_SECRET, algorithm="HS256")
+
+    return {
+        "access_token": new_token,
+        "token_type":   "bearer",
+        "tenant_id":    tenant.id,
+        "subdomain":    tenant.subdomain,
+        "store_name":   tenant.store_name,
+        "role":         role,
+    }
+
+
+@router.delete("/my-shops/{tenant_id}")
+def remove_shop(tenant_id: str, authorization: str = Header(None)):
+    sub, me = _decode_user(authorization)
+
+    with engine.begin() as c:
+        tenant = c.execute(text(
+            "SELECT id, owner_id FROM tenants WHERE id=:tid"
+        ), {"tid": tenant_id}).fetchone()
+        if not tenant:
+            raise HTTPException(404, "ไม่พบร้านนี้")
+
+        # Owner check — match owner_id ↔ any tenant_staff row ของ user คนนี้
+        if tenant.owner_id:
+            owner_match = c.execute(text("""
+                SELECT 1 FROM tenant_staff
+                WHERE id=:oid AND email=:email
+            """), {"oid": tenant.owner_id, "email": me.email}).fetchone()
+            if owner_match:
+                raise HTTPException(403, "เจ้าของร้านลบร้านตัวเองไม่ได้")
+
+        deleted = c.execute(text("""
+            DELETE FROM tenant_staff
+            WHERE tenant_id=:tid AND email=:email
+        """), {"tid": tenant_id, "email": me.email}).rowcount
+
+    if deleted == 0:
+        raise HTTPException(404, "ไม่พบสมาชิกร้านนี้")
+    return {"ok": True, "removed": deleted}
 
 
 # ── Token Security Log ────────────────────────────────────────────────────────
