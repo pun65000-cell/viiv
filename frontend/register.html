@@ -3,17 +3,44 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VIIV — สมัครใช้งาน</title>
+  <title>VIIV — สร้างร้านค้า</title>
+  <link rel="stylesheet" href="/platform/css/theme.css" />
   <style>
     * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; background:#f0ede8; min-height:100vh; }
-    .topbar { background:#0e0e0e; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
-    .logo { font-size:18px; font-weight:900; letter-spacing:2px; color:#c9a84c; text-decoration:none; }
-    .login-link { font-size:13px; color:#888; text-decoration:none; }
-    .login-link:hover { color:#c9a84c; }
-    .content { max-width:620px; margin:0 auto; padding:24px 20px; }
-    .title { font-size:20px; font-weight:600; margin-bottom:4px; }
-    .sub { font-size:13px; color:#6b7280; margin-bottom:20px; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; background:#f5f0e8; min-height:100vh; }
+
+    .topbar {
+      background:#fff; border-bottom:1px solid #e8dfc8;
+      padding:0 32px; height:58px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100;
+    }
+    .logo { font-size:22px; font-weight:900; letter-spacing:4px; color:#c9a84c; text-decoration:none; }
+    .login-link {
+      font-size:13px; color:#888; text-decoration:none; font-weight:500;
+      padding:7px 18px; border:1.5px solid #e8dfc8; border-radius:8px; transition:all .15s;
+    }
+    .login-link:hover { color:#c9a84c; border-color:#c9a84c; background:#fdf9ef; }
+
+    .hero-band {
+      background: linear-gradient(135deg, #fff8ec 0%, #faf5e8 60%, #f5f0e0 100%);
+      border-bottom: 1px solid #e8dfc8;
+      padding: 28px 32px 24px;
+      text-align: center;
+    }
+    .hero-badge {
+      display:inline-block; background:#fdf3d0; color:#8a6300;
+      font-size:11px; font-weight:700; padding:3px 12px; border-radius:20px;
+      border:1px solid #e8d080; margin-bottom:12px; letter-spacing:0.3px;
+    }
+    .hero-title { font-size:26px; font-weight:800; color:#1a1200; margin-bottom:6px; }
+    .hero-title span { color:#c9a84c; }
+    .hero-sub { font-size:13px; color:#7a6b4a; }
+    .hero-sub strong { color:#c9a84c; }
+
+    .content { max-width:720px; margin:0 auto; padding:28px 20px 60px; }
+
+    .loading-msg { color:#888; font-size:14px; text-align:center; padding:40px 0; }
   </style>
 </head>
 <body>
@@ -21,22 +48,34 @@
     <a class="logo" href="/">VIIV</a>
     <a class="login-link" href="/login">มีบัญชีแล้ว? เข้าสู่ระบบ</a>
   </div>
-  <div class="content">
-    <div class="title">สมัครใช้งาน VIIV Platform</div>
-    <div class="sub">สร้างร้านค้าของคุณวันนี้ — ทดลองใช้ฟรี 10 วัน</div>
-    <iframe
-      src="/platform/pages/register-shop.html"
-      style="width:100%;border:none;min-height:85vh;"
-      id="regFrame"
-    ></iframe>
+
+  <div class="hero-band">
+    <div class="hero-badge">ทดลองใช้ฟรี 10 วัน</div>
+    <div class="hero-title">สร้างร้านค้า<span> VIIV</span> ของคุณ</div>
+    <div class="hero-sub">ไม่ต้องใช้บัตรเครดิต · <strong>ฟรี 10 วัน</strong> · ยกเลิกได้ทุกเมื่อ</div>
   </div>
+
+  <div class="content">
+    <div id="form-mount"><div class="loading-msg">กำลังโหลดแบบฟอร์ม...</div></div>
+  </div>
+
   <script>
-    // auto-resize iframe
-    window.addEventListener('message', function(e) {
-      if (e.data && e.data.height) {
-        document.getElementById('regFrame').style.height = e.data.height + 'px';
-      }
-    });
+    fetch('/platform/pages/register-shop.html')
+      .then(function(r){ return r.text(); })
+      .then(function(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        document.getElementById('form-mount').innerHTML = doc.body.innerHTML;
+        document.getElementById('form-mount').querySelectorAll('script').forEach(function(old) {
+          var s = document.createElement('script');
+          s.textContent = old.textContent;
+          old.parentNode.replaceChild(s, old);
+        });
+      })
+      .catch(function() {
+        document.getElementById('form-mount').innerHTML =
+          '<div class="loading-msg" style="color:#c00">ไม่สามารถโหลดแบบฟอร์มได้ กรุณาลองใหม่</div>';
+      });
   </script>
 </body>
 </html>

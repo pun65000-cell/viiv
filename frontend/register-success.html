@@ -389,7 +389,7 @@
 
   
   <script>
-    fetch('/api/platform/connections/line/public')
+    fetch('https://api.viiv.me/api/platform/connections/line/public')
       .then(function(r){ return r.json(); })
       .then(function(d){
         var oa   = (d.oa_id || '004krtts').replace(/^@/,'');
