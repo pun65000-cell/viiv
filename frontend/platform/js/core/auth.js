@@ -2,7 +2,7 @@
 // VIIV Platform — Auth guard (JWT localStorage)
 // ใช้ใน dashboard.html และทุก page ที่ต้อง login
 
-const TOKEN_KEY = 'viiv_token';
+const TOKEN_KEY = 'platform_token';
 
 /**
  * ดึง token จาก localStorage

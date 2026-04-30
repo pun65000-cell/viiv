@@ -226,7 +226,7 @@
 
 <script>
 // ─── Auth ────────────────────────────────────────────────────────────────────
-function getToken(){ return localStorage.getItem('platform_token')||localStorage.getItem('viiv_token')||''; }
+function getToken(){ return localStorage.getItem('platform_token')||''; }
 function doLogout(){ if(confirm('ออกจากระบบ?')){ localStorage.removeItem('platform_token'); window.location.href='/platform/login.html'; } }
 window.platformToken = getToken;
 

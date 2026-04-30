@@ -61,6 +61,10 @@
       <input class="form-input" type="email" id="loginEmail" placeholder="email@example.com" autocomplete="email"/>
     </div>
     <div class="form-group">
+      <label class="form-label">Tenant ID <span style="font-weight:400;color:#aaa">(รหัสร้านค้า)</span></label>
+      <input class="form-input" type="text" id="loginTenant" placeholder="ten_xxxxx" autocomplete="off"/>
+    </div>
+    <div class="form-group">
       <label class="form-label">รหัสผ่าน</label>
       <div style="position:relative;">
         <input class="form-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px;"/>
@@ -113,7 +117,7 @@
 <script>
 (function(){
 'use strict';
-var TOKEN_KEY = 'viiv_token';
+var TOKEN_KEY = 'viiv_token';  // staff token — แยกจาก platform_token ของ owner
 
 window.goRegister = function(){
   window.location.href = '/register';
@@ -132,19 +136,20 @@ window.togglePass = function(){
 };
 
 window.doLogin = async function(){
-  var email = document.getElementById('loginEmail').value.trim();
-  var pass  = document.getElementById('loginPass').value;
+  var email    = document.getElementById('loginEmail').value.trim();
+  var pass     = document.getElementById('loginPass').value;
+  var tenantId = document.getElementById('loginTenant').value.trim();
   var btn   = document.getElementById('loginBtn');
   var err   = document.getElementById('loginErr');
   err.style.display = 'none';
-  if(!email || !pass){ showErr('กรุณากรอกอีเมลและรหัสผ่าน'); return; }
+  if(!email || !pass || !tenantId){ showErr('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-sm"></span>';
   try{
     var res = await fetch('/api/staff/login',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email:email, password:pass, tenant_id:'ten_1'})
+      body: JSON.stringify({email:email, password:pass, tenant_id:tenantId})
     });
     var data = await res.json();
     if(res.ok && data.access_token){

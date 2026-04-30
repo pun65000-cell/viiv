@@ -168,7 +168,7 @@
 
 <script>
 // ─── auth helpers (inline — ไม่ depend on module) ────────────────────────
-const TOKEN_KEY = 'viiv_token';
+const TOKEN_KEY = 'platform_token';
 
 function saveToken(token) {
   localStorage.setItem(TOKEN_KEY, token);
@@ -192,7 +192,7 @@ async function doLogin() {
   btn.textContent = 'กำลังเข้าสู่ระบบ...';
 
   try {
-    const res = await fetch('/api/login', {
+    const res = await fetch('/api/platform/login', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, password }),
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ถ้า login อยู่แล้ว redirect ไปเลย
-  if (localStorage.getItem('viiv_token')) {
+  if (localStorage.getItem('platform_token')) {
     window.location.href = '/platform/dashboard.html';
   }
 });

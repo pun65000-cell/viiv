@@ -179,7 +179,7 @@ async function savePassword() {
   if (new_password !== confirm) { msg.textContent = 'รหัสผ่านใหม่ไม่ตรงกัน กรุณากรอกใหม่'; return; }
 
   try {
-    const token = localStorage.getItem('viiv_token');
+    const token = localStorage.getItem('platform_token');
     const res = await fetch('/admin/change-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -194,7 +194,7 @@ async function savePassword() {
       document.body.appendChild(toast);
       setTimeout(() => {
         toast.remove();
-        localStorage.removeItem('viiv_token');
+        localStorage.removeItem('platform_token');
         window.location.href = '/platform/login.html';
       }, 2500);
     } else if (res.status === 401) {
@@ -293,7 +293,7 @@ function togglePw(id, btn) {
 
   window.iconPreview = function(input){
     if(!input.files||!input.files[0]) return;
-    var token = localStorage.getItem('viiv_token')||'';
+    var token = localStorage.getItem('platform_token')||'';
     var form = new FormData();
     form.append('file', input.files[0]);
     var p = document.getElementById('iconPreview');

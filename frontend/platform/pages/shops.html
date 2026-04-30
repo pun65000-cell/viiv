@@ -186,7 +186,7 @@
     <button class="pg-btn" onclick="searchShops()">ค้นหา</button>
     <button class="pg-btn pg-btn-accent" id="sh-mgr-btn" onclick="openMgrPrompt()">⚙ จัดการ</button>
     <button class="pg-btn pg-btn-accent" onclick="window.platformNav(document.querySelector('[data-page=shops]'));setTimeout(()=>{document.getElementById('sh-search').value='';loadShops();},10)">↺ รีเฟรช</button>
-    <button class="pg-btn pg-btn-accent" onclick="alert('Coming soon')">+ สร้างร้าน</button>
+    <button class="pg-btn pg-btn-accent" onclick="openCreateShop()">+ สร้างร้านค้า</button>
   </div>
 
   <!-- Stats -->
@@ -355,7 +355,7 @@
   var _shops = [];
   var _mgrId = null;
 
-  function tok(){ return (window.platformToken && window.platformToken()) || localStorage.getItem('viiv_token') || ''; }
+  function tok(){ return (window.platformToken && window.platformToken()) || localStorage.getItem('platform_token') || ''; }
   function api(path, opts){
     return fetch(path, Object.assign({ headers: { 'Authorization':'Bearer '+tok(), 'Content-Type':'application/json' } }, opts||{}));
   }
@@ -411,29 +411,7 @@
       }).join('');
     })
     .catch(function(e){
-      // Fallback mock data when API not ready
-      var mock = [
-        {tenant_id:'ten_1', store_name:'ร้านตัวอย่าง (Demo)', package:'Pro', status:'active', expires_at:'2026-12-31', member_count:3},
-        {tenant_id:'ten_2', store_name:'ร้านทดสอบ',           package:'Starter', status:'active', expires_at:'2026-06-30', member_count:1},
-      ];
-      _shops = mock;
-      document.getElementById('st-total').textContent   = mock.length;
-      document.getElementById('st-active').textContent  = mock.length;
-      document.getElementById('st-inactive').textContent= 0;
-      document.getElementById('st-blocked').textContent = 0;
-      tbody.innerHTML = mock.map(function(s){
-        var st=s.status||'active';
-        return '<tr>'+
-          '<td><div class="shop-name">'+htmlEsc(s.store_name||'—')+'</div><div class="shop-id">'+htmlEsc(s.tenant_id||'')+'</div></td>'+
-          '<td>'+(s.package||'Free')+'</td>'+
-          '<td><span class="pill '+pillClass(st)+'">'+pillTxt(st)+'</span></td>'+
-          '<td>'+fmtDate(s.expires_at)+'</td>'+
-          '<td>'+(s.member_count||'—')+'</td>'+
-          '<td><div class="pg-table-action">'+
-            '<button class="tbl-btn primary" onclick="openMgr(\''+htmlEsc(s.tenant_id||s.id||'')+'\')">⚙ จัดการ</button>'+
-          '</div></td>'+
-        '</tr>';
-      }).join('')+'<tr><td colspan="6" style="text-align:center;padding:8px 16px;font-size:11px;color:#9ca3af;background:#faf9f7">⚠ API ยังไม่พร้อม — แสดง Mock Data ('+e+')</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6"><div class="pg-empty"><div class="pg-empty-icon">⚠️</div><div style="color:#b91c1c;font-size:13px">โหลดข้อมูลไม่ได้ — '+htmlEsc(String(e))+'</div></div></td></tr>';
     });
   }
 
@@ -567,6 +545,82 @@
 
   // init
   loadShops();
+
+  // ── Create Shop Drawer ──
+  window.openCreateShop = function() {
+    var ov = document.getElementById('cs-overlay');
+    if (!ov) return;
+    ov.classList.add('open');
+    var body = document.getElementById('cs-body');
+    if (body._loaded) return;
+    body._loaded = true;
+    body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:#9ca3af;gap:8px"><span>กำลังโหลด...</span></div>';
+    fetch('/platform/pages/register-shop.html?_='+Date.now())
+    .then(function(r){ return r.text(); })
+    .then(function(html) {
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      var inner = tmp.querySelector('body');
+      body.innerHTML = inner ? inner.innerHTML : html;
+      body.querySelectorAll('script').forEach(function(scr) {
+        try {
+          var s = document.createElement('script');
+          s.textContent = scr.textContent;
+          document.head.appendChild(s);
+          document.head.removeChild(s);
+        } catch(e){}
+      });
+    })
+    .catch(function() {
+      body.innerHTML = '<div style="padding:24px;color:#b91c1c">โหลดฟอร์มไม่ได้</div>';
+    });
+  };
+  window.closeCreateShop = function() {
+    document.getElementById('cs-overlay').classList.remove('open');
+    var body = document.getElementById('cs-body');
+    body._loaded = false;
+    body.innerHTML = '';
+  };
 })();
 </script>
+
+<!-- ── CREATE SHOP DRAWER ── -->
+<style>
+#cs-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 900;
+  display: none; align-items: stretch; justify-content: flex-end;
+}
+#cs-overlay.open { display: flex; }
+#cs-panel {
+  width: min(760px, 100%); height: 100vh;
+  background: #fff; display: flex; flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,.2);
+  animation: csSlide .25s ease;
+}
+@keyframes csSlide { from { transform: translateX(100%); } to { transform: none; } }
+.cs-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid #e5e7eb;
+  background: #f8f6f2; flex-shrink: 0;
+}
+.cs-hdr-title { font-size: 16px; font-weight: 700; color: #1f2937; }
+.cs-close {
+  background: none; border: none; font-size: 20px; cursor: pointer;
+  color: #6b7280; padding: 4px 8px; border-radius: 6px; line-height: 1;
+}
+.cs-close:hover { background: #e5e7eb; }
+#cs-body { flex: 1; overflow-y: auto; padding: 24px; }
+#cs-body::-webkit-scrollbar { width: 6px; }
+#cs-body::-webkit-scrollbar-thumb { background: #d0ccc6; border-radius: 3px; }
+</style>
+<div id="cs-overlay" onclick="if(event.target===this)closeCreateShop()">
+  <div id="cs-panel">
+    <div class="cs-hdr">
+      <span class="cs-hdr-title">🏪 สร้างร้านค้าใหม่</span>
+      <button class="cs-close" onclick="closeCreateShop()">✕</button>
+    </div>
+    <div id="cs-body"></div>
+  </div>
+</div>
+
 </body></html>
