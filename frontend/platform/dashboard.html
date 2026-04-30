@@ -236,22 +236,24 @@
 <script>
 // ─── Global 401 interceptor ──────────────────────────────────────────────────
 // ดักทุก fetch ที่ตอบ 401 จาก /api/* → ลบ token แล้ว redirect ไป login
-(function(){
-  const _origFetch = window.fetch.bind(window);
-  window.fetch = async function(input, init){
-    const res = await _origFetch(input, init);
-    if (res.status === 401) {
-      const url = typeof input === 'string' ? input : (input && input.url) || '';
-      if (url.includes('/api/')) {
-        localStorage.removeItem('platform_token');
-        if (!window.location.pathname.includes('login.html')) {
-          window.location.href = '/platform/login.html';
-        }
+// _origFetch ใช้ใน init() validation ด้วย เพื่อหลีก interceptor (กัน redirect ตัวเอง)
+const _origFetch = window.fetch.bind(window);
+let _redirecting = false;
+window.fetch = async function(input, init){
+  const res = await _origFetch(input, init);
+  if (res.status === 401 && !_redirecting) {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    // ข้าม /api/platform/me — ใช้ตอน validate token, 401 = token เสีย ไม่ใช่ session expired
+    if (url.includes('/api/') && !url.includes('/api/platform/me')) {
+      _redirecting = true;
+      localStorage.removeItem('platform_token');
+      if (!window.location.pathname.includes('login.html')) {
+        window.location.href = '/platform/login.html';
       }
     }
-    return res;
-  };
-})();
+  }
+  return res;
+};
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 function getToken(){ return localStorage.getItem('platform_token')||''; }
@@ -276,6 +278,11 @@ async function loadPage(name){
     const body = tmp.querySelector('body');
     el.innerHTML = body ? body.innerHTML : html;
     el.querySelectorAll('script').forEach(scr => {
+      // Guard: page script ที่ตั้ง location.hash จะ trigger hashchange → routeHash → loadPage → loop
+      if (scr.textContent && scr.textContent.includes('location.hash')) {
+        console.warn('[page:'+name+'] skipped script — contains location.hash (loop risk)');
+        return;
+      }
       try {
         const s = document.createElement('script');
         s.type = scr.type||'text/javascript';
@@ -370,8 +377,24 @@ function routeHash(){
 window.addEventListener('hashchange', routeHash);
 
 // ─── Init ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', ()=>{
-  if(!getToken()){ window.location.href='/platform/login.html'; return; }
+// validate token จริงผ่าน /api/platform/me ก่อน routeHash — กัน flicker dashboard ตอน token เสีย
+document.addEventListener('DOMContentLoaded', async () => {
+  const t = getToken();
+  if (!t) { window.location.href = '/platform/login.html'; return; }
+  try {
+    // ใช้ _origFetch ตรงๆ ไม่ผ่าน interceptor (ไม่งั้น 401 ที่นี่จะ redirect ตัวเอง)
+    const r = await _origFetch('/api/platform/me', {
+      headers: { 'Authorization': 'Bearer ' + t }
+    });
+    if (!r.ok) {
+      localStorage.removeItem('platform_token');
+      window.location.href = '/platform/login.html';
+      return;
+    }
+  } catch (e) {
+    window.location.href = '/platform/login.html';
+    return;
+  }
   routeHash();
 });
 
