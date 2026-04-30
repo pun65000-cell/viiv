@@ -360,8 +360,8 @@
       <div style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:10px;padding:12px 14px;margin-top:12px;">
         <div style="font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Webhook URL (ตั้งใน LINE Console)</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <code id="stLineWebhookUrl" style="flex:1;font-size:12px;color:#374151;word-break:break-all;background:none;border:none;">https://concore.viiv.me/api/line/webhook</code>
-          <button onclick="navigator.clipboard.writeText('https://concore.viiv.me/api/line/webhook').then(function(){var b=event.target;var orig=b.textContent;b.textContent='✓ copied';setTimeout(function(){b.textContent=orig;},1500);})" style="flex-shrink:0;padding:5px 12px;background:#e8b93e;border:none;border-radius:7px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;">Copy</button>
+          <code id="stLineWebhookUrl" style="flex:1;font-size:12px;color:#374151;word-break:break-all;background:none;border:none;">—</code>
+          <button onclick="stCopyLineWebhook(this)" style="flex-shrink:0;padding:5px 12px;background:#e8b93e;border:none;border-radius:7px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;">Copy</button>
         </div>
       </div>
       <div class="st-actions" style="margin-top:16px;">
@@ -1005,7 +1005,27 @@ function saveReceipt(){
     if(saveBtn) saveBtn.addEventListener('click', saveQuoteSettings);
   })();
 
+  function stLineWebhookUrlBuild(){
+    var host = window.location.origin;
+    var tid = '';
+    try {
+      var t = window.VIIV_TOKEN || localStorage.getItem('viiv_token') || '';
+      var b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      var pad = b + '=='.slice((b.length%4)||4);
+      tid = (JSON.parse(atob(pad))).tenant_id || '';
+    } catch(_){}
+    return host + '/api/line/webhook' + (tid ? '?tenant=' + encodeURIComponent(tid) : '');
+  }
+  window.stCopyLineWebhook = function(btn){
+    navigator.clipboard.writeText(stLineWebhookUrlBuild()).then(function(){
+      var orig=btn.textContent; btn.textContent='✓ copied';
+      setTimeout(function(){btn.textContent=orig;},1500);
+    });
+  };
+
   function loadLineSettings(){
+    var wEl=document.getElementById('stLineWebhookUrl');
+    if(wEl) wEl.textContent = stLineWebhookUrlBuild();
     fetch('/api/pos/line/settings',{headers:{Authorization:'Bearer '+TOKEN}})
     .then(function(r){return r.json();})
     .then(function(s){

@@ -257,8 +257,8 @@
   // 2. localStorage
   var stored = localStorage.getItem('viiv_token');
   if(stored) { window.VIIV_TOKEN = stored; return; }
-  // 3. ไม่มี token → redirect login
-  window.location.href = '/platform/login.html';
+  // 3. ไม่มี token → redirect ไปหน้า login ของ shop (viiv.me ส่ง token กลับผ่าน SSO)
+  window.location.href = 'https://viiv.me/login';
 })();
 
 // รับ token จาก Superboard parent ผ่าน postMessage

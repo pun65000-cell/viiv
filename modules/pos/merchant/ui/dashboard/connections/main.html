@@ -190,7 +190,7 @@
     <div class="cn-webhook">
       <div class="cn-webhook-label">Webhook URL (ตั้งใน LINE Console)</div>
       <div class="cn-webhook-row">
-        <span class="cn-webhook-url">https://concore.viiv.me/api/line/webhook</span>
+        <span class="cn-webhook-url" id="cnLineWebhookUrl">—</span>
         <button class="cn-copy-btn" onclick="cnCopyWebhook(this)">Copy</button>
       </div>
     </div>
@@ -380,6 +380,7 @@ function cnTab(name){
 
 function cnLoadSettings(){
   if(!_tok) return;
+  cnSetWebhookUrl();  // อัปเดต webhook URL ตาม subdomain + tenant ปัจจุบัน
   var h={'Authorization':'Bearer '+_tok};
   fetch('/api/pos/line/settings',{headers:h})
     .then(function(r){return r.json();})
@@ -524,8 +525,24 @@ function cnFetchPendingUid(){
     }).catch(function(){alert('เชื่อมต่อไม่ได้');});
 }
 
+function cnLineWebhookUrl(){
+  // คำนวณจาก subdomain ปัจจุบัน + tenant_id จาก JWT
+  var host = window.location.origin;
+  var tid = '';
+  try {
+    var t = window.VIIV_TOKEN || localStorage.getItem('viiv_token') || '';
+    var b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    var pad = b + '=='.slice((b.length%4)||4);
+    tid = (JSON.parse(atob(pad))).tenant_id || '';
+  } catch(_){}
+  return host + '/api/line/webhook' + (tid ? '?tenant=' + encodeURIComponent(tid) : '');
+}
+function cnSetWebhookUrl(){
+  var el = document.getElementById('cnLineWebhookUrl');
+  if(el) el.textContent = cnLineWebhookUrl();
+}
 function cnCopyWebhook(btn){
-  navigator.clipboard.writeText('https://concore.viiv.me/api/line/webhook').then(function(){
+  navigator.clipboard.writeText(cnLineWebhookUrl()).then(function(){
     var orig=btn.textContent; btn.textContent='✓ copied';
     setTimeout(function(){btn.textContent=orig;},1500);
   });
