@@ -128,6 +128,23 @@ def save_connection(platform: str, body: dict, authorization: str = Header("")):
     return {"ok": True, "data": _row(r)}
 
 # ── UPLOAD QR image ────────────────────────────────────────────────────────────
+
+@router.get("/connections/{platform}/public")
+def get_connection_public(platform: str):
+    with engine.connect() as c:
+        row = c.execute(
+            text("SELECT oa_id, qr_image_url, qr_link_url FROM platform_connections WHERE platform=:p"),
+            {"p": platform}
+        ).fetchone()
+        if not row:
+            return {}
+        d = dict(row._mapping)
+        oa = d.get("oa_id") or ""
+        return {
+            "oa_id": oa,
+            "qr_image_url": d.get("qr_image_url") or "",
+            "qr_link_url": d.get("qr_link_url") or (("https://line.me/R/ti/p/%40" + oa) if oa else "")
+        }
 @router.post("/connections/{platform}/upload-qr")
 async def upload_qr(platform: str, file: UploadFile = File(...),
                     authorization: str = Header("")):

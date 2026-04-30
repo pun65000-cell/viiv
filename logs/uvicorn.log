@@ -1,68 +1,338 @@
-INFO:     Started server process [584336]
+nohup: ignoring input
+INFO:     Started server process [596300]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.164.90:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.164.90:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
-INFO:     172.68.164.90:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
-INFO:     172.68.164.90:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/platform/logs?limit=200 HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
-INFO:     108.162.226.188:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53846 - "GET /api/platform/connections HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:35598 - "GET /api/platform/connections HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/finance HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.71.124.172:0 - "GET /api/platform/logs?limit=200 HTTP/1.1" 404 Not Found
-INFO:     172.71.124.172:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.106.169:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.22.66.38:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/platform/connections/line/public HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.164.91:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.164.91:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
+INFO:     172.68.164.91:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
+INFO:     172.68.164.91:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     162.158.106.169:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/platform/connections/line/public HTTP/1.1" 200 OK
+INFO:     172.70.208.27:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.92.200:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.124.208:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.208.27:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.94:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.94:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.124.209:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.3:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     162.158.190.3:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-INFO:     163.192.193.212:10570 - "HEAD / HTTP/1.1" 404 Not Found
-INFO:     163.192.193.212:10592 - "GET / HTTP/1.1" 404 Not Found
-INFO:     172.68.44.155:0 - "POST /api/platform/connections/line/upload-qr HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     108.162.226.188:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     162.158.88.56:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     162.158.106.168:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     162.158.88.56:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     162.158.170.176:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     162.158.170.176:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.69.166.95:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     162.158.170.176:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     104.23.175.146:0 - "POST /api/platform/connections/line HTTP/1.1" 200 OK
-INFO:     104.23.175.156:0 - "GET /api/platform/connections/line HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     104.23.175.146:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
 INFO:     162.158.108.164:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
-INFO:     172.71.124.173:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.106.169:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.3:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.189.36:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.23.175.146:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.22.66.39:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/products/list HTTP/1.1" 200 OK
+INFO:     162.158.108.165:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.170.176:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.208.27:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.124.209:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     118.194.228.167:50646 - "GET / HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:34758 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:34764 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:34766 - "GET /sitemap.xml HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:34782 - "GET /sse HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:34794 - "GET /mcp HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:34796 - "GET /mcp-sse HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:55606 - "GET /get_server_info HTTP/1.1" 404 Not Found
+INFO:     118.194.228.167:55612 - "POST /update_weights_from_tensor HTTP/1.1" 404 Not Found
+INFO:     162.158.108.165:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.189.36:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.189.36:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.88.57:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.208.26:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.106.168:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.70.189.35:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.17.156:0 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.71.255.67:0 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     87.121.79.59:52278 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     118.194.251.246:37240 - "GET / HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58394 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58396 - "GET /robots.txt HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58400 - "GET /sitemap.xml HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58406 - "GET /sse HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58422 - "GET /mcp HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58424 - "GET /mcp-sse HTTP/1.1" 404 Not Found
+INFO:     118.194.251.246:58430 - "GET /get_server_info HTTP/1.1" 404 Not Found
+INFO:     198.235.24.67:59072 - "GET / HTTP/1.1" 404 Not Found
+INFO:     104.23.166.49:0 - "GET /.git/config HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:47018 - "GET /server/.env HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:47030 - "GET /backend/.env HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:46982 - "GET /.env.production HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:47032 - "GET /bot/.env HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:47010 - "GET /src/.env HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:46994 - "GET /.env HTTP/1.1" 404 Not Found
+INFO:     172.71.99.3:0 - "GET /.git/config HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     66.132.195.93:30574 - "GET / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     66.132.195.93:6520 - "POST /mcp HTTP/1.1" 404 Not Found
+INFO:     66.132.195.93:6522 - "POST /jsonrpc HTTP/1.1" 404 Not Found
+INFO:     66.132.195.93:6536 - "POST / HTTP/1.1" 404 Not Found
+WARNING:  Invalid HTTP request received.
+INFO:     66.132.195.93:33026 - "GET /wiki HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:59994 - "GET /index.ejs HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:59978 - "GET /server.cjs HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:59988 - "GET /server.ts HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:59974 - "GET /server.ejs HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:60004 - "GET /index.cjs HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:59980 - "GET /server.mjs HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:60008 - "GET /index.mjs HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:60016 - "GET /index.ts HTTP/1.1" 404 Not Found
+INFO:     172.69.176.36:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.69.176.37:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.69.176.36:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.132:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/summary HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos-mobile/bills/recent?limit=5 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=5&sort=created_at&order=desc HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=25&sort=updated_at HTTP/1.1" 200 OK
+INFO:     147.185.132.106:57812 - "GET /v1/metadata HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:36568 - "GET /docs.md HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:36566 - "GET /DEPLOY.md HTTP/1.1" 404 Not Found
+INFO:     87.121.79.59:36554 - "GET /README.md HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/overview HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/health HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/line/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/store/settings HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=200 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/bills/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/products/list?limit=1 HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/pos/members/list?limit=1 HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
+INFO:     108.162.226.188:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     108.162.226.188:0 - "GET /api/platform/packages HTTP/1.1" 404 Not Found
+INFO:     108.162.226.188:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/platform/shop-detail?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shop-history?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shop-members?shop_id=ten_ HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+INFO:     172.234.184.237:50282 - "GET / HTTP/1.1" 404 Not Found
+INFO:     172.234.184.237:50292 - "GET /login HTTP/1.1" 404 Not Found
+INFO:     172.234.184.237:50302 - "GET /AGENTS.md HTTP/1.1" 404 Not Found
+INFO:     172.69.166.95:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.69.166.95:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.88.56:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.242.126:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.71.81.2:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.155:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     104.23.175.147:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     104.23.175.146:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     162.158.162.63:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.162.62:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     162.158.190.4:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     108.162.226.189:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     162.158.108.164:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.164.90:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/platform/packages HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/platform/shops HTTP/1.1" 404 Not Found
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "GET /api/staff/presence HTTP/1.1" 200 OK
+INFO:     172.68.44.154:0 - "POST /api/staff/heartbeat HTTP/1.1" 200 OK

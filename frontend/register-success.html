@@ -324,9 +324,10 @@
 
       <div class="qr-container">
         <div class="qr-frame">
-          <img src="/uploads/QR-ViiV.jpg" alt="QR Code LINE @004krtts" />
+          <img id="qr-img" src="" alt="QR Code LINE" style="display:none;" />
+          <div id="qr-placeholder" style="width:168px;height:168px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:13px;">กำลังโหลด...</div>
         </div>
-        <div class="line-id">@004krtts</div>
+        <div class="line-id" id="line-id-text">@004krtts</div>
         <div class="line-hint">ค้นหา ID นี้ใน LINE ได้เลยครับ</div>
       </div>
 
@@ -383,5 +384,32 @@
 
   </div>
 
+
+  
+
+  
+  <script>
+    fetch('/api/platform/connections/line/public')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var oa   = (d.oa_id || '004krtts').replace(/^@/,'');
+        var qr   = d.qr_image_url || '';
+        var link = d.qr_link_url  || ('https://line.me/R/ti/p/%40' + oa);
+
+        var idEl = document.getElementById('line-id-text');
+        if (idEl) idEl.textContent = '@' + oa;
+
+        var btn = document.querySelector('.btn-line');
+        if (btn) btn.href = link;
+
+        if (qr) {
+          var img = document.getElementById('qr-img');
+          var ph  = document.getElementById('qr-placeholder');
+          if (img) { img.src = qr; img.style.display = 'block'; }
+          if (ph)  { ph.style.display = 'none'; }
+        }
+      })
+      .catch(function(){});
+  </script>
 </body>
 </html>
