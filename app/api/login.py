@@ -211,9 +211,10 @@ def platform_login(payload: dict, request: Request):
     first_tid = shops[0].id if shops else None
 
     token_payload = {
+        "sub":     str(user.id),    # JWT convention — _admin_auth ใช้ field นี้ตรวจสิทธิ์
         "user_id": str(user.id),
-        "email": user.email,
-        "role":  "owner",
+        "email":   user.email,
+        "role":    "owner",
         "tenant_id": first_tid,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30),
     }
