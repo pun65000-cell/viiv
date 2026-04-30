@@ -39,7 +39,8 @@ const TICKERS={
 };
 const tIdx={pos:0,aff:0,chat:0,post:0};
 
-const KPI={todaySales:0,todayOrders:0,monthSales:0,monthOrders:0,staffOnline:3};
+const KPI={todaySales:0,todayOrders:0,monthSales:0,monthOrders:0,staffOnline:0};
+const AFF={clicksToday:0,clicksMonth:0,commissionMonth:0,commissionRate:0};
 
 // ── utils ──────────────────────────────────────
 const $    = id=>document.getElementById(id);
@@ -60,21 +61,44 @@ window.addEventListener('message',e=>{
 
 // ── API ────────────────────────────────────────
 async function fetchSales(){
-  if(!W.token)return;
+  const tok = W.token || localStorage.getItem('viiv_token');
+  if(!tok) return;
+  const hdr = {Authorization:'Bearer '+tok};
   try{
-    const r=await fetch('/api/pos/bills/list?limit=200',{headers:{Authorization:'Bearer '+W.token}});
-    if(!r.ok)throw new Error(r.status);
-    const body=await r.json();
-    const today=new Date().toISOString().slice(0,10),month=new Date().toISOString().slice(0,7);
-    let ts=0,to=0,ms=0,mo=0;
-    (body.data||body||[]).forEach(b=>{
-      if(b.status==='void')return;
-      const amt=parseFloat(b.total||0),d=(b.created_at||'').slice(0,10),m=(b.created_at||'').slice(0,7);
-      if(m===month){ms+=amt;mo++;}
-      if(d===today){ts+=amt;to++;}
-    });
-    KPI.todaySales=ts;KPI.todayOrders=to;KPI.monthSales=ms;KPI.monthOrders=mo;
-    renderPOS();renderHub();log('API '+fmtB(ts));
+    const [posRes, affRes] = await Promise.all([
+      fetch('/api/pos/dashboard/summary', {headers:hdr}),
+      fetch('/api/pos/affiliate/summary', {headers:hdr}),
+    ]);
+    if(posRes.ok){
+      const d = await posRes.json();
+      KPI.todayOrders = d.orders_today || 0;
+      KPI.monthSales  = d.revenue_month || 0;
+      KPI.monthOrders = d.orders_month || 0;
+      KPI.staffOnline = d.staff_online || 0;
+      // todaySales: ใช้ revenue_month/orders_month proxy ไม่ได้ — fetch แยก
+      // ดึง bills วันนี้ (paid) สำหรับ amount headline
+      try {
+        const r = await fetch('/api/pos/bills/list?limit=100', {headers:hdr});
+        if(r.ok){
+          const body = await r.json();
+          const today = new Date().toISOString().slice(0,10);
+          KPI.todaySales = (body.data||body||[]).reduce((sum,b) =>
+            (b.status==='paid' && (b.created_at||'').slice(0,10)===today)
+              ? sum + parseFloat(b.total||0) : sum, 0);
+        }
+      } catch(_) {}
+      renderPOS(); renderHub();
+      log('POS '+fmtB(KPI.todaySales));
+    } else { log('POS err:'+posRes.status); }
+    if(affRes.ok){
+      const d = await affRes.json();
+      AFF.clicksToday     = d.clicks_today || 0;
+      AFF.clicksMonth     = d.clicks_month || 0;
+      AFF.commissionMonth = d.commission_month || 0;
+      AFF.commissionRate  = d.commission_rate || 0;
+      renderAff();
+      log('AFF '+fmtB(AFF.commissionMonth));
+    } else { log('AFF err:'+affRes.status); }
   }catch(e){log('API err:'+e.message);}
 }
 
@@ -241,6 +265,17 @@ function renderPOS(){
   setText('pos-orders',KPI.todayOrders);setText('pos-msales',fmtB(KPI.monthSales));
   setText('pos-morder',KPI.monthOrders);setText('pos-staff',KPI.staffOnline+' คน');
 }
+function renderAff(){
+  // ยอดวันนี้ ≈ คลิกวันนี้ × commission rate × avg price (proxy)
+  // ตอนนี้ไม่มีคอลัมน์ commission ใน affiliate_clicks → ใช้ commission month หาร 30 วันเป็น approx daily
+  const dailyApprox = AFF.clicksToday > 0 ? AFF.commissionMonth / 30 : 0;
+  setText('aff-amount', fmtB(dailyApprox));
+  setText('aff-badge',  fmtB(dailyApprox));
+  setText('aff-clicks-today', AFF.clicksToday);
+  setText('aff-msales',       fmtB(AFF.commissionMonth));
+  setText('aff-mclicks',      AFF.clicksMonth);
+  setText('aff-rate',         AFF.commissionRate ? AFF.commissionRate.toFixed(1)+'%' : '—');
+}
 function renderHub(){
   setText('hub-total',fmtB(KPI.todaySales));
   setText('hub-orders',KPI.todayOrders+' orders');
@@ -365,7 +400,7 @@ function init(){
   startTickers();
   initChatFeed();
   addTimer(updateChatFeed, 3500);
-  renderPOS();renderHub();
+  renderPOS();renderAff();renderHub();
   drawX();
   window.addEventListener('resize',()=>{drawX();computeZones();});
   // wait for layout before reading anchor positions
