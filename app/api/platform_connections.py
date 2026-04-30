@@ -12,6 +12,23 @@ UPLOAD_URL = "https://viiv.me/platform/uploads"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# ── Identity ──────────────────────────────────────────────────────────────────
+@router.get("/me")
+def get_me(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="No token")
+    token = authorization.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return {
+            "user_id": payload.get("user_id"),
+            "email":   payload.get("email"),
+            "role":    payload.get("role", "owner"),
+        }
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def _admin_auth(authorization: str):
     try:

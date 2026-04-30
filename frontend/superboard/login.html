@@ -61,10 +61,6 @@
       <input class="form-input" type="email" id="loginEmail" placeholder="email@example.com" autocomplete="email"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Tenant ID <span style="font-weight:400;color:#aaa">(รหัสร้านค้า)</span></label>
-      <input class="form-input" type="text" id="loginTenant" placeholder="ten_xxxxx" autocomplete="off"/>
-    </div>
-    <div class="form-group">
       <label class="form-label">รหัสผ่าน</label>
       <div style="position:relative;">
         <input class="form-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px;"/>
@@ -78,6 +74,13 @@
     </div>
 
     <button class="btn-login" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+
+    <!-- Shop picker: แสดงเมื่อ email มีหลายร้าน -->
+    <div id="shopPicker" style="display:none;margin-top:18px;">
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text-main,#1a1a1a);margin-bottom:10px;">เลือกร้านที่ต้องการเข้า</div>
+      <div id="shopList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button type="button" id="shopBack" onclick="resetPicker()" style="margin-top:12px;background:none;border:none;color:#888;font-size:0.78rem;cursor:pointer;">← ยกเลิก เปลี่ยนอีเมล</button>
+    </div>
 
     <div class="divider">
       <div class="divider-line"></div>
@@ -135,27 +138,37 @@ window.togglePass = function(){
   }
 };
 
-window.doLogin = async function(){
-  var email    = document.getElementById('loginEmail').value.trim();
-  var pass     = document.getElementById('loginPass').value;
-  var tenantId = document.getElementById('loginTenant').value.trim();
-  var btn   = document.getElementById('loginBtn');
-  var err   = document.getElementById('loginErr');
+// เก็บ credentials ระหว่าง shop-picker step
+var _pendingEmail = '';
+var _pendingPass  = '';
+
+async function _doLoginCall(email, pass, tenantId){
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('loginErr');
   err.style.display = 'none';
-  if(!email || !pass || !tenantId){ showErr('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-sm"></span>';
   try{
+    var body = {email:email, password:pass};
+    if(tenantId) body.tenant_id = tenantId;
     var res = await fetch('/api/staff/login',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email:email, password:pass, tenant_id:tenantId})
+      body: JSON.stringify(body)
     });
     var data = await res.json();
     if(res.ok && data.access_token){
       localStorage.setItem(TOKEN_KEY, data.access_token);
       window.location.href = '/superboard/';
-    } else if(res.status === 429){
+      return;
+    }
+    if(res.ok && data.status === 'select_shop'){
+      _pendingEmail = email;
+      _pendingPass  = pass;
+      renderShopPicker(data.shops || []);
+      return;
+    }
+    if(res.status === 429){
       showErr(data.detail || 'ลองใหม่อีกครั้งใน 1 นาที');
     } else if(res.status === 401 || res.status === 404){
       showErr('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
@@ -164,9 +177,57 @@ window.doLogin = async function(){
     }
   } catch(e){
     showErr('เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'เข้าสู่ระบบ';
   }
-  btn.disabled = false;
-  btn.innerHTML = 'เข้าสู่ระบบ';
+}
+
+window.doLogin = async function(){
+  var email = document.getElementById('loginEmail').value.trim();
+  var pass  = document.getElementById('loginPass').value;
+  if(!email || !pass){ showErr('กรุณากรอกอีเมลและรหัสผ่าน'); return; }
+  await _doLoginCall(email, pass, null);
+};
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function renderShopPicker(shops){
+  var picker = document.getElementById('shopPicker');
+  var list   = document.getElementById('shopList');
+  list.innerHTML = shops.map(function(s){
+    var initial = (s.store_name||'?').charAt(0).toUpperCase();
+    return '<button type="button" onclick="pickShop(\'' + escapeHtml(s.tenant_id) + '\')"' +
+      ' style="display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--border,#e0e0e0);border-radius:10px;background:#fff;cursor:pointer;text-align:left;transition:border-color .15s,background .15s;"' +
+      ' onmouseover="this.style.borderColor=\'#C9A84C\';this.style.background=\'#fffdf5\'"' +
+      ' onmouseout="this.style.borderColor=\'#e0e0e0\';this.style.background=\'#fff\'">' +
+      '<div style="width:34px;height:34px;border-radius:8px;background:#C9A84C;color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.95rem;flex-shrink:0">' + escapeHtml(initial) + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:700;font-size:0.88rem;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(s.store_name) + '</div>' +
+        '<div style="font-size:0.72rem;color:#888;font-family:monospace">' + escapeHtml(s.tenant_id) + ' · ' + escapeHtml(s.role||'') + '</div>' +
+      '</div>' +
+      '<div style="color:#C9A84C;font-size:1.1rem">›</div>' +
+    '</button>';
+  }).join('');
+  document.getElementById('loginBtn').style.display = 'none';
+  picker.style.display = 'block';
+}
+
+window.pickShop = async function(tenantId){
+  if(!_pendingEmail || !_pendingPass) { resetPicker(); return; }
+  await _doLoginCall(_pendingEmail, _pendingPass, tenantId);
+};
+
+window.resetPicker = function(){
+  _pendingEmail = '';
+  _pendingPass  = '';
+  document.getElementById('shopPicker').style.display = 'none';
+  document.getElementById('loginBtn').style.display = 'block';
+  document.getElementById('loginErr').style.display = 'none';
 };
 
 function showErr(msg){

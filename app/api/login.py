@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
@@ -69,10 +69,10 @@ _login_attempts: dict = {}  # key="{ip}:{email}" value={"count":int,"reset_at":f
 def staff_login(payload: dict, request: Request):
     email = (payload.get("email") or "").strip().lower()
     password = payload.get("password") or ""
-    tenant_id = (payload.get("tenant_id") or "").strip()
+    tenant_id = (payload.get("tenant_id") or "").strip()  # optional
 
-    if not email or not password or not tenant_id:
-        raise HTTPException(status_code=400, detail="กรุณากรอกข้อมูลให้ครบถ้วน")
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="กรุณากรอกอีเมลและรหัสผ่าน")
 
     # Rate limit — 5 attempts/minute per ip:email
     ip = request.client.host if request.client else "unknown"
@@ -88,20 +88,54 @@ def staff_login(payload: dict, request: Request):
     if att["count"] > 5:
         raise HTTPException(status_code=429, detail="ลองใหม่อีกครั้งใน 1 นาที")
 
-    # Query tenant_staff (raw SQL, no ORM model)
+    # Query tenant_staff — by email (+ tenant_id ถ้ามี) JOIN tenants เพื่อดึงชื่อร้าน
     with _db_engine.connect() as c:
-        row = c.execute(
-            text("""SELECT id, first_name, last_name, role, hashed_password
-                    FROM tenant_staff
-                    WHERE email=:email AND tenant_id=:tid AND is_active=true"""),
-            {"email": email, "tid": tenant_id},
-        ).fetchone()
+        if tenant_id:
+            rows = c.execute(
+                text("""SELECT s.id, s.first_name, s.last_name, s.role,
+                               s.hashed_password, s.tenant_id, t.store_name
+                        FROM tenant_staff s
+                        LEFT JOIN tenants t ON t.id = s.tenant_id
+                        WHERE s.email=:email AND s.tenant_id=:tid
+                              AND s.is_active=true"""),
+                {"email": email, "tid": tenant_id},
+            ).fetchall()
+        else:
+            rows = c.execute(
+                text("""SELECT s.id, s.first_name, s.last_name, s.role,
+                               s.hashed_password, s.tenant_id, t.store_name
+                        FROM tenant_staff s
+                        LEFT JOIN tenants t ON t.id = s.tenant_id
+                        WHERE s.email=:email AND s.is_active=true"""),
+                {"email": email},
+            ).fetchall()
 
-    if not row:
+    if not rows:
         raise HTTPException(status_code=404, detail="ไม่พบบัญชีนี้ในระบบ")
 
-    if not row.hashed_password or not _pwd_ctx.verify(password, str(row.hashed_password)):
+    # Filter rows where password matches — รองรับกรณีรหัสต่างกันต่อร้าน
+    valid = [r for r in rows if r.hashed_password
+             and _pwd_ctx.verify(password, str(r.hashed_password))]
+    if not valid:
         raise HTTPException(status_code=401, detail="รหัสผ่านไม่ถูกต้อง")
+
+    # หลายร้าน + ไม่ระบุ tenant_id → ส่งรายการให้ frontend เลือก
+    if len(valid) > 1 and not tenant_id:
+        return {
+            "status": "select_shop",
+            "shops": [
+                {
+                    "tenant_id":  r.tenant_id,
+                    "store_name": r.store_name or r.tenant_id,
+                    "role":       r.role,
+                }
+                for r in valid
+            ],
+        }
+
+    # ร้านเดียว (หรือระบุ tenant_id แล้ว) → ออก token เลย
+    row = valid[0]
+    resolved_tid = row.tenant_id
 
     # Clear rate limit on success
     _login_attempts.pop(key, None)
@@ -109,7 +143,7 @@ def staff_login(payload: dict, request: Request):
     name = f"{row.first_name or ''} {row.last_name or ''}".strip()
     token_payload = {
         "sub": str(row.id),
-        "tenant_id": tenant_id,
+        "tenant_id": resolved_tid,
         "role": row.role,
         "name": name,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30),
@@ -121,33 +155,11 @@ def staff_login(payload: dict, request: Request):
         "token_type": "bearer",
         "role": row.role,
         "name": name,
-        "tenant_id": tenant_id,
+        "tenant_id": resolved_tid,
     }
 
 
 # ── Platform Owner Login ──────────────────────────────────────────────────────
-
-@router.get("/platform/me")
-def platform_me(authorization: str = Header(default=None)):
-    """Validate JWT token + return user identity. Used by login.html (token check)
-    and dashboard (display user info)."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="missing token")
-    try:
-        tok = authorization.replace("Bearer ", "").strip()
-        payload = _jwt.decode(tok, _JWT_SECRET, algorithms=["HS256"])
-    except _jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="token expired")
-    except Exception:
-        raise HTTPException(status_code=401, detail="invalid token")
-    return {
-        "user_id":   payload.get("user_id") or payload.get("sub"),
-        "email":     payload.get("email"),
-        "role":      payload.get("role"),
-        "tenant_id": payload.get("tenant_id"),
-        "name":      payload.get("name"),
-    }
-
 
 @router.post("/platform/login")
 def platform_login(payload: dict, request: Request):
