@@ -48,7 +48,7 @@ const Auth = {
     if (window.parent !== window) {
       window.parent.postMessage({ type: 'viiv_request_token' }, '*');
     } else {
-      window.location.href = '/platform/login.html';
+      window.location.href = 'https://concore.viiv.me/platform/login.html';
     }
   },
 
@@ -58,7 +58,7 @@ const Auth = {
     try { localStorage.removeItem(this._key); } catch(e) {}
     this._token = null;
     if (window.parent === window) {
-      window.location.href = '/platform/login.html';
+      window.location.href = 'https://concore.viiv.me/platform/login.html';
     }
   },
 
@@ -67,7 +67,7 @@ const Auth = {
     if (!confirm('ออกจากระบบ?')) return;
     try { localStorage.removeItem(this._key); } catch(e) {}
     this._token = null;
-    window.location.href = '/platform/login.html';
+    window.location.href = 'https://concore.viiv.me/platform/login.html';
   },
 };
 window.Auth = Auth;
