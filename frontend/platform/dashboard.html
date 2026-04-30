@@ -332,14 +332,14 @@ function nav(el){
   loadPage(name);
 }
 
-// ─── Parent item (accordion toggle + load page) ──────────────────────────────
+// ─── Parent item (accordion toggle only — parent ไม่ใช่ page) ────────────────
 function navParent(el, subId){
   const sub = document.getElementById(subId);
-  const isOpen = sub && sub.classList.contains('open');
-  // toggle sub
-  if(sub){ sub.classList.toggle('open'); el.classList.toggle('expanded'); }
-  // also load the parent page
-  nav(el);
+  if(sub) sub.classList.toggle('open');
+  el.classList.toggle('expanded');
+  // ไม่เรียก nav(el) — parent เป็นแค่ accordion เปิด/ปิด sub-items
+  // (กัน loadPage ไป fetch /platform/pages/{parent}.html ที่ไม่มีไฟล์ →
+  //  Caddy fallback dashboard.html → inject ตัวเองซ้ำ → SyntaxError)
 }
 
 // ─── Sub-item (mark sub active + highlight parent) ───────────────────────────
