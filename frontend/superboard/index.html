@@ -318,7 +318,10 @@
 (function(){
 'use strict';
 var TOKEN_KEY = 'viiv_token';
-function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+function getToken(){
+  // ลอง viiv_token (ปกติของ shop subdomain) ก่อน → fallback platform_token
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('platform_token') || '';
+}
 
 window.sbLogout = function(){
   if(confirm('ออกจากระบบ?')){ localStorage.removeItem(TOKEN_KEY); window.location.href='/superboard/login.html'; }
@@ -559,6 +562,20 @@ document.addEventListener('DOMContentLoaded', function(){
   if(!getToken()){ window.location.href='/superboard/login.html'; return; }
   loadShopBadge();   // topbar เท่านั้น — list โหลดเมื่อเปิด dropdown
   sbNav('home'); checkBellDot();
+
+  // ── Shop popup bindings (เลี่ยง onclick attribute → ใช้ addEventListener) ──
+  var saveBtn = document.getElementById('shopAddSaveBtn');
+  var cancelBtn = document.getElementById('shopAddCancelBtn');
+  var mask = document.getElementById('shopAddMask');
+  var box = document.getElementById('shopAddBox');
+  if(saveBtn) saveBtn.addEventListener('click', function(e){ e.preventDefault(); saveShopAdd(); });
+  if(cancelBtn) cancelBtn.addEventListener('click', function(e){ e.preventDefault(); mask.classList.remove('open'); });
+  if(mask) mask.addEventListener('click', function(e){ if(e.target===mask) mask.classList.remove('open'); });
+  if(box) box.addEventListener('click', function(e){ e.stopPropagation(); });
+  // Enter key in input → save
+  var input = document.getElementById('shopAddInput');
+  if(input) input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); saveShopAdd(); } });
+  console.log('[shop popup] bindings attached', {saveBtn:!!saveBtn, cancelBtn:!!cancelBtn, mask:!!mask, input:!!input});
 });
 })();
 </script>
@@ -584,10 +601,10 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <!-- ADD SHOP POPUP (ซ้อนบน dropdown) -->
-<div id="shopAddMask" onclick="closeShopAdd(event)"
+<div id="shopAddMask"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;width:100%;max-width:360px;padding:22px;box-shadow:0 12px 32px rgba(0,0,0,.25);font-family:'Sarabun',sans-serif;"
-       onclick="event.stopPropagation()">
+  <div id="shopAddBox"
+       style="background:#fff;border-radius:14px;width:100%;max-width:360px;padding:22px;box-shadow:0 12px 32px rgba(0,0,0,.25);font-family:'Sarabun',sans-serif;">
     <div style="font-size:1rem;font-weight:700;margin:0 0 12px;">เพิ่มสาขา</div>
     <label style="display:block;font-size:12px;color:#888;margin-bottom:5px;">Shop ID (subdomain)</label>
     <input id="shopAddInput" type="text" placeholder="เช่น test8 (ไม่ต้องใส่ .viiv.me)" autocomplete="off"
@@ -595,9 +612,9 @@ document.addEventListener('DOMContentLoaded', function(){
     <div style="font-size:11px;color:#888;margin-top:6px;">ระบบจะตัด https:// และ .viiv.me ออกให้อัตโนมัติ</div>
     <div id="shopAddErr" style="font-size:12px;color:#d03030;margin-top:8px;min-height:16px;"></div>
     <div style="display:flex;gap:8px;margin-top:14px;">
-      <button id="shopAddSaveBtn" onclick="saveShopAdd()"
+      <button id="shopAddSaveBtn" type="button"
               style="flex:1;padding:10px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--accent,#c9a84c);background:var(--accent,#c9a84c);color:#1a1200;">บันทึก</button>
-      <button data-close="shopadd" onclick="closeShopAdd(event)"
+      <button id="shopAddCancelBtn" type="button"
               style="flex:1;padding:10px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(0,0,0,.12);background:#fff;color:#1a1a1a;">ยกเลิก</button>
     </div>
   </div>
