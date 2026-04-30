@@ -1647,3 +1647,236 @@ FILES CHANGED:
   frontend/pwa/pages/pos.js                       (catalog URL hostname-based)
 
 Version: v1.57 | Updated: 2026-04-30
+
+---
+
+### [v1.58 COMPLETED — 2026-04-30] Auth Loop Fixes + Platform UX + Module Iframe + Superboard Login
+
+SUMMARY: เคลียร์ redirect loop ทั้งระบบ (login ↔ dashboard), เพิ่ม token
+validate endpoint + 401 interceptor, refactor superboard login เป็น
+multi-shop picker, เปลี่ยน switchMod เป็น iframe fullscreen, เคลียร์
+Caddy /platform/* routing, ลบ legacy fix_*/patch_* scripts ออกจาก repo
+
+CHORE — REPO CLEANUP:
+- ลบ 12 ไฟล์ one-time migration scripts ที่ root: fix_auth*.py, fix_more*.py,
+  fix_devtoken.py, fix_index_comingsoon.py, patch_billing_*.py,
+  patch_platform_widget.py — ใช้ครั้งเดียวแล้วทิ้ง zero references
+  (commit ea9e504, -679 lines)
+
+AUTH FLOW (commits 5c02455, f674e13, a5d2455, ba05963):
+- frontend/platform/js/core/auth.js:
+  - isLoginPage() guard — requireAuth/logout ไม่ redirect ตัวเองถ้าอยู่ login
+  - handle401() helper สำหรับ ES module consumers
+- frontend/platform/login.html:
+  - validate token ผ่าน fetch /api/platform/me ก่อน redirect dashboard
+  - 200 → dashboard | !ok / catch → ลบ token stay on login (กัน loop ผ่าน
+    token เก่า/หมดอายุ)
+- frontend/platform/dashboard.html:
+  - global fetch interceptor: ดัก 401 จาก /api/* → ลบ token + redirect login
+  - _origFetch + _redirecting flag (re-entry guard) ยกเป็น module-level
+  - skip /api/platform/me ใน interceptor (validate, ไม่ใช่ session expired)
+  - init() เปลี่ยนจากตรวจ getToken() เฉยๆ → fetch /me validate ก่อน routeHash
+  - loadPage script injection guard: skip script ที่มี location.hash (กัน
+    hashchange → routeHash → nav → loop)
+- frontend/pwa/js/auth.js: 3 redirect points ทั้งหมดใช้ absolute URL
+  https://concore.viiv.me/platform/login.html (relative ไม่ทำงานบน
+  shop subdomain เพราะ wildcard ไม่มี /platform/* handler)
+
+PLATFORM ENDPOINTS (commits f674e13, 8254ee6):
+- ย้าย GET /api/platform/me จาก login.py → platform_connections.py
+  decode JWT → return {user_id, email, role}
+  401 ถ้า missing/invalid token
+- เพิ่ม GET /api/platform/health → {status:"ok", version:"1.54"} public
+- เพิ่ม GET /api/platform/overview → empty stats stub (token-tolerant)
+- frontend/platform/pages/security-tokens.html: tkLoad() ใช้ inline fetch +
+  Authorization header แทน api() helper (กัน context สูญหายตอน loadPage)
+
+PLATFORM DASHBOARD UX (commit 51f16b3):
+- navParent() ลบการเรียก nav(el) → เป็นแค่ accordion toggle (.open + .expanded)
+- เหตุผล: parent items (security, settings) ไม่มีไฟล์ pages/{name}.html
+  Caddy try_files fallback → ส่ง dashboard.html → loadPage inject ตัวเอง
+  ซ้อน → const re-declare → SyntaxError → UI เพี้ยน
+
+SUPERBOARD LOGIN (commit b1ab60e):
+- POST /api/staff/login: tenant_id เป็น optional
+  JOIN tenants เพื่อดึง store_name + filter rows ที่ password ตรง
+  1 row → ออก token เลย, >1 row + ไม่ระบุ tenant_id → return select_shop
+- frontend/superboard/login.html: ลบ field Tenant ID ออก
+  เพิ่ม shop picker UI: backend ตอบ select_shop → list ร้าน + role
+  user เลือก → re-POST login พร้อม tenant_id (เก็บ email/pass ใน memory)
+
+SUPERBOARD SWITCH MODULE (commits 8610397, b5a5a74, 040d1b6):
+- switchMod() เปลี่ยนจาก sbNav(page) → iframe เต็มพื้นที่
+  pos: /modules/pos/merchant/ui/dashboard/dashboard.html
+  chat/autopost: ไม่มีไฟล์ → แสดง 🚧 Coming Soon
+- iframe ใช้ position:absolute + inset:0 + width/height 100%
+- #sbContent override .sb-content (theme.css):
+  position:relative, flex:1, overflow:hidden, padding/margin:0,
+  width/height 100%
+- #sbContent > iframe { max-width: none } ปลด .sb-content > * { max-width:
+  1200px } ที่ clip iframe บนจอใหญ่
+
+CADDY (commits e62eba5, b28690f, b5a5a74):
+- concore.viiv.me block:
+  - เปลี่ยน root จาก frontend/platform/ → frontend/ + handle /platform/*
+    + try_files /platform/dashboard.html (เดิม root resolve /platform/css/...
+    เป็น frontend/platform/platform/css/... → 404 → fallback dashboard.html
+    → CSS ได้ HTML content)
+  - root concore.viiv.me/ → redir /platform/login.html 302
+  - เพิ่ม handle /logs/* → root /home/viivadmin/viiv (สำหรับ logs.html อ่าน
+    /logs/uvicorn.log)
+- *.viiv.me block: เพิ่ม handle /modules/* → root /home/viivadmin/viiv
+  สำหรับ POS iframe จาก superboard switchMod()
+
+ASSET PATH AUDIT:
+- ตรวจ frontend/platform/ ครบ — ทุก src/href/fetch/window.location.href
+  ใช้ /platform/... prefix อยู่แล้ว ไม่ต้องแก้
+
+SMOKE TEST (2026-04-30):
+- /api/platform/me valid → 200 {user_id,email,role}
+- /api/platform/me invalid/missing → 401
+- /api/platform/health → 200
+- /api/platform/overview no token → 200 empty stats (ไม่ throw 401)
+- /api/staff/login no tenant_id + email มี 1 row → 401 password
+- _resolve_tenant_from_subdomain('test7') → 'ten_1'
+- concore.viiv.me/ → 302 login | /platform/login.html → 200
+- test7.viiv.me/, /pwa/, /superboard/index.html → 200
+- /modules/pos/merchant/ui/dashboard/dashboard.html → 200 (จาก wildcard)
+
+COMMITS (13 commits, branch main):
+  ea9e504  chore: remove one-time migration scripts (fix_* patch_*)
+  5c02455  fix: auth redirect loop on login page
+  f674e13  fix: token validation on login + 401 handler + /api/platform/me
+  b1ab60e  fix: superboard login — remove tenant_id field, auto-resolve shop
+  a5d2455  fix: dashboard init validate token + interceptor re-entry guard +
+           script injection guard
+  8610397  fix: switchMod POS → iframe dashboard, not SPA page
+  8254ee6  fix: add /api/platform/health and /api/platform/overview endpoints
+  e62eba5  fix: caddy concore /platform/* routing — login.html serves correctly
+  b5a5a74  fix: superboard switchMod iframe fullscreen + chat/autopost coming soon
+  040d1b6  fix: sbContent fullscreen — remove max-width/padding, iframe inset 0
+  51f16b3  fix: platform security accordion — parent toggles only, no navigate
+  b28690f  fix: security-tokens auth header + logs caddy handler
+  ba05963  fix: PWA auth redirect → absolute concore.viiv.me/platform/login.html
+
+FILES CHANGED:
+  Caddyfile.new                                    (concore /platform/*, /logs/* +
+                                                    wildcard /modules/*)
+  app/main.py                                      (CORS regex, tenant resolver)
+  app/api/login.py                                 (refactor /staff/login multi-shop,
+                                                    move /platform/me)
+  app/api/platform_connections.py                  (+/me, /health, /overview)
+  frontend/platform/login.html                     (token validate via /me)
+  frontend/platform/dashboard.html                 (interceptor + init validate +
+                                                    script injection guard +
+                                                    navParent accordion-only)
+  frontend/platform/js/core/auth.js                (isLoginPage guard + handle401)
+  frontend/platform/pages/security-tokens.html     (inline fetch + auth header)
+  frontend/superboard/index.html                   (switchMod iframe + #sbContent
+                                                    fullscreen CSS)
+  frontend/superboard/login.html                   (remove Tenant ID, shop picker)
+  frontend/pwa/js/auth.js                          (absolute URL redirect)
+  -- removed --
+  fix_auth.py, fix_auth2.py, fix_more.py, fix_more2.py, fix_more3.py,
+  fix_devtoken.py, fix_index_comingsoon.py,
+  patch_billing_rendercard.py, patch_billing_stock2.py,
+  patch_billing_stock3.py, patch_billing_stock4.py,
+  patch_platform_widget.py
+
+Version: v1.58 | Updated: 2026-04-30
+
+---
+
+### [v1.59 COMPLETED — 2026-04-30] Cross-Origin SSO + Device-Aware Login Redirect
+
+SUMMARY: viiv.me/login กลายเป็น single entry point ของระบบ — login เสร็จ
+ดึง shops list, redirect ไปร้านที่เหมาะสมพร้อมส่ง token ข้าม origin
+ผ่าน URL param. detect device → desktop ไป /superboard/, mobile ไป /pwa/.
+แก้ปัญหา localStorage แยก origin (viiv.me ↔ {sub}.viiv.me) ที่ทำให้
+SSO ไม่ทำงานหลัง subdomain migration
+
+PWA REDIRECT URL (commits 60220cb, 34a6c22):
+- frontend/pwa/js/auth.js: ทุก redirect (init, fallbackToken, logout)
+  เปลี่ยนจาก https://concore.viiv.me/platform/login.html
+  → https://viiv.me/login.html
+  เหตุผล: concore = platform admin เท่านั้น, end-user PWA ควรไป
+  landing page หลัก
+- frontend/pwa/index.html: เพิ่ม early redirect
+  if (!location.hash) location.replace('/pwa/#home')
+  ก่อน App.init() — บังคับ URL bar เป็น #home ตั้งแต่ต้น (Router.init
+  เดิมใช้ replaceState fallback ที่อาจ desync)
+
+LOGIN.HTML REFACTOR (commit 84455a3):
+- ลบ auto-redirect ตอน load login.html — ผู้ใช้เห็นฟอร์มเสมอ
+- เปลี่ยน endpoint POST /api/login → /api/platform/login
+  (เดิมส่ง TokenResponse เฉยๆ ไม่มี shops; ใหม่ได้ shops + subdomain)
+- เปลี่ยน token key viiv_token → platform_token (consistent)
+- redirect logic หลัง login:
+  - shops.length === 1 → goShop(shop.subdomain)
+  - shops.length  > 1 → showShopPicker(shops) — list ใน card
+  - shops.length === 0 → /register.html
+- handle 429 (rate limit), 404 (email ไม่พบ) แยกข้อความ
+- เพิ่ม shopPicker UI inline ใน card (avatar + store_name + subdomain
+  + status + hover effect)
+
+CROSS-ORIGIN SSO (commits 822c66a, 5a9e3d4):
+- ปัญหา: localStorage แยกต่อ origin — token เก็บใน viiv.me
+  ไม่ถ่ายทอดไป {subdomain}.viiv.me → superboard เห็นว่าไม่มี token →
+  redirect กลับ login → loop
+- frontend/login.html goShop(): เพิ่ม ?token=encodeURIComponent(t)
+  ต่อท้าย URL ก่อน redirect
+- frontend/superboard/index.html: เพิ่ม IIFE ที่ต้น <script>
+  อ่าน URLSearchParams.get('token') → setItem('viiv_token')
+  history.replaceState ลบ token ออกจาก URL bar (กัน leak)
+- frontend/superboard/index.html: เพิ่ม <meta name="referrer"
+  content="no-referrer"> ใน <head> — กัน Referer leak token
+  (assets ที่โหลดก่อน replaceState ทำงานไม่เห็น token แล้ว)
+
+DEVICE-AWARE REDIRECT (commit 9a9e1f9):
+- frontend/login.html goShop(): detect via navigator.userAgent
+  /iPhone|iPad|iPod|Android/i → path = /pwa/
+  อื่นๆ (desktop) → path = /superboard/
+- frontend/pwa/js/auth.js: เพิ่ม SSO IIFE pattern เดียวกับ superboard
+  — รองรับ /pwa/?token=... → setItem 'viiv_token' + replaceState
+
+FLOW ENDPOINT-TO-ENDPOINT:
+1. user เปิด viiv.me/login.html → ใส่ email/pass
+2. POST /api/platform/login → {access_token, shops:[{subdomain,...}]}
+3. localStorage(viiv.me).platform_token = token
+4. shops.length===1 → goShop(subdomain)
+5. detect mobile → /pwa/ | desktop → /superboard/
+6. redirect → https://{subdomain}.viiv.me{path}/?token=XXX
+7. SSO IIFE รับ token → setItem 'viiv_token' (key ของ shop ecosystem)
+8. history.replaceState → URL = {path}/#home (token หาย)
+9. main app boot — getToken() อ่าน localStorage(subdomain) เจอ token
+
+SECURITY HARDENING:
+- replaceState ลบ token จาก URL bar (กัน history/bookmark leak)
+- <meta name="referrer" content="no-referrer"> ใน superboard/index.html
+  ห้ามส่ง Referer header (กัน CDN/3rd party รู้ token)
+- encodeURIComponent กัน special chars (=,+,/) ใน token
+- ความเสี่ยงที่ยังเหลือ (tech debt):
+  * Caddy access log อาจ log ?token=... ก่อน replaceState ทำงาน
+  * localStorage เปิดให้ XSS อ่านได้ — ระยะยาวควรย้ายเป็น HttpOnly cookie
+    scope .viiv.me
+
+COMMITS (6 commits, branch main):
+  60220cb  fix: PWA redirect to viiv.me/login
+  34a6c22  fix: PWA redirect viiv.me/login + auto hash home
+  84455a3  fix: login.html redirect to shop subdomain after login
+  822c66a  fix: cross-origin SSO — pass token via URL param to subdomain
+  5a9e3d4  fix: no-referrer meta — prevent token leak in referer header
+  9a9e1f9  fix: login goShop detect mobile → /pwa/ or /superboard/
+
+FILES CHANGED:
+  frontend/login.html               (endpoint /api/platform/login,
+                                     token key platform_token,
+                                     shops-based redirect, shopPicker UI,
+                                     goShop device detect + token URL param)
+  frontend/pwa/js/auth.js           (redirect viiv.me/login.html ทั้ง 3 จุด,
+                                     SSO IIFE รับ token จาก URL param)
+  frontend/pwa/index.html           (early redirect → /pwa/#home, asset bump)
+  frontend/superboard/index.html    (SSO IIFE token receiver,
+                                     <meta name="referrer" no-referrer>)
+
+Version: v1.59 | Updated: 2026-04-30

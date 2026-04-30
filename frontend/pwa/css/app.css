@@ -124,7 +124,68 @@ input, textarea { font-family: inherit; }
   font-size: 12px; font-weight: 600; color: var(--txt);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;
 }
-.tb-shop-arrow { font-size: 14px; color: var(--muted); flex-shrink: 0; line-height: 1; }
+.tb-shop-arrow { font-size: 9px; color: var(--muted); flex-shrink: 0; }
+#tb-shop-dd {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0;
+  width: 240px; background: var(--card); border: 1px solid var(--bdr);
+  border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.15); z-index: 500; overflow: hidden;
+}
+#tb-shop-dd.open { display: block; }
+#tb-shop-list { max-height: 240px; overflow-y: auto; }
+.tb-shop-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; cursor: pointer; border-bottom: 1px solid var(--bdr);
+  -webkit-tap-highlight-color: transparent;
+}
+.tb-shop-item:active, .tb-shop-item.active { background: var(--bg2); }
+.tb-shop-item-av {
+  width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+  background: var(--bg2); border: 1px solid var(--bdr);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--gold-d, #8a6820); overflow: hidden;
+}
+#tb-shop-add-row {
+  display: flex; align-items: center; gap: 8px; padding: 9px 14px;
+  cursor: pointer; color: var(--gold); font-size: 13px; font-weight: 600;
+  border-top: 1px solid var(--bdr);
+  -webkit-tap-highlight-color: transparent;
+}
+#tb-shop-add-row:active { background: var(--bg2); }
+.tb-shop-add-icon {
+  width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;
+  background: var(--bg2); border: 1px dashed var(--bdr);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--gold);
+}
+
+/* Add-shop popup overlay (ซ้อนบน dropdown) */
+#shop-add-mask {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 9000; align-items: center; justify-content: center; padding: 16px;
+}
+#shop-add-mask.open { display: flex; }
+.shop-add-modal {
+  background: var(--card); border-radius: 16px; width: 100%; max-width: 340px;
+  padding: 20px; box-shadow: 0 12px 32px rgba(0,0,0,.3);
+}
+.shop-add-modal h3 { font-size: 1rem; font-weight: 700; margin: 0 0 12px; color: var(--txt); }
+.shop-add-modal label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.shop-add-modal input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--bdr);
+  border-radius: 10px; font-size: 14px; outline: none; box-sizing: border-box;
+  background: var(--bg); color: var(--txt);
+}
+.shop-add-modal input:focus { border-color: var(--gold); }
+.shop-add-modal .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.shop-add-modal .err { font-size: 12px; color: #d03030; margin-top: 8px; min-height: 16px; }
+.shop-add-modal .actions { display: flex; gap: 8px; margin-top: 14px; }
+.shop-add-modal .actions button {
+  flex: 1; padding: 10px 14px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid;
+}
+.shop-add-modal .actions .save { background: var(--gold); border-color: var(--gold); color: #1a1200; }
+.shop-add-modal .actions .save:disabled { background: #d0cdc8; border-color: #bbb; color: #888; }
+.shop-add-modal .actions .cancel { background: var(--card); border-color: var(--bdr); color: var(--txt); }
 
 /* ── TOPBAR PROFILE BUTTON ──────────────────────────────────────────────────── */
 #tb-profile-wrap { position: relative; }

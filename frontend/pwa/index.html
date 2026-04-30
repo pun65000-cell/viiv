@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=2409"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=2935"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -24,10 +24,17 @@
     <div id="tb-back" onclick="Router.back()">←</div>
     <div id="tb-logo">○ ViiV</div>
     <div id="tb-shop-wrap">
-      <div id="tb-shop-btn" onclick="Router.go('shops')" title="จัดการร้านสาขา">
+      <div id="tb-shop-btn" onclick="ShopSwitcher.toggle()">
         <div id="tb-shop-av">S</div>
         <span id="tb-shop-name">My Shop</span>
-        <span class="tb-shop-arrow">›</span>
+        <span class="tb-shop-arrow">▾</span>
+      </div>
+      <div id="tb-shop-dd">
+        <div id="tb-shop-list"><div style="padding:10px 14px;color:var(--muted);font-size:12px">กำลังโหลด...</div></div>
+        <div id="tb-shop-add-row" onclick="ShopSwitcher.showAdd()">
+          <div class="tb-shop-add-icon">+</div>
+          <span>เพิ่มสาขา</span>
+        </div>
       </div>
     </div>
     <div id="tb-title" style="display:none"></div>
@@ -141,33 +148,47 @@
   <div id="sheet-content"></div>
 </div>
 
+<!-- ADD SHOP POPUP (ซ้อนบน dropdown) -->
+<div id="shop-add-mask" onclick="ShopSwitcher.closeAdd(event)">
+  <div class="shop-add-modal" onclick="event.stopPropagation()">
+    <h3>เพิ่มสาขา</h3>
+    <label>Shop ID (subdomain)</label>
+    <input id="shop-add-input" type="text" placeholder="เช่น testshop" autocomplete="off" inputmode="text">
+    <div class="hint">ใส่ subdomain ของร้านที่ต้องการเข้าร่วม</div>
+    <div class="err" id="shop-add-err"></div>
+    <div class="actions">
+      <button class="save" id="shop-add-save" onclick="ShopSwitcher.saveAdd()">บันทึก</button>
+      <button class="cancel" onclick="ShopSwitcher.closeAddForce()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/auth.js?v=2409"></script>
-<script src="/pwa/js/router.js?v=2409"></script>
-<script src="/pwa/js/app.js?v=2409"></script>
-<script src="/pwa/pages/home.js?v=2409"></script>
-<script src="/pwa/pages/pos.js?v=2409"></script>
-<script src="/pwa/pages/billing.js?v=2409"></script>
-<script src="/pwa/pages/statement.js?v=2409"></script>
-<script src="/pwa/pages/orders-upload.js?v=2409"></script>
-<script src="/pwa/pages/orders.js?v=2409"></script>
-<script src="/pwa/pages/orders-detail.js?v=2409"></script>
-<script src="/pwa/pages/bill-history.js?v=2409"></script>
-<script src="/pwa/pages/products.js?v=2409"></script>
-<script src="/pwa/pages/members.js?v=2409"></script>
-    <script src="/pwa/pages/bill.js?v=2409"></script>
-    <script src="/pwa/pages/sales.js?v=2409"></script>
-<script src="/pwa/pages/chat.js?v=2409"></script>
-<script src="/pwa/pages/autopost.js?v=2409"></script>
-<script src="/pwa/pages/affiliate.js?v=2409"></script>
-<script src="/pwa/pages/partners.js?v=2409"></script>
-<script src="/pwa/pages/store.js?v=2409"></script>
-<script src="/pwa/pages/shops.js?v=2409"></script>
-<script src="/pwa/pages/line.js?v=2409"></script>
-<script src="/pwa/pages/comingsoon.js?v=2409"></script>
-  <script src="/pwa/pages/more.js?v=2409"></script>
+<script src="/pwa/js/auth.js?v=2935"></script>
+<script src="/pwa/js/router.js?v=2935"></script>
+<script src="/pwa/js/app.js?v=2935"></script>
+<script src="/pwa/pages/home.js?v=2935"></script>
+<script src="/pwa/pages/pos.js?v=2935"></script>
+<script src="/pwa/pages/billing.js?v=2935"></script>
+<script src="/pwa/pages/statement.js?v=2935"></script>
+<script src="/pwa/pages/orders-upload.js?v=2935"></script>
+<script src="/pwa/pages/orders.js?v=2935"></script>
+<script src="/pwa/pages/orders-detail.js?v=2935"></script>
+<script src="/pwa/pages/bill-history.js?v=2935"></script>
+<script src="/pwa/pages/products.js?v=2935"></script>
+<script src="/pwa/pages/members.js?v=2935"></script>
+    <script src="/pwa/pages/bill.js?v=2935"></script>
+    <script src="/pwa/pages/sales.js?v=2935"></script>
+<script src="/pwa/pages/chat.js?v=2935"></script>
+<script src="/pwa/pages/autopost.js?v=2935"></script>
+<script src="/pwa/pages/affiliate.js?v=2935"></script>
+<script src="/pwa/pages/partners.js?v=2935"></script>
+<script src="/pwa/pages/store.js?v=2935"></script>
+<script src="/pwa/pages/line.js?v=2935"></script>
+<script src="/pwa/pages/comingsoon.js?v=2935"></script>
+  <script src="/pwa/pages/more.js?v=2935"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -273,10 +294,10 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/pwa/sw.js', { scope: '/pwa/' }).catch(() => {});
 }
 </script>
-  <script src="/pwa/pages/finance.js?v=2409"></script>
-  <script src="/pwa/pages/reserve.js?v=2409"></script>
-  <script src="/pwa/pages/staff.js?v=2409"></script>
-  <script src="/pwa/pages/bank.js?v=2409"></script>
-  <script src="/pwa/pages/receive.js?v=2409"></script>
+  <script src="/pwa/pages/finance.js?v=2935"></script>
+  <script src="/pwa/pages/reserve.js?v=2935"></script>
+  <script src="/pwa/pages/staff.js?v=2935"></script>
+  <script src="/pwa/pages/bank.js?v=2935"></script>
+  <script src="/pwa/pages/receive.js?v=2935"></script>
 </body>
 </html>

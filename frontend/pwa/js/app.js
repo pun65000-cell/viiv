@@ -161,22 +161,128 @@ window.App = App;
   setInterval(pulse, 12000);
 })();
 
-// Shop topbar — แสดงชื่อ/avatar ของร้านปัจจุบัน (รายการร้านอยู่ที่ Router.go('shops'))
+// Shop Switcher — dropdown + add popup
 window.ShopSwitcher = {
+  _open: false,
+  _shops: [],
+  _curTid: null,
+
   async init() {
+    // ชื่อ/avatar topbar จาก store settings (active shop)
     try {
       const d = await App.api('/api/pos/store/settings');
-      this._update(d.store_name || 'My Shop', d.logo_url || null);
+      this._updateBtn(d.store_name || 'My Shop', d.logo_url || null);
+    } catch(_) {}
+    // tenant_id ปัจจุบันจาก JWT
+    try {
+      const t = (Auth && Auth.token) || localStorage.getItem('viiv_token') || '';
+      const b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      const p = JSON.parse(atob(b + '=='.slice((b.length%4)||4)));
+      this._curTid = p.tenant_id || null;
     } catch(_) {}
   },
 
-  _update(name, logo) {
+  _updateBtn(name, logo) {
     const nameEl = document.getElementById('tb-shop-name');
     const av = document.getElementById('tb-shop-av');
     if (nameEl) nameEl.textContent = name;
     if (av) {
       if (logo) av.innerHTML = '<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;">';
       else av.textContent = (name||'S').charAt(0).toUpperCase();
+    }
+  },
+
+  async toggle() {
+    this._open = !this._open;
+    document.getElementById('tb-shop-dd').classList.toggle('open', this._open);
+    if (this._open) await this._render();
+  },
+
+  close() {
+    this._open = false;
+    const dd = document.getElementById('tb-shop-dd');
+    if (dd) dd.classList.remove('open');
+  },
+
+  async _render() {
+    const list = document.getElementById('tb-shop-list');
+    if (!list) return;
+    list.innerHTML = '<div style="padding:10px 14px;color:var(--muted);font-size:12px">กำลังโหลด...</div>';
+    try {
+      this._shops = await App.api('/api/platform/my-shops');
+    } catch(e) {
+      list.innerHTML = '<div style="padding:10px 14px;color:var(--muted);font-size:12px">โหลดไม่สำเร็จ</div>';
+      return;
+    }
+    if (!this._shops.length) {
+      list.innerHTML = '<div style="padding:10px 14px;color:var(--muted);font-size:12px">ยังไม่มีร้าน</div>';
+      return;
+    }
+    list.innerHTML = this._shops.map(s => {
+      const active = s.id === this._curTid ? ' active' : '';
+      const initial = (s.store_name || s.subdomain || '?').charAt(0).toUpperCase();
+      const av = '<div class="tb-shop-item-av">'+initial+'</div>';
+      return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+(s.subdomain||'')+'\')">'
+        + av
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(s.store_name||s.subdomain||'Shop')+'</div>'
+        + '<div style="font-size:10px;color:var(--muted);font-family:monospace">'+(s.subdomain||'')+'.viiv.me</div>'
+        + '</div></div>';
+    }).join('');
+  },
+
+  async select(subdomain) {
+    if (!subdomain) return;
+    try {
+      const data = await App.api('/api/platform/join-shop', {
+        method:'POST', body: JSON.stringify({ subdomain })
+      });
+      if (data && data.access_token) {
+        window.location.href = 'https://' + data.subdomain + '.viiv.me/pwa/?token=' + encodeURIComponent(data.access_token);
+      } else {
+        App.toast('สลับร้านไม่สำเร็จ');
+      }
+    } catch(e) { App.toast(e.message || 'สลับร้านไม่สำเร็จ'); }
+  },
+
+  showAdd() {
+    document.getElementById('shop-add-input').value = '';
+    document.getElementById('shop-add-err').textContent = '';
+    document.getElementById('shop-add-mask').classList.add('open');
+    setTimeout(() => document.getElementById('shop-add-input').focus(), 50);
+  },
+
+  closeAdd(e) {
+    // ปิดเฉพาะเมื่อกดที่ backdrop
+    if (e && e.target && e.target.id === 'shop-add-mask') {
+      this.closeAddForce();
+    }
+  },
+
+  closeAddForce() {
+    document.getElementById('shop-add-mask').classList.remove('open');
+  },
+
+  async saveAdd() {
+    const sd = (document.getElementById('shop-add-input').value || '').trim().toLowerCase();
+    const err = document.getElementById('shop-add-err');
+    err.textContent = '';
+    if (!sd) { err.textContent = 'กรุณาใส่ Shop ID'; return; }
+    const btn = document.getElementById('shop-add-save');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+    try {
+      const data = await App.api('/api/platform/join-shop', {
+        method:'POST', body: JSON.stringify({ subdomain: sd })
+      });
+      if (data && data.access_token) {
+        window.location.href = 'https://' + data.subdomain + '.viiv.me/pwa/?token=' + encodeURIComponent(data.access_token);
+      } else {
+        err.textContent = 'ตอบกลับจาก server ผิดรูปแบบ';
+      }
+    } catch(e) {
+      err.textContent = e.message || 'เกิดข้อผิดพลาด';
+    } finally {
+      btn.disabled = false; btn.textContent = 'บันทึก';
     }
   },
 };
@@ -214,5 +320,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dd) dd.style.display = 'none';
       Bell._open = false;
     }
+    // ปิด shop dropdown เมื่อคลิกนอก wrap — ยกเว้น popup เพิ่มสาขาเปิดอยู่
+    const popupOpen = document.getElementById('shop-add-mask')?.classList.contains('open');
+    if (!popupOpen && !e.target.closest('#tb-shop-wrap')) ShopSwitcher.close();
   });
 });

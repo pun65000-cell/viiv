@@ -146,16 +146,20 @@
 
 
   <div class="sb-shop-wrap">
-    <div class="sb-shop-btn" id="shopBtn" onclick="sbNav('shops')" title="จัดการร้านสาขา">
+    <div class="sb-shop-btn" id="shopBtn" onclick="toggleShopDD()">
       <div class="sb-shop-avatar" id="shopAvatar">S</div>
       <div>
         <div style="display:flex;align-items:center;gap:4px;">
           <span class="sb-shop-name" id="shopName">My Shop</span>
           <span class="sb-shop-star">★</span>
         </div>
-        <div class="sb-shop-sub">เปลี่ยนร้าน</div>
+        <div class="sb-shop-sub">เลือกร้าน</div>
       </div>
-      <span class="sb-shop-arrow">›</span>
+      <span class="sb-shop-arrow">▾</span>
+    </div>
+    <div class="sb-shop-dropdown" id="shopDropdown">
+      <div class="sb-dd-header">ร้านค้าของฉัน</div>
+      <div id="shopList"><div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div></div>
     </div>
   </div>
 
@@ -377,6 +381,7 @@ window.toggleBellDD = function(){
   var bd = document.getElementById('bellDropdown');
   if(bd) bd.classList.toggle('open');
   document.getElementById('profileDropdown').classList.remove('open');
+  document.getElementById('shopDropdown').classList.remove('open');
   checkBellDot();
 };
 window.markAllRead = function(){
@@ -384,31 +389,127 @@ window.markAllRead = function(){
   var dot = document.getElementById('bellDot');
   if(dot) dot.style.display='none';
 };
+window.toggleShopDD = function(){
+  document.getElementById('shopDropdown').classList.toggle('open');
+  document.getElementById('profileDropdown').classList.remove('open');
+};
 window.toggleProfileDD = function(){
   document.getElementById('profileDropdown').classList.toggle('open');
+  document.getElementById('shopDropdown').classList.remove('open');
 };
 function closeDD(){
+  document.getElementById('shopDropdown').classList.remove('open');
   document.getElementById('profileDropdown').classList.remove('open');
 }
 document.addEventListener('click', function(e){
-  if(!e.target.closest('.sb-profile-wrap')) closeDD();
+  // ไม่ปิด dropdown ถ้า popup เพิ่มสาขาเปิดอยู่ (popup ซ้อนบน dropdown)
+  var popupOpen = document.getElementById('shopAddMask')?.classList.contains('open');
+  if(!popupOpen && !e.target.closest('.sb-shop-wrap') && !e.target.closest('.sb-profile-wrap')) closeDD();
   if(!e.target.closest('.sb-top-actions')) document.getElementById('bellDropdown').classList.remove('open');
 });
 
-async function loadShops(){
+function escHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+window.switchShop = async function(subdomain){
+  var token = getToken();
+  if(!token) return;
   try{
-    var token = getToken();
-    var res = await fetch('/api/pos/store/settings', { headers: token?{'Authorization':'Bearer '+token}:{} });
-    if(!res.ok) return;
-    var shop = await res.json();
-    var name = shop.store_name||'My Shop';
-    document.getElementById('shopName').textContent = name;
-    if(shop.logo_url){
-      document.getElementById('shopAvatar').innerHTML='<img src="'+shop.logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:5px;">';
+    var res = await fetch('/api/platform/join-shop',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({subdomain: subdomain})
+    });
+    var data = await res.json();
+    if(res.ok && data.access_token){
+      window.location.href = 'https://'+data.subdomain+'.viiv.me/superboard/?token='+encodeURIComponent(data.access_token);
     } else {
-      document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
+      alert(data.detail || ('สลับร้านไม่สำเร็จ ('+res.status+')'));
+    }
+  }catch(e){ alert('ไม่สามารถเชื่อมต่อ server ได้'); }
+};
+
+window.openShopAdd = function(){
+  document.getElementById('shopAddInput').value = '';
+  document.getElementById('shopAddErr').textContent = '';
+  document.getElementById('shopAddMask').classList.add('open');
+  setTimeout(function(){ document.getElementById('shopAddInput').focus(); }, 50);
+};
+window.closeShopAdd = function(e){
+  if(e && e.target && e.target.id !== 'shopAddMask' && !e.target.closest('[data-close="shopadd"]')) return;
+  document.getElementById('shopAddMask').classList.remove('open');
+};
+window.saveShopAdd = async function(){
+  var sd = (document.getElementById('shopAddInput').value||'').trim().toLowerCase();
+  var err = document.getElementById('shopAddErr');
+  err.textContent = '';
+  if(!sd){ err.textContent = 'กรุณาใส่ Shop ID'; return; }
+  var btn = document.getElementById('shopAddSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  var token = getToken();
+  try{
+    var res = await fetch('/api/platform/join-shop',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({subdomain: sd})
+    });
+    var data = await res.json();
+    if(res.ok && data.access_token){
+      window.location.href = 'https://'+data.subdomain+'.viiv.me/superboard/?token='+encodeURIComponent(data.access_token);
+    } else {
+      err.textContent = data.detail || ('เกิดข้อผิดพลาด ('+res.status+')');
+    }
+  }catch(e){ err.textContent = 'ไม่สามารถเชื่อมต่อ server ได้'; }
+  finally{ btn.disabled = false; btn.textContent = 'บันทึก'; }
+};
+
+async function loadShops(){
+  var token = getToken();
+  if(!token) return;
+  // Active shop จาก current store settings (ชื่อ + logo บน topbar)
+  try{
+    var sres = await fetch('/api/pos/store/settings', { headers:{'Authorization':'Bearer '+token} });
+    if(sres.ok){
+      var shop = await sres.json();
+      var name = shop.store_name||'My Shop';
+      document.getElementById('shopName').textContent = name;
+      if(shop.logo_url){
+        document.getElementById('shopAvatar').innerHTML='<img src="'+shop.logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:5px;">';
+      } else {
+        document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
+      }
     }
   }catch(e){}
+  // Dropdown list — my-shops จริง
+  try{
+    var curTid = '';
+    try{
+      var b = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      var pad = b + '=='.slice((b.length%4)||4);
+      curTid = (JSON.parse(atob(pad))).tenant_id || '';
+    }catch(_){}
+    var lres = await fetch('/api/platform/my-shops', { headers:{'Authorization':'Bearer '+token} });
+    if(!lres.ok) throw new Error(lres.status);
+    var shops = await lres.json();
+    var html = (shops||[]).map(function(s){
+      var n = s.store_name||s.subdomain||'Shop';
+      var sd = s.subdomain||'';
+      var active = s.id===curTid ? ' active' : '';
+      var avatar = '<div style="width:22px;height:22px;border-radius:5px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--accent);flex-shrink:0">'+escHtml(n.charAt(0).toUpperCase())+'</div>';
+      return '<div class="sb-shop-dd-item'+active+'" onclick="switchShop(\''+escHtml(sd)+'\')">'+
+        avatar+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(n)+'</div>'+
+          '<div style="font-size:10px;color:var(--muted);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(sd)+'.viiv.me</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    html += '<div onclick="openShopAdd()" style="display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;border-top:1px solid var(--border);color:var(--accent);font-size:13px;font-weight:600;">'+
+      '<div style="width:22px;height:22px;border-radius:5px;background:var(--accent-dim);border:1px dashed var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);">+</div>'+
+      '<span>เพิ่มสาขา</span></div>';
+    document.getElementById('shopList').innerHTML = html;
+  }catch(e){
+    document.getElementById('shopList').innerHTML = '<div class="sb-shop-dd-item"><span>โหลดไม่สำเร็จ</span></div>';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -438,6 +539,27 @@ document.addEventListener('DOMContentLoaded', function(){
   window.viivApplyIcon = applyIcon;
 })();
 </script>
+
+<!-- ADD SHOP POPUP (ซ้อนบน dropdown) -->
+<div id="shopAddMask" onclick="closeShopAdd(event)"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:360px;padding:22px;box-shadow:0 12px 32px rgba(0,0,0,.25);font-family:'Sarabun',sans-serif;"
+       onclick="event.stopPropagation()">
+    <div style="font-size:1rem;font-weight:700;margin:0 0 12px;">เพิ่มสาขา</div>
+    <label style="display:block;font-size:12px;color:#888;margin-bottom:5px;">Shop ID (subdomain)</label>
+    <input id="shopAddInput" type="text" placeholder="เช่น testshop" autocomplete="off"
+           style="width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.12);border-radius:9px;font-size:14px;outline:none;box-sizing:border-box;background:#faf9f7;">
+    <div style="font-size:11px;color:#888;margin-top:6px;">ใส่ subdomain ของร้านที่ต้องการเข้าร่วม</div>
+    <div id="shopAddErr" style="font-size:12px;color:#d03030;margin-top:8px;min-height:16px;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button id="shopAddSaveBtn" onclick="saveShopAdd()"
+              style="flex:1;padding:10px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--accent,#c9a84c);background:var(--accent,#c9a84c);color:#1a1200;">บันทึก</button>
+      <button data-close="shopadd" onclick="closeShopAdd(event)"
+              style="flex:1;padding:10px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(0,0,0,.12);background:#fff;color:#1a1a1a;">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+<style>#shopAddMask.open{display:flex !important;}</style>
 
 <!-- PROFILE MODAL -->
 <div id="profileModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
