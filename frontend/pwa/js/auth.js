@@ -7,6 +7,18 @@
  *   4. ทุกส่วนของระบบอ่าน/เขียน token ผ่าน Auth เท่านั้น
  */
 
+// ── SSO: รับ token จาก URL param (ส่งจาก viiv.me/login.html cross-origin) ──
+// ต้องรันก่อน Auth.init() / getToken() ใดๆ — เพื่อให้ localStorage มี token
+// เคลียร์ออกจาก URL bar (กัน leak ผ่าน history/log/referrer)
+(function(){
+  var p = new URLSearchParams(location.search);
+  var t = p.get('token');
+  if (t) {
+    localStorage.setItem('viiv_token', t);
+    history.replaceState(null, '', location.pathname + '#home');
+  }
+})();
+
 const Auth = {
   _token: null,
   _key: 'viiv_token',

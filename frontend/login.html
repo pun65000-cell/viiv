@@ -119,9 +119,11 @@ function showShopPicker(shops){
 
 function goShop(subdomain){
   // ส่ง token ผ่าน URL param เพราะ localStorage แยก origin ต่อ subdomain
-  // (viiv.me กับ {sub}.viiv.me คนละ origin → SSO ต้อง pass token ข้ามไปเอง)
+  // detect device — มือถือไป /pwa/, PC ไป /superboard/
   var t = localStorage.getItem('platform_token') || '';
-  window.location.href = 'https://' + subdomain + '.viiv.me/superboard/?token=' + encodeURIComponent(t);
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  var path = isMobile ? '/pwa/' : '/superboard/';
+  window.location.href = 'https://' + subdomain + '.viiv.me' + path + '?token=' + encodeURIComponent(t);
 }
 
 async function doLogin() {
