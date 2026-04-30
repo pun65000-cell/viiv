@@ -302,6 +302,18 @@
 </div>
 
 <script>
+// ── SSO: รับ token จาก URL param (ส่งจาก viiv.me/login.html → cross-origin) ──
+// ต้องรันก่อนทุกอย่าง — ก่อน getToken / Auth.init / API call ใดๆ
+(function(){
+  var p = new URLSearchParams(location.search);
+  var t = p.get('token');
+  if (t) {
+    localStorage.setItem('viiv_token', t);
+    // เคลียร์ token ออกจาก URL bar (กัน leak ใน history/log/referrer)
+    history.replaceState(null, '', location.pathname + '#home');
+  }
+})();
+
 (function(){
 'use strict';
 var TOKEN_KEY = 'viiv_token';

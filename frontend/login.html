@@ -118,7 +118,10 @@ function showShopPicker(shops){
 }
 
 function goShop(subdomain){
-  window.location.href = 'https://' + subdomain + '.viiv.me/superboard/';
+  // ส่ง token ผ่าน URL param เพราะ localStorage แยก origin ต่อ subdomain
+  // (viiv.me กับ {sub}.viiv.me คนละ origin → SSO ต้อง pass token ข้ามไปเอง)
+  var t = localStorage.getItem('platform_token') || '';
+  window.location.href = 'https://' + subdomain + '.viiv.me/superboard/?token=' + encodeURIComponent(t);
 }
 
 async function doLogin() {
