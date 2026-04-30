@@ -1586,3 +1586,64 @@ FILES CHANGED:
   frontend/register/index.html                        (NEW symlink)
 
 Version: v1.56 | Updated: 2026-04-30
+
+---
+
+### [v1.57 COMPLETED — 2026-04-30] Subdomain Migration
+
+SUMMARY: แยก Platform / Shop ตาม subdomain ครบ — concore.viiv.me = Platform Dashboard,
+{subdomain}.viiv.me = Superboard ของร้านนั้น (PC), {subdomain}.viiv.me/pwa = PWA mobile,
+backend resolve tenant_id จาก Host header ผ่าน DB lookup
+
+CADDY (/etc/caddy/Caddyfile):
+- concore.viiv.me block: เหลือ root frontend/platform/ + try_files /dashboard.html + /api /admin /uploads
+  ลบ /platform/ /merchant/ /pwa/ ออก (concore = platform เท่านั้น)
+- *.viiv.me block: root frontend/, try_files /superboard/index.html (Superboard ที่ root)
+  + handle /pwa/* → root frontend/ + try_files /pwa/index.html (SPA routing PWA)
+  @reserved = concore, auth, www, viiv → respond 444
+  ลบ /merchant/ /superboard/ /modulpos/ /modulchat/ /modulepost/ (legacy)
+  abort → respond 444
+- ไฟล์เปลี่ยนผ่าน Caddyfile.new → sudo cp → caddy validate → reload
+
+BACKEND (app/main.py):
+- CORS: allow_origin_regex=r"https://([a-z0-9-]+\.)?viiv\.me$" แทน explicit list
+- inject_tenant middleware ใหม่:
+  - extract subdomain จาก Host header
+  - skip RESERVED_SUBDOMAINS = {concore, auth, www, api, owner, merchant, viiv}
+  - SELECT id FROM tenants WHERE subdomain = ? → tenant_id (cache process-level)
+  - fallback: X-Tenant header → ?tenant_id query → "default"
+
+SUPERBOARD (frontend/superboard/):
+- pages/connections.html: ลบ hardcode https://concore.viiv.me/api/line/webhook
+  → cnWebhookUrl() = window.location.origin + '/api/line/webhook' (per-shop)
+
+PWA (frontend/pwa/):
+- index.html: SW เปลี่ยนจาก unregister → register('/pwa/sw.js', {scope:'/pwa/'})
+- pages/more.js: PC = window.location.origin + '/superboard/pages/'
+                 Superboard Desktop link → window.location.origin + '/'
+- pages/line.js: webhookUrl = ${window.location.origin}/api/line/webhook?tenant=...
+- pages/pos.js:  catalog url = window.location.origin + '/catalog.html'
+
+TENANTS AUDIT:
+- 7/7 rows มี subdomain ครบ — ไม่ต้อง backfill
+- test7 → ten_1, testshop → ten_2, testshop2..4, 1133, 4455 → uuid
+
+SMOKE TEST (2026-04-30):
+- concore.viiv.me/                       → 200 (Platform dashboard.html)
+- concore.viiv.me/dashboard.html         → 200
+- test7.viiv.me/                         → 200 (Superboard)
+- test7.viiv.me/pwa/                     → 200 (PWA)
+- test7.viiv.me/superboard/index.html    → 200
+- _resolve_tenant_from_subdomain('test7') → 'ten_1' ✓
+- _resolve_tenant_from_subdomain('testshop2') → 'ten_b317...' ✓
+
+FILES CHANGED:
+  Caddyfile.new                                   (NEW staging — user sudo cp → /etc/caddy/Caddyfile)
+  app/main.py                                     (CORS regex + tenant resolver via DB)
+  frontend/superboard/pages/connections.html      (LINE webhook = window.location.origin)
+  frontend/pwa/index.html                         (SW register scope /pwa/)
+  frontend/pwa/pages/more.js                      (PC = origin/superboard/pages/, Desktop link)
+  frontend/pwa/pages/line.js                      (webhook URL hostname-based)
+  frontend/pwa/pages/pos.js                       (catalog URL hostname-based)
+
+Version: v1.57 | Updated: 2026-04-30

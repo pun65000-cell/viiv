@@ -205,7 +205,7 @@ body{font-family:'Sarabun',sans-serif;background:#f5f3ef;color:#1f2937;font-size
     <div class="cn-webhook">
       <div class="cn-webhook-label">Webhook URL (ตั้งใน LINE Console)</div>
       <div class="cn-webhook-row">
-        <span class="cn-webhook-url">https://concore.viiv.me/api/line/webhook</span>
+        <span class="cn-webhook-url" id="cnWebhookUrl"></span>
         <button class="cn-copy-btn" onclick="cnCopyWebhook(this)">Copy</button>
       </div>
     </div>
@@ -606,9 +606,16 @@ function cnFetchPendingUid(){
     }).catch(function(){alert('เชื่อมต่อไม่ได้');});
 }
 
+// ── Webhook URL (per-shop subdomain) ──
+function cnWebhookUrl(){ return window.location.origin + '/api/line/webhook'; }
+(function(){
+  var el = document.getElementById('cnWebhookUrl');
+  if(el) el.textContent = cnWebhookUrl();
+})();
+
 // ── Copy webhook ──
 function cnCopyWebhook(btn){
-  navigator.clipboard.writeText('https://concore.viiv.me/api/line/webhook').then(function(){
+  navigator.clipboard.writeText(cnWebhookUrl()).then(function(){
     var orig=btn.textContent; btn.textContent='✓ copied';
     setTimeout(function(){btn.textContent=orig;},1500);
   });

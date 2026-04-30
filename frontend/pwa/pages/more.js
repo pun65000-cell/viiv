@@ -9,7 +9,7 @@
     destroy() {}
   });
 
-  const PC = 'https://concore.viiv.me/superboard/pages/';
+  const PC = window.location.origin + '/superboard/pages/';
 
   const SECTIONS = [
     {
@@ -53,7 +53,7 @@
       label: 'บัญชีของฉัน',
       items: [
         { icon: '⚙',  label: 'แก้ไขโปรไฟล์',     sub: 'ชื่อ, รูป, รหัสผ่าน',           action: 'profile' },
-        { icon: '💻',  label: 'Superboard Desktop', sub: 'เปิดหน้า Desktop เต็มรูปแบบ',  url: 'https://concore.viiv.me/superboard/' },
+        { icon: '💻',  label: 'Superboard Desktop', sub: 'เปิดหน้า Desktop เต็มรูปแบบ',  url: window.location.origin + '/' },
         { icon: '⏻',  label: 'ออกจากระบบ',        sub: 'Sign out จากทุกอุปกรณ์',        action: 'logout', danger: true },
       ]
     }

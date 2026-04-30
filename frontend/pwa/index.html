@@ -308,9 +308,7 @@ function closeSheet() {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
+  navigator.serviceWorker.register('/pwa/sw.js', { scope: '/pwa/' }).catch(() => {});
 }
 </script>
   <script src="/pwa/pages/finance.js?v=6699"></script>

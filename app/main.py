@@ -43,12 +43,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://viiv.me",
-        "https://www.viiv.me",
-        "https://merchant.viiv.me",
-        "https://concore.viiv.me"
-    ],
+    allow_origin_regex=r"https://([a-z0-9-]+\.)?viiv\.me$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -80,17 +75,38 @@ app.add_middleware(
 
 # DevAuthMiddleware removed — was injecting fake auth on every request
 
+RESERVED_SUBDOMAINS = {"concore", "auth", "www", "api", "owner", "merchant", "viiv"}
+_subdomain_tenant_cache: dict[str, str | None] = {}
+
+def _resolve_tenant_from_subdomain(subdomain: str) -> str | None:
+    if subdomain in _subdomain_tenant_cache:
+        return _subdomain_tenant_cache[subdomain]
+    try:
+        from app.core.db import SessionLocal
+        from sqlalchemy import text as _sql_text
+        with SessionLocal() as db:
+            row = db.execute(
+                _sql_text("SELECT id FROM tenants WHERE subdomain = :s LIMIT 1"),
+                {"s": subdomain},
+            ).first()
+            tid = row[0] if row else None
+    except Exception:
+        tid = None
+    _subdomain_tenant_cache[subdomain] = tid
+    return tid
+
 @app.middleware("http")
 async def inject_tenant(request: Request, call_next):
     tenant_id = None
 
-    host = request.headers.get("host")
+    host = request.headers.get("host", "")
     if host:
-        host = host.split(":")[0]
-    if host and "viiv.me" in host:
+        host = host.split(":")[0].lower()
+
+    if host.endswith(".viiv.me"):
         subdomain = host.split(".")[0]
-        if subdomain:
-            tenant_id = subdomain
+        if subdomain and subdomain not in RESERVED_SUBDOMAINS:
+            tenant_id = _resolve_tenant_from_subdomain(subdomain)
 
     if not tenant_id:
         tenant_id = request.headers.get("X-Tenant")

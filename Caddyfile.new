@@ -1,0 +1,120 @@
+# =========================
+# MAIN DOMAIN
+# =========================
+auth.viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+	reverse_proxy localhost:8000
+}
+
+viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+	handle_path /auth/* {
+		reverse_proxy localhost:8000
+	}
+	handle_path /api/* {
+		reverse_proxy localhost:9000
+	}
+	handle_path /admin/* {
+		root * /home/viivadmin/viiv/frontend/admin
+		file_server
+	}
+	handle {
+		root * /home/viivadmin/viiv/frontend
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+merchant.viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8000
+	}
+	root * /home/viivadmin/viiv/modules/pos/merchant/ui/dashboard
+	header Cache-Control "no-store, no-cache, must-revalidate"
+	file_server
+}
+
+owner.viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+	root * /home/viivadmin/viiv/frontend/owner
+	file_server
+}
+
+api.viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+	reverse_proxy localhost:8000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_down Access-Control-Allow-Origin "https://viiv.me"
+		header_down Access-Control-Allow-Methods "GET, POST, OPTIONS"
+		header_down Access-Control-Allow-Headers "*"
+		header_down Access-Control-Allow-Credentials "true"
+	}
+}
+
+# =========================
+# PLATFORM DASHBOARD (concore.viiv.me)
+# =========================
+concore.viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+
+	handle /api/* {
+		reverse_proxy localhost:8000
+	}
+	handle /admin/* {
+		reverse_proxy localhost:8000
+	}
+	handle /uploads/* {
+		root * /home/viivadmin/viiv
+		header Cache-Control "no-store"
+		file_server
+	}
+
+	# Platform Dashboard เท่านั้น (root)
+	handle {
+		root * /home/viivadmin/viiv/frontend/platform
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		try_files {path} /dashboard.html
+		file_server
+	}
+}
+
+# =========================
+# SHOP (WILDCARD: {subdomain}.viiv.me)
+# =========================
+*.viiv.me {
+	tls /etc/caddy/viiv.me.pem /etc/caddy/viiv.me.key
+
+	@reserved host concore.viiv.me auth.viiv.me www.viiv.me viiv.me
+	handle @reserved {
+		respond 444
+	}
+
+	handle /api/* {
+		reverse_proxy localhost:8000
+	}
+
+	handle /uploads/* {
+		root * /home/viivadmin/viiv
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
+
+	# PWA mobile — root ที่ frontend/ (ไม่ strip prefix, assets อ้าง /pwa/* แบบ absolute)
+	# try_files fallback ไป /pwa/index.html สำหรับ SPA routing ภายใน PWA
+	handle /pwa/* {
+		root * /home/viivadmin/viiv/frontend
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		try_files {path} /pwa/index.html
+		file_server
+	}
+
+	# Superboard (PC) — root
+	handle {
+		root * /home/viivadmin/viiv/frontend
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		try_files {path} /superboard/index.html
+		file_server
+	}
+}

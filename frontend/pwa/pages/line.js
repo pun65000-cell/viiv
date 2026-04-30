@@ -32,7 +32,7 @@
   /* ─────────────────────── HTML ─────────────────────── */
   function _html() {
     const d = _data;
-    const webhookUrl = `https://concore.viiv.me/api/line/webhook?tenant=${_tid}`;
+    const webhookUrl = `${window.location.origin}/api/line/webhook?tenant=${_tid}`;
     const oaId = d.oa_id || '';
     const token = d.channel_token || '';
     const secret = d.channel_secret || '';

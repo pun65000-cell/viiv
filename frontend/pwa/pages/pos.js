@@ -931,7 +931,7 @@
 
   function _openCatalog() {
     if (document.getElementById('viiv-catalog-overlay')) return;
-    const url = 'https://concore.viiv.me/catalog.html';
+    const url = window.location.origin + '/catalog.html';
     const ov = document.createElement('div');
     ov.id = 'viiv-catalog-overlay';
     ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;display:flex;flex-direction:column;background:var(--bg)';
