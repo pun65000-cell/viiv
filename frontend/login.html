@@ -97,18 +97,21 @@ function checkForm() {
 }
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// memory-only credentials cache for multi-shop re-POST (never persisted)
+var _creds = { email: '', password: '' };
+
 function showShopPicker(shops){
   var list = document.getElementById('shopList');
   list.innerHTML = shops.map(function(s){
     var initial = (s.store_name||'?').charAt(0).toUpperCase();
-    return '<button type="button" onclick="goShop(\''+escHtml(s.subdomain)+'\')" '+
+    return '<button type="button" onclick="pickShop(\''+escHtml(s.tenant_id)+'\')" '+
       'style="display:flex;align-items:center;gap:12px;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;text-align:left;transition:border-color .15s,background .15s;" '+
       'onmouseover="this.style.borderColor=\'var(--accent)\';this.style.background=\'#fffdf5\'" '+
       'onmouseout="this.style.borderColor=\'rgba(0,0,0,0.10)\';this.style.background=\'#fff\'">'+
       '<div style="width:32px;height:32px;border-radius:8px;background:var(--accent);color:#1a1200;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">'+escHtml(initial)+'</div>'+
       '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(s.store_name||s.subdomain)+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+escHtml(s.subdomain)+'.viiv.me · '+escHtml(s.status||'')+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);font-family:monospace">'+escHtml(s.subdomain)+'.viiv.me · '+escHtml(s.role||'')+'</div>'+
       '</div>'+
       '<div style="color:var(--accent);font-size:14px">›</div>'+
     '</button>';
@@ -117,13 +120,31 @@ function showShopPicker(shops){
   document.getElementById('shopPicker').style.display = 'block';
 }
 
-function goShop(subdomain){
+function goShop(subdomain, token){
   // ส่ง token ผ่าน URL param เพราะ localStorage แยก origin ต่อ subdomain
   // detect device — มือถือไป /pwa/, PC ไป /superboard/
-  var t = localStorage.getItem('platform_token') || '';
   var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   var path = isMobile ? '/pwa/' : '/superboard/';
-  window.location.href = 'https://' + subdomain + '.viiv.me' + path + '?token=' + encodeURIComponent(t);
+  window.location.href = 'https://' + subdomain + '.viiv.me' + path + '?token=' + encodeURIComponent(token||'');
+}
+
+async function pickShop(tenantId){
+  // user เลือกร้าน → re-POST /api/staff/login พร้อม tenant_id เพื่อรับ token ของร้านนั้น
+  var msg = document.getElementById('msg');
+  msg.className='msg ok'; msg.textContent='กำลังเข้าร้าน...';
+  try {
+    var res = await fetch('/api/staff/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email:_creds.email, password:_creds.password, tenant_id:tenantId})
+    });
+    if (res.ok) {
+      var data = await res.json();
+      _creds = { email:'', password:'' };  // clear immediately
+      goShop(data.subdomain, data.access_token);
+    } else {
+      msg.className='msg'; msg.textContent='เข้าร้านไม่สำเร็จ ('+res.status+')';
+    }
+  } catch(e) { msg.className='msg'; msg.textContent='ไม่สามารถเชื่อมต่อ server ได้'; }
 }
 
 async function doLogin() {
@@ -134,23 +155,23 @@ async function doLogin() {
   msg.textContent=''; msg.className='msg';
   btn.disabled=true; btn.textContent='กำลังเข้าสู่ระบบ...';
   try {
-    var res = await fetch('/api/platform/login', {
+    var res = await fetch('/api/staff/login', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({email, password})
     });
     if (res.ok) {
       var data = await res.json();
-      localStorage.setItem('platform_token', data.access_token);
-      var shops = data.shops || [];
-      if (shops.length === 1) {
-        msg.className='msg ok'; msg.textContent='✅ สำเร็จ กำลังเข้าร้าน...';
-        setTimeout(()=>{ goShop(shops[0].subdomain); }, 300);
-      } else if (shops.length > 1) {
+      if (data.status === 'select_shop') {
+        // หลายร้าน — เก็บ creds ไว้ในหน่วยความจำเพื่อ re-POST ตอนเลือกร้าน
+        _creds = { email: email, password: password };
         msg.className='msg ok'; msg.textContent='เลือกร้านที่ต้องการเข้า';
-        showShopPicker(shops);
+        showShopPicker(data.shops || []);
+      } else if (data.access_token) {
+        // ร้านเดียว — ออก token แล้ว
+        msg.className='msg ok'; msg.textContent='✅ สำเร็จ กำลังเข้าร้าน...';
+        setTimeout(()=>{ goShop(data.subdomain, data.access_token); }, 300);
       } else {
-        msg.className='msg ok'; msg.textContent='ยังไม่มีร้าน — ไปหน้าสมัคร';
-        setTimeout(()=>{ window.location.href='/register.html'; }, 400);
+        msg.textContent='ตอบกลับจาก server ผิดรูปแบบ';
       }
     } else if (res.status===401 || res.status===404) {
       msg.textContent='อีเมลหรือรหัสผ่านไม่ถูกต้อง';

@@ -247,8 +247,8 @@ window.fetch = async function(input, init){
     if (url.includes('/api/') && !url.includes('/api/platform/me')) {
       _redirecting = true;
       localStorage.removeItem('platform_token');
-      if (!window.location.pathname.includes('login.html')) {
-        window.location.href = '/platform/login.html';
+      if (!window.location.pathname.includes('signin.html')) {
+        window.location.href = '/platform/signin.html';
       }
     }
   }
@@ -257,7 +257,7 @@ window.fetch = async function(input, init){
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 function getToken(){ return localStorage.getItem('platform_token')||''; }
-function doLogout(){ if(confirm('ออกจากระบบ?')){ localStorage.removeItem('platform_token'); window.location.href='/platform/login.html'; } }
+function doLogout(){ if(confirm('ออกจากระบบ?')){ localStorage.removeItem('platform_token'); window.location.href='/platform/signin.html'; } }
 window.platformToken = getToken;
 
 // ─── Page Loader (error-isolated per page) ───────────────────────────────────
@@ -380,7 +380,7 @@ window.addEventListener('hashchange', routeHash);
 // validate token จริงผ่าน /api/platform/me ก่อน routeHash — กัน flicker dashboard ตอน token เสีย
 document.addEventListener('DOMContentLoaded', async () => {
   const t = getToken();
-  if (!t) { window.location.href = '/platform/login.html'; return; }
+  if (!t) { window.location.href = '/platform/signin.html'; return; }
   try {
     // ใช้ _origFetch ตรงๆ ไม่ผ่าน interceptor (ไม่งั้น 401 ที่นี่จะ redirect ตัวเอง)
     const r = await _origFetch('/api/platform/me', {
@@ -388,11 +388,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     if (!r.ok) {
       localStorage.removeItem('platform_token');
-      window.location.href = '/platform/login.html';
+      window.location.href = '/platform/signin.html';
       return;
     }
   } catch (e) {
-    window.location.href = '/platform/login.html';
+    window.location.href = '/platform/signin.html';
     return;
   }
   routeHash();

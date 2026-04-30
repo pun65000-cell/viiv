@@ -195,7 +195,7 @@ async function savePassword() {
       setTimeout(() => {
         toast.remove();
         localStorage.removeItem('platform_token');
-        window.location.href = '/platform/login.html';
+        window.location.href = '/platform/signin.html';
       }, 2500);
     } else if (res.status === 401) {
       msg.textContent = 'รหัสผ่านเดิมไม่ถูกต้อง';

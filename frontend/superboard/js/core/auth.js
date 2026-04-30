@@ -7,7 +7,7 @@ export function sbGetToken() {
 
 export function sbRequireAuth() {
   if (!localStorage.getItem(SB_TOKEN_KEY)) {
-    window.location.href = '/platform/login.html';
+    window.location.href = '/platform/signin.html';
     return false;
   }
   return true;
@@ -15,7 +15,7 @@ export function sbRequireAuth() {
 
 export function sbLogout() {
   localStorage.removeItem(SB_TOKEN_KEY);
-  window.location.href = '/platform/login.html';
+  window.location.href = '/platform/signin.html';
 }
 
 export function sbAuthHeader() {

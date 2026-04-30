@@ -93,7 +93,8 @@ def staff_login(payload: dict, request: Request):
         if tenant_id:
             rows = c.execute(
                 text("""SELECT s.id, s.first_name, s.last_name, s.role,
-                               s.hashed_password, s.tenant_id, t.store_name
+                               s.hashed_password, s.tenant_id,
+                               t.store_name, t.subdomain
                         FROM tenant_staff s
                         LEFT JOIN tenants t ON t.id = s.tenant_id
                         WHERE s.email=:email AND s.tenant_id=:tid
@@ -103,7 +104,8 @@ def staff_login(payload: dict, request: Request):
         else:
             rows = c.execute(
                 text("""SELECT s.id, s.first_name, s.last_name, s.role,
-                               s.hashed_password, s.tenant_id, t.store_name
+                               s.hashed_password, s.tenant_id,
+                               t.store_name, t.subdomain
                         FROM tenant_staff s
                         LEFT JOIN tenants t ON t.id = s.tenant_id
                         WHERE s.email=:email AND s.is_active=true"""),
@@ -127,6 +129,7 @@ def staff_login(payload: dict, request: Request):
                 {
                     "tenant_id":  r.tenant_id,
                     "store_name": r.store_name or r.tenant_id,
+                    "subdomain":  r.subdomain or r.tenant_id,
                     "role":       r.role,
                 }
                 for r in valid
@@ -156,6 +159,8 @@ def staff_login(payload: dict, request: Request):
         "role": row.role,
         "name": name,
         "tenant_id": resolved_tid,
+        "subdomain": row.subdomain or resolved_tid,
+        "store_name": row.store_name or resolved_tid,
     }
 
 
@@ -184,7 +189,7 @@ def platform_login(payload: dict, request: Request):
 
     with _db_engine.connect() as c:
         user = c.execute(
-            text("SELECT id, email, full_name, hashed_password, is_active FROM platform_users WHERE email=:e"),
+            text("SELECT id, email, full_name, hashed_password, is_active FROM viiv_accounts WHERE email=:e"),
             {"e": email},
         ).fetchone()
 

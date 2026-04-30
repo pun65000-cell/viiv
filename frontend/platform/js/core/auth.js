@@ -3,10 +3,10 @@
 // ใช้ใน dashboard.html และทุก page ที่ต้อง login
 
 const TOKEN_KEY = 'platform_token';
-const LOGIN_PATH = '/platform/login.html';
+const LOGIN_PATH = '/platform/signin.html';
 
 function isLoginPage() {
-  return window.location.pathname.includes('login.html');
+  return window.location.pathname.includes('signin.html');
 }
 
 /**
@@ -18,7 +18,7 @@ export function getToken() {
 
 /**
  * ตรวจสอบว่า login อยู่หรือไม่
- * ถ้าไม่ login → redirect ไป /platform/login.html (เว้นว่าอยู่ที่ login page อยู่แล้ว)
+ * ถ้าไม่ login → redirect ไป /platform/signin.html (เว้นว่าอยู่ที่ login page อยู่แล้ว)
  * return true ถ้า login อยู่
  */
 export function requireAuth() {

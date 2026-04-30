@@ -314,7 +314,7 @@ def list_tokens(authorization: str = Header("")):
                    tsl.created_at AS last_seen,
                    pu.email
             FROM token_security_log tsl
-            LEFT JOIN platform_users pu ON pu.id = tsl.user_id
+            LEFT JOIN viiv_accounts pu ON pu.id = tsl.user_id
             ORDER BY tsl.created_at DESC
         """)).fetchall()
     result = []
