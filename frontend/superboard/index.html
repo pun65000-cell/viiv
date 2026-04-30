@@ -463,7 +463,6 @@ window.closeShopAdd = function(e){
   document.getElementById('shopAddMask').classList.remove('open');
 };
 window.saveShopAdd = async function(){
-  console.log('[saveShopAdd] start');
   var btn = document.getElementById('shopAddSaveBtn');
   var err = document.getElementById('shopAddErr');
   try {
@@ -472,7 +471,6 @@ window.saveShopAdd = async function(){
     if(!sd){ if(err) err.textContent = 'กรุณาใส่ Shop ID'; return; }
     if(btn){ btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
     var token = getToken();
-    console.log('[saveShopAdd] POST /join-shop', sd, 'token?', !!token);
     var res = await fetch('/api/platform/join-shop',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -480,18 +478,16 @@ window.saveShopAdd = async function(){
     });
     var data = {};
     try { data = await res.json(); } catch(_) {}
-    console.log('[saveShopAdd] resp', res.status, data);
     if(res.ok){
       document.getElementById('shopAddMask').classList.remove('open');
       sbToast('✅ เพิ่มร้านสำเร็จ', true);
-      try { await loadShopList(); } catch(e2){ console.error('[saveShopAdd] loadShopList err', e2); }
+      try { await loadShopList(); } catch(_) {}
     } else {
       var msg = (data && data.detail) || ('เกิดข้อผิดพลาด ('+res.status+')');
       if(err) err.textContent = msg;
       sbToast('❌ ' + msg, false);
     }
   } catch(e) {
-    console.error('[saveShopAdd] exception', e);
     if(err) err.textContent = 'ไม่สามารถเชื่อมต่อ server ได้: ' + (e.message||e);
     sbToast('❌ ' + (e.message || 'ไม่สามารถเชื่อมต่อ'), false);
   } finally {
@@ -521,9 +517,7 @@ async function loadShopBadge(){
 async function loadShopList(){
   var token = getToken();
   var listEl = document.getElementById('shopList');
-  console.log('[loadShopList] token?', !!token, 'listEl?', !!listEl);
-  if(!token){ console.warn('[loadShopList] no token'); return; }
-  if(!listEl){ console.warn('[loadShopList] no shopList element'); return; }
+  if(!token || !listEl) return;
   listEl.innerHTML = '<div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div>';
   try{
     var curTid = '';
@@ -533,10 +527,8 @@ async function loadShopList(){
       curTid = (JSON.parse(atob(pad))).tenant_id || '';
     }catch(_){}
     var lres = await fetch('/api/platform/my-shops', { headers:{'Authorization':'Bearer '+token} });
-    console.log('[loadShopList] HTTP', lres.status);
     if(!lres.ok) throw new Error('HTTP '+lres.status);
     var shops = await lres.json();
-    console.log('[loadShopList] shops:', shops);
     var items = (shops||[]).map(function(s){
       var n = s.store_name||s.subdomain||'Shop';
       var sd = s.subdomain||'';
@@ -558,12 +550,10 @@ async function loadShopList(){
       '<div style="width:22px;height:22px;border-radius:5px;background:var(--accent-dim);border:1px dashed var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);">+</div>'+
       '<span>เพิ่มสาขา</span></div>';
     listEl.innerHTML = html;
-    console.log('[loadShopList] rendered', (shops||[]).length, 'shops, html chars:', html.length);
     // Force dropdown open หลัง refresh (UX: หลัง save user ควรเห็นร้านใหม่ทันที)
     var dd = document.getElementById('shopDropdown');
     if(dd) dd.classList.add('open');
   }catch(e){
-    console.error('[loadShopList] error', e);
     listEl.innerHTML = '<div class="sb-shop-dd-item"><span>โหลดไม่สำเร็จ — '+escHtml(e.message||'')+'</span></div>';
   }
 }
@@ -585,7 +575,6 @@ document.addEventListener('DOMContentLoaded', function(){
   // Enter key in input → save
   var input = document.getElementById('shopAddInput');
   if(input) input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); saveShopAdd(); } });
-  console.log('[shop popup] bindings attached', {saveBtn:!!saveBtn, cancelBtn:!!cancelBtn, mask:!!mask, input:!!input});
 });
 })();
 </script>

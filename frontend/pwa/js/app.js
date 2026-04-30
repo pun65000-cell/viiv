@@ -264,7 +264,6 @@ window.ShopSwitcher = {
   },
 
   async saveAdd() {
-    console.log('[ShopSwitcher.saveAdd] start');
     const btn = document.getElementById('shop-add-save');
     const err = document.getElementById('shop-add-err');
     try {
@@ -278,16 +277,13 @@ window.ShopSwitcher = {
       if (err) err.textContent = '';
       if (!sd) { if (err) err.textContent = 'กรุณาใส่ Shop ID'; return; }
       if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
-      console.log('[ShopSwitcher.saveAdd] POST /join-shop', sd);
-      const data = await App.api('/api/platform/join-shop', {
+      await App.api('/api/platform/join-shop', {
         method:'POST', body: JSON.stringify({ subdomain: sd })
       });
-      console.log('[ShopSwitcher.saveAdd] resp', data);
       this.closeAddForce();
       App.toast('✅ เพิ่มร้านสำเร็จ');
-      try { await this._render(); } catch(e2){ console.error('[saveAdd] _render err', e2); }
+      try { await this._render(); } catch(_){}
     } catch(e) {
-      console.error('[ShopSwitcher.saveAdd] exception', e);
       const msg = (e && e.message) || 'เกิดข้อผิดพลาด';
       if (err) err.textContent = msg;
       App.toast('❌ ' + msg);

@@ -28,9 +28,8 @@
   function _clearTimers() { _timers.forEach(clearInterval); _timers = []; }
 
   async function _reload() {
-    console.log('[home._reload] start');
     const c = document.getElementById('page-container');
-    if (!c) { console.error('[home._reload] no page-container'); return; }
+    if (!c) return;
     c.innerHTML = _skeleton();
     const data = {};
     try {
@@ -39,7 +38,6 @@
         App.api('/api/pos/affiliate/summary'),
         App.api('/api/pos/bills/list?limit=100'),
       ]);
-      console.log('[home._reload] fetch status:', posR.status, affR.status, billsR.status);
       if (_destroyed) return;
       if (posR.status === 'fulfilled') {
         const d = posR.value || {};
@@ -47,14 +45,14 @@
         data.month_sales   = d.revenue_month || 0;
         data.month_orders  = d.orders_month  || 0;
         data.staff_online  = d.staff_online  || 0;
-      } else { console.warn('[home._reload] dashboard failed:', posR.reason?.message); }
+      }
       if (affR.status === 'fulfilled') {
         const d = affR.value || {};
         data.aff_clicks_today     = d.clicks_today     || 0;
         data.aff_clicks_month     = d.clicks_month     || 0;
         data.aff_commission_month = d.commission_month || 0;
         data.aff_commission_rate  = d.commission_rate  || 0;
-      } else { console.warn('[home._reload] affiliate failed:', affR.reason?.message); }
+      }
       if (billsR.status === 'fulfilled') {
         const body = billsR.value || [];
         const list = body.data || body || [];
@@ -62,23 +60,18 @@
         data.today_sales = list.reduce((s,b) =>
           (b.status==='paid' && (b.created_at||'').slice(0,10)===today)
             ? s + parseFloat(b.total||0) : s, 0);
-      } else { console.warn('[home._reload] bills failed:', billsR.reason?.message); }
-    } catch(e) {
-      console.error('[home._reload] fetch exception:', e);
-    }
+      }
+    } catch(_) {}
     // Render — ใส่ try/catch กัน template error ทำให้หน้าว่าง
     try {
-      const html = _html(data);
-      c.innerHTML = html;
-      console.log('[home._reload] rendered, html chars:', html.length);
+      c.innerHTML = _html(data);
     } catch(e) {
-      console.error('[home._reload] _html error:', e);
       c.innerHTML = '<div style="padding:40px;text-align:center;color:#888"><div style="font-size:32px;margin-bottom:8px">⚠</div><div>โหลดหน้าโฮมไม่สำเร็จ</div><div style="font-size:11px;margin-top:8px;color:#aaa">'+(e.message||'')+'</div><button onclick="Router.go(\'home\')" style="margin-top:12px;padding:8px 16px;border:0;border-radius:8px;background:#C9A84C;color:#1a1200;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
       return;
     }
-    try { _startTickers(); } catch(e){ console.error('[home] tickers err', e); }
-    try { _startClock(); } catch(e){ console.error('[home] clock err', e); }
-    try { _loadPlatformStatus(); } catch(e){ console.error('[home] platform err', e); }
+    try { _startTickers(); } catch(_){}
+    try { _startClock(); } catch(_){}
+    try { _loadPlatformStatus(); } catch(_){}
   }
 
   function _skeleton() {
