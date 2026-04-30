@@ -115,7 +115,8 @@
 #sbContent th { font-size: 13px !important; }
 #sbContent .pos-tab, #sbContent .pos-sub-tab { font-size: 13px !important; }
 
-
+/* iframe โมดูล (POS, etc.) ใช้ position:absolute inset:0 → ต้องมี relative parent */
+#sbContent { position: relative; }
 </style>
 </head>
 <body>
@@ -324,17 +325,22 @@ window.sbNav = function(page){
 window.switchMod = function(mod, btn){
   document.querySelectorAll('.sb-topnav-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  var modUrls = {
-    pos:      '/modules/pos/merchant/ui/dashboard/dashboard.html',
-    chat:     '/superboard/pages/chat.html',
-    autopost: '/superboard/pages/autopost.html'
-  };
-  var url = modUrls[mod];
-  if(!url) return;
   var c = document.getElementById('sbContent');
   c.classList.remove('home-fullscreen');
-  // โหลดด้วย iframe เต็มพื้นที่ — POS dashboard เป็น standalone app ไม่ใช่ SPA page
-  c.innerHTML = '<iframe src="' + url + '" style="width:100%;height:100%;border:none;display:block;" allowfullscreen></iframe>';
+  var modUrls = {
+    pos: '/modules/pos/merchant/ui/dashboard/dashboard.html'
+  };
+  if(modUrls[mod]){
+    // iframe เต็มพื้นที่ — ต้องการ #sbContent { position:relative }
+    c.innerHTML = '<iframe src="' + modUrls[mod] + '" style="position:absolute;inset:0;width:100%;height:100%;border:none;" allowfullscreen></iframe>';
+  } else {
+    // chat / autopost ยังไม่มี — แสดง coming soon
+    c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;color:#888">'
+      + '<div style="font-size:48px">🚧</div>'
+      + '<div style="font-size:20px;font-weight:600">' + mod + ' — Coming Soon</div>'
+      + '<div style="font-size:14px">อยู่ระหว่างพัฒนา</div>'
+      + '</div>';
+  }
 };
 
 function checkBellDot(){
