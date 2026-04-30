@@ -1880,3 +1880,187 @@ FILES CHANGED:
                                      <meta name="referrer" no-referrer>)
 
 Version: v1.59 | Updated: 2026-04-30
+
+
+## [J] EOD 2026-04-30 — Auth/Identity Rename + Switch-Shop + Dashboard Cards
+
+SUMMARY
+- Rename DB table platform_users → viiv_accounts (FK refs preserved)
+- Rename frontend file platform/login.html → platform/signin.html (8 ลิงก์)
+- viiv.me/login.html: /api/platform/login → /api/staff/login (เดิมผิดตาราง)
+- Switch Shop dropdown + Join Shop popup (PC superboard + PWA mobile)
+- POS Dashboard + Affiliate cards แสดงข้อมูลจริง (PC + PWA)
+- register_shop provision viiv_accounts + tenant_staff + tenants.owner_id
+- /my-shops, /join-shop, _admin_auth, _decode_user รองรับ JWT 2 shapes
+- POS Affiliate tab CSS + LINE webhook URL ตาม subdomain
+- Caddyfile: 3 patches (viiv.me api port, signin redirect, /merchant/* handler)
+
+KEY FIXES (theme groups)
+
+1. AUTH/IDENTITY RENAME
+   - DB: ALTER TABLE platform_users RENAME TO viiv_accounts
+   - Code refs: app/api/login.py, app/api/platform_connections.py
+   - File rename: frontend/platform/login.html → signin.html
+   - URL refs: superboard/js/core/auth.js, platform/{dashboard.html,
+     pages/settings.html, js/core/auth.js} (incl. pathname.includes guard)
+
+2. PWA LOGIN ENDPOINT
+   - viiv.me/login.html: เปลี่ยน fetch /api/platform/login → /api/staff/login
+   - /api/staff/login response: เพิ่ม subdomain + store_name (single + multi-shop)
+   - Multi-shop: cache email/pass in memory แล้ว re-POST + tenant_id
+   - Caddy viiv.me block: /api/* port 9000 → 8000 + handle (ไม่ใช่ handle_path)
+
+3. SWITCH SHOP / JOIN SHOP (PC + PWA)
+   - Backend: POST /api/platform/join-shop, DELETE /api/platform/my-shops/{tid}
+   - Dropdown ใน topbar (revert full-page approach)
+   - คลิกร้าน → /join-shop + redirect subdomain
+   - "+ เพิ่มสาขา" → popup overlay เล็ก (ไม่ใช่ inline form)
+   - Save → ปิด popup + refresh dropdown + toast (ไม่ redirect)
+   - Input strip: /^https?:\/\// + /\.viiv\.me.*$/ + /\/.*$/ → subdomain ล้วน
+   - PC popup: addEventListener (เลี่ยง onclick attribute), id-based bindings
+   - getToken() fallback: viiv_token → platform_token
+
+4. DASHBOARD CARDS (POS + AFFILIATE)
+   - GET /api/pos/dashboard/summary: orders_today, revenue_month, orders_month,
+     staff_online (count tenant_staff last_seen ภายใน 60 นาที)
+   - GET /api/pos/affiliate/summary: clicks_today/month, commission_month
+     (JOIN affiliate_products), commission_rate (AVG percent active)
+   - PC superboard/dashboard/app.js: parallel /summary fetch + renderAff()
+   - PWA pwa/pages/home.js: Promise.allSettled + Staff Online แทน "สต็อกใกล้หมด"
+
+5. AUTH PERMISSIVENESS
+   - _admin_auth: รับ {user_id, email} เพิ่ม (เดิม tenant_id|sub|admin role เท่านั้น)
+     → connections page ไม่เด้ง login สำหรับ token เก่า
+   - _decode_user: 3-step lookup
+     1) tenant_staff WHERE id=sub             (staff-login token)
+     2) tenant_staff WHERE email=jwt.email    (platform-login + provisioned)
+     3) viiv_accounts WHERE id=sub             (fallback SimpleNamespace adapter)
+   - /api/platform/login: เพิ่ม sub field ใน token_payload (JWT convention)
+   - /api/platform/my-shops: ถ้า JWT ไม่มี email → ดึงจาก tenant_staff
+     หา owner_uid (pfu) จาก viiv_accounts WHERE email
+     → ใช้งานได้ทั้ง platform-login (sub=pfu) + staff-login (sub=stf)
+
+6. REGISTER SHOP PROVISION
+   - register_shop เดิมสร้างเฉพาะ users + tenants → login ทั้ง 2 endpoint หาไม่เจอ
+   - แก้: หลัง create_tenant เพิ่ม 3 ขั้นในทรานแซคชันเดียว
+     1) INSERT viiv_accounts (id=pfu_*, email, hashed_pw) ON CONFLICT update
+     2) UPDATE tenants SET owner_id = viiv_accounts.id
+     3) INSERT tenant_staff (role='owner', user_id=link, hashed_pw เดียวกัน)
+   - bcrypt hash portable ระหว่าง 3 tables
+   - Backfill: bbb@gmail.com (ten_37f95526) จาก users → viiv_accounts + tenant_staff
+
+7. POS AFFILIATE TAB + LINE WEBHOOK
+   - Affiliate tab: viiv-subtab (sub size) → pos-tab (main size) + inline style
+     (ไม่พึ่ง global.css เผื่อโหลดไม่ได้บาง path)
+   - LINE webhook URL: hardcoded 'https://concore.viiv.me/api/line/webhook' →
+     window.location.origin + ?tenant=jwt.tenant_id (เหมือน PWA pages/line.js)
+   - dashboard.html token guard redirect: /platform/login.html (broken) →
+     https://viiv.me/login (shop login)
+   - Caddy *.viiv.me: เพิ่ม handle /merchant/* → /modules/pos/merchant/ui/dashboard
+     (เดิม fallback เสิร์ฟ /superboard/index.html เป็น CSS → parse ไม่ได้)
+
+8. PLATFORM CONNECTIONS QR URL
+   - Bug: รูป QR ซ้อน base URL 2 ชั้น —
+     'https://concore.viiv.me' + 'https://viiv.me/platform/uploads/...'
+   - Fix: absUrl() helper — full URL ใช้ตรงๆ, relative → prepend viiv.me
+
+CADDYFILE CHANGES (/etc/caddy/Caddyfile)
+- viiv.me block:        handle_path /api/* + localhost:9000
+                          → handle /api/* + localhost:8000
+- concore.viiv.me block: redir / /platform/login.html
+                          → redir / /platform/signin.html
+- *.viiv.me block:      เพิ่ม handle /merchant/* {
+                            root * /home/viivadmin/viiv/modules/pos/merchant/ui/dashboard
+                            uri strip_prefix /merchant
+                            file_server
+                          }
+- Backups: /etc/caddy/Caddyfile.bak.20260430_080656 ฯลฯ
+
+DATABASE CHANGES
+- ALTER TABLE platform_users RENAME TO viiv_accounts (FK refs preserved)
+- Backfill bbb@gmail.com: viiv_accounts (pfu_23210ef3) + tenant_staff (stf_*) +
+  tenants.owner_id ของ ten_37f95526 (test8)
+
+COMMITS (24 commits, branch main, ในเซสชันวันนี้)
+  2a00cca  fix: PWA mobile login endpoint + auth flow (rename + endpoint)
+  02157aa  fix: Caddyfile viiv.me api proxy port 9000→8000 + signin.html redirect
+  4975d4b  feat: POST /api/platform/join-shop + DELETE /api/platform/my-shops/{tid}
+  fce8be3  feat(superboard): switch shop full page + popup     [later reverted]
+  dcb655e  feat(pwa): switch shop full page + popup            [later reverted]
+  668d9ee  feat: GET /api/pos/dashboard/summary + /api/pos/affiliate/summary
+  f3a0622  feat(superboard dashboard): POS + Affiliate cards ใช้ /summary
+  9a3346d  feat(pwa home): POS + Affiliate cards ใช้ /summary
+  feb2f1c  chore: remove AI_MODE.txt (user)
+  523c9e0  feat: Switch Shop dropdown + small popup (revert full page)
+  35941dc  fix(pos affiliate): tab CSS class viiv-subtab → pos-tab
+  da01279  fix(pos affiliate): tab inline style ไม่พึ่ง global.css
+  2ea576e  fix: Caddy add /merchant/* handler for global CSS
+  8ab758e  fix(pos line): webhook URL ตาม subdomain + login redirect
+  d31b1a7  fix(platform login): เพิ่ม sub ใน JWT payload
+  d39e16d  fix(_admin_auth): รับ user_id + email ด้วย
+  a7dfd7c  fix(platform connections): QR URL ซ้อน base URL 2 ชั้น
+  c146f84  fix(register_shop): provision viiv_accounts + tenant_staff + owner_id
+  5ffe515  feat(switch-shop): refresh dropdown on open + join-shop ไม่ redirect
+  4800283  fix(_decode_user): รองรับ platform-login token (sub=pfu_xxx)
+  fa74ca5  fix(switch-shop): bulletproof saveShopAdd + saveAdd
+  5d2fd3c  fix(switch-shop): popup ใช้ addEventListener + token fallback
+  1413b70  fix(switch-shop): loadShopList diagnostic + force dropdown open
+  6a8f4d9  fix(my-shops): รองรับ staff-login JWT (sub=stf_xxx, ไม่มี email)
+
+FILES TOUCHED (major)
+  Backend (Python):
+    app/api/login.py                        (sub field, signin support)
+    app/api/platform_connections.py         (rename, _admin_auth, _decode_user,
+                                             /join-shop, /my-shops, /remove)
+    app/api/pos_affiliate.py                (/summary endpoint)
+    app/api/pos_dashboard.py    [NEW]       (/summary endpoint)
+    app/api/register_shop.py                (provision viiv_accounts + tenant_staff)
+    app/main.py                             (register pos_dashboard router)
+
+  Frontend (PC superboard):
+    frontend/superboard/index.html          (dropdown + popup + addEventListener)
+    frontend/superboard/js/core/auth.js     (signin.html links)
+    frontend/superboard/dashboard/app.js    (parallel /summary, renderAff)
+    frontend/superboard/dashboard/index.html (Affiliate KPI ids)
+
+  Frontend (PWA):
+    frontend/pwa/index.html                 (dropdown + popup HTML)
+    frontend/pwa/js/app.js                  (ShopSwitcher revamp)
+    frontend/pwa/css/app.css                (popup CSS + restore dropdown)
+    frontend/pwa/pages/home.js              (3-endpoint Promise.allSettled)
+
+  Frontend (Platform admin):
+    frontend/platform/signin.html           (renamed from login.html)
+    frontend/platform/dashboard.html        (signin.html refs, isLoginPage)
+    frontend/platform/js/core/auth.js       (LOGIN_PATH, isLoginPage)
+    frontend/platform/pages/connections.html (QR URL absUrl helper)
+    frontend/platform/pages/settings.html   (signin.html ref)
+
+  Frontend (entry):
+    frontend/login.html                     (/api/staff/login + multi-shop flow)
+
+  Modules (POS merchant iframe):
+    modules/pos/merchant/ui/dashboard/dashboard.html       (token guard redirect)
+    modules/pos/merchant/ui/dashboard/affiliate/all.html   (pos-tab class+inline)
+    modules/pos/merchant/ui/dashboard/connections/main.html (webhook URL helper)
+    modules/pos/merchant/ui/dashboard/settings/store.html  (webhook URL helper)
+
+KNOWN STATE / INVARIANTS
+- staff-login JWT (sub=stf_xxx, ไม่มี email) ใช้ใน viiv_token บน shop subdomain
+- platform-login JWT (sub=pfu_xxx, มี email) ใช้ใน platform_token บน viiv.me /
+  concore.viiv.me (ปัจจุบัน /api/platform/login เพิ่ม sub field ใน payload ด้วย)
+- /api/platform/* endpoints: รองรับทั้ง 2 token shapes ครบ
+- register_shop: สร้าง 3 tables ครบ (users [legacy] + viiv_accounts +
+  tenant_staff + tenants.owner_id linked) → login ได้ทั้ง 2 endpoint
+- ทุก reference ในโค้ด/HTML ของ /platform/login.html → /platform/signin.html
+- POS PC iframe โหลด /merchant/global.css จาก shop subdomain ได้แล้ว
+
+PENDING / FOLLOW-UP
+- access_token return จาก /join-shop = staff-login shape (sub=stf, ไม่มี email)
+  → ถ้าจะใช้เปลี่ยน "ร้านปัจจุบัน" บน topbar ต้อง replace viiv_token ใน
+  localStorage ด้วย — ปัจจุบันยังไม่ทำ (เก็บ token เดิมไว้, /my-shops ใช้ได้
+  ผ่าน fallback resolve email จาก tenant_staff)
+- Caddyfile อยู่นอก repo (/etc/caddy/) — markers via empty commits เก็บใน git history
+- AI_MODE.txt ลบแล้ว (user); AI_RULES.md เก็บไว้
+
+Version: v1.60 | Updated: 2026-04-30 (EOD)
