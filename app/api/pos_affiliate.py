@@ -59,6 +59,52 @@ def get_stats(authorization: str = Header("")):
         top = c.execute(text("SELECT id,title,click_count FROM affiliate_products WHERE tenant_id=:tid ORDER BY click_count DESC LIMIT 5"),{"tid":tid}).fetchall()
     return {"total":total,"active":active,"total_clicks":clicks,"top_products":[dict(r._mapping) for r in top]}
 
+
+@router.get("/summary")
+def affiliate_summary(authorization: str = Header("")):
+    """Dashboard summary card — clicks today/month + commission month + avg rate"""
+    tid, _ = get_tenant_user(authorization)
+    with engine.connect() as c:
+        clicks_today = c.execute(text("""
+            SELECT COUNT(*) FROM affiliate_clicks
+            WHERE tenant_id=:tid AND DATE(created_at) = CURRENT_DATE
+        """), {"tid": tid}).scalar() or 0
+
+        clicks_month = c.execute(text("""
+            SELECT COUNT(*) FROM affiliate_clicks
+            WHERE tenant_id=:tid
+              AND TO_CHAR(created_at,'YYYY-MM') = TO_CHAR(NOW(),'YYYY-MM')
+        """), {"tid": tid}).scalar() or 0
+
+        # ยอด commission เดือนนี้: รวมต่อ click จาก JOIN affiliate_products
+        # percent → price * commission/100 / fixed → commission ตรงๆ
+        commission_month = c.execute(text("""
+            SELECT COALESCE(SUM(
+                CASE WHEN p.commission_type='percent'
+                     THEN COALESCE(p.price,0) * COALESCE(p.commission,0) / 100.0
+                     ELSE COALESCE(p.commission,0) END
+            ), 0)
+            FROM affiliate_clicks c
+            JOIN affiliate_products p ON p.id = c.product_id
+            WHERE c.tenant_id = :tid
+              AND TO_CHAR(c.created_at,'YYYY-MM') = TO_CHAR(NOW(),'YYYY-MM')
+        """), {"tid": tid}).scalar() or 0
+
+        # Default rate = average % commission ของ products ที่ active
+        commission_rate = c.execute(text("""
+            SELECT COALESCE(AVG(commission), 0)
+            FROM affiliate_products
+            WHERE tenant_id=:tid AND status='active'
+              AND commission_type='percent'
+        """), {"tid": tid}).scalar() or 0
+
+    return {
+        "clicks_today":     int(clicks_today),
+        "clicks_month":     int(clicks_month),
+        "commission_month": float(commission_month),
+        "commission_rate":  float(commission_rate),
+    }
+
 @router.post("/create")
 def create_product(payload: dict, authorization: str = Header("")):
     tid, uid = get_tenant_user(authorization)

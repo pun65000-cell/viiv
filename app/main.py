@@ -195,6 +195,8 @@ from app.api.pos_store import router as pos_store_router
 app.include_router(pos_store_router)
 from app.api.pos_affiliate import router as pos_affiliate_router
 app.include_router(pos_affiliate_router)
+from app.api.pos_dashboard import router as pos_dashboard_router
+app.include_router(pos_dashboard_router)
 from app.api.pos_categories import router as pos_categories_router
 app.include_router(pos_categories_router)
 
