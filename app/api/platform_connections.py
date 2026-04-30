@@ -309,8 +309,11 @@ def my_shops(authorization: str = Header("")):
 
 # ── Join Shop ────────────────────────────────────────────────────────────────
 def _decode_user(authorization: str):
-    """Decode Bearer JWT → return (sub, email_from_db, identity_row).
-    sub = tenant_staff.id ที่ user login มา; identity_row = current row (email/name/pw)."""
+    """Decode Bearer JWT → return (sub, identity_row).
+    รองรับ token 2 แบบ:
+      • staff-login (sub = stf_xxx) → ดึง tenant_staff ตรงๆ
+      • platform-login (sub = pfu_xxx, email ใน payload) → match ผ่าน email
+        หรือ fallback ไป viiv_accounts (กรณียังไม่มี tenant_staff row)"""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "No token")
     try:
@@ -318,14 +321,45 @@ def _decode_user(authorization: str):
     except Exception:
         raise HTTPException(401, "Invalid token")
     sub = payload.get("sub") or payload.get("user_id")
-    if not sub:
+    email_jwt = payload.get("email")
+    if not sub and not email_jwt:
         raise HTTPException(401, "Invalid token payload")
+
     with engine.connect() as c:
-        row = c.execute(text("""
-            SELECT id, email, first_name, last_name, hashed_password,
-                   phone, avatar_url, role
-            FROM tenant_staff WHERE id=:sid
-        """), {"sid": sub}).fetchone()
+        row = None
+        # 1) staff-login token: sub = tenant_staff.id
+        if sub:
+            row = c.execute(text("""
+                SELECT id, email, first_name, last_name, hashed_password,
+                       phone, avatar_url, role
+                FROM tenant_staff WHERE id=:sid LIMIT 1
+            """), {"sid": sub}).fetchone()
+        # 2) platform-login token: sub = viiv_accounts.id, email ใน payload
+        #    user ที่ register แล้วจะมี tenant_staff row จาก register_shop fix
+        if not row and email_jwt:
+            row = c.execute(text("""
+                SELECT id, email, first_name, last_name, hashed_password,
+                       phone, avatar_url, role
+                FROM tenant_staff
+                WHERE email=:em AND is_active=true
+                ORDER BY created_at LIMIT 1
+            """), {"em": email_jwt}).fetchone()
+        # 3) fallback: ดึง identity จาก viiv_accounts (กรณีไม่มี tenant_staff เลย)
+        if not row and sub:
+            va = c.execute(text("""
+                SELECT id, email, full_name, hashed_password
+                FROM viiv_accounts WHERE id=:sid LIMIT 1
+            """), {"sid": sub}).fetchone()
+            if va:
+                import types as _t
+                parts = (va.full_name or "").strip().split(" ", 1)
+                row = _t.SimpleNamespace(
+                    id=va.id, email=va.email,
+                    first_name=parts[0] if parts and parts[0] else "",
+                    last_name=parts[1] if len(parts) > 1 else "",
+                    hashed_password=va.hashed_password,
+                    phone=None, avatar_url=None, role="owner",
+                )
     if not row:
         raise HTTPException(401, "ไม่พบข้อมูลผู้ใช้")
     return sub, row
