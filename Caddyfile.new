@@ -71,12 +71,17 @@ concore.viiv.me {
 		file_server
 	}
 
-	# Platform Dashboard เท่านั้น (root)
-	handle {
-		root * /home/viivadmin/viiv/frontend/platform
+	# Platform Dashboard ภายใต้ /platform/* (root ที่ frontend/, asset paths ใช้ /platform/...)
+	handle /platform/* {
+		root * /home/viivadmin/viiv/frontend
 		header Cache-Control "no-store, no-cache, must-revalidate"
-		try_files {path} /dashboard.html
+		try_files {path} /platform/dashboard.html
 		file_server
+	}
+
+	# root concore.viiv.me/ → ส่งไป login
+	handle {
+		redir / /platform/login.html 302
 	}
 }
 
@@ -107,6 +112,14 @@ concore.viiv.me {
 		root * /home/viivadmin/viiv/frontend
 		header Cache-Control "no-store, no-cache, must-revalidate"
 		try_files {path} /pwa/index.html
+		file_server
+	}
+
+	# Modules — POS merchant dashboard, etc. (path เริ่มที่ repo root)
+	# ใช้ใน iframe จาก superboard switchMod()
+	handle /modules/* {
+		root * /home/viivadmin/viiv
+		header Cache-Control "no-store, no-cache, must-revalidate"
 		file_server
 	}
 
