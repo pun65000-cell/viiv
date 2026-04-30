@@ -3,6 +3,11 @@
 // ใช้ใน dashboard.html และทุก page ที่ต้อง login
 
 const TOKEN_KEY = 'platform_token';
+const LOGIN_PATH = '/platform/login.html';
+
+function isLoginPage() {
+  return window.location.pathname.includes('login.html');
+}
 
 /**
  * ดึง token จาก localStorage
@@ -13,24 +18,28 @@ export function getToken() {
 
 /**
  * ตรวจสอบว่า login อยู่หรือไม่
- * ถ้าไม่ login → redirect ไป /platform/login.html
+ * ถ้าไม่ login → redirect ไป /platform/login.html (เว้นว่าอยู่ที่ login page อยู่แล้ว)
  * return true ถ้า login อยู่
  */
 export function requireAuth() {
   const token = getToken();
   if (!token) {
-    window.location.href = '/platform/login.html';
+    if (!isLoginPage()) {
+      window.location.href = LOGIN_PATH;
+    }
     return false;
   }
   return true;
 }
 
 /**
- * ล้าง token แล้ว redirect ไป login
+ * ล้าง token แล้ว redirect ไป login (เว้นว่าอยู่ที่ login page อยู่แล้ว)
  */
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
-  window.location.href = '/platform/login.html';
+  if (!isLoginPage()) {
+    window.location.href = LOGIN_PATH;
+  }
 }
 
 /**
