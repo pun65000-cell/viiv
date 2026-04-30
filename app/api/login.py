@@ -158,13 +158,7 @@ def platform_login(payload: dict, request: Request):
         raise HTTPException(status_code=404, detail="ไม่พบบัญชีนี้ในระบบ")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="บัญชีถูกระงับ")
-    if not user.hashed_password:
-        raise HTTPException(status_code=401, detail="รหัสผ่านไม่ถูกต้อง")
-    try:
-        pw_ok = _pwd_ctx.verify(password, str(user.hashed_password))
-    except Exception:
-        pw_ok = (password == str(user.hashed_password))  # plain-text fallback (migration)
-    if not pw_ok:
+    if not user.hashed_password or not _pwd_ctx.verify(password, str(user.hashed_password)):
         raise HTTPException(status_code=401, detail="รหัสผ่านไม่ถูกต้อง")
 
     _login_attempts.pop(key, None)
