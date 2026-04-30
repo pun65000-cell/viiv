@@ -158,7 +158,11 @@ function renderTable(data){
 
 window.tkLoad = function(){
   document.getElementById('tk-tbody').innerHTML='<tr><td colspan="6"><div class="pg-loading">กำลังโหลด...</div></td></tr>';
-  api('/api/platform/tokens')
+  // ใช้ inline fetch + header ตรงๆ — ไม่พึ่ง window.platformToken (ป้องกันกรณี
+  // โหลดผ่าน loadPage แล้ว context สูญหาย/ไม่ inherit)
+  fetch('/api/platform/tokens', {
+    headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('platform_token') || '') }
+  })
     .then(function(r){ return r.ok?r.json():Promise.reject(r.status); })
     .then(function(data){
       _data = data;

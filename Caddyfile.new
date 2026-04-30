@@ -70,6 +70,11 @@ concore.viiv.me {
 		header Cache-Control "no-store"
 		file_server
 	}
+	handle /logs/* {
+		root * /home/viivadmin/viiv
+		header Cache-Control "no-store"
+		file_server
+	}
 
 	# Platform Dashboard ภายใต้ /platform/* (root ที่ frontend/, asset paths ใช้ /platform/...)
 	handle /platform/* {
