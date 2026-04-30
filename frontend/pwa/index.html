@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=3975"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=9596"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -153,8 +153,8 @@
   <div class="shop-add-modal" onclick="event.stopPropagation()">
     <h3>เพิ่มสาขา</h3>
     <label>Shop ID (subdomain)</label>
-    <input id="shop-add-input" type="text" placeholder="เช่น testshop" autocomplete="off" inputmode="text">
-    <div class="hint">ใส่ subdomain ของร้านที่ต้องการเข้าร่วม</div>
+    <input id="shop-add-input" type="text" placeholder="เช่น test8 (ไม่ต้องใส่ .viiv.me)" autocomplete="off" inputmode="text">
+    <div class="hint">ระบบจะตัด https:// และ .viiv.me ออกให้อัตโนมัติ</div>
     <div class="err" id="shop-add-err"></div>
     <div class="actions">
       <button class="save" id="shop-add-save" onclick="ShopSwitcher.saveAdd()">บันทึก</button>
@@ -166,29 +166,29 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/auth.js?v=3975"></script>
-<script src="/pwa/js/router.js?v=3975"></script>
-<script src="/pwa/js/app.js?v=3975"></script>
-<script src="/pwa/pages/home.js?v=3975"></script>
-<script src="/pwa/pages/pos.js?v=3975"></script>
-<script src="/pwa/pages/billing.js?v=3975"></script>
-<script src="/pwa/pages/statement.js?v=3975"></script>
-<script src="/pwa/pages/orders-upload.js?v=3975"></script>
-<script src="/pwa/pages/orders.js?v=3975"></script>
-<script src="/pwa/pages/orders-detail.js?v=3975"></script>
-<script src="/pwa/pages/bill-history.js?v=3975"></script>
-<script src="/pwa/pages/products.js?v=3975"></script>
-<script src="/pwa/pages/members.js?v=3975"></script>
-    <script src="/pwa/pages/bill.js?v=3975"></script>
-    <script src="/pwa/pages/sales.js?v=3975"></script>
-<script src="/pwa/pages/chat.js?v=3975"></script>
-<script src="/pwa/pages/autopost.js?v=3975"></script>
-<script src="/pwa/pages/affiliate.js?v=3975"></script>
-<script src="/pwa/pages/partners.js?v=3975"></script>
-<script src="/pwa/pages/store.js?v=3975"></script>
-<script src="/pwa/pages/line.js?v=3975"></script>
-<script src="/pwa/pages/comingsoon.js?v=3975"></script>
-  <script src="/pwa/pages/more.js?v=3975"></script>
+<script src="/pwa/js/auth.js?v=9596"></script>
+<script src="/pwa/js/router.js?v=9596"></script>
+<script src="/pwa/js/app.js?v=9596"></script>
+<script src="/pwa/pages/home.js?v=9596"></script>
+<script src="/pwa/pages/pos.js?v=9596"></script>
+<script src="/pwa/pages/billing.js?v=9596"></script>
+<script src="/pwa/pages/statement.js?v=9596"></script>
+<script src="/pwa/pages/orders-upload.js?v=9596"></script>
+<script src="/pwa/pages/orders.js?v=9596"></script>
+<script src="/pwa/pages/orders-detail.js?v=9596"></script>
+<script src="/pwa/pages/bill-history.js?v=9596"></script>
+<script src="/pwa/pages/products.js?v=9596"></script>
+<script src="/pwa/pages/members.js?v=9596"></script>
+    <script src="/pwa/pages/bill.js?v=9596"></script>
+    <script src="/pwa/pages/sales.js?v=9596"></script>
+<script src="/pwa/pages/chat.js?v=9596"></script>
+<script src="/pwa/pages/autopost.js?v=9596"></script>
+<script src="/pwa/pages/affiliate.js?v=9596"></script>
+<script src="/pwa/pages/partners.js?v=9596"></script>
+<script src="/pwa/pages/store.js?v=9596"></script>
+<script src="/pwa/pages/line.js?v=9596"></script>
+<script src="/pwa/pages/comingsoon.js?v=9596"></script>
+  <script src="/pwa/pages/more.js?v=9596"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -294,10 +294,10 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/pwa/sw.js', { scope: '/pwa/' }).catch(() => {});
 }
 </script>
-  <script src="/pwa/pages/finance.js?v=3975"></script>
-  <script src="/pwa/pages/reserve.js?v=3975"></script>
-  <script src="/pwa/pages/staff.js?v=3975"></script>
-  <script src="/pwa/pages/bank.js?v=3975"></script>
-  <script src="/pwa/pages/receive.js?v=3975"></script>
+  <script src="/pwa/pages/finance.js?v=9596"></script>
+  <script src="/pwa/pages/reserve.js?v=9596"></script>
+  <script src="/pwa/pages/staff.js?v=9596"></script>
+  <script src="/pwa/pages/bank.js?v=9596"></script>
+  <script src="/pwa/pages/receive.js?v=9596"></script>
 </body>
 </html>

@@ -390,9 +390,30 @@ window.markAllRead = function(){
   if(dot) dot.style.display='none';
 };
 window.toggleShopDD = function(){
-  document.getElementById('shopDropdown').classList.toggle('open');
+  var dd = document.getElementById('shopDropdown');
+  var willOpen = !dd.classList.contains('open');
+  dd.classList.toggle('open');
   document.getElementById('profileDropdown').classList.remove('open');
+  if(willOpen) loadShopList();   // refresh ทุกครั้งที่เปิด — สะท้อนร้านล่าสุด
 };
+
+// strip URL prefix/suffix → คืน subdomain ล้วน
+function stripSubdomain(s){
+  return (s||'')
+    .trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/\.viiv\.me.*$/i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase();
+}
+
+function sbToast(msg, ok){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:'+(ok===false?'#b91c1c':'#1a1a1a')+';color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:99999;font-family:Sarabun,sans-serif;';
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},2000);
+}
 window.toggleProfileDD = function(){
   document.getElementById('profileDropdown').classList.toggle('open');
   document.getElementById('shopDropdown').classList.remove('open');
@@ -439,7 +460,7 @@ window.closeShopAdd = function(e){
   document.getElementById('shopAddMask').classList.remove('open');
 };
 window.saveShopAdd = async function(){
-  var sd = (document.getElementById('shopAddInput').value||'').trim().toLowerCase();
+  var sd = stripSubdomain(document.getElementById('shopAddInput').value);
   var err = document.getElementById('shopAddErr');
   err.textContent = '';
   if(!sd){ err.textContent = 'กรุณาใส่ Shop ID'; return; }
@@ -452,9 +473,12 @@ window.saveShopAdd = async function(){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({subdomain: sd})
     });
-    var data = await res.json();
-    if(res.ok && data.access_token){
-      window.location.href = 'https://'+data.subdomain+'.viiv.me/superboard/?token='+encodeURIComponent(data.access_token);
+    var data = await res.json().catch(function(){ return {}; });
+    if(res.ok){
+      // ปิด popup + refresh dropdown + toast — ไม่ redirect ทันที
+      document.getElementById('shopAddMask').classList.remove('open');
+      sbToast('✅ เพิ่มร้านสำเร็จ', true);
+      loadShopList();
     } else {
       err.textContent = data.detail || ('เกิดข้อผิดพลาด ('+res.status+')');
     }
@@ -462,24 +486,30 @@ window.saveShopAdd = async function(){
   finally{ btn.disabled = false; btn.textContent = 'บันทึก'; }
 };
 
-async function loadShops(){
+// Topbar: ชื่อ + logo ของร้านปัจจุบัน (โหลดครั้งเดียวตอน boot)
+async function loadShopBadge(){
   var token = getToken();
   if(!token) return;
-  // Active shop จาก current store settings (ชื่อ + logo บน topbar)
   try{
     var sres = await fetch('/api/pos/store/settings', { headers:{'Authorization':'Bearer '+token} });
-    if(sres.ok){
-      var shop = await sres.json();
-      var name = shop.store_name||'My Shop';
-      document.getElementById('shopName').textContent = name;
-      if(shop.logo_url){
-        document.getElementById('shopAvatar').innerHTML='<img src="'+shop.logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:5px;">';
-      } else {
-        document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
-      }
+    if(!sres.ok) return;
+    var shop = await sres.json();
+    var name = shop.store_name||'My Shop';
+    document.getElementById('shopName').textContent = name;
+    if(shop.logo_url){
+      document.getElementById('shopAvatar').innerHTML='<img src="'+shop.logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:5px;">';
+    } else {
+      document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
     }
   }catch(e){}
-  // Dropdown list — my-shops จริง
+}
+
+// Dropdown: รายการร้านทั้งหมดที่ user มีสิทธิ์ — fetch ทุกครั้งที่เปิด
+async function loadShopList(){
+  var token = getToken();
+  if(!token) return;
+  var listEl = document.getElementById('shopList');
+  listEl.innerHTML = '<div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div>';
   try{
     var curTid = '';
     try{
@@ -503,18 +533,21 @@ async function loadShops(){
         '</div>'+
       '</div>';
     }).join('');
+    if(!shops || !shops.length){
+      html = '<div class="sb-shop-dd-item"><span style="color:var(--muted);font-size:12px">ยังไม่มีร้าน</span></div>';
+    }
     html += '<div onclick="openShopAdd()" style="display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;border-top:1px solid var(--border);color:var(--accent);font-size:13px;font-weight:600;">'+
       '<div style="width:22px;height:22px;border-radius:5px;background:var(--accent-dim);border:1px dashed var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);">+</div>'+
       '<span>เพิ่มสาขา</span></div>';
-    document.getElementById('shopList').innerHTML = html;
+    listEl.innerHTML = html;
   }catch(e){
-    document.getElementById('shopList').innerHTML = '<div class="sb-shop-dd-item"><span>โหลดไม่สำเร็จ</span></div>';
+    listEl.innerHTML = '<div class="sb-shop-dd-item"><span>โหลดไม่สำเร็จ</span></div>';
   }
 }
 
 document.addEventListener('DOMContentLoaded', function(){
   if(!getToken()){ window.location.href='/superboard/login.html'; return; }
-  loadShops();
+  loadShopBadge();   // topbar เท่านั้น — list โหลดเมื่อเปิด dropdown
   sbNav('home'); checkBellDot();
 });
 })();
@@ -547,9 +580,9 @@ document.addEventListener('DOMContentLoaded', function(){
        onclick="event.stopPropagation()">
     <div style="font-size:1rem;font-weight:700;margin:0 0 12px;">เพิ่มสาขา</div>
     <label style="display:block;font-size:12px;color:#888;margin-bottom:5px;">Shop ID (subdomain)</label>
-    <input id="shopAddInput" type="text" placeholder="เช่น testshop" autocomplete="off"
+    <input id="shopAddInput" type="text" placeholder="เช่น test8 (ไม่ต้องใส่ .viiv.me)" autocomplete="off"
            style="width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.12);border-radius:9px;font-size:14px;outline:none;box-sizing:border-box;background:#faf9f7;">
-    <div style="font-size:11px;color:#888;margin-top:6px;">ใส่ subdomain ของร้านที่ต้องการเข้าร่วม</div>
+    <div style="font-size:11px;color:#888;margin-top:6px;">ระบบจะตัด https:// และ .viiv.me ออกให้อัตโนมัติ</div>
     <div id="shopAddErr" style="font-size:12px;color:#d03030;margin-top:8px;min-height:16px;"></div>
     <div style="display:flex;gap:8px;margin-top:14px;">
       <button id="shopAddSaveBtn" onclick="saveShopAdd()"

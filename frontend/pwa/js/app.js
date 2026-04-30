@@ -264,21 +264,27 @@ window.ShopSwitcher = {
   },
 
   async saveAdd() {
-    const sd = (document.getElementById('shop-add-input').value || '').trim().toLowerCase();
+    const raw = document.getElementById('shop-add-input').value || '';
+    // strip https:// และ .viiv.me ออกให้
+    const sd = raw
+      .trim()
+      .replace(/^https?:\/\//i, '')
+      .replace(/\.viiv\.me.*$/i, '')
+      .replace(/\/.*$/, '')
+      .toLowerCase();
     const err = document.getElementById('shop-add-err');
     err.textContent = '';
     if (!sd) { err.textContent = 'กรุณาใส่ Shop ID'; return; }
     const btn = document.getElementById('shop-add-save');
     btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
     try {
-      const data = await App.api('/api/platform/join-shop', {
+      await App.api('/api/platform/join-shop', {
         method:'POST', body: JSON.stringify({ subdomain: sd })
       });
-      if (data && data.access_token) {
-        window.location.href = 'https://' + data.subdomain + '.viiv.me/pwa/?token=' + encodeURIComponent(data.access_token);
-      } else {
-        err.textContent = 'ตอบกลับจาก server ผิดรูปแบบ';
-      }
+      // สำเร็จ → ปิด popup + refresh dropdown + toast (ไม่ redirect)
+      this.closeAddForce();
+      App.toast('✅ เพิ่มร้านสำเร็จ');
+      await this._render();
     } catch(e) {
       err.textContent = e.message || 'เกิดข้อผิดพลาด';
     } finally {
