@@ -264,31 +264,35 @@ window.ShopSwitcher = {
   },
 
   async saveAdd() {
-    const raw = document.getElementById('shop-add-input').value || '';
-    // strip https:// และ .viiv.me ออกให้
-    const sd = raw
-      .trim()
-      .replace(/^https?:\/\//i, '')
-      .replace(/\.viiv\.me.*$/i, '')
-      .replace(/\/.*$/, '')
-      .toLowerCase();
-    const err = document.getElementById('shop-add-err');
-    err.textContent = '';
-    if (!sd) { err.textContent = 'กรุณาใส่ Shop ID'; return; }
+    console.log('[ShopSwitcher.saveAdd] start');
     const btn = document.getElementById('shop-add-save');
-    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+    const err = document.getElementById('shop-add-err');
     try {
-      await App.api('/api/platform/join-shop', {
+      const raw = (document.getElementById('shop-add-input') || {}).value || '';
+      const sd = raw
+        .trim()
+        .replace(/^https?:\/\//i, '')
+        .replace(/\.viiv\.me.*$/i, '')
+        .replace(/\/.*$/, '')
+        .toLowerCase();
+      if (err) err.textContent = '';
+      if (!sd) { if (err) err.textContent = 'กรุณาใส่ Shop ID'; return; }
+      if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+      console.log('[ShopSwitcher.saveAdd] POST /join-shop', sd);
+      const data = await App.api('/api/platform/join-shop', {
         method:'POST', body: JSON.stringify({ subdomain: sd })
       });
-      // สำเร็จ → ปิด popup + refresh dropdown + toast (ไม่ redirect)
+      console.log('[ShopSwitcher.saveAdd] resp', data);
       this.closeAddForce();
       App.toast('✅ เพิ่มร้านสำเร็จ');
-      await this._render();
+      try { await this._render(); } catch(e2){ console.error('[saveAdd] _render err', e2); }
     } catch(e) {
-      err.textContent = e.message || 'เกิดข้อผิดพลาด';
+      console.error('[ShopSwitcher.saveAdd] exception', e);
+      const msg = (e && e.message) || 'เกิดข้อผิดพลาด';
+      if (err) err.textContent = msg;
+      App.toast('❌ ' + msg);
     } finally {
-      btn.disabled = false; btn.textContent = 'บันทึก';
+      if (btn) { btn.disabled = false; btn.textContent = 'บันทึก'; }
     }
   },
 };

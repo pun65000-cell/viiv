@@ -460,30 +460,40 @@ window.closeShopAdd = function(e){
   document.getElementById('shopAddMask').classList.remove('open');
 };
 window.saveShopAdd = async function(){
-  var sd = stripSubdomain(document.getElementById('shopAddInput').value);
-  var err = document.getElementById('shopAddErr');
-  err.textContent = '';
-  if(!sd){ err.textContent = 'กรุณาใส่ Shop ID'; return; }
+  console.log('[saveShopAdd] start');
   var btn = document.getElementById('shopAddSaveBtn');
-  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
-  var token = getToken();
-  try{
+  var err = document.getElementById('shopAddErr');
+  try {
+    var sd = stripSubdomain(document.getElementById('shopAddInput').value);
+    if(err) err.textContent = '';
+    if(!sd){ if(err) err.textContent = 'กรุณาใส่ Shop ID'; return; }
+    if(btn){ btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+    var token = getToken();
+    console.log('[saveShopAdd] POST /join-shop', sd, 'token?', !!token);
     var res = await fetch('/api/platform/join-shop',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({subdomain: sd})
     });
-    var data = await res.json().catch(function(){ return {}; });
+    var data = {};
+    try { data = await res.json(); } catch(_) {}
+    console.log('[saveShopAdd] resp', res.status, data);
     if(res.ok){
-      // ปิด popup + refresh dropdown + toast — ไม่ redirect ทันที
       document.getElementById('shopAddMask').classList.remove('open');
       sbToast('✅ เพิ่มร้านสำเร็จ', true);
-      loadShopList();
+      try { await loadShopList(); } catch(e2){ console.error('[saveShopAdd] loadShopList err', e2); }
     } else {
-      err.textContent = data.detail || ('เกิดข้อผิดพลาด ('+res.status+')');
+      var msg = (data && data.detail) || ('เกิดข้อผิดพลาด ('+res.status+')');
+      if(err) err.textContent = msg;
+      sbToast('❌ ' + msg, false);
     }
-  }catch(e){ err.textContent = 'ไม่สามารถเชื่อมต่อ server ได้'; }
-  finally{ btn.disabled = false; btn.textContent = 'บันทึก'; }
+  } catch(e) {
+    console.error('[saveShopAdd] exception', e);
+    if(err) err.textContent = 'ไม่สามารถเชื่อมต่อ server ได้: ' + (e.message||e);
+    sbToast('❌ ' + (e.message || 'ไม่สามารถเชื่อมต่อ'), false);
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'บันทึก'; }
+  }
 };
 
 // Topbar: ชื่อ + logo ของร้านปัจจุบัน (โหลดครั้งเดียวตอน boot)
