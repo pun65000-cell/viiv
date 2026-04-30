@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>Token Users</title>
+  <link rel="stylesheet" href="/platform/css/theme.css" />
+</head>
+<body>
+<style>
+  .pg-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .pg-title  { font-size:15px; font-weight:700; color:var(--text); }
+  .pg-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+
+  .btn-sm { padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:none; transition:opacity .15s; }
+  .btn-sm:hover { opacity:.8; }
+  .btn-sm:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-reload { background:var(--card-border); color:var(--text); }
+
+  .tk-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .tk-table th {
+    text-align:left; font-size:11px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.5px;
+    padding:8px 12px; border-bottom:2px solid var(--card-border);
+    background:var(--sidebar-bg);
+    position:sticky; top:0; z-index:2;
+  }
+  .tk-table td { padding:10px 12px; border-bottom:1px solid var(--card-border); vertical-align:top; }
+  .tk-table tr:last-child td { border-bottom:none; }
+  .tk-table tr:hover td { background:rgba(232,185,62,.04); }
+
+  .tk-row-inactive { opacity:.38; }
+  .tk-row-flagged  td:first-child { border-left:3px solid var(--danger); }
+
+  .cell-email { font-weight:600; color:var(--text); }
+  .cell-tenant { font-size:11px; color:var(--muted); margin-top:2px; font-family:monospace; }
+  .cell-ip    { font-family:monospace; font-size:12px; }
+  .cell-ua    { font-size:11px; color:var(--muted); max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cell-action { font-size:11px; }
+  .cell-time  { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .time-online  { color:var(--success-text); font-weight:700; }
+  .time-recent  { color:var(--accent); }
+
+  .flag-badge { font-size:10px; font-weight:700; background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5; border-radius:5px; padding:1px 6px; display:inline-block; margin-left:4px; }
+
+  .acts { display:flex; gap:5px; }
+  .btn-block  { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+  .btn-block.active { background:#fef2f2; color:#b91c1c; border-color:#fca5a5; }
+  .btn-kick   { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .btn-delete { background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5; }
+
+  .pg-empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:13px; }
+  .pg-loading { text-align:center; padding:30px; color:var(--muted); font-size:13px; }
+  .msg-bar { padding:8px 14px; border-radius:8px; font-size:12px; font-weight:600; margin-bottom:12px; display:none; }
+  .msg-bar.ok  { background:var(--success-bg); color:var(--success-text); border:1px solid #a8dfc0; }
+  .msg-bar.err { background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5; }
+
+  .stats-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .stat-pill { background:var(--card-bg); border:1px solid var(--card-border); border-radius:8px; padding:6px 14px; font-size:12px; }
+  .stat-pill strong { font-weight:700; color:var(--text); }
+  .stat-pill span   { color:var(--muted); }
+</style>
+
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Token Users</div>
+    <div class="pg-subtitle">Token ที่ถูกบันทึกไว้ใน token_security_log — เรียงจากใหม่ไปเก่า</div>
+  </div>
+  <button class="btn-sm btn-reload" onclick="tkLoad()">↺ รีโหลด</button>
+</div>
+
+<div class="msg-bar" id="tk-msg"></div>
+
+<div class="stats-row" id="tk-stats"></div>
+
+<div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--r-lg);overflow:hidden;">
+  <div style="overflow-x:auto;">
+    <table class="tk-table">
+      <thead>
+        <tr>
+          <th>ผู้ใช้ / Tenant</th>
+          <th>IP</th>
+          <th>User Agent</th>
+          <th>Action</th>
+          <th>Last Seen</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tk-tbody">
+        <tr><td colspan="6"><div class="pg-loading">กำลังโหลด...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var _data = [];
+
+function tok(){ return (window.platformToken&&window.platformToken())||localStorage.getItem('platform_token')||''; }
+function api(path, opts){
+  return fetch(path, Object.assign({headers:{'Authorization':'Bearer '+tok(),'Content-Type':'application/json'}}, opts||{}));
+}
+
+function relTime(iso){
+  if(!iso) return '—';
+  var diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if(diff < 60)  return '<span class="time-online">เมื่อกี้</span>';
+  if(diff < 300) return '<span class="time-recent">'+ Math.round(diff/60)+' นาทีที่แล้ว</span>';
+  if(diff < 3600) return Math.round(diff/60)+' นาทีที่แล้ว';
+  if(diff < 86400) return Math.round(diff/3600)+' ชั่วโมงที่แล้ว';
+  return Math.round(diff/86400)+' วันที่แล้ว';
+}
+
+function isInactive(iso){
+  if(!iso) return true;
+  return (Date.now() - new Date(iso).getTime()) > 60*60*1000; // > 1 hr
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderStats(data){
+  var total   = data.length;
+  var online  = data.filter(function(r){ return !isInactive(r.last_seen); }).length;
+  var flagged = data.filter(function(r){ return r.flagged; }).length;
+  document.getElementById('tk-stats').innerHTML =
+    '<div class="stat-pill"><strong>'+total+'</strong> <span>รายการทั้งหมด</span></div>'+
+    '<div class="stat-pill"><strong style="color:var(--success-text)">'+online+'</strong> <span>Online (1 ชม.)</span></div>'+
+    '<div class="stat-pill"><strong style="color:#b91c1c">'+flagged+'</strong> <span>Flagged</span></div>';
+}
+
+function renderTable(data){
+  if(!data.length){
+    document.getElementById('tk-tbody').innerHTML='<tr><td colspan="6"><div class="pg-empty">ไม่มีข้อมูล token</div></td></tr>';
+    return;
+  }
+  document.getElementById('tk-tbody').innerHTML = data.map(function(r){
+    var inactive = isInactive(r.last_seen);
+    var rowCls = (inactive ? 'tk-row-inactive' : '') + (r.flagged ? ' tk-row-flagged' : '');
+    var blockLabel = r.flagged ? '🔓 Unblock' : '🔒 Block';
+    var blockCls   = r.flagged ? 'btn-sm btn-block active' : 'btn-sm btn-block';
+    return '<tr class="'+rowCls+'" id="tkr-'+r.id+'">'+
+      '<td><div class="cell-email">'+esc(r.email||r.user_id||'—')+(r.flagged?'<span class="flag-badge">BLOCKED</span>':'')+'</div>'+
+          '<div class="cell-tenant">'+esc(r.tenant_id||'—')+'</div></td>'+
+      '<td><div class="cell-ip">'+esc(r.ip||'—')+'</div></td>'+
+      '<td><div class="cell-ua" title="'+esc(r.user_agent||'')+'">'+esc(r.user_agent||'—')+'</div></td>'+
+      '<td><div class="cell-action">'+esc(r.last_action||'—')+'</div></td>'+
+      '<td><div class="cell-time">'+relTime(r.last_seen)+'</div></td>'+
+      '<td><div class="acts">'+
+        '<button class="'+blockCls+'" onclick="tkBlock('+r.id+',this)">'+blockLabel+'</button>'+
+        '<button class="btn-sm btn-kick"   onclick="tkKick('+r.id+',this)">🚪 Kick</button>'+
+        '<button class="btn-sm btn-delete" onclick="tkDelete('+r.id+',this)">🗑 Delete</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+window.tkLoad = function(){
+  document.getElementById('tk-tbody').innerHTML='<tr><td colspan="6"><div class="pg-loading">กำลังโหลด...</div></td></tr>';
+  api('/api/platform/tokens')
+    .then(function(r){ return r.ok?r.json():Promise.reject(r.status); })
+    .then(function(data){
+      _data = data;
+      renderStats(data);
+      renderTable(data);
+    })
+    .catch(function(e){
+      document.getElementById('tk-tbody').innerHTML='<tr><td colspan="6"><div class="pg-empty" style="color:#b91c1c">โหลดไม่ได้: '+e+'</div></td></tr>';
+    });
+};
+
+function showMsg(msg, type){
+  var el = document.getElementById('tk-msg');
+  el.textContent = msg; el.className = 'msg-bar '+(type||'ok'); el.style.display='block';
+  setTimeout(function(){ el.style.display='none'; }, 3000);
+}
+
+window.tkBlock = function(id, btn){
+  var row = _data.find(function(r){ return r.id===id; });
+  var isBlocked = row && row.flagged;
+  btn.disabled = true;
+  api('/api/platform/tokens/'+id+'/block', {method:'POST'})
+    .then(function(r){ return r.ok?r.json():Promise.reject(r.status); })
+    .then(function(){
+      if(row){ row.flagged = !isBlocked; row.flagged_reason = isBlocked ? null : 'manual_block'; }
+      renderTable(_data); renderStats(_data);
+      showMsg(isBlocked ? '🔓 Unblock สำเร็จ' : '🔒 Block สำเร็จ', 'ok');
+    })
+    .catch(function(e){ showMsg('Error: '+e, 'err'); btn.disabled=false; });
+};
+
+window.tkKick = function(id, btn){
+  if(!confirm('Kick token นี้? ผู้ใช้ต้อง login ใหม่')) return;
+  btn.disabled = true;
+  api('/api/platform/tokens/'+id+'/kick', {method:'POST'})
+    .then(function(r){ return r.ok?r.json():Promise.reject(r.status); })
+    .then(function(){
+      _data = _data.filter(function(r){ return r.id!==id; });
+      renderTable(_data); renderStats(_data);
+      showMsg('🚪 Kick สำเร็จ', 'ok');
+    })
+    .catch(function(e){ showMsg('Error: '+e, 'err'); btn.disabled=false; });
+};
+
+window.tkDelete = function(id, btn){
+  if(!confirm('ลบ record นี้ออกจาก log?')) return;
+  btn.disabled = true;
+  api('/api/platform/tokens/'+id, {method:'DELETE'})
+    .then(function(r){ return r.ok?r.json():Promise.reject(r.status); })
+    .then(function(){
+      _data = _data.filter(function(r){ return r.id!==id; });
+      renderTable(_data); renderStats(_data);
+      showMsg('🗑 ลบสำเร็จ', 'ok');
+    })
+    .catch(function(e){ showMsg('Error: '+e, 'err'); btn.disabled=false; });
+};
+
+// init
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', tkLoad);
+} else { tkLoad(); }
+
+})();
+</script>
+</body>
+</html>

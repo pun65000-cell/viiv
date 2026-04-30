@@ -173,15 +173,24 @@
     <div class="sb-item" data-page="apikeys" onclick="nav(this)">
       <span class="sb-item-icon">🔌</span> API Keys
     </div>
-    <div class="sb-item" data-page="logs" onclick="nav(this)">
-      <span class="sb-item-icon">📋</span> System Logs
+    <div class="sb-item" data-page="security" id="sb-security-parent" onclick="navParent(this,'security-sub')">
+      <span class="sb-item-icon">🔐</span> Security
+      <span class="sb-item-arrow">▶</span>
+    </div>
+    <div class="sb-sub-wrap" id="security-sub">
+      <div class="sb-sub-item" data-page="logs" data-parent="sb-security-parent" onclick="navSub(this,'sb-security-parent')">
+        <span class="sb-sub-item-icon">📋</span> System Logs
+      </div>
+      <div class="sb-sub-item" data-page="security-tokens" data-parent="sb-security-parent" onclick="navSub(this,'sb-security-parent')">
+        <span class="sb-sub-item-icon">🔑</span> Token Users
+      </div>
     </div>
     <div class="sb-item" data-page="settings" id="sb-settings-parent" onclick="navParent(this,'settings-sub')">
       <span class="sb-item-icon">⚙</span> ตั้งค่าระบบ
       <span class="sb-item-arrow">▶</span>
     </div>
     <div class="sb-sub-wrap" id="settings-sub">
-      <div class="sb-sub-item" data-page="connections" onclick="navSub(this,'sb-settings-parent')">
+      <div class="sb-sub-item" data-page="connections" data-parent="sb-settings-parent" onclick="navSub(this,'sb-settings-parent')">
         <span class="sb-sub-item-icon">🔗</span> เชื่อมต่อ
       </div>
     </div>
@@ -275,9 +284,11 @@ const PAGE_META = {
   ai:       { title:'จัดการ AI',    badge:'System'   },
   notify:   { title:'การแจ้งเตือน', badge:'Admin'    },
   apikeys:  { title:'API Keys',     badge:'System'   },
-  logs:     { title:'System Logs',  badge:'System'   },
-  settings:    { title:'ตั้งค่าระบบ',  badge:'System'   },
-  connections: { title:'การเชื่อมต่อ', badge:'System'   },
+  security:          { title:'Security',     badge:'Security' },
+  logs:              { title:'System Logs',  badge:'Security' },
+  'security-tokens': { title:'Token Users',  badge:'Security' },
+  settings:          { title:'ตั้งค่าระบบ',  badge:'System'   },
+  connections:       { title:'การเชื่อมต่อ', badge:'System'   },
   myshop:      { title:'My Shop',      badge:'Merchant' },
 };
 
@@ -332,9 +343,8 @@ document.addEventListener('click', e => {
 // ─── Hash routing ────────────────────────────────────────────────────────────
 function routeHash(){
   const name = location.hash.replace('#','') || 'overview';
-  // check sub-items first
   const sub = document.querySelector('.sb-sub-item[data-page="'+name+'"]');
-  if(sub){ navSub(sub,'sb-settings-parent'); return; }
+  if(sub){ navSub(sub, sub.dataset.parent || 'sb-settings-parent'); return; }
   const el = document.querySelector('.sb-item[data-page="'+name+'"]');
   nav(el || document.querySelector('.sb-item[data-page="overview"]'));
 }

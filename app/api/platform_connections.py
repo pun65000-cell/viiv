@@ -268,6 +268,52 @@ def my_shops(authorization: str = Header("")):
     return shops
 
 
+# ── Token Security Log ────────────────────────────────────────────────────────
+@router.get("/tokens")
+def list_tokens(authorization: str = Header("")):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT tsl.id, tsl.user_id, tsl.tenant_id, tsl.ip, tsl.user_agent,
+                   tsl.action AS last_action, tsl.flagged, tsl.flagged_reason,
+                   tsl.created_at AS last_seen,
+                   pu.email
+            FROM token_security_log tsl
+            LEFT JOIN platform_users pu ON pu.id = tsl.user_id
+            ORDER BY tsl.created_at DESC
+        """)).fetchall()
+    result = []
+    for r in rows:
+        d = dict(r._mapping)
+        if d.get("last_seen"): d["last_seen"] = d["last_seen"].isoformat()
+        result.append(d)
+    return result
+
+@router.post("/tokens/{token_id}/block")
+def block_token(token_id: int, authorization: str = Header("")):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("""
+            UPDATE token_security_log SET flagged=true, flagged_reason='manual_block'
+            WHERE id=:id
+        """), {"id": token_id})
+    return {"ok": True}
+
+@router.post("/tokens/{token_id}/kick")
+def kick_token(token_id: int, authorization: str = Header("")):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("DELETE FROM token_security_log WHERE id=:id"), {"id": token_id})
+    return {"ok": True}
+
+@router.delete("/tokens/{token_id}")
+def delete_token_record(token_id: int, authorization: str = Header("")):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("DELETE FROM token_security_log WHERE id=:id"), {"id": token_id})
+    return {"ok": True}
+
+
 # ── DELETE QR image ───────────────────────────────────────────────────────────
 @router.delete("/connections/{platform}/qr")
 def delete_qr(platform: str, authorization: str = Header("")):
