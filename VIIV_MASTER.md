@@ -1484,3 +1484,105 @@ FILES CHANGED:
   app/main.py                                   (register platform_connections router)
 
 Version: v1.55 | Updated: 2026-04-29
+
+---
+
+### [v1.56 COMPLETED — 2026-04-30] Platform Auth Migration + Security Module + Landing Page
+
+SUMMARY: ย้าย platform owner login จาก tenant_staff → platform_users, ลบ DEV_TOKEN ทั้งระบบ,
+เพิ่ม Security menu + Token Users page, แก้ viiv.me landing page + register flow
+
+AUTH MIGRATION — platform_users:
+- app/api/login.py: POST /api/platform/login ใหม่
+  - query platform_users (ไม่ใช่ tenant_staff แล้ว)
+  - JWT payload: {user_id, email, role:"owner", tenant_id, exp}
+  - bcrypt verify เท่านั้น — ลบ plain-text fallback ออกหมด
+  - migrate DB: hashed_password ทุก row ให้เป็น bcrypt ก่อน remove fallback
+- app/api/platform_connections.py: GET /api/platform/my-shops
+  - owned shops (tenants WHERE owner_id=user_id)
+  - staffed shops (tenant_staff JOIN tenants WHERE email=email)
+  - dedup by tenant id, return role per shop
+
+TOKEN KEY MIGRATION (viiv_token → platform_token):
+- frontend/platform/login.html       — TOKEN_KEY + fetch endpoint
+- frontend/platform/js/core/auth.js  — TOKEN_KEY constant
+- frontend/platform/dashboard.html   — getToken() ลบ viiv_token fallback
+- frontend/platform/pages/shops.html — tok() + mock fallback ลบ ten_1/ten_2
+- frontend/platform/pages/packet.html— tok()
+- frontend/platform/pages/settings.html — getItem/removeItem/getItem
+- frontend/platform/pages/register-shop.html — getItem x2
+
+SUPERBOARD FIX:
+- frontend/superboard/login.html: เพิ่ม Tenant ID input field
+  แทน hardcoded tenant_id:'ten_1' → อ่านจาก input
+
+DEV_TOKEN REMOVAL (PWA + Merchant):
+- frontend/pwa/js/auth.js: ลบ DEV_TOKEN constant ทั้งหมด
+  - ไม่มี token: iframe → postMessage parent | top-level → redirect /platform/login.html
+  - fallbackToken(): clear + redirect login (ไม่ใช่ set DEV_TOKEN)
+  - logout(): redirect /platform/login.html
+- frontend/pwa/js/app.js:
+  - tenantId: hardcoded 'ten_1' → getter อ่าน JWT payload
+  - ShopSwitcher: d.tenant_id || App.tenantId || '' (ไม่ fallback 'ten_1')
+- modules/pos/merchant/ui/dashboard/dashboard.html:
+  - ลบ DEV_TOKEN bootstrap block
+  - ถ้าไม่มี viiv_token → redirect /platform/login.html
+
+SECURITY MODULE (ใหม่):
+- frontend/platform/dashboard.html: เปลี่ยน System Logs → Security (accordion parent)
+  Sub-items: System Logs + Token Users (data-parent="sb-security-parent")
+  routeHash() ใช้ sub.dataset.parent แทน hardcoded ID
+- frontend/platform/pages/security-tokens.html (NEW):
+  Table 6 คอลัมน์: user/tenant, IP, user_agent, last_action, last_seen, actions
+  Stats pills: total / online(1hr) / flagged
+  Row inactive >1hr = opacity 0.38; flagged = red left border + BLOCKED badge
+  Block (toggle unblock), Kick (confirm → DELETE log), Delete (confirm)
+  Optimistic UI: update _data array → re-render
+- app/api/platform_connections.py: 4 endpoints ใหม่
+  GET  /api/platform/tokens        — list token_security_log + JOIN platform_users.email
+  POST /api/platform/tokens/{id}/block  — flagged=true, flagged_reason='manual_block'
+  POST /api/platform/tokens/{id}/kick   — DELETE row
+  DELETE /api/platform/tokens/{id}      — DELETE row
+
+QR / REGISTER FIX (viiv.me):
+- app/api/platform_connections.py: UPLOAD_URL เปลี่ยนเป็น absolute https://viiv.me/platform/uploads
+- frontend/register-success.html: fetch URL เปลี่ยนเป็น https://api.viiv.me/api/platform/...
+- frontend/index.html: redesign warm brand (cream bg, gold CTA, hero+features+plans+footer)
+- frontend/register.html: เปลี่ยนจาก iframe → fetch+inject pattern, professional layout
+- frontend/register/index.html: symlink Caddy workaround สำหรับ /register route
+
+DB TABLES USED:
+  token_security_log    — list/block/kick/delete
+  platform_users        — owner login + email JOIN
+  tenants               — my-shops owned
+  tenant_staff          — my-shops staffed
+
+COMMITS (6 commits, branch main):
+  9f9b79a  feat: platform_users migration + multi-tenant login flow
+  79469aa  fix: remove plain-text password fallback, bcrypt-only verify
+  b187bed  fix: platform_token + superboard tenant resolve
+  d600305  fix: remove DEV_TOKEN + hardcoded ten_1 — PWA + merchant dashboard
+  1d318c3  feat: security menu + token manager UI + block/kick/delete endpoints
+  115587c  feat: landing page redesign + register flow fix (viiv.me)
+
+FILES CHANGED:
+  app/api/login.py                                    (platform_users login + bcrypt)
+  app/api/platform_connections.py                     (my-shops + token endpoints + UPLOAD_URL)
+  frontend/platform/login.html                        (platform_token + endpoint)
+  frontend/platform/js/core/auth.js                   (platform_token)
+  frontend/platform/dashboard.html                    (Security menu + routeHash fix)
+  frontend/platform/pages/shops.html                  (platform_token + remove mock ten_1)
+  frontend/platform/pages/packet.html                 (platform_token)
+  frontend/platform/pages/settings.html               (platform_token x3)
+  frontend/platform/pages/register-shop.html          (platform_token x2)
+  frontend/platform/pages/security-tokens.html        (NEW)
+  frontend/superboard/login.html                      (tenant input field)
+  frontend/pwa/js/auth.js                             (remove DEV_TOKEN, redirect login)
+  frontend/pwa/js/app.js                              (tenantId getter, remove ten_1)
+  modules/pos/merchant/ui/dashboard/dashboard.html    (remove DEV_TOKEN bootstrap)
+  frontend/index.html                                 (landing redesign)
+  frontend/register.html                              (fetch+inject pattern)
+  frontend/register-success.html                      (absolute api.viiv.me URL)
+  frontend/register/index.html                        (NEW symlink)
+
+Version: v1.56 | Updated: 2026-04-30
