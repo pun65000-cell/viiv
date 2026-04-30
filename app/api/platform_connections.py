@@ -270,29 +270,55 @@ def save_pkg_config(body: dict, authorization: str = Header("")):
 # ── My Shops ──────────────────────────────────────────────────────────────────
 @router.get("/my-shops")
 def my_shops(authorization: str = Header("")):
+    """รองรับ token 2 แบบ:
+      • platform-login JWT: sub=pfu_xxx, มี email — ใช้ตรงๆ
+      • staff-login JWT:    sub=stf_xxx, ไม่มี email — resolve email จาก
+        tenant_staff.id แล้วหา viiv_accounts.id (pfu) จาก email"""
     try:
         tok = authorization.replace("Bearer ", "").strip()
         payload = jwt.decode(tok, JWT_SECRET, algorithms=["HS256"],
                              options={"leeway": 864000, "verify_exp": False})
-        user_id = payload.get("user_id") or payload.get("sub") or ""
-        email   = payload.get("email") or ""
-        if not user_id:
-            raise ValueError("no user_id")
+        sub   = payload.get("sub") or payload.get("user_id") or ""
+        email = payload.get("email") or ""
+        if not sub and not email:
+            raise ValueError("no identity")
     except Exception:
         raise HTTPException(401, "Unauthorized")
 
     with engine.connect() as c:
-        owned = c.execute(text("""
-            SELECT id, store_name, subdomain, status
-            FROM tenants WHERE owner_id=:uid ORDER BY created_at
-        """), {"uid": user_id}).fetchall()
+        # ── Resolve email + owner_uid (= viiv_accounts.id) ──
+        # staff-login JWT ไม่มี email → ดึงจาก tenant_staff
+        if not email and sub:
+            r = c.execute(text(
+                "SELECT email FROM tenant_staff WHERE id=:sid LIMIT 1"
+            ), {"sid": sub}).fetchone()
+            if r:
+                email = r.email or ""
 
-        staffed = c.execute(text("""
-            SELECT t.id, t.store_name, t.subdomain, t.status, ts.role
-            FROM tenant_staff ts
-            JOIN tenants t ON t.id = ts.tenant_id
-            WHERE ts.email=:email AND ts.is_active=true
-        """), {"email": email}).fetchall()
+        # owner_id ใน tenants เก็บเป็น pfu_xxx — หา pfu จาก email หรือใช้ sub ถ้าเป็น pfu อยู่แล้ว
+        owner_uid = sub if sub and sub.startswith("pfu_") else ""
+        if not owner_uid and email:
+            r = c.execute(text(
+                "SELECT id FROM viiv_accounts WHERE email=:em LIMIT 1"
+            ), {"em": email}).fetchone()
+            if r:
+                owner_uid = r.id or ""
+
+        owned = []
+        if owner_uid:
+            owned = c.execute(text("""
+                SELECT id, store_name, subdomain, status
+                FROM tenants WHERE owner_id=:uid ORDER BY created_at
+            """), {"uid": owner_uid}).fetchall()
+
+        staffed = []
+        if email:
+            staffed = c.execute(text("""
+                SELECT t.id, t.store_name, t.subdomain, t.status, ts.role
+                FROM tenant_staff ts
+                JOIN tenants t ON t.id = ts.tenant_id
+                WHERE ts.email=:email AND ts.is_active=true
+            """), {"email": email}).fetchall()
 
     shops = []
     seen = set()
