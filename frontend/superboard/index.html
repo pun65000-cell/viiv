@@ -324,8 +324,17 @@ window.sbNav = function(page){
 window.switchMod = function(mod, btn){
   document.querySelectorAll('.sb-topnav-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  var pageMap = { pos: 'pos', chat: 'chat', autopost: 'autopost' };
-  if(pageMap[mod]) sbNav(pageMap[mod]);
+  var modUrls = {
+    pos:      '/modules/pos/merchant/ui/dashboard/dashboard.html',
+    chat:     '/superboard/pages/chat.html',
+    autopost: '/superboard/pages/autopost.html'
+  };
+  var url = modUrls[mod];
+  if(!url) return;
+  var c = document.getElementById('sbContent');
+  c.classList.remove('home-fullscreen');
+  // โหลดด้วย iframe เต็มพื้นที่ — POS dashboard เป็น standalone app ไม่ใช่ SPA page
+  c.innerHTML = '<iframe src="' + url + '" style="width:100%;height:100%;border:none;display:block;" allowfullscreen></iframe>';
 };
 
 function checkBellDot(){
