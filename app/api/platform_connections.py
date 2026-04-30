@@ -8,7 +8,7 @@ from app.core.db import engine
 router = APIRouter()
 JWT_SECRET = os.getenv("JWT_SECRET", "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c")
 UPLOAD_DIR = "/home/viivadmin/viiv/frontend/platform/uploads"
-UPLOAD_URL = "/platform/uploads"
+UPLOAD_URL = "https://viiv.me/platform/uploads"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -58,6 +58,43 @@ def _bootstrap():
                 )
 
 _bootstrap()
+
+# ── PKG Config bootstrap ──────────────────────────────────────────────────────
+_DEFAULT_MODULES = [
+    {"id":"pos",      "name":"POS",       "icon":"🖥",  "description":"ระบบขายหน้าร้าน จัดการสินค้า สต็อก",         "locked":True},
+    {"id":"affiliate","name":"Affiliate", "icon":"🔗",  "description":"ระบบ Affiliate แนะนำ-รับค่าคอมมิชชัน",       "locked":True},
+    {"id":"chat",     "name":"Chat",      "icon":"💬",  "description":"AI ปิดการขายใน DM keyword trigger",          "locked":False},
+    {"id":"autopost", "name":"Auto Post", "icon":"📲",  "description":"โพสต์อัตโนมัติทุก platform",                  "locked":False},
+]
+_DEFAULT_PLANS = [
+    {"id":"trial",    "name":"ทดลองใช้ฟรี",     "badge":"แนะนำ", "price":0,    "unit":"ฟรี 10 วัน", "features":"ทุกโมดูลครบ\nไม่ต้องใช้บัตรเครดิต", "is_free":True,  "is_custom":False},
+    {"id":"starter",  "name":"เริ่มต้น",          "badge":"",      "price":599,  "unit":"/เดือน",    "features":"1 ร้าน · AI Basic\n500 credits/เดือน",               "is_free":False, "is_custom":False},
+    {"id":"business", "name":"ธุรกิจออนไลน์",     "badge":"",      "price":1099, "unit":"/เดือน",    "features":"3 ร้าน · AI Pro\n2,000 credits/เดือน",              "is_free":False, "is_custom":False},
+    {"id":"pro",      "name":"มืออาชีพ",          "badge":"",      "price":1699, "unit":"/เดือน",    "features":"10 ร้าน · AI Max\n5,000 credits/เดือน",             "is_free":False, "is_custom":False},
+    {"id":"privacy",  "name":"Privacy",           "badge":"Custom","price":3459, "unit":"",           "features":"เริ่มต้น 3,459฿ ปรับตามความต้องการ",                  "is_free":False, "is_custom":True},
+]
+
+def _bootstrap_pkg():
+    import json as _json
+    with engine.begin() as c:
+        c.execute(text("""
+            CREATE TABLE IF NOT EXISTS platform_pkg_config (
+                id           SERIAL PRIMARY KEY,
+                config_key   VARCHAR(50) UNIQUE NOT NULL,
+                config_value JSONB NOT NULL DEFAULT '{}',
+                updated_at   TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+        for key, val in [("modules", _DEFAULT_MODULES), ("plans", _DEFAULT_PLANS)]:
+            exists = c.execute(text(
+                "SELECT 1 FROM platform_pkg_config WHERE config_key=:k"), {"k": key}
+            ).fetchone()
+            if not exists:
+                c.execute(text(
+                    "INSERT INTO platform_pkg_config(config_key, config_value) VALUES(:k, CAST(:v AS jsonb))"
+                ), {"k": key, "v": _json.dumps(val, ensure_ascii=False)})
+
+_bootstrap_pkg()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _row(r):
@@ -161,6 +198,75 @@ async def upload_qr(platform: str, file: UploadFile = File(...),
             WHERE platform=:p
         """), {"url": url, "p": platform})
     return {"ok": True, "url": url}
+
+# ── PKG Config GET (public — price data shown to customers) ───────────────────
+@router.get("/pkg-config")
+def get_pkg_config(authorization: str = Header("")):
+    with engine.connect() as c:
+        rows = c.execute(text(
+            "SELECT config_key, config_value FROM platform_pkg_config"
+        )).fetchall()
+    result = {}
+    for r in rows:
+        result[r[0]] = r[1]
+    return result
+
+# ── PKG Config POST ────────────────────────────────────────────────────────────
+@router.post("/pkg-config")
+def save_pkg_config(body: dict, authorization: str = Header("")):
+    import json as _json
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        for key in ("modules", "plans"):
+            val = body.get(key)
+            if val is not None:
+                c.execute(text("""
+                    INSERT INTO platform_pkg_config(config_key, config_value)
+                    VALUES(:k, CAST(:v AS jsonb))
+                    ON CONFLICT (config_key) DO UPDATE
+                    SET config_value=EXCLUDED.config_value, updated_at=NOW()
+                """), {"k": key, "v": _json.dumps(val, ensure_ascii=False)})
+    return {"ok": True}
+
+# ── My Shops ──────────────────────────────────────────────────────────────────
+@router.get("/my-shops")
+def my_shops(authorization: str = Header("")):
+    try:
+        tok = authorization.replace("Bearer ", "").strip()
+        payload = jwt.decode(tok, JWT_SECRET, algorithms=["HS256"],
+                             options={"leeway": 864000, "verify_exp": False})
+        user_id = payload.get("user_id") or payload.get("sub") or ""
+        email   = payload.get("email") or ""
+        if not user_id:
+            raise ValueError("no user_id")
+    except Exception:
+        raise HTTPException(401, "Unauthorized")
+
+    with engine.connect() as c:
+        owned = c.execute(text("""
+            SELECT id, store_name, subdomain, status
+            FROM tenants WHERE owner_id=:uid ORDER BY created_at
+        """), {"uid": user_id}).fetchall()
+
+        staffed = c.execute(text("""
+            SELECT t.id, t.store_name, t.subdomain, t.status, ts.role
+            FROM tenant_staff ts
+            JOIN tenants t ON t.id = ts.tenant_id
+            WHERE ts.email=:email AND ts.is_active=true
+        """), {"email": email}).fetchall()
+
+    shops = []
+    seen = set()
+    for s in owned:
+        seen.add(s.id)
+        shops.append({"id": s.id, "store_name": s.store_name,
+                      "subdomain": s.subdomain, "status": s.status, "role": "owner"})
+    for s in staffed:
+        if s.id not in seen:
+            shops.append({"id": s.id, "store_name": s.store_name,
+                          "subdomain": s.subdomain, "status": s.status, "role": s.role})
+    return shops
+
 
 # ── DELETE QR image ───────────────────────────────────────────────────────────
 @router.delete("/connections/{platform}/qr")

@@ -123,3 +123,78 @@ def staff_login(payload: dict, request: Request):
         "name": name,
         "tenant_id": tenant_id,
     }
+
+
+# ── Platform Owner Login ──────────────────────────────────────────────────────
+
+@router.post("/platform/login")
+def platform_login(payload: dict, request: Request):
+    email = (payload.get("email") or "").strip().lower()
+    password = payload.get("password") or ""
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="กรุณากรอก email และ password")
+
+    ip = request.client.host if request.client else "unknown"
+    key = f"{ip}:{email}"
+    now = time.time()
+    att = _login_attempts.get(key)
+    if att and now >= att["reset_at"]:
+        att = None
+    if att is None:
+        att = {"count": 0, "reset_at": now + 60}
+        _login_attempts[key] = att
+    att["count"] += 1
+    if att["count"] > 5:
+        raise HTTPException(status_code=429, detail="ลองใหม่อีกครั้งใน 1 นาที")
+
+    with _db_engine.connect() as c:
+        user = c.execute(
+            text("SELECT id, email, full_name, hashed_password, is_active FROM platform_users WHERE email=:e"),
+            {"e": email},
+        ).fetchone()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="ไม่พบบัญชีนี้ในระบบ")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="บัญชีถูกระงับ")
+    if not user.hashed_password:
+        raise HTTPException(status_code=401, detail="รหัสผ่านไม่ถูกต้อง")
+    try:
+        pw_ok = _pwd_ctx.verify(password, str(user.hashed_password))
+    except Exception:
+        pw_ok = (password == str(user.hashed_password))  # plain-text fallback (migration)
+    if not pw_ok:
+        raise HTTPException(status_code=401, detail="รหัสผ่านไม่ถูกต้อง")
+
+    _login_attempts.pop(key, None)
+
+    with _db_engine.connect() as c:
+        shops = c.execute(
+            text("SELECT id, store_name, subdomain, status FROM tenants WHERE owner_id=:uid ORDER BY created_at"),
+            {"uid": str(user.id)},
+        ).fetchall()
+
+    first_tid = shops[0].id if shops else None
+
+    token_payload = {
+        "user_id": str(user.id),
+        "email": user.email,
+        "role":  "owner",
+        "tenant_id": first_tid,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30),
+    }
+    token = _jwt.encode(token_payload, _JWT_SECRET, algorithm="HS256")
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user_id":    str(user.id),
+        "email":      user.email,
+        "role":       "owner",
+        "tenant_id":  first_tid,
+        "shops": [
+            {"id": s.id, "store_name": s.store_name, "subdomain": s.subdomain, "status": s.status}
+            for s in shops
+        ],
+    }
