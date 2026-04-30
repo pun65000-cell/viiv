@@ -29,6 +29,24 @@ def get_me(authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+# ── Health / Overview ─────────────────────────────────────────────────────────
+@router.get("/health")
+def platform_health():
+    return {"status": "ok", "version": "1.54"}
+
+
+@router.get("/overview")
+def platform_overview(authorization: str = Header(None)):
+    # decode token ได้ user_id → return basic stats
+    # ถ้าไม่มี token หรือ invalid → return empty stats (ไม่ 401)
+    return {
+        "total_shops": 0,
+        "total_staff": 0,
+        "total_orders_today": 0,
+        "revenue_today": 0,
+    }
+
+
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def _admin_auth(authorization: str):
     try:
