@@ -1,14 +1,14 @@
 <!doctype html><html><body>
 <style>
-.aim-wrap{padding:0;font-family:'Sarabun',system-ui,sans-serif}
+.aim-wrap{padding:0;font-family:'Sarabun',system-ui,sans-serif;font-size:15px}
 .aim-num{font-family:'Chakra Petch','Sarabun',sans-serif;letter-spacing:.5px}
 
 /* Stats */
 .aim-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
 .aim-stat{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid rgba(0,0,0,.07)}
-.aim-stat-lbl{font-size:11px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.aim-stat-lbl{font-size:13px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .aim-stat-val{font-size:24px;font-weight:700;color:#1f2937}
-.aim-stat-sub{font-size:11px;color:#9ca3af;margin-top:2px}
+.aim-stat-sub{font-size:13px;color:#9ca3af;margin-top:2px}
 .aim-stat.gold .aim-stat-val{color:#C8960A}
 .aim-stat.green .aim-stat-val{color:#16a34a}
 
@@ -16,43 +16,43 @@
 .aim-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
 .aim-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07);margin-bottom:16px}
 .aim-card-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.aim-card-title{font-size:13px;font-weight:700;color:#374151;flex:1}
-.aim-card-sub{font-size:11px;color:#9ca3af}
+.aim-card-title{font-size:14px;font-weight:700;color:#374151;flex:1}
+.aim-card-sub{font-size:13px;color:#9ca3af}
 
 /* Keys */
-.aim-key-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.aim-key-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
 .aim-key-row:last-of-type{border-bottom:none}
 .aim-key-prov{font-weight:700;color:#1f2937;width:90px}
-.aim-key-mask{font-family:monospace;font-size:11px;color:#6b7280;background:#f9fafb;padding:3px 8px;border-radius:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.aim-key-empty{color:#9ca3af;font-style:italic;flex:1;font-size:11px}
-.aim-key-del{color:#dc2626;background:none;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif}
+.aim-key-mask{font-family:monospace;font-size:13px;color:#6b7280;background:#f9fafb;padding:3px 8px;border-radius:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aim-key-empty{color:#9ca3af;font-style:italic;flex:1;font-size:13px}
+.aim-key-del{color:#dc2626;background:none;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif}
 .aim-key-del:hover{background:#fee2e2}
 .aim-key-form{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:2px dashed #f3f4f6}
-.aim-key-form select,.aim-key-form input{padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;font-family:'Sarabun',sans-serif;outline:none}
+.aim-key-form select,.aim-key-form input{padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none}
 .aim-key-form select{width:120px;background:#fff}
 .aim-key-form input{flex:1}
 .aim-key-form input:focus,.aim-key-form select:focus{border-color:#C8960A}
-.aim-btn-gold{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:#C8960A;color:#fff;font-family:'Sarabun',sans-serif}
+.aim-btn-gold{padding:7px 16px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:#C8960A;color:#fff;font-family:'Sarabun',sans-serif}
 .aim-btn-gold:hover{background:#a6790a}
 .aim-btn-gold:disabled{opacity:.5;cursor:not-allowed}
 
 /* Models */
-.aim-model-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.aim-model-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
 .aim-model-row:last-child{border-bottom:none}
 .aim-model-name{font-weight:600;color:#1f2937;flex:1}
-.aim-model-prov{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
-.aim-model-cost{font-family:'Chakra Petch',sans-serif;color:#6b7280;font-size:11px;text-align:right;min-width:140px}
+.aim-model-prov{font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
+.aim-model-cost{font-family:'Chakra Petch',sans-serif;color:#6b7280;font-size:13px;text-align:right;min-width:140px}
 .aim-model-cost b{color:#C8960A}
 
 /* Tables */
 .aim-tbl-wrap{overflow-x:auto;margin:0 -20px;padding:0 20px}
-table.aim-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
-table.aim-tbl th{padding:10px 12px;text-align:left;color:#6b7280;font-weight:600;background:#fafafa;border-bottom:1px solid #f3f4f6;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+table.aim-tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:600px}
+table.aim-tbl th{padding:10px 12px;text-align:left;color:#6b7280;font-weight:600;background:#fafafa;border-bottom:1px solid #f3f4f6;font-size:13px;text-transform:uppercase;letter-spacing:.3px}
 table.aim-tbl td{padding:11px 12px;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle}
 table.aim-tbl tr:last-child td{border:none}
 table.aim-tbl tr:hover td{background:#fffbf2}
 .aim-tbl .num{font-family:'Chakra Petch',sans-serif;text-align:right;color:#1f2937}
-.aim-tbl .muted{color:#9ca3af;font-size:11px}
+.aim-tbl .muted{color:#9ca3af;font-size:13px}
 
 /* Progress bar */
 .aim-bar{width:100%;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;min-width:100px}
@@ -61,28 +61,28 @@ table.aim-tbl tr:hover td{background:#fffbf2}
 .aim-bar-fill.green{background:linear-gradient(90deg,#16a34a,#22c55e)}
 
 /* Credit input */
-.aim-credit-input{width:90px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;font-family:'Chakra Petch',sans-serif;text-align:right;outline:none}
+.aim-credit-input{width:90px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:14px;font-family:'Chakra Petch',sans-serif;text-align:right;outline:none}
 .aim-credit-input:focus{border-color:#C8960A}
-.aim-credit-save{margin-left:6px;padding:5px 10px;background:#C8960A;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif}
+.aim-credit-save{margin-left:6px;padding:5px 10px;background:#C8960A;color:#fff;border:none;border-radius:5px;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif}
 .aim-credit-save:hover{background:#a6790a}
 
 /* Source badge */
-.aim-source{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.aim-source{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 .aim-source.chat{background:#dbeafe;color:#1e40af}
 .aim-source.autopost{background:#fce7f3;color:#9d174d}
 .aim-source.pos_help{background:#dcfce7;color:#166534}
 .aim-source.unknown{background:#f3f4f6;color:#6b7280}
 
 /* Status dot */
-.aim-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.aim-status{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600}
 .aim-status::before{content:'';width:8px;height:8px;border-radius:50%}
 .aim-status.online{color:#16a34a}.aim-status.online::before{background:#22c55e}
 .aim-status.offline{color:#dc2626}.aim-status.offline::before{background:#ef4444}
 .aim-status.error{color:#d97706}.aim-status.error::before{background:#f59e0b}
 .aim-status.unknown{color:#9ca3af}.aim-status.unknown::before{background:#9ca3af}
 
-.aim-loading{text-align:center;color:#9ca3af;padding:24px;font-size:12px}
-.aim-empty{text-align:center;color:#9ca3af;padding:18px;font-size:11px;font-style:italic}
+.aim-loading{text-align:center;color:#9ca3af;padding:24px;font-size:14px}
+.aim-empty{text-align:center;color:#9ca3af;padding:18px;font-size:13px;font-style:italic}
 
 @media (max-width:900px){
   .aim-stats{grid-template-columns:repeat(2,1fr)}
