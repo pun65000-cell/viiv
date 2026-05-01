@@ -23,14 +23,13 @@ restart_uvicorn() {
 }
 
 health_check() {
-  local ok=1
   for i in 1 2 3; do
     sleep 3
     code=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" --max-time 5)
     echo "  health #$i → HTTP $code"
-    [ "$code" != "200" ] && ok=0
+    [ "$code" != "200" ] && return 1
   done
-  [ "$ok" = "1" ] && return 0 || return 1
+  return 0
 }
 
 PREV_HEAD=$(git rev-parse HEAD)

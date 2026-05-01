@@ -19,6 +19,7 @@ from app.api.routers_orgs import router as orgs_router
 # from modules.legacy.mini_pos.api.receipts import router as receipts_router
 from modules.legacy.customer_admin.api.customers import router as customers_router
 from app.api.register_shop import router as register_shop_router
+from app.api.platform_ai import router as platform_ai_router
 from modules.pos.pos_router import router as pos_router
 from app.api.cart.cart_router import router as cart_router
 from app.api.cart.cart_router import order_router
@@ -276,3 +277,4 @@ app.include_router(posm_routes.router)
 app.include_router(post_routes.router, prefix="/api/post")
 app.include_router(statements_router)
 app.include_router(pos_finance.router)
+app.include_router(platform_ai_router, prefix="/api/platform")

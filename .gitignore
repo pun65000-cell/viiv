@@ -24,3 +24,5 @@ logs/
 __pycache__/
 .venv/
 *.pyc
+logs/uvicorn*.log
+logs/chat.log
