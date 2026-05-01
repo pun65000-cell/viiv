@@ -223,6 +223,74 @@ def get_prices(authorization: str = Header(None)):
     } for r in rows]}
 
 
+# ── 1b) PATCH /subscriptions/{tenant_id} (manual edit) ────────────────────────
+_SUB_ALLOWED_FIELDS = {
+    "trial_ends_at", "subscription_ends_at",
+    "billing_status", "package_id", "modules",
+}
+_BILLING_STATUS_VALUES = {"trial", "active", "suspended", "cancelled"}
+
+
+@router.patch("/subscriptions/{tenant_id}")
+def update_subscription(tenant_id: str, payload: dict, authorization: str = Header(None)):
+    _admin_auth(authorization)
+
+    fields = {k: payload[k] for k in _SUB_ALLOWED_FIELDS if k in payload}
+    if not fields:
+        raise HTTPException(400, "no editable fields in payload")
+
+    if "billing_status" in fields and fields["billing_status"] not in _BILLING_STATUS_VALUES:
+        raise HTTPException(400, f"billing_status must be one of {sorted(_BILLING_STATUS_VALUES)}")
+    if "modules" in fields and not isinstance(fields["modules"], list):
+        raise HTTPException(400, "modules must be a list")
+
+    set_clauses = [f"{k} = :{k}" for k in fields.keys()]
+    set_clauses.append("updated_at = NOW()")
+    params = {**fields, "tid": tenant_id}
+
+    with engine.begin() as c:
+        if not c.execute(text("SELECT 1 FROM tenants WHERE id=:tid"),
+                         {"tid": tenant_id}).first():
+            raise HTTPException(404, "tenant not found")
+        c.execute(text(f"UPDATE tenants SET {', '.join(set_clauses)} WHERE id=:tid"), params)
+
+    try:
+        from app.middleware.billing_guard import clear_billing_cache
+        clear_billing_cache(tenant_id)
+    except Exception:
+        pass
+
+    with engine.connect() as c:
+        row = c.execute(text("""
+            SELECT t.id, t.email, t.store_name, t.subdomain, t.status,
+                   t.billing_status, t.package_id, t.modules,
+                   t.trial_ends_at, t.subscription_ends_at, t.line_uid,
+                   bp.price AS amount_due
+            FROM tenants t
+            LEFT JOIN billing_prices bp
+              ON bp.package_id = t.package_id AND bp.modules = t.modules
+            WHERE t.id = :tid
+        """), {"tid": tenant_id}).mappings().first()
+
+    bs = row["billing_status"] or "trial"
+    deadline = row["trial_ends_at"] if bs == "trial" else row["subscription_ends_at"]
+    return {"ok": True, "tenant": {
+        "tenant_id":            row["id"],
+        "email":                row["email"],
+        "store_name":           row["store_name"],
+        "subdomain":            row["subdomain"],
+        "status":               row["status"],
+        "billing_status":       bs,
+        "package_id":           row["package_id"],
+        "modules":              list(row["modules"] or []),
+        "trial_ends_at":        row["trial_ends_at"].isoformat() if row["trial_ends_at"] else None,
+        "subscription_ends_at": row["subscription_ends_at"].isoformat() if row["subscription_ends_at"] else None,
+        "days_remaining":       _days_remaining(deadline),
+        "amount_due":           float(row["amount_due"]) if row["amount_due"] is not None else None,
+        "has_line":             bool(row["line_uid"]),
+    }}
+
+
 # ── 3b) GET /invoices (history) ───────────────────────────────────────────────
 @router.get("/invoices")
 def list_invoices(authorization: str = Header(None), limit: int = 200):

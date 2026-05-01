@@ -214,6 +214,65 @@
   </div>
 </div>
 
+<!-- Edit Subscription Modal -->
+<div class="bx-modal-mask" id="bxEditMask" onclick="if(event.target===this)bxEditClose()">
+  <div class="bx-modal" style="width:min(560px,92vw)">
+    <h3>รายละเอียด Subscription</h3>
+    <div class="bx-modal-sub" id="bxEditShop">—</div>
+
+    <div class="bx-field">
+      <label class="bx-label">Package</label>
+      <select class="bx-select" id="bxEditPkg" onchange="bxEditRecalc()">
+        <option value="pkg_basic">pkg_basic</option>
+        <option value="pkg_standard">pkg_standard</option>
+        <option value="pkg_pro">pkg_pro</option>
+      </select>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">Modules</label>
+      <div class="bx-mods-grid" id="bxEditMods">
+        <label class="bx-mod-chk active"><input type="checkbox" value="pos" checked disabled> POS</label>
+        <label class="bx-mod-chk active"><input type="checkbox" value="affiliate" checked disabled> Affiliate</label>
+        <label class="bx-mod-chk"        onclick="bxEditToggleMod(this)"><input type="checkbox" value="chat"> Chat</label>
+        <label class="bx-mod-chk"        onclick="bxEditToggleMod(this)"><input type="checkbox" value="autopost"> AutoPost</label>
+      </div>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">Status</label>
+      <select class="bx-select" id="bxEditStatus" onchange="bxEditRecalc()">
+        <option value="trial">trial</option>
+        <option value="active">active</option>
+        <option value="suspended">suspended</option>
+        <option value="cancelled">cancelled</option>
+      </select>
+    </div>
+
+    <div class="bx-field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <label class="bx-label">วันเริ่ม</label>
+        <input type="date" class="bx-input" id="bxEditStart" onchange="bxEditRecalc()">
+      </div>
+      <div>
+        <label class="bx-label">วันหมด</label>
+        <input type="date" class="bx-input" id="bxEditEnd" onchange="bxEditRecalc()">
+      </div>
+    </div>
+
+    <div class="bx-amt-box" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div style="display:flex;justify-content:space-between"><small>ระยะเวลา</small><span id="bxEditDur">— วัน</span></div>
+      <div style="display:flex;justify-content:space-between"><small>คงเหลือจากวันนี้</small><span id="bxEditRem">— วัน</span></div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid #e5e7eb;padding-top:6px"><small>ยอด/เดือน</small><span id="bxEditAmt">— บาท</span></div>
+    </div>
+
+    <div class="bx-modal-actions">
+      <button class="bx-btn" onclick="bxEditClose()">ยกเลิก</button>
+      <button class="bx-btn bx-btn-primary" id="bxEditSave" onclick="bxEditSubmit()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const BX = window.bxBilling = {};
@@ -305,6 +364,8 @@
             <td>${daysCell(s.days_remaining, s.billing_status)}</td>
             <td>${fmt(s.amount_due)}</td>
             <td><div class="bx-row-actions">
+              <button class="bx-btn bx-btn-sm"
+                      onclick='bxEditOpen(${JSON.stringify(s)})'>รายละเอียด</button>
               <button class="bx-btn bx-btn-sm bx-btn-primary"
                       onclick='bxPayOpen(${JSON.stringify(s)})'>ยืนยันรับเงิน</button>
               <button class="bx-btn bx-btn-sm bx-btn-line"
@@ -440,6 +501,130 @@
       }
       BX._ntfs = null;
     }catch(e){ alert('error: ' + e); }
+  };
+
+  // ── Edit Subscription modal ─────────────────────────────────────────────
+  let _editRow = null;
+
+  window.bxEditOpen = function(row){
+    _editRow = row;
+    document.getElementById('bxEditShop').textContent =
+      (row.store_name || row.subdomain || row.tenant_id);
+    document.getElementById('bxEditPkg').value    = row.package_id || 'pkg_basic';
+    document.getElementById('bxEditStatus').value = row.billing_status || 'trial';
+
+    // sync module checkboxes
+    document.querySelectorAll('#bxEditMods .bx-mod-chk').forEach(el => {
+      const inp = el.querySelector('input');
+      if(inp.disabled) return;
+      const on = (row.modules || []).includes(inp.value);
+      inp.checked = on;
+      el.classList.toggle('active', on);
+    });
+
+    // dates: วันหมด from row, วันเริ่ม default = end - 30d (modal-local helper)
+    const endIso = (row.billing_status === 'trial')
+      ? row.trial_ends_at : row.subscription_ends_at;
+    const endStr = endIso ? endIso.slice(0,10) : '';
+    document.getElementById('bxEditEnd').value   = endStr;
+    if (endStr){
+      const d = new Date(endStr); d.setDate(d.getDate() - 30);
+      document.getElementById('bxEditStart').value = d.toISOString().slice(0,10);
+    } else {
+      document.getElementById('bxEditStart').value = '';
+    }
+    bxEditRecalc();
+    document.getElementById('bxEditMask').classList.add('open');
+  };
+  window.bxEditClose = () => document.getElementById('bxEditMask').classList.remove('open');
+
+  window.bxEditToggleMod = function(el){
+    const inp = el.querySelector('input');
+    inp.checked = !inp.checked;
+    el.classList.toggle('active', inp.checked);
+    bxEditRecalc();
+  };
+
+  function bxEditSelectedMods(){
+    const out = ['pos','affiliate'];
+    document.querySelectorAll('#bxEditMods input').forEach(inp => {
+      if(!inp.disabled && inp.checked && !out.includes(inp.value)) out.push(inp.value);
+    });
+    return out;
+  }
+
+  window.bxEditRecalc = async function(){
+    if(!BX._prices){
+      try{
+        const r = await api('/api/platform/billing/prices');
+        const j = await r.json();
+        BX._prices = j.prices || [];
+      }catch(e){ BX._prices = []; }
+    }
+    const start = document.getElementById('bxEditStart').value;
+    const end   = document.getElementById('bxEditEnd').value;
+    const dayMs = 86400000;
+    let dur = '—', rem = '—';
+    if (start && end){
+      const ds = (new Date(end) - new Date(start)) / dayMs;
+      dur = isFinite(ds) ? Math.round(ds) + ' วัน' : '—';
+    }
+    if (end){
+      const today = new Date(); today.setHours(0,0,0,0);
+      const diff = (new Date(end) - today) / dayMs;
+      const n = Math.round(diff);
+      const cls = n < 0 ? 'warn' : (n <= 3 ? 'soon' : 'ok');
+      const txt = n < 0 ? `เกิน ${Math.abs(n)} วัน` : (n === 0 ? 'วันนี้' : `${n} วัน`);
+      rem = `<span class="bx-days ${cls}">${txt}</span>`;
+    }
+    document.getElementById('bxEditDur').textContent = dur;
+    document.getElementById('bxEditRem').innerHTML   = rem;
+
+    const pkg  = document.getElementById('bxEditPkg').value;
+    const mods = bxEditSelectedMods();
+    const key  = mods.slice().sort().join(',');
+    const hit  = (BX._prices||[]).find(p =>
+      p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
+    document.getElementById('bxEditAmt').textContent =
+      hit ? (fmt(hit.price) + ' บาท') : '— (ไม่มีราคา)';
+  };
+
+  window.bxEditSubmit = async function(){
+    if(!_editRow) return;
+    const status = document.getElementById('bxEditStatus').value;
+    const pkg    = document.getElementById('bxEditPkg').value;
+    const mods   = bxEditSelectedMods();
+    const endStr = document.getElementById('bxEditEnd').value;
+
+    const body = {
+      billing_status: status,
+      package_id:     pkg,
+      modules:        mods,
+    };
+    if (endStr){
+      const iso = new Date(endStr + 'T00:00:00Z').toISOString();
+      if (status === 'trial')  body.trial_ends_at        = iso;
+      else                     body.subscription_ends_at = iso;
+    }
+
+    const btn = document.getElementById('bxEditSave');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    try{
+      const r = await api('/api/platform/billing/subscriptions/' +
+                          encodeURIComponent(_editRow.tenant_id), {
+        method:  'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body:    JSON.stringify(body),
+      });
+      const j = await r.json();
+      if(!r.ok) throw new Error(j.detail || 'error');
+      bxEditClose();
+      bxLoadSubs();
+    }catch(e){
+      alert('บันทึกไม่สำเร็จ: ' + e.message);
+    }finally{
+      btn.disabled = false; btn.textContent = 'บันทึก';
+    }
   };
 
   // ── Tab 2: Invoices ─────────────────────────────────────────────────────
