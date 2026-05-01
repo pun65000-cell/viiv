@@ -58,6 +58,9 @@ input, textarea { font-family: inherit; }
   position: fixed;
   top: 0; left: 0; right: 0;
   height: var(--topbar-h);
+  min-height: var(--topbar-h);
+  max-height: var(--topbar-h);
+  overflow: hidden;
   background: var(--card);
   border-bottom: 1px solid var(--bdr);
   display: flex;
@@ -67,6 +70,7 @@ input, textarea { font-family: inherit; }
   z-index: 200;
   max-width: 768px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 #tb-back {
