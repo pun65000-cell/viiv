@@ -216,6 +216,14 @@ def get_prices(authorization: str = Header(None)):
     } for r in rows]}
 
 
+# ── 4b) POST /run-check (admin-trigger scheduler manually) ────────────────────
+@router.post("/run-check")
+def run_check_now(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    from app.scheduler.billing_scheduler import check_billing
+    return check_billing()
+
+
 # ── 4) POST /notify/{tenant_id} ───────────────────────────────────────────────
 @router.post("/notify/{tenant_id}")
 def notify_tenant(

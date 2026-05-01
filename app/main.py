@@ -161,6 +161,23 @@ def ensure_default_shop():
         }
 
 
+@app.on_event("startup")
+def _start_billing_scheduler():
+    if os.getenv("BILLING_SCHEDULER_ENABLED", "1") != "1":
+        return
+    from app.scheduler.billing_scheduler import start_scheduler
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def _stop_billing_scheduler():
+    try:
+        from app.scheduler.billing_scheduler import stop_scheduler
+        stop_scheduler()
+    except Exception:
+        pass
+
+
 from collections import defaultdict
 import time as _time
 
