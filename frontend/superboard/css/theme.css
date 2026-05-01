@@ -30,7 +30,9 @@ body {
 /* ── TOPBAR ── */
 .sb-topbar {
   height: 50px; min-height: 50px; max-height: 50px;
-  overflow: hidden;
+  /* overflow:hidden ตัด #shopDropdown (position:absolute) ที่ห้อยลงล่าง topbar
+     → dropdown ดูเหมือนไม่เปิด. lock height ผ่าน min/max + ellipsis ที่ลูกแทน */
+  overflow: visible;
   background: #f8f6f2;
   border-bottom: 1px solid #dddddd;
   display: flex; align-items: center;

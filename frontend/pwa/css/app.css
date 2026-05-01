@@ -60,7 +60,9 @@ input, textarea { font-family: inherit; }
   height: var(--topbar-h);
   min-height: var(--topbar-h);
   max-height: var(--topbar-h);
-  overflow: hidden;
+  /* overflow:hidden ตัด dropdown ที่ position:absolute ออกด้านล่าง — ใช้ visible
+     แล้ว lock height ผ่าน min/max + ellipsis ที่ลูก (#tb-shop-name) แทน */
+  overflow: visible;
   background: var(--card);
   border-bottom: 1px solid var(--bdr);
   display: flex;
