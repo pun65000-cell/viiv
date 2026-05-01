@@ -7,8 +7,13 @@ import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from moduleai.persona import PERSONAS, get_persona
-from moduleai.training import TrainingCollector
+try:
+    from moduleai.persona import PERSONAS, get_persona
+    from moduleai.training import TrainingCollector
+except ImportError:
+    # cwd-style run: `cd moduleai && uvicorn main:app`
+    from persona import PERSONAS, get_persona
+    from training import TrainingCollector
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [ai] %(message)s")
 log = logging.getLogger("moduleai")

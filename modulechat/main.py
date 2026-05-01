@@ -11,8 +11,13 @@ log = logging.getLogger("modulechat")
 
 app = FastAPI(title="ViiV Chat Module", version="0.1.0")
 
-from modulechat.bot import ChatBot
-from modulechat.inbox import Inbox
+try:
+    from modulechat.bot import ChatBot
+    from modulechat.inbox import Inbox
+except ImportError:
+    # cwd-style run: `cd modulechat && uvicorn main:app`
+    from bot import ChatBot
+    from inbox import Inbox
 
 bot = ChatBot()
 inbox = Inbox()
