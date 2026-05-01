@@ -54,12 +54,14 @@ def set_plan(payload: dict):
 # ── Staff Login ────────────────────────────────────────────────────────────────
 import jwt as _jwt
 import datetime
+import logging
 import os
 import time
 from sqlalchemy import text
 from app.core.db import engine as _db_engine
 from passlib.context import CryptContext
 
+_log = logging.getLogger("login")
 _JWT_SECRET = os.getenv("JWT_SECRET", "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c")
 _pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 _login_attempts: dict = {}  # key="{ip}:{email}" value={"count":int,"reset_at":float}
@@ -156,18 +158,29 @@ def staff_login(payload: dict, request: Request):
     try:
         with _db_engine.begin() as c:
             for shop in valid:
+                # ได้ user_id จาก tenant_staff.user_id (ถ้ามี)
+                # ถ้าไม่มี → หาจาก viiv_accounts WHERE email = shop.email
+                uid = None
+                if hasattr(shop, 'user_id') and shop.user_id:
+                    uid = str(shop.user_id)
+                else:
+                    acc = c.execute(text(
+                        "SELECT id FROM viiv_accounts WHERE email=:e LIMIT 1"
+                    ), {"e": email}).fetchone()
+                    if acc:
+                        uid = str(acc[0])
                 c.execute(text("""
                     INSERT INTO token_security_log
                         (user_id, tenant_id, ip, user_agent, action)
                     VALUES (:uid, :tid, :ip, :ua, 'login')
                 """), {
-                    "uid": str(shop.user_id) if hasattr(shop, 'user_id') and shop.user_id else None,
+                    "uid": uid,
                     "tid": str(shop.tenant_id),
                     "ip": ip,
                     "ua": request.headers.get("User-Agent", "")[:200],
                 })
-    except Exception:
-        pass  # ไม่ให้ log พัง block login
+    except Exception as e:
+        _log.warning("token_security_log insert failed: %s", e)
 
     return {
         "access_token": token,
