@@ -181,3 +181,97 @@ async def push_quote(request: Request, payload: dict, authorization: str = Heade
     result["img_url"] = img_url
     return result
 
+
+# ── Platform LINE OA webhook ──────────────────────────────────────────────────
+# Separate from per-tenant /webhook above — platform-level OA used to activate
+# pending tenants by replying with their registered email.
+
+def _line_reply_text(channel_token: str, reply_token: str, msg: str) -> None:
+    if not channel_token or not reply_token:
+        return
+    try:
+        import requests
+        requests.post(
+            "https://api.line.me/v2/bot/message/reply",
+            headers={
+                "Authorization": f"Bearer {channel_token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "replyToken": reply_token,
+                "messages": [{"type": "text", "text": msg}],
+            },
+            timeout=5,
+        )
+    except Exception:
+        pass
+
+
+@router.post("/webhook/platform")
+async def line_platform_webhook(request: Request):
+    body = await request.body()
+    sig_header = request.headers.get("X-Line-Signature", "")
+
+    try:
+        data = json.loads(body) if body else {}
+    except Exception:
+        data = {}
+    events = data.get("events", []) or []
+
+    # LINE Manager verify endpoint sends empty events — accept without signature.
+    if not events:
+        return {"status": "ok"}
+
+    with engine.connect() as c:
+        row = c.execute(text(
+            "SELECT channel_secret, channel_token FROM platform_connections "
+            "WHERE platform='line' LIMIT 1"
+        )).fetchone()
+    if not row or not row[0]:
+        raise HTTPException(500, "platform LINE credentials missing")
+    channel_secret, channel_token = row[0], row[1]
+
+    if not _verify_signature(channel_secret, body, sig_header):
+        raise HTTPException(400, "Invalid signature")
+
+    for ev in events:
+        etype       = ev.get("type")
+        reply_token = ev.get("replyToken", "")
+        line_uid    = (ev.get("source") or {}).get("userId", "")
+
+        if etype == "follow":
+            _line_reply_text(channel_token, reply_token,
+                "ยินดีต้อนรับสู่ ViiV! 🎉\n"
+                "กรุณาพิมพ์อีเมล์ที่ใช้สมัครเพื่อเปิดใช้งานร้านค้าครับ")
+            continue
+
+        if etype == "message":
+            msg = ev.get("message") or {}
+            if msg.get("type") != "text":
+                continue
+            text_in = (msg.get("text") or "").strip()
+            if "@" not in text_in:
+                continue  # not an email — silent (don't spam users)
+            email = text_in.lower()
+
+            with engine.begin() as c:
+                hit = c.execute(text(
+                    "SELECT id, subdomain FROM tenants "
+                    "WHERE LOWER(email)=:e AND status='pending' LIMIT 1"
+                ), {"e": email}).fetchone()
+                if hit:
+                    tid, subdomain = hit[0], hit[1]
+                    c.execute(text(
+                        "UPDATE tenants SET status='active', line_uid=:luid, "
+                        "updated_at=NOW() WHERE id=:tid"
+                    ), {"luid": line_uid, "tid": tid})
+                    _line_reply_text(channel_token, reply_token,
+                        f"✅ เปิดใช้งานแล้วครับ!\n"
+                        f"เข้าระบบได้เลยที่:\n"
+                        f"https://{subdomain}.viiv.me/superboard/")
+                else:
+                    _line_reply_text(channel_token, reply_token,
+                        "ไม่พบอีเมล์นี้ในระบบครับ หรืออาจเปิดใช้งานแล้ว\n"
+                        "ติดต่อ @004krtts ได้เลยครับ")
+
+    return {"status": "ok"}
