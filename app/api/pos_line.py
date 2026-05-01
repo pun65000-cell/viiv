@@ -134,13 +134,9 @@ async def line_webhook(request: Request):
         raise HTTPException(400, "Invalid signature")
     channel_token = _get_channel_token(tenant_id)
 
-    # Fan-out to modules.chat (:8003) for persistence/inbox.
-    # Same fire-and-forget pattern as /webhook/platform — forwarding never
-    # affects the response back to LINE.
-    try:
-        asyncio.create_task(_forward_to_chat_module(body, sig_header))
-    except Exception as e:
-        _log.warning("forward task creation failed (per-tenant): %s", e)
+    # Per-tenant webhook handles persistence + bot reply directly here (:8000).
+    # Fan-out to :8003 was removed to avoid double-insert / double-reply —
+    # see /webhook/platform for the platform-OA fan-out pattern that remains.
 
     try:
         data = json.loads(body)
