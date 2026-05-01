@@ -82,3 +82,25 @@ END OF SESSION
 > สำหรับรายละเอียดทั้งหมด → อ่าน VIIV_MASTER.md
 
 # Model: haiku-4-5 default / sonnet-4-6 complex / ไม่แน่ใจ → ดู MASTER.md
+
+---
+
+## DB RULES — Green Development
+
+Green (port 9000) ใช้ DB เดียวกับ Blue แต่มีกฎเข้มงวด:
+
+### ✅ Green ทำได้
+- CREATE TABLE ที่ขึ้นต้นด้วย chat_* หรือ autopost_* เท่านั้น
+- INSERT, UPDATE, SELECT ใน chat_* และ autopost_* tables
+- SELECT (อ่านอย่างเดียว) จาก tables เดิมทุกตัว
+
+### ❌ Green ห้ามทำเด็ดขาด
+- DROP TABLE ทุกกรณี
+- TRUNCATE ทุกกรณี
+- ALTER COLUMN ทุกกรณี
+- RENAME TABLE หรือ RENAME COLUMN ทุกกรณี
+- INSERT, UPDATE, DELETE ใน tables เดิม (bills, members, tenants, products, tenant_staff, viiv_accounts ฯลฯ)
+
+### เหตุผล
+DB เดียวกัน Blue+Green — ละเมิดกฎนี้ = ข้อมูล production เสียหาย
+Backup มีอยู่ แต่ restore = downtime — ป้องกันดีกว่าแก้
