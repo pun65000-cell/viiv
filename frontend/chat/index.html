@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ViiV Chat</title>
+  <link rel="stylesheet" href="/superboard/css/theme.css" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#f5f3ee;color:#1f2937;}
+
+    /* topbar — mirror Superboard's locked 50px row */
+    .ch-topbar{
+      height:50px;min-height:50px;max-height:50px;overflow:hidden;
+      background:#f8f6f2;border-bottom:1px solid #ddd;
+      display:flex;align-items:center;padding:0 16px;gap:12px;
+      position:sticky;top:0;z-index:100;
+    }
+    .ch-logo{font-weight:800;color:#c9a84c;letter-spacing:1px;font-size:16px;}
+    .ch-status{display:flex;gap:14px;font-size:12px;color:#6b7280;flex:1;}
+    .ch-stat{display:inline-flex;align-items:center;gap:4px;}
+    .ch-dot{width:8px;height:8px;border-radius:50%;background:#9ca3af;}
+    .ch-dot.ok{background:#22c55e;}
+    .ch-dot.bad{background:#ef4444;}
+
+    /* layout: inbox left + chat window right */
+    .ch-shell{
+      display:grid;
+      grid-template-columns: minmax(260px, 320px) 1fr;
+      height: calc(100vh - 50px);
+    }
+    @media (max-width: 720px){
+      .ch-shell{ grid-template-columns: 1fr; grid-template-rows: 200px 1fr; }
+    }
+
+    .ch-stats{
+      display:flex;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid #e5e7eb;
+    }
+    .ch-card{
+      flex:1;background:#faf8f3;border:1px solid #e8dfc8;border-radius:10px;
+      padding:8px 10px;
+    }
+    .ch-card .lbl{font-size:11px;color:#6b7280;}
+    .ch-card .val{font-size:16px;font-weight:700;color:#1f2937;line-height:1.2;}
+
+    .ch-inbox{
+      background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;
+      overflow:hidden;
+    }
+    .ch-inbox-hdr{
+      padding:10px 14px;font-weight:600;border-bottom:1px solid #f1f1ee;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .ch-inbox-list{flex:1;overflow-y:auto;}
+    .ch-empty{
+      padding:32px 18px;color:#9ca3af;font-size:13px;text-align:center;line-height:1.6;
+    }
+
+    .ch-window{
+      display:flex;flex-direction:column;background:#fbfaf6;
+    }
+    .ch-window-hdr{
+      padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#fff;
+      font-size:14px;color:#6b7280;
+    }
+    .ch-thread{
+      flex:1;padding:24px;overflow-y:auto;
+      display:flex;align-items:center;justify-content:center;
+      color:#9ca3af;font-size:13px;
+    }
+    .ch-input{
+      border-top:1px solid #e5e7eb;padding:10px 14px;display:flex;gap:8px;background:#fff;
+    }
+    .ch-input input{
+      flex:1;padding:9px 12px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;
+    }
+    .ch-input button{
+      padding:0 16px;border:none;border-radius:10px;background:#c9a84c;color:#1a1200;
+      font-weight:700;cursor:pointer;
+    }
+    .ch-input button:disabled{opacity:.5;cursor:not-allowed;}
+  </style>
+</head>
+<body>
+
+<header class="ch-topbar">
+  <span class="ch-logo">ViiV Chat</span>
+  <div class="ch-status">
+    <span class="ch-stat"><span class="ch-dot" id="dotChat"></span> Chat module: <strong id="stChat">…</strong></span>
+    <span class="ch-stat"><span class="ch-dot" id="dotAi"></span> AI module: <strong id="stAi">…</strong></span>
+    <span class="ch-stat"><span class="ch-dot" id="dotLine"></span> LINE: <strong id="stLine">…</strong></span>
+  </div>
+  <a href="/superboard/" style="font-size:13px;color:#6b7280;text-decoration:none;">← Superboard</a>
+</header>
+
+<div class="ch-shell">
+  <aside class="ch-inbox">
+    <div class="ch-stats">
+      <div class="ch-card"><div class="lbl">แชทวันนี้</div><div class="val" id="kpiToday">0</div></div>
+      <div class="ch-card"><div class="lbl">Persona</div><div class="val" id="kpiPersona">—</div></div>
+    </div>
+    <div class="ch-inbox-hdr">
+      <span>กล่องข้อความ</span>
+      <button onclick="loadInbox()" style="border:none;background:transparent;cursor:pointer;color:#6b7280;font-size:13px">↻</button>
+    </div>
+    <div class="ch-inbox-list" id="inboxList">
+      <div class="ch-empty">ยังไม่มีแชท<br><small>เมื่อมีข้อความเข้า — จะแสดงที่นี่</small></div>
+    </div>
+  </aside>
+
+  <main class="ch-window">
+    <div class="ch-window-hdr">เลือกแชทจากกล่องข้อความเพื่อตอบกลับ</div>
+    <div class="ch-thread" id="thread">
+      ยังไม่ได้เลือกแชท
+    </div>
+    <div class="ch-input">
+      <input id="composer" placeholder="พิมพ์ข้อความ..." disabled>
+      <button id="sendBtn" disabled>ส่ง</button>
+    </div>
+  </main>
+</div>
+
+<script>
+const CHAT_URL = window.__CHAT_URL__ || '/chat';   // proxied via Caddy
+const AI_URL   = window.__AI_URL__   || '/ai';
+
+function setDot(id, ok){ document.getElementById(id).className = 'ch-dot ' + (ok ? 'ok' : 'bad'); }
+
+async function probe(url){
+  try{
+    const r = await fetch(url + '/health', {cache:'no-store'});
+    if(!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function refreshHealth(){
+  const [c, a] = await Promise.all([probe(CHAT_URL), probe(AI_URL)]);
+  document.getElementById('stChat').textContent = c ? 'OK' : 'offline';
+  document.getElementById('stAi').textContent   = a ? 'OK' : 'offline';
+  setDot('dotChat', !!c);
+  setDot('dotAi',   !!a);
+  // LINE wiring lives in chat module — Phase 2 will report real status
+  document.getElementById('stLine').textContent = c ? 'รอเชื่อมต่อ' : '—';
+  setDot('dotLine', false);
+}
+
+async function loadInbox(){
+  try{
+    const r = await fetch(CHAT_URL + '/conversations');
+    if(!r.ok) return;
+    const j = await r.json();
+    const list = j.conversations || [];
+    document.getElementById('kpiToday').textContent = list.length;
+    if(!list.length){
+      document.getElementById('inboxList').innerHTML =
+        '<div class="ch-empty">ยังไม่มีแชท<br><small>เมื่อมีข้อความเข้า — จะแสดงที่นี่</small></div>';
+    }
+  }catch(_){}
+}
+
+async function loadPersona(){
+  try{
+    const r = await fetch(AI_URL + '/personas');
+    if(!r.ok) return;
+    const j = await r.json();
+    const p = (j.personas || [])[0];
+    document.getElementById('kpiPersona').textContent = p ? p.name : '—';
+  }catch(_){
+    document.getElementById('kpiPersona').textContent = '—';
+  }
+}
+
+refreshHealth();
+loadInbox();
+loadPersona();
+setInterval(refreshHealth, 30000);
+</script>
+
+</body>
+</html>
