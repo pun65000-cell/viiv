@@ -66,6 +66,15 @@ async def line_webhook(request: Request):
     channel_secret = _get_channel_secret(tenant_id)
     if not _verify_signature(channel_secret, body, sig_header):
         raise HTTPException(400, "Invalid signature")
+
+    # Fan-out to modules.chat (:8003) for persistence/inbox.
+    # Same fire-and-forget pattern as /webhook/platform — forwarding never
+    # affects the response back to LINE.
+    try:
+        asyncio.create_task(_forward_to_chat_module(body, sig_header))
+    except Exception as e:
+        _log.warning("forward task creation failed (per-tenant): %s", e)
+
     try:
         data = json.loads(body)
     except Exception:
