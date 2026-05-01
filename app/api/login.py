@@ -92,7 +92,7 @@ def staff_login(payload: dict, request: Request):
     with _db_engine.connect() as c:
         if tenant_id:
             rows = c.execute(
-                text("""SELECT s.id, s.first_name, s.last_name, s.role,
+                text("""SELECT s.id, s.user_id, s.first_name, s.last_name, s.role,
                                s.hashed_password, s.tenant_id,
                                t.store_name, t.subdomain
                         FROM tenant_staff s
@@ -103,7 +103,7 @@ def staff_login(payload: dict, request: Request):
             ).fetchall()
         else:
             rows = c.execute(
-                text("""SELECT s.id, s.first_name, s.last_name, s.role,
+                text("""SELECT s.id, s.user_id, s.first_name, s.last_name, s.role,
                                s.hashed_password, s.tenant_id,
                                t.store_name, t.subdomain
                         FROM tenant_staff s
@@ -161,7 +161,7 @@ def staff_login(payload: dict, request: Request):
                         (user_id, tenant_id, ip, user_agent, action)
                     VALUES (:uid, :tid, :ip, :ua, 'login')
                 """), {
-                    "uid": str(shop.id),
+                    "uid": str(shop.user_id) if hasattr(shop, 'user_id') and shop.user_id else None,
                     "tid": str(shop.tenant_id),
                     "ip": ip,
                     "ua": request.headers.get("User-Agent", "")[:200],
