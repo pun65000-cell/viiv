@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777606785" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777608467" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -392,6 +392,8 @@ window.sbLogout = function(){
 window.sbNav = function(page){
   document.querySelectorAll('.sb-nav-item').forEach(function(el){ el.classList.toggle('active', el.dataset.page===page); });
   closeDD();
+  // remember page in URL so reload restores the same view
+  if (location.hash !== '#'+page) history.replaceState(null, '', '#'+page);
   var c = document.getElementById('sbContent');
   if(page==='home'){c.classList.add('home-fullscreen');}
   else{c.classList.remove('home-fullscreen');}
@@ -620,10 +622,16 @@ async function loadShopList(){
   }
 }
 
+window.addEventListener('hashchange', function(){
+  var p = location.hash.replace('#','');
+  if (p) window.sbNav(p);
+});
+
 document.addEventListener('DOMContentLoaded', function(){
   if(!getToken()){ window.location.href='/superboard/login.html'; return; }
   loadShopBadge();   // topbar เท่านั้น — list โหลดเมื่อเปิด dropdown
-  sbNav('home'); checkBellDot();
+  var _initialPage = (location.hash.replace('#','')) || 'home';
+  sbNav(_initialPage); checkBellDot();
 
   // ── Shop popup bindings (เลี่ยง onclick attribute → ใช้ addEventListener) ──
   var saveBtn = document.getElementById('shopAddSaveBtn');
