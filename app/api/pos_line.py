@@ -56,6 +56,72 @@ def _get_channel_secret(tenant_id):
         ).fetchone()
     return row[0] if row and row[0] else ""
 
+def _get_channel_token(tenant_id):
+    with engine.connect() as c:
+        row = c.execute(
+            text("SELECT channel_token FROM line_settings WHERE tenant_id=:tid LIMIT 1"),
+            {"tid": tenant_id}
+        ).fetchone()
+    return row[0] if row and row[0] else ""
+
+
+def _tenant_bot_reply(text_in: str, tenant_id: str, conn) -> str:
+    """Rule-based bot reply สำหรับ per-tenant webhook
+    อ่าน rules จาก chat_bot_rules WHERE tenant_id=:tid OR tenant_id IS NULL
+    fallback = ข้อความจาก chat_bot_settings (tenant_id='__platform__')
+    """
+    txt = text_in.lower().strip()
+
+    # อ่าน rules จาก DB (tenant-specific มาก่อน, ตามด้วย global rules)
+    try:
+        rules = conn.execute(text("""
+            SELECT keywords, response FROM chat_bot_rules
+            WHERE (tenant_id = :tid OR tenant_id IS NULL)
+              AND is_active = true
+            ORDER BY tenant_id NULLS LAST, id
+        """), {"tid": tenant_id}).fetchall()
+
+        for rule in rules:
+            keywords = rule[0] or []
+            for kw in keywords:
+                if kw and kw.lower().strip() in txt:
+                    return rule[1]
+    except Exception:
+        pass
+
+    # default keyword rules (fallback ถ้า DB ว่าง)
+    KEYWORDS = {
+        ("สินค้า","ราคา","มีอะไร","catalog","product"):
+            "สวัสดีค่ะ 😊 สามารถดูสินค้าของเราได้เลยนะคะ\nมีอะไรให้ช่วยเพิ่มเติมไหมคะ?",
+        ("สั่ง","ซื้อ","order"):
+            "ขอบคุณที่สนใจสั่งซื้อนะคะ 🛍️\nกรุณาแจ้งรายการสินค้าที่ต้องการได้เลยค่ะ",
+        ("ที่อยู่","อยู่ที่ไหน","location","map"):
+            "สามารถติดต่อเราได้ที่สาขานะคะ 📍\nหรือสั่งออนไลน์ได้เลยค่ะ",
+        ("เวลา","เปิด","ปิด","กี่โมง"):
+            "เปิดให้บริการทุกวันค่ะ 🕐\nมีอะไรให้ช่วยเพิ่มเติมไหมคะ?",
+        ("โทร","เบอร์","ติดต่อ","tel","phone"):
+            "สามารถติดต่อทีมงานได้เลยนะคะ 📞\nหรือทักแชทได้เลยค่ะ",
+        ("ขอบคุณ","thank","ขอบใจ"):
+            "ขอบคุณเช่นกันนะคะ 🙏 ยินดีให้บริการเสมอค่ะ",
+    }
+    for kws, reply in KEYWORDS.items():
+        if any(kw in txt for kw in kws):
+            return reply
+
+    # fallback — ใช้ welcome_message ของ platform เป็น generic reply
+    try:
+        row = conn.execute(text("""
+            SELECT welcome_message FROM chat_bot_settings
+            WHERE tenant_id = '__platform__' LIMIT 1
+        """)).fetchone()
+        if row and row[0]:
+            return row[0]
+    except Exception:
+        pass
+
+    return "ขอบคุณที่ติดต่อมานะคะ 🙏\nทีมงานจะติดต่อกลับเร็วๆ นี้ค่ะ"
+
+
 @router.post("/webhook")
 async def line_webhook(request: Request):
     body = await request.body()
@@ -66,6 +132,7 @@ async def line_webhook(request: Request):
     channel_secret = _get_channel_secret(tenant_id)
     if not _verify_signature(channel_secret, body, sig_header):
         raise HTTPException(400, "Invalid signature")
+    channel_token = _get_channel_token(tenant_id)
 
     # Fan-out to modules.chat (:8003) for persistence/inbox.
     # Same fire-and-forget pattern as /webhook/platform — forwarding never
@@ -109,6 +176,86 @@ async def line_webhook(request: Request):
                 "msg":   message_text,
                 "raw":   json.dumps(event),
             })
+
+            # ── CHAT MODULE INTEGRATION ──────────────────────────
+            if event_type in ("message", "follow") and line_uid:
+                try:
+                    # 1. get LINE profile
+                    display_name, picture_url = "", ""
+                    try:
+                        import httpx as _httpx
+                        with _httpx.Client(timeout=3) as hc:
+                            pr = hc.get(
+                                f"https://api.line.me/v2/bot/profile/{line_uid}",
+                                headers={"Authorization": f"Bearer {channel_token}"}
+                            )
+                            if pr.status_code == 200:
+                                pj = pr.json()
+                                display_name = pj.get("displayName", "")
+                                picture_url  = pj.get("pictureUrl", "")
+                    except Exception:
+                        pass
+
+                    # 2. upsert chat_conversation
+                    conv_row = c.execute(text("""
+                        INSERT INTO chat_conversations
+                            (platform, platform_uid, display_name, picture_url, tenant_id, status)
+                        VALUES ('line', :uid, :name, :pic, :tid, 'open')
+                        ON CONFLICT (tenant_id, platform, platform_uid) DO UPDATE
+                            SET display_name = EXCLUDED.display_name,
+                                picture_url  = EXCLUDED.picture_url,
+                                updated_at   = now()
+                        RETURNING id
+                    """), {"uid": line_uid, "name": display_name,
+                           "pic": picture_url, "tid": tenant_id}).fetchone()
+                    conv_id = conv_row[0] if conv_row else None
+
+                    if conv_id:
+                        # 3. save inbound message
+                        direction = "inbound"
+                        content   = message_text if event_type == "message" else "[follow]"
+                        c.execute(text("""
+                            INSERT INTO chat_messages
+                                (conversation_id, direction, content, raw_event)
+                            VALUES (:cid, :dir, :content, :raw::jsonb)
+                        """), {"cid": conv_id, "dir": direction,
+                               "content": content, "raw": json.dumps(event)})
+
+                        # update unread + updated_at
+                        c.execute(text("""
+                            UPDATE chat_conversations
+                            SET unread_count = unread_count + 1, updated_at = now()
+                            WHERE id = :cid
+                        """), {"cid": conv_id})
+
+                        # 4. bot reply (message only)
+                        if event_type == "message" and message_text:
+                            reply_token = event.get("replyToken", "")
+                            bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
+                            if reply_token and bot_reply_text and channel_token:
+                                try:
+                                    with _httpx.Client(timeout=5) as hc:
+                                        hc.post(
+                                            "https://api.line.me/v2/bot/message/reply",
+                                            headers={
+                                                "Authorization": f"Bearer {channel_token}",
+                                                "Content-Type": "application/json"
+                                            },
+                                            json={"replyToken": reply_token,
+                                                  "messages": [{"type": "text",
+                                                                 "text": bot_reply_text}]}
+                                        )
+                                    # save outbound
+                                    c.execute(text("""
+                                        INSERT INTO chat_messages
+                                            (conversation_id, direction, content, raw_event)
+                                        VALUES (:cid, 'outbound', :txt, :raw::jsonb)
+                                    """), {"cid": conv_id, "txt": bot_reply_text,
+                                           "raw": json.dumps({"sent_by": "bot"})})
+                                except Exception as e:
+                                    _log.warning("tenant bot reply failed: %s", e)
+                except Exception as e:
+                    _log.warning("chat integration error tenant=%s: %s", tenant_id, e)
     return {"status": "ok"}
 
 @router.get("/pending-uid")
