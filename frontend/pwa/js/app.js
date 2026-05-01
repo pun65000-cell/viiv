@@ -262,21 +262,29 @@ window.ShopSwitcher = {
       return;
     }
     const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    // logo render — img + sibling fallback span. onerror toggles display
+    // (no outerHTML — quote-escape pitfalls are gone).
+    const renderIcon = (logo, initial) => {
+      if (logo) {
+        return '<div class="tb-shop-icon">'
+          + '<img class="tb-shop-logo" src="'+esc(logo)+'" alt="" '
+          +   'onerror="this.style.display=\'none\';'
+          +              'this.nextElementSibling.style.display=\'flex\'">'
+          + '<span class="tb-shop-av" style="display:none">'+esc(initial)+'</span>'
+          + '</div>';
+      }
+      return '<div class="tb-shop-icon">'
+        + '<span class="tb-shop-av">'+esc(initial)+'</span></div>';
+    };
     list.innerHTML = this._shops.map(s => {
       const active = s.id === this._curTid ? ' active' : '';
       const initial = (s.store_name || s.subdomain || '?').charAt(0).toUpperCase();
       const sub = (s.subdomain || '');
-      const logo = s.logo_url || '';
-      // logo <img> with onerror → fallback to initial avatar
-      const avatar = logo
-        ? '<img class="tb-shop-logo" src="'+esc(logo)+'" alt="" '
-          + 'onerror="this.outerHTML=\'<div class=\\\'tb-shop-item-av\\\'>'+esc(initial)+'</div>\'">'
-        : '<div class="tb-shop-item-av">'+esc(initial)+'</div>';
       return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+esc(sub)+'\')">'
-        + avatar
+        + renderIcon(s.logo_url || '', initial)
         + '<div class="tb-shop-info">'
-        +   '<div class="name">'+esc(s.store_name || sub || 'Shop')+'</div>'
-        +   '<div class="sub">'+esc(sub)+'.viiv.me</div>'
+        +   '<div class="tb-shop-name">'+esc(s.store_name || sub || 'Shop')+'</div>'
+        +   '<div class="tb-shop-sub">'+esc(sub)+'.viiv.me</div>'
         + '</div></div>';
     }).join('');
   },

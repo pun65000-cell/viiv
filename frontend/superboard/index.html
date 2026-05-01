@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777610936" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777611264" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -593,18 +593,34 @@ async function loadShopList(){
     var lres = await fetch('/api/platform/my-shops', { headers:{'Authorization':'Bearer '+token} });
     if(!lres.ok) throw new Error('HTTP '+lres.status);
     var shops = await lres.json();
+    // logo + fallback as siblings. onerror toggles display — no outerHTML
+    // (avoids HTML/quote escape pitfalls).
+    var avStyle = 'width:28px;height:28px;border-radius:6px;flex-shrink:0;'
+                + 'background:var(--accent-dim);border:1px solid var(--accent-border);'
+                + 'align-items:center;justify-content:center;font-size:12px;'
+                + 'font-weight:700;color:var(--accent)';
     var items = (shops||[]).map(function(s){
       var n = s.store_name||s.subdomain||'Shop';
       var sd = s.subdomain||'';
       var logo = s.logo_url||'';
       var initial = escHtml(n.charAt(0).toUpperCase());
       var active = s.id===curTid ? ' active' : '';
-      var fallback = '<div style="width:28px;height:28px;border-radius:6px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0">'+initial+'</div>';
-      var avatar = logo
-        ? '<img src="'+escHtml(logo)+'" alt="" style="width:28px;height:28px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--accent-dim)" onerror="this.outerHTML=\''+fallback.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\'">'
-        : fallback;
+      var iconWrap;
+      if (logo) {
+        iconWrap = '<div style="width:28px;height:28px;flex-shrink:0;position:relative">'
+          + '<img src="'+escHtml(logo)+'" alt="" '
+          +   'style="width:28px;height:28px;border-radius:6px;object-fit:cover;'
+          +          'display:block;background:var(--accent-dim)" '
+          +   'onerror="this.style.display=\'none\';'
+          +              'this.nextElementSibling.style.display=\'flex\'">'
+          + '<span style="'+avStyle+';display:none">'+initial+'</span>'
+          + '</div>';
+      } else {
+        iconWrap = '<div style="width:28px;height:28px;flex-shrink:0;position:relative">'
+          + '<span style="'+avStyle+';display:flex">'+initial+'</span></div>';
+      }
       return '<div class="sb-shop-dd-item'+active+'" onclick="switchShop(\''+escHtml(sd)+'\')" style="padding:8px 12px;gap:8px">'+
-        avatar+
+        iconWrap+
         '<div style="flex:1;min-width:0">'+
           '<div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(n)+'</div>'+
           '<div style="font-size:10px;color:var(--muted);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(sd)+'.viiv.me</div>'+
