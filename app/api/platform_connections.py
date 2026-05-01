@@ -101,6 +101,33 @@ def clear_subdomain_cache(subdomain: str, authorization: str = Header(None)):
     return {"cleared": subdomain, "had_entry": cleared}
 
 
+_LOG_PATH = "/home/viivadmin/viiv/logs/uvicorn.log"
+_LOG_LINES_MAX = 500
+
+
+@router.get("/logs")
+def platform_logs(lines: int = 100, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    n = max(1, min(int(lines or 100), _LOG_LINES_MAX))
+    try:
+        with open(_LOG_PATH, "rb") as f:
+            f.seek(0, 2)
+            size = f.tell()
+            block = 8192
+            data = b""
+            while size > 0 and data.count(b"\n") <= n:
+                step = min(block, size)
+                size -= step
+                f.seek(size)
+                data = f.read(step) + data
+        text_data = data.decode("utf-8", errors="replace")
+        all_lines = text_data.splitlines()
+        out = all_lines[-n:]
+        return {"lines": out, "total": len(out)}
+    except FileNotFoundError:
+        return {"lines": [], "total": 0}
+
+
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def _admin_auth(authorization: str):
     """Permissive auth (dev): ผ่านถ้า decode JWT ได้และมี identity field ใดๆ
