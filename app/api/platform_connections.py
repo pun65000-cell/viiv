@@ -388,16 +388,21 @@ def my_shops(authorization: str = Header("")):
         owned = []
         if owner_uid:
             owned = c.execute(text("""
-                SELECT id, store_name, subdomain, status
-                FROM tenants WHERE owner_id=:uid ORDER BY created_at
+                SELECT t.id, t.store_name, t.subdomain, t.status,
+                       ss.logo_url
+                FROM tenants t
+                LEFT JOIN store_settings ss ON ss.tenant_id = t.id
+                WHERE t.owner_id=:uid ORDER BY t.created_at
             """), {"uid": owner_uid}).fetchall()
 
         staffed = []
         if email:
             staffed = c.execute(text("""
-                SELECT t.id, t.store_name, t.subdomain, t.status, ts.role
+                SELECT t.id, t.store_name, t.subdomain, t.status, ts.role,
+                       ss.logo_url
                 FROM tenant_staff ts
                 JOIN tenants t ON t.id = ts.tenant_id
+                LEFT JOIN store_settings ss ON ss.tenant_id = t.id
                 WHERE ts.email=:email AND ts.is_active=true
             """), {"email": email}).fetchall()
 
@@ -406,11 +411,13 @@ def my_shops(authorization: str = Header("")):
     for s in owned:
         seen.add(s.id)
         shops.append({"id": s.id, "store_name": s.store_name,
-                      "subdomain": s.subdomain, "status": s.status, "role": "owner"})
+                      "subdomain": s.subdomain, "status": s.status,
+                      "logo_url": s.logo_url or "", "role": "owner"})
     for s in staffed:
         if s.id not in seen:
             shops.append({"id": s.id, "store_name": s.store_name,
-                          "subdomain": s.subdomain, "status": s.status, "role": s.role})
+                          "subdomain": s.subdomain, "status": s.status,
+                          "logo_url": s.logo_url or "", "role": s.role})
     return shops
 
 
