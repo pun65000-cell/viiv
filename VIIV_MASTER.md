@@ -2114,3 +2114,202 @@ FILES TOUCHED
               frontend/superboard/index.html  (debug cleanup + meta tag)
 
 Version: v1.60.1 | Updated: 2026-04-30 (post-EOD)
+
+
+---
+
+## [J] EOD 2026-05-01 — Subscription System (7 Phases) + Topbar Lockdown + Deploy Tooling
+
+SUMMARY
+- Subscription Management Platform ครบ 7 phases (DB → Backend → LINE notify
+  → Scheduler → Middleware → UI → Soft-block 402 handler)
+- Manual subscription editor modal + backfill trial dates (admin tools)
+- LINE webhook activate tenant ผ่านอีเมล (platform OA `@004krtts`)
+- Topbar height lockdown (Superboard) — แก้ผ่าน 13 commits ทดลองหลายชั้น
+  จนสุดท้ายย้าย dropdowns ออกนอก header + lock height ทุกระดับ
+- Bug fixes: viiv.me login URL, register phone CSS, reload hash restore,
+  shop switcher ellipsis + dropdown polish
+- Deploy tooling: deploy.sh + rollback.sh พร้อม health-check + auto-revert
+
+KEY DECISIONS / DESIGN
+1. Subscription
+   - billing_status: trial / active / suspended / cancelled
+   - 5 LINE templates (trial_warning, trial_expiry, expiry_warning_3d/_1d, overdue)
+   - Schedule day-exact picker (cron 09:00 Asia/Bangkok)
+     trial: d=2 / d=0; active: d=3 / d=1; overdue: d=-2/-4/-6
+   - Suspension rule: trial<0 OR active overdue ≥7d
+   - Two safety flags (default ON for safe rollout):
+     BILLING_SCHEDULER_DRY_RUN=1 — log + DB log only, ไม่ส่ง LINE
+     BILLING_GUARD_MODE=report  — log + header X-Billing-Suspended:1, pass through
+   - Pricing matrix 3×3: pkg_basic/standard/pro × pos+affiliate / +chat / +chat+autopost
+     299/599/899 / 599/1198/1797 / 899/1798/2697 (THB / month)
+
+2. Soft-block 402
+   - middleware whitelist: /api/staff/login|heartbeat|presence,
+     /api/platform/*, /api/line/*, /api/health, all non-/api paths
+   - 60s TTL cache for tenant billing_status; clear_billing_cache()
+     called inside /confirm-payment for instant un-suspension
+   - PWA banner top-fixed + html.billing-blocked dim primary buttons
+   - Superboard fullscreen modal + body.billing-blocked iframe blur
+   - both surfaces detect 402 via window.fetch monkey-patch (idempotent)
+
+3. Topbar architecture (final)
+   - <header> overflow:hidden!important + height/min/max:50px!important
+   - dropdowns moved OUT of <header>, position:fixed top:50px
+     z-index:1000; click handler ตรวจ #shopDropdown / #profileDropdown /
+     #bellDropdown ด้วย (ไม่ใช่แค่ wrap parent)
+   - .sb-topnav-btn: height/min/max:32px + line-height:1 (no font-metric drift)
+   - #tab-platforms: 40px lock (ใน dashboard iframe — ไม่ใช่ outer topbar)
+
+4. Tooling
+   - deploy.sh: git pull → pip install → restart uvicorn :8000 → health ×3
+     → ถ้า fail: git revert HEAD --no-edit → restart → health ×3 → ถ้ายัง
+     fail: exit 2 (manual)
+   - rollback.sh: git revert <commit>..HEAD --no-edit (ไม่ใช่ checkout =
+     ไม่ detached HEAD) → restart → health ×3
+   - health URL: https://concore.viiv.me/api/platform/health (no auth)
+   - logs/ + *.log อยู่ใน .gitignore (logs/uvicorn.log ตามเดิมเพราะ track
+     ก่อน .gitignore — ไม่บล็อก pull/push, optional rm --cached ในรอบหน้า)
+
+DB CHANGES
+- ALTER tenants: trial_ends_at timestamptz, subscription_ends_at timestamptz,
+  billing_status text default 'trial', modules text[] default '{pos,affiliate}',
+  line_uid text
+- NEW: billing_invoices, billing_notifications, billing_prices (9 rows)
+- ALTER platform_connections: ADD CONSTRAINT UNIQUE (platform); cleanup
+  duplicate rows of platform='line'; populate channel_token + channel_secret
+- Backfill: trial_ends_at = created_at + 30 days WHERE NULL (8 tenants)
+- All ALTERs run via supabase_admin (postgres user lacks ownership of
+  tenants/viiv_accounts); platform_connections owned by postgres OK
+
+API ADDITIONS
+- GET  /api/platform/overview                   — real data (8 tenants etc.)
+- POST /api/platform/cache/clear-subdomain/{sub}— invalidate after subdomain edit
+- GET  /api/platform/logs?lines=N               — admin log tail (cap 500)
+- POST /api/line/webhook/platform               — platform-OA webhook (path
+                                                  separate from per-shop /webhook)
+- GET  /api/platform/billing/subscriptions      — list + days_remaining + amount_due
+- POST /api/platform/billing/confirm-payment    — INSERT invoice + UPDATE tenant
+                                                  + cache invalidate + LINE thanks
+- GET  /api/platform/billing/prices             — 9-row pricing matrix
+- POST /api/platform/billing/notify/{tid}       — manual reminder (?type= override,
+                                                  ?dry_run=true preview)
+- POST /api/platform/billing/run-check          — admin trigger scheduler
+- GET  /api/platform/billing/invoices           — history
+- GET  /api/platform/billing/notifications      — history
+- PATCH /api/platform/billing/subscriptions/{tid}— manual edit fields
+
+CADDY
+- /logs/* — replaced { file_server } with { respond 404 } (no public log dump)
+- /api/line/webhook/platform — handled by *.viiv.me block? — NO: webhook
+  is on concore.viiv.me/api/line/* → goes via concore /api proxy
+
+FILES TOUCHED (major)
+  Backend:
+    app/api/platform_connections.py  (overview + cache + logs + my-shops logo)
+    app/api/billing.py               [NEW] (10 endpoints)
+    app/api/pos_line.py              (+/webhook/platform endpoint)
+    app/scheduler/billing_scheduler.py  [NEW] (APScheduler 09:00 daily)
+    app/middleware/billing_guard.py     [NEW] (60s cache + 3 modes)
+    app/main.py                      (register middleware/scheduler hooks)
+
+  Frontend:
+    frontend/platform/pages/billing.html  [NEW] (3 tabs + 2 modals)
+    frontend/platform/dashboard.html      (sidebar 💰 expandable + reload hash)
+    frontend/superboard/index.html        (dropdowns out of header,
+                                           sbNav set hash, fetch wrapper 402)
+    frontend/superboard/css/theme.css     (topbar lockdown, shop-btn,
+                                           dropdown position:fixed)
+    frontend/superboard/dashboard/style.css (#tab-platforms 40px lock)
+    frontend/pwa/index.html               (billing banner, hash reload)
+    frontend/pwa/js/app.js                (BillingBlock fetch interceptor,
+                                           ShopSwitcher logo + observability)
+    frontend/pwa/css/app.css              (topbar lock, shop-dropdown polish)
+    frontend/pwa/pages/register-shop.html (phone tel CSS + result above submit)
+    frontend/register.html                (login href, phone CSS scoped)
+    frontend/index.html                   (login href fix)
+
+  Tooling:
+    deploy.sh   [NEW]
+    rollback.sh [NEW]
+
+  Docs:
+    CLAUDE.md            (+DB rules Green dev, +deploy/rollback usage)
+    .gitignore           (logs/ + *.log already present, verified)
+    Caddyfile (out of repo, in /etc/caddy/) (3 patches across day)
+
+COMMITS (~95 commits pushed origin/main today, latest e8d907c)
+  Notable groups:
+    - Subscription Phase 1-7: Phase 1 (SQL), a888022, 2f76538, a4d3c5a,
+      4cc0621, ca4d58f, 715d0bc
+    - Backfill + editor modal: c9538e7
+    - Sidebar restructure: 557138c (billing under บัญชีการเงิน)
+    - 3-bugs fix: 1cc3b08 (login + register phone + reload hash)
+    - PWA shop switcher polish: 10dee1f → 5479afe → 504fc4f
+    - Topbar lockdown saga: c436ae1 → b2cae10 → c0bfba5 → 19f90b8 → 7187210
+      → 334595a → 96500cd → 701c34a → 4633360 → 27cccad → b2e87b0 → a27af9a
+      → 2139a42 (13 iterations — final solution: dropdowns out of header)
+    - Shop switch debug: 66d5f09 (silent-fail observability) + 1ce89e9
+      (overflow:hidden ตัด dropdown)
+    - Tooling: 707ebda (scripts) + f3c9fdb (review fixes) + 6de635b/e8d907c (docs)
+
+KNOWN STATE / INVARIANTS (อ่านก่อนต่องานพรุ่งนี้)
+- Production = origin/main = commit e8d907c (auto-deployed via ./deploy.sh)
+- BILLING_SCHEDULER_DRY_RUN=1 (default) — เปลี่ยน 0 เพื่อส่ง LINE จริง
+- BILLING_GUARD_MODE=report (default) — เปลี่ยน enforce เพื่อ block 402
+- ten_1 trial_ends_at = 2026-05-11 (10 days), 8 tenants pending = 8-30 days
+- LINE platform OA credentials populated in platform_connections
+  WHERE platform='line' (channel_token/_secret/oa_id)
+- middleware order (Starlette `insert(0)`): rate_limiter → billing_guard
+  → inject_tenant → ... → handler
+- shop dropdowns in Superboard: position:fixed top:50px outside <header>
+
+
+---
+
+## [K] TOOLING & OPS (2026-05-01)
+
+DEPLOY
+```bash
+cd /home/viivadmin/viiv && ./deploy.sh
+```
+Pipeline: git pull origin main → pip install -q → restart uvicorn :8000
+→ wait 5s → health check ×3 every 3s on /api/platform/health
+→ pass: ✅ Deploy สำเร็จ; fail: auto git revert HEAD --no-edit + restart
++ recheck; double-fail: exit 2 (manual)
+
+ROLLBACK
+```bash
+./rollback.sh                # revert 1 commit (HEAD~1..HEAD)
+./rollback.sh <commit-hash>  # revert all commits AFTER <hash>
+```
+Uses `git revert <target>..HEAD --no-edit` — keeps branch on main, no
+detached HEAD. health-check ×3 same as deploy.
+
+GREEN-DEV DB RULES (CLAUDE.md)
+- Green port 9000 shares DB with Blue
+- ✅ CREATE TABLE chat_* / autopost_* only; INSERT/UPDATE/SELECT in those
+- ✅ SELECT (read-only) on legacy tables
+- ❌ DROP / TRUNCATE / ALTER COLUMN / RENAME on any legacy table
+- ❌ INSERT / UPDATE / DELETE on bills, members, tenants, products,
+   tenant_staff, viiv_accounts, etc.
+
+ENV FLAGS (uvicorn)
+- BILLING_SCHEDULER_ENABLED=1   start cron job at boot (default 1)
+- BILLING_SCHEDULER_DRY_RUN=1   preview only (default 1 — flip to 0 to send)
+- BILLING_GUARD_MODE=report     log only (default report; enforce|off)
+- BILLING_GUARD_ENFORCE not used — value is BILLING_GUARD_MODE
+
+HEALTH CHECK
+- Public:  GET https://concore.viiv.me/api/platform/health
+- Returns: {"status":"ok","version":"1.54"}
+
+ADMIN MANUAL TRIGGER
+- POST /api/platform/billing/run-check       (scheduler one-shot)
+- POST /api/platform/billing/notify/{tid}?type=trial_warning&dry_run=true
+
+SHARED LIB DEPS ADDED 2026-05-01
+- apscheduler 3.11.2 (BackgroundScheduler, CronTrigger, Asia/Bangkok)
+- requests 2.32.5 (already installed; used in LINE push)
+
+Version: v1.61 | Updated: 2026-05-01 (EOD)
