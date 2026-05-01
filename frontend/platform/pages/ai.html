@@ -1,123 +1,463 @@
 <!doctype html><html><body>
 <style>
-.ai-wrap{padding:0}
-.ai-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.ai-bar-title{font-size:15px;font-weight:700;color:#1f2937;flex:1}
-.ai-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.ai-stat{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid rgba(0,0,0,.07)}
-.ai-stat-lbl{font-size:11px;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.ai-stat-val{font-size:24px;font-weight:700;color:#1f2937}
-.ai-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-.ai-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07)}
-.ai-card-title{font-size:13px;font-weight:700;color:#374151;margin-bottom:14px}
-.ai-shop-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
-.ai-shop-row:last-child{border:none}
-.ai-shop-name{flex:1;color:#374151}
-.ai-shop-cnt{color:#6b7280;font-size:11px}
-.ai-toggle{position:relative;width:34px;height:18px;flex-shrink:0}
-.ai-toggle input{opacity:0;width:0;height:0}
-.ai-toggle-sl{position:absolute;inset:0;background:#d1d5db;border-radius:10px;cursor:pointer;transition:.2s}
-.ai-toggle-sl:before{content:'';position:absolute;width:12px;height:12px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
-.ai-toggle input:checked + .ai-toggle-sl{background:#22c55e}
-.ai-toggle input:checked + .ai-toggle-sl:before{transform:translateX(16px)}
-.ai-model-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
-.ai-model-row:last-child{border:none}
-.ai-model-lbl{color:#374151;font-weight:500}
-.ai-model-val{color:#6b7280}
-.ai-badge-active{background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.aim-wrap{padding:0;font-family:'Sarabun',system-ui,sans-serif}
+.aim-num{font-family:'Chakra Petch','Sarabun',sans-serif;letter-spacing:.5px}
+
+/* Stats */
+.aim-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.aim-stat{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid rgba(0,0,0,.07)}
+.aim-stat-lbl{font-size:11px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.aim-stat-val{font-size:24px;font-weight:700;color:#1f2937}
+.aim-stat-sub{font-size:11px;color:#9ca3af;margin-top:2px}
+.aim-stat.gold .aim-stat-val{color:#C8960A}
+.aim-stat.green .aim-stat-val{color:#16a34a}
+
+/* Cards / row2 */
+.aim-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.aim-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07);margin-bottom:16px}
+.aim-card-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.aim-card-title{font-size:13px;font-weight:700;color:#374151;flex:1}
+.aim-card-sub{font-size:11px;color:#9ca3af}
+
+/* Keys */
+.aim-key-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.aim-key-row:last-of-type{border-bottom:none}
+.aim-key-prov{font-weight:700;color:#1f2937;width:90px}
+.aim-key-mask{font-family:monospace;font-size:11px;color:#6b7280;background:#f9fafb;padding:3px 8px;border-radius:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aim-key-empty{color:#9ca3af;font-style:italic;flex:1;font-size:11px}
+.aim-key-del{color:#dc2626;background:none;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif}
+.aim-key-del:hover{background:#fee2e2}
+.aim-key-form{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:2px dashed #f3f4f6}
+.aim-key-form select,.aim-key-form input{padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;font-family:'Sarabun',sans-serif;outline:none}
+.aim-key-form select{width:120px;background:#fff}
+.aim-key-form input{flex:1}
+.aim-key-form input:focus,.aim-key-form select:focus{border-color:#C8960A}
+.aim-btn-gold{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:#C8960A;color:#fff;font-family:'Sarabun',sans-serif}
+.aim-btn-gold:hover{background:#a6790a}
+.aim-btn-gold:disabled{opacity:.5;cursor:not-allowed}
+
+/* Models */
+.aim-model-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.aim-model-row:last-child{border-bottom:none}
+.aim-model-name{font-weight:600;color:#1f2937;flex:1}
+.aim-model-prov{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
+.aim-model-cost{font-family:'Chakra Petch',sans-serif;color:#6b7280;font-size:11px;text-align:right;min-width:140px}
+.aim-model-cost b{color:#C8960A}
+
+/* Tables */
+.aim-tbl-wrap{overflow-x:auto;margin:0 -20px;padding:0 20px}
+table.aim-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+table.aim-tbl th{padding:10px 12px;text-align:left;color:#6b7280;font-weight:600;background:#fafafa;border-bottom:1px solid #f3f4f6;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+table.aim-tbl td{padding:11px 12px;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle}
+table.aim-tbl tr:last-child td{border:none}
+table.aim-tbl tr:hover td{background:#fffbf2}
+.aim-tbl .num{font-family:'Chakra Petch',sans-serif;text-align:right;color:#1f2937}
+.aim-tbl .muted{color:#9ca3af;font-size:11px}
+
+/* Progress bar */
+.aim-bar{width:100%;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;min-width:100px}
+.aim-bar-fill{height:100%;background:linear-gradient(90deg,#C8960A,#e8b93e);transition:width .3s}
+.aim-bar-fill.warn{background:linear-gradient(90deg,#dc2626,#f59e0b)}
+.aim-bar-fill.green{background:linear-gradient(90deg,#16a34a,#22c55e)}
+
+/* Credit input */
+.aim-credit-input{width:90px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:12px;font-family:'Chakra Petch',sans-serif;text-align:right;outline:none}
+.aim-credit-input:focus{border-color:#C8960A}
+.aim-credit-save{margin-left:6px;padding:5px 10px;background:#C8960A;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif}
+.aim-credit-save:hover{background:#a6790a}
+
+/* Source badge */
+.aim-source{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.aim-source.chat{background:#dbeafe;color:#1e40af}
+.aim-source.autopost{background:#fce7f3;color:#9d174d}
+.aim-source.pos_help{background:#dcfce7;color:#166534}
+.aim-source.unknown{background:#f3f4f6;color:#6b7280}
+
+/* Status dot */
+.aim-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.aim-status::before{content:'';width:8px;height:8px;border-radius:50%}
+.aim-status.online{color:#16a34a}.aim-status.online::before{background:#22c55e}
+.aim-status.offline{color:#dc2626}.aim-status.offline::before{background:#ef4444}
+.aim-status.error{color:#d97706}.aim-status.error::before{background:#f59e0b}
+.aim-status.unknown{color:#9ca3af}.aim-status.unknown::before{background:#9ca3af}
+
+.aim-loading{text-align:center;color:#9ca3af;padding:24px;font-size:12px}
+.aim-empty{text-align:center;color:#9ca3af;padding:18px;font-size:11px;font-style:italic}
+
+@media (max-width:900px){
+  .aim-stats{grid-template-columns:repeat(2,1fr)}
+  .aim-row2{grid-template-columns:1fr}
+}
 </style>
 
-<div class="ai-wrap">
-  <div class="ai-bar">
-    <div class="ai-bar-title">🤖 จัดการ AI ทั้งระบบ</div>
+<div class="aim-wrap">
+
+  <!-- 1. STATS -->
+  <div class="aim-stats">
+    <div class="aim-stat">
+      <div class="aim-stat-lbl">Token วันนี้</div>
+      <div class="aim-stat-val aim-num" id="aim-stat-today-tok">—</div>
+      <div class="aim-stat-sub" id="aim-stat-today-calls">— ครั้ง</div>
+    </div>
+    <div class="aim-stat gold">
+      <div class="aim-stat-lbl">ค่าใช้จ่ายวันนี้</div>
+      <div class="aim-stat-val aim-num" id="aim-stat-today-cost">—</div>
+      <div class="aim-stat-sub">USD</div>
+    </div>
+    <div class="aim-stat">
+      <div class="aim-stat-lbl">Token เดือนนี้</div>
+      <div class="aim-stat-val aim-num" id="aim-stat-month-tok">—</div>
+      <div class="aim-stat-sub" id="aim-stat-month-calls">— ครั้ง</div>
+    </div>
+    <div class="aim-stat gold">
+      <div class="aim-stat-lbl">ค่าใช้จ่ายเดือนนี้</div>
+      <div class="aim-stat-val aim-num" id="aim-stat-month-cost">—</div>
+      <div class="aim-stat-sub" id="aim-stat-ai-status">moduleai: <span class="aim-status unknown">—</span></div>
+    </div>
   </div>
 
-  <div class="ai-stats">
-    <div class="ai-stat">
-      <div class="ai-stat-lbl">ตอบรับ/วันนี้</div>
-      <div class="ai-stat-val" style="color:#7c3aed" id="ai-today">—</div>
+  <!-- 2 + 3. KEYS + MODELS -->
+  <div class="aim-row2">
+    <div class="aim-card">
+      <div class="aim-card-head">
+        <div class="aim-card-title">🔑 API Keys</div>
+        <div class="aim-card-sub">เก็บใน DB (encrypted phase 2)</div>
+      </div>
+      <div id="aim-keys-list">
+        <div class="aim-loading">กำลังโหลด...</div>
+      </div>
+      <form class="aim-key-form" onsubmit="return aimSaveKey(event)">
+        <select id="aim-new-prov">
+          <option value="anthropic">Anthropic</option>
+          <option value="openai">OpenAI</option>
+          <option value="google">Google</option>
+        </select>
+        <input id="aim-new-key" type="password" placeholder="sk-ant-... / sk-... / AIza..." autocomplete="off">
+        <button type="submit" class="aim-btn-gold" id="aim-save-key-btn">บันทึก</button>
+      </form>
     </div>
-    <div class="ai-stat">
-      <div class="ai-stat-lbl">ปิดการขาย</div>
-      <div class="ai-stat-val" style="color:#16a34a" id="ai-close">—</div>
-    </div>
-    <div class="ai-stat">
-      <div class="ai-stat-lbl">ร้านที่เปิด AI</div>
-      <div class="ai-stat-val" id="ai-shops">—</div>
-    </div>
-    <div class="ai-stat">
-      <div class="ai-stat-lbl">Token ใช้/เดือน</div>
-      <div class="ai-stat-val" id="ai-tokens">—</div>
+
+    <div class="aim-card">
+      <div class="aim-card-head">
+        <div class="aim-card-title">🧠 Models ที่ใช้</div>
+        <div class="aim-card-sub">$/1M tokens</div>
+      </div>
+      <div id="aim-models-list">
+        <div class="aim-loading">กำลังโหลด...</div>
+      </div>
     </div>
   </div>
 
-  <div class="ai-row2">
-    <div class="ai-card">
-      <div class="ai-card-title">⚙ AI Config ระบบ</div>
-      <div class="ai-model-row">
-        <span class="ai-model-lbl">Model ปัจจุบัน</span>
-        <span class="ai-model-val">claude-haiku-4-5</span>
-      </div>
-      <div class="ai-model-row">
-        <span class="ai-model-lbl">Model complex</span>
-        <span class="ai-model-val">claude-sonnet-4-6</span>
-      </div>
-      <div class="ai-model-row">
-        <span class="ai-model-lbl">Max tokens/req</span>
-        <span class="ai-model-val">1,024</span>
-      </div>
-      <div class="ai-model-row">
-        <span class="ai-model-lbl">Temperature</span>
-        <span class="ai-model-val">0.7</span>
-      </div>
-      <div class="ai-model-row">
-        <span class="ai-model-lbl">API Status</span>
-        <span class="ai-badge-active">● Online</span>
-      </div>
+  <!-- 4. TOKEN BY MODEL -->
+  <div class="aim-card">
+    <div class="aim-card-head">
+      <div class="aim-card-title">📊 Token usage แยกตาม Model (เดือนนี้)</div>
     </div>
-    <div class="ai-card">
-      <div class="ai-card-title">🏪 AI สถานะรายร้าน</div>
-      <div id="ai-shop-list">
-        <div style="text-align:center;color:#9ca3af;padding:20px;font-size:12px">กำลังโหลด...</div>
-      </div>
+    <div class="aim-tbl-wrap">
+      <table class="aim-tbl">
+        <thead><tr>
+          <th>Model</th>
+          <th class="num">Input</th>
+          <th class="num">Output</th>
+          <th class="num">Total</th>
+          <th class="num">Cost (USD)</th>
+          <th style="width:30%">สัดส่วน</th>
+        </tr></thead>
+        <tbody id="aim-by-model">
+          <tr><td colspan="6" class="aim-loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
+
+  <!-- 5. TENANT CREDITS -->
+  <div class="aim-card">
+    <div class="aim-card-head">
+      <div class="aim-card-title">🏪 Credit รายร้าน (top 10 เดือนนี้)</div>
+      <div class="aim-card-sub">ตั้ง limit แล้วกดบันทึก</div>
+    </div>
+    <div class="aim-tbl-wrap">
+      <table class="aim-tbl">
+        <thead><tr>
+          <th>ร้าน</th>
+          <th class="num">Tokens ใช้</th>
+          <th class="num">Cost (USD)</th>
+          <th class="num">ใช้/Limit</th>
+          <th style="width:25%">การใช้งาน</th>
+          <th>Limit</th>
+        </tr></thead>
+        <tbody id="aim-by-tenant">
+          <tr><td colspan="6" class="aim-loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 6. TOKEN FLOW LOG -->
+  <div class="aim-card">
+    <div class="aim-card-head">
+      <div class="aim-card-title">📜 Token Flow Log (50 ล่าสุด)</div>
+      <button class="aim-btn-gold" style="padding:5px 12px;font-size:11px" onclick="aimLoadLog()">รีเฟรช</button>
+    </div>
+    <div class="aim-tbl-wrap">
+      <table class="aim-tbl">
+        <thead><tr>
+          <th>เวลา</th>
+          <th>ร้าน</th>
+          <th>Provider</th>
+          <th>Model</th>
+          <th>Source</th>
+          <th class="num">In</th>
+          <th class="num">Out</th>
+          <th class="num">Total</th>
+          <th class="num">Cost</th>
+        </tr></thead>
+        <tbody id="aim-log">
+          <tr><td colspan="9" class="aim-loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
 (function(){
-  var tok = (window.platformToken && window.platformToken()) || '';
-  var h = tok ? {'Authorization':'Bearer '+tok} : {};
-  var fmt = n => Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
+  function _tok(){
+    return (window.platformToken && window.platformToken())
+        || localStorage.getItem('platform_token')
+        || '';
+  }
+  function _h(extra){
+    var t = _tok();
+    var h = t ? {'Authorization':'Bearer '+t} : {};
+    return Object.assign(h, extra||{});
+  }
+  function _esc(s){
+    return String(s==null?'':s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function _fmt(n){ return Number(n||0).toLocaleString('en-US'); }
+  function _fmtCost(n){
+    n = Number(n||0);
+    if (n < 0.01) return '$' + n.toFixed(4);
+    return '$' + n.toFixed(2);
+  }
+  function _relTime(iso){
+    if (!iso) return '—';
+    var d = new Date(iso);
+    var diff = Date.now() - d.getTime();
+    if (diff < 60000)    return 'เมื่อกี้';
+    if (diff < 3600000)  return Math.floor(diff/60000) + ' นาที';
+    if (diff < 86400000) return Math.floor(diff/3600000) + ' ชม.';
+    return d.toLocaleDateString('th-TH', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+  }
 
-  fetch('/api/platform/ai-stats',{headers:h}).then(r=>r.ok?r.json():null).then(d=>{
-    if(!d) return;
-    document.getElementById('ai-today').textContent = fmt(d.today_replies||0);
-    document.getElementById('ai-close').textContent = fmt(d.today_closed||0);
-    document.getElementById('ai-shops').textContent = fmt(d.active_shops||0);
-    document.getElementById('ai-tokens').textContent = fmt(d.month_tokens||0);
-    if(d.shops && d.shops.length){
-      document.getElementById('ai-shop-list').innerHTML = d.shops.map(s=>`
-        <div class="ai-shop-row">
-          <div class="ai-shop-name">${s.name||'—'}</div>
-          <div class="ai-shop-cnt">${fmt(s.replies||0)} ตอบ</div>
-          <label class="ai-toggle">
-            <input type="checkbox" ${s.ai_enabled?'checked':''} onchange="aiToggle('${s.id}',this.checked)">
-            <span class="ai-toggle-sl"></span>
-          </label>
-        </div>`).join('');
-    } else {
-      document.getElementById('ai-shop-list').innerHTML = '<div style="text-align:center;color:#9ca3af;padding:20px;font-size:12px">ยังไม่มีข้อมูล</div>';
+  async function _get(path){
+    var r = await fetch(path, {headers:_h()});
+    if (!r.ok) throw new Error(path + ' ' + r.status);
+    return r.json();
+  }
+
+  // ─── 1 + 4 + 5 — Stats + ByModel + ByTenant ───────────────────────
+  async function loadStats(){
+    try {
+      var d = await _get('/api/platform/ai/stats');
+      document.getElementById('aim-stat-today-tok').textContent   = _fmt(d.today.tokens);
+      document.getElementById('aim-stat-today-cost').textContent  = _fmtCost(d.today.cost);
+      document.getElementById('aim-stat-today-calls').textContent = _fmt(d.today.calls) + ' ครั้ง';
+      document.getElementById('aim-stat-month-tok').textContent   = _fmt(d.month.tokens);
+      document.getElementById('aim-stat-month-cost').textContent  = _fmtCost(d.month.cost);
+      document.getElementById('aim-stat-month-calls').textContent = _fmt(d.month.calls) + ' ครั้ง';
+      var st = d.ai_status || 'unknown';
+      document.getElementById('aim-stat-ai-status').innerHTML =
+        'moduleai: <span class="aim-status ' + _esc(st) + '">' + _esc(st) + '</span>';
+
+      var totalAll = (d.by_model||[]).reduce(function(s,m){return s+Number(m.total||0)},0) || 1;
+      var bm = (d.by_model||[]).map(function(m){
+        var pct = Math.round(Number(m.total||0) * 100 / totalAll);
+        return '<tr>' +
+          '<td><b>' + _esc(m.model) + '</b></td>' +
+          '<td class="num">' + _fmt(m.input) + '</td>' +
+          '<td class="num">' + _fmt(m.output) + '</td>' +
+          '<td class="num">' + _fmt(m.total) + '</td>' +
+          '<td class="num">' + _fmtCost(m.cost) + '</td>' +
+          '<td><div class="aim-bar"><div class="aim-bar-fill" style="width:' + pct + '%"></div></div>' +
+            '<div class="muted" style="margin-top:3px">' + pct + '%</div></td>' +
+          '</tr>';
+      }).join('');
+      document.getElementById('aim-by-model').innerHTML = bm ||
+        '<tr><td colspan="6" class="aim-empty">ยังไม่มีข้อมูล</td></tr>';
+
+      var bt = (d.by_tenant||[]).map(function(t){
+        var used  = Number(t.credit_used||0);
+        var limit = Number(t.credit_total||0);
+        var pct   = limit > 0 ? Math.min(100, Math.round(used*100/limit)) : 0;
+        var cls   = pct >= 90 ? 'warn' : (pct >= 60 ? '' : 'green');
+        var tid   = t.tenant_id || t.subdomain || '';
+        var name  = t.store_name || t.subdomain || '—';
+        return '<tr>' +
+          '<td><b>' + _esc(name) + '</b><div class="muted">' + _esc(t.subdomain||'') + '</div></td>' +
+          '<td class="num">' + _fmt(t.total) + '</td>' +
+          '<td class="num">' + _fmtCost(t.cost) + '</td>' +
+          '<td class="num">' + _fmt(used) + ' / ' + (limit ? _fmt(limit) : '∞') + '</td>' +
+          '<td><div class="aim-bar"><div class="aim-bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+            '<div class="muted" style="margin-top:3px">' + (limit ? pct+'%' : 'ไม่ตั้ง limit') + '</div></td>' +
+          '<td>' +
+            '<input class="aim-credit-input" type="number" min="0" value="' + limit + '" data-tid="' + _esc(tid) + '">' +
+            '<button class="aim-credit-save" onclick="aimSaveCredit(this)">บันทึก</button>' +
+          '</td>' +
+          '</tr>';
+      }).join('');
+      document.getElementById('aim-by-tenant').innerHTML = bt ||
+        '<tr><td colspan="6" class="aim-empty">ยังไม่มีข้อมูล</td></tr>';
+    } catch (e) {
+      console.warn('stats error', e);
+      document.getElementById('aim-by-model').innerHTML  =
+        '<tr><td colspan="6" class="aim-empty">โหลด stats ไม่สำเร็จ: ' + _esc(e.message) + '</td></tr>';
+      document.getElementById('aim-by-tenant').innerHTML =
+        '<tr><td colspan="6" class="aim-empty">—</td></tr>';
     }
-  }).catch(()=>{});
+  }
 
-  window.aiToggle = function(id, enabled){
-    var tok2 = (window.platformToken && window.platformToken()) || '';
-    fetch('/api/platform/shop-features',{
-      method:'POST', headers:{...h,'Content-Type':'application/json'},
-      body: JSON.stringify({shop_id:id, feature:'ai_bot', enabled})
-    }).catch(()=>{});
+  // ─── 2 — API Keys ────────────────────────────────────────────────
+  async function loadKeys(){
+    try {
+      var d = await _get('/api/platform/ai/keys');
+      var providers = ['anthropic','openai','google'];
+      var existing = {};
+      (d.keys||[]).forEach(function(k){ existing[k.provider] = k; });
+      var html = providers.map(function(p){
+        var k = existing[p];
+        if (k) {
+          return '<div class="aim-key-row">' +
+            '<div class="aim-key-prov">' + _esc(p) + '</div>' +
+            '<div class="aim-key-mask">' + _esc(k.masked) + '</div>' +
+            '<button class="aim-key-del" onclick="aimDelKey(\'' + _esc(p) + '\')">ลบ</button>' +
+          '</div>';
+        }
+        return '<div class="aim-key-row">' +
+          '<div class="aim-key-prov">' + _esc(p) + '</div>' +
+          '<div class="aim-key-empty">— ยังไม่ตั้งค่า —</div>' +
+        '</div>';
+      }).join('');
+      document.getElementById('aim-keys-list').innerHTML = html;
+    } catch (e) {
+      document.getElementById('aim-keys-list').innerHTML =
+        '<div class="aim-empty">โหลด keys ไม่สำเร็จ: ' + _esc(e.message) + '</div>';
+    }
+  }
+
+  // ─── 3 — Models ──────────────────────────────────────────────────
+  async function loadModels(){
+    try {
+      var d = await _get('/api/platform/ai/models');
+      var html = (d.models||[]).map(function(m){
+        return '<div class="aim-model-row">' +
+          '<div class="aim-model-name">' + _esc(m.id) +
+            '<div class="aim-model-prov">' + _esc(m.provider) + ' · ' + _esc(m.use) + '</div>' +
+          '</div>' +
+          '<div class="aim-model-cost">in <b>$' + Number(m.cost_in||0).toFixed(2) + '</b> · out <b>$' + Number(m.cost_out||0).toFixed(2) + '</b></div>' +
+        '</div>';
+      }).join('');
+      document.getElementById('aim-models-list').innerHTML = html ||
+        '<div class="aim-empty">ยังไม่มี model</div>';
+    } catch (e) {
+      document.getElementById('aim-models-list').innerHTML =
+        '<div class="aim-empty">โหลด models ไม่สำเร็จ: ' + _esc(e.message) + '</div>';
+    }
+  }
+
+  // ─── 6 — Token Flow Log ─────────────────────────────────────────
+  async function loadLog(){
+    try {
+      var d = await _get('/api/platform/ai/log?limit=50');
+      var html = (d.log||[]).map(function(l){
+        var src = l.source || 'unknown';
+        return '<tr>' +
+          '<td class="muted">' + _esc(_relTime(l.created_at)) + '</td>' +
+          '<td><b>' + _esc(l.store_name||'—') + '</b><div class="muted">' + _esc(l.subdomain||'') + '</div></td>' +
+          '<td>' + _esc(l.provider||'—') + '</td>' +
+          '<td>' + _esc(l.model||'—') + '</td>' +
+          '<td><span class="aim-source ' + _esc(src) + '">' + _esc(src) + '</span></td>' +
+          '<td class="num">' + _fmt(l.input_tokens) + '</td>' +
+          '<td class="num">' + _fmt(l.output_tokens) + '</td>' +
+          '<td class="num"><b>' + _fmt(l.total_tokens) + '</b></td>' +
+          '<td class="num">' + _fmtCost(l.cost_usd) + '</td>' +
+          '</tr>';
+      }).join('');
+      document.getElementById('aim-log').innerHTML = html ||
+        '<tr><td colspan="9" class="aim-empty">ยังไม่มี log</td></tr>';
+    } catch (e) {
+      document.getElementById('aim-log').innerHTML =
+        '<tr><td colspan="9" class="aim-empty">โหลด log ไม่สำเร็จ: ' + _esc(e.message) + '</td></tr>';
+    }
+  }
+
+  // ─── Actions ─────────────────────────────────────────────────────
+  window.aimSaveKey = async function(ev){
+    ev.preventDefault();
+    var prov = document.getElementById('aim-new-prov').value;
+    var key  = document.getElementById('aim-new-key').value.trim();
+    if (!key) { alert('กรุณากรอก API key'); return false; }
+    var btn  = document.getElementById('aim-save-key-btn');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+    try {
+      var r = await fetch('/api/platform/ai/keys', {
+        method:'POST',
+        headers:_h({'Content-Type':'application/json'}),
+        body: JSON.stringify({provider: prov, api_key: key})
+      });
+      if (!r.ok) throw new Error('save failed: ' + r.status);
+      document.getElementById('aim-new-key').value = '';
+      await loadKeys();
+    } catch (e) {
+      alert('บันทึกไม่สำเร็จ: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'บันทึก';
+    }
+    return false;
   };
+
+  window.aimDelKey = async function(prov){
+    if (!confirm('ลบ API key ของ ' + prov + ' ?')) return;
+    try {
+      var r = await fetch('/api/platform/ai/keys/' + encodeURIComponent(prov), {
+        method:'DELETE', headers:_h()
+      });
+      if (!r.ok) throw new Error('delete failed: ' + r.status);
+      await loadKeys();
+    } catch (e) { alert('ลบไม่สำเร็จ: ' + e.message); }
+  };
+
+  window.aimSaveCredit = async function(btn){
+    var input = btn.previousElementSibling;
+    var tid   = input.dataset.tid;
+    var val   = parseInt(input.value, 10) || 0;
+    if (!tid) { alert('ไม่พบ tenant_id'); return; }
+    btn.disabled = true; btn.textContent = '...';
+    try {
+      var r = await fetch('/api/platform/ai/credit/' + encodeURIComponent(tid), {
+        method:'PATCH',
+        headers:_h({'Content-Type':'application/json'}),
+        body: JSON.stringify({credit_total: val})
+      });
+      if (!r.ok) throw new Error('save failed: ' + r.status);
+      btn.textContent = '✓';
+      setTimeout(function(){ btn.textContent='บันทึก'; btn.disabled=false; }, 1200);
+    } catch (e) {
+      alert('บันทึก credit ไม่สำเร็จ: ' + e.message);
+      btn.disabled = false; btn.textContent = 'บันทึก';
+    }
+  };
+
+  window.aimLoadLog = loadLog;
+
+  loadKeys();
+  loadModels();
+  loadStats();
+  loadLog();
 })();
 </script>
 </body></html>

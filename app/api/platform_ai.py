@@ -1,0 +1,194 @@
+# platform_ai.py — Platform AI key/credit/stats management
+# Adapted to codebase pattern: sync SQLAlchemy + JWT header auth (no Depends/get_db)
+# Credits stored in ai_tenant_credits (separate table — tenants is owned by supabase_admin)
+
+import os, jwt
+from typing import Optional
+from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import text
+import httpx
+
+from app.core.db import engine
+
+router = APIRouter(prefix="/ai", tags=["platform-ai"])
+
+JWT_SECRET = os.getenv("JWT_SECRET", "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c")
+
+COST_PER_TOKEN = {
+    "claude-haiku-4-5":    {"input": 0.00000025, "output": 0.00000125},
+    "claude-sonnet-4-6":   {"input": 0.000003,   "output": 0.000015},
+    "claude-sonnet-4-7":   {"input": 0.000003,   "output": 0.000015},
+    "gpt-4o-mini":         {"input": 0.00000015, "output": 0.0000006},
+    "gpt-4o":              {"input": 0.000005,   "output": 0.000015},
+    "gemini-1.5-flash":    {"input": 0.000000075,"output": 0.0000003},
+}
+
+
+def _admin_auth(authorization: Optional[str]):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "No token")
+    try:
+        tok = authorization.replace("Bearer ", "").strip()
+        payload = jwt.decode(tok, JWT_SECRET, algorithms=["HS256"],
+                             options={"leeway": 864000, "verify_exp": False})
+        if payload.get("is_admin") or payload.get("role") in ("admin", "superadmin"):
+            return payload
+        if (payload.get("tenant_id") or payload.get("sub")
+                or payload.get("user_id") or payload.get("email")):
+            return payload
+    except Exception:
+        pass
+    raise HTTPException(401, "Unauthorized")
+
+
+# ─── GET /api/platform/ai/keys ───────────────────────────────────────
+@router.get("/keys")
+def get_keys(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT provider,
+                   left(api_key,8)||'...'||right(api_key,4) AS masked,
+                   is_active, updated_at
+            FROM ai_api_keys ORDER BY provider
+        """)).mappings().all()
+    return {"keys": [dict(r) for r in rows]}
+
+
+# ─── POST /api/platform/ai/keys ──────────────────────────────────────
+class KeyBody(BaseModel):
+    provider: str   # anthropic | openai | gemini
+    api_key: str
+
+@router.post("/keys")
+def save_key(body: KeyBody, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO ai_api_keys (provider, api_key)
+            VALUES (:p, :k)
+            ON CONFLICT (provider) DO UPDATE
+              SET api_key=EXCLUDED.api_key, updated_at=now()
+        """), {"p": body.provider, "k": body.api_key})
+    return {"ok": True}
+
+
+# ─── DELETE /api/platform/ai/keys/{provider} ─────────────────────────
+@router.delete("/keys/{provider}")
+def delete_key(provider: str, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("DELETE FROM ai_api_keys WHERE provider=:p"), {"p": provider})
+    return {"ok": True}
+
+
+# ─── GET /api/platform/ai/stats ──────────────────────────────────────
+@router.get("/stats")
+async def get_stats(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        today = c.execute(text("""
+            SELECT COALESCE(SUM(total_tokens),0) AS tokens,
+                   COALESCE(SUM(cost_usd),0)     AS cost,
+                   COUNT(*)                       AS calls
+            FROM ai_token_log
+            WHERE created_at >= date_trunc('day', now())
+        """)).mappings().first()
+
+        month = c.execute(text("""
+            SELECT COALESCE(SUM(total_tokens),0) AS tokens,
+                   COALESCE(SUM(cost_usd),0)     AS cost,
+                   COUNT(*)                       AS calls
+            FROM ai_token_log
+            WHERE created_at >= date_trunc('month', now())
+        """)).mappings().first()
+
+        by_model = c.execute(text("""
+            SELECT model,
+                   SUM(input_tokens)  AS input,
+                   SUM(output_tokens) AS output,
+                   SUM(total_tokens)  AS total,
+                   SUM(cost_usd)      AS cost,
+                   COUNT(*)           AS calls
+            FROM ai_token_log
+            WHERE created_at >= date_trunc('month', now())
+            GROUP BY model ORDER BY total DESC
+        """)).mappings().all()
+
+        by_tenant = c.execute(text("""
+            SELECT t.id AS tenant_id, t.store_name, t.subdomain,
+                   SUM(l.total_tokens)            AS total,
+                   SUM(l.cost_usd)                AS cost,
+                   COALESCE(cr.credit_total, 0)   AS credit_total,
+                   COALESCE(cr.credit_used, 0)    AS credit_used
+            FROM ai_token_log l
+            JOIN tenants t              ON t.id = l.tenant_id
+            LEFT JOIN ai_tenant_credits cr ON cr.tenant_id = t.id
+            WHERE l.created_at >= date_trunc('month', now())
+            GROUP BY t.id, t.store_name, t.subdomain, cr.credit_total, cr.credit_used
+            ORDER BY total DESC LIMIT 10
+        """)).mappings().all()
+
+    ai_status = "unknown"
+    try:
+        async with httpx.AsyncClient(timeout=2) as client:
+            r = await client.get("http://localhost:8002/health")
+            ai_status = "online" if r.status_code == 200 else "error"
+    except Exception:
+        ai_status = "offline"
+
+    return {
+        "today":     {"tokens": int(today["tokens"]), "cost": float(today["cost"]), "calls": int(today["calls"])},
+        "month":     {"tokens": int(month["tokens"]), "cost": float(month["cost"]), "calls": int(month["calls"])},
+        "by_model":  [dict(r) for r in by_model],
+        "by_tenant": [dict(r) for r in by_tenant],
+        "ai_status": ai_status,
+    }
+
+
+# ─── GET /api/platform/ai/log ────────────────────────────────────────
+@router.get("/log")
+def get_log(limit: int = 50, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT l.id, l.provider, l.model, l.source,
+                   l.input_tokens, l.output_tokens, l.total_tokens,
+                   l.cost_usd, l.created_at,
+                   t.store_name, t.subdomain
+            FROM ai_token_log l
+            LEFT JOIN tenants t ON t.id = l.tenant_id
+            ORDER BY l.created_at DESC LIMIT :lim
+        """), {"lim": limit}).mappings().all()
+    return {"log": [dict(r) for r in rows]}
+
+
+# ─── PATCH /api/platform/ai/credit/{tenant_id} ───────────────────────
+class CreditBody(BaseModel):
+    credit_total: int
+
+@router.patch("/credit/{tenant_id}")
+def set_credit(tenant_id: str, body: CreditBody, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO ai_tenant_credits (tenant_id, credit_total, updated_at)
+            VALUES (:tid, :c, now())
+            ON CONFLICT (tenant_id) DO UPDATE
+              SET credit_total = EXCLUDED.credit_total,
+                  updated_at   = now()
+        """), {"c": body.credit_total, "tid": tenant_id})
+    return {"ok": True}
+
+
+# ─── GET /api/platform/ai/models ─────────────────────────────────────
+@router.get("/models")
+def get_models(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    return {"models": [
+        {"id": "claude-haiku-4-5",  "provider": "anthropic", "use": "chat/bot",     "cost_in": 0.25,  "cost_out": 1.25},
+        {"id": "claude-sonnet-4-7", "provider": "anthropic", "use": "complex/post", "cost_in": 3.0,   "cost_out": 15.0},
+        {"id": "gpt-4o-mini",       "provider": "openai",    "use": "fallback",     "cost_in": 0.15,  "cost_out": 0.60},
+        {"id": "gemini-1.5-flash",  "provider": "google",    "use": "fallback",     "cost_in": 0.075, "cost_out": 0.30},
+    ]}
