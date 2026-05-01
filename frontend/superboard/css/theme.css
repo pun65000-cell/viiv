@@ -121,13 +121,23 @@ body {
 .sb-shop-dd-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
 
 /* topnav modules */
-.sb-topnav { display: flex; align-items: center; gap: 2px; margin-left: 4px; }
+.sb-topnav {
+  display: flex; align-items: center; gap: 2px; margin-left: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  height: 50px; max-height: 50px;
+  flex: 1; min-width: 0;
+  box-sizing: border-box;
+}
 .sb-topnav-btn {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: var(--r-md);
   border: none; background: transparent;
   color: var(--muted); font-size: 15px; font-weight: 500;
-  cursor: pointer; transition: background 0.1s, color 0.1s; white-space: nowrap;
+  cursor: pointer; transition: background 0.1s, color 0.1s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 110px; flex-shrink: 1;
+  height: 36px; line-height: 1.15; box-sizing: border-box;
 }
 .sb-topnav-btn:hover { background: #f0ede8; color: var(--text); }
 .sb-topnav-btn.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
