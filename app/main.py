@@ -25,6 +25,7 @@ from app.api.cart.cart_router import order_router
 from app.api.product.product_router import router as product_router
 from app.api.admin_auth import router as admin_auth_router
 from app.api.platform_connections import router as platform_connections_router
+from app.api.billing import router as billing_router
 from app.api.pos_admin import router as pos_admin_router
 from app.api.stores import router as stores_router
 from app.api.login import router as login_router
@@ -210,6 +211,7 @@ app.include_router(chat_router, prefix="/api")
 app.include_router(auth_social_router)
 app.include_router(admin_auth_router)
 app.include_router(platform_connections_router, prefix="/api/platform")
+app.include_router(billing_router, prefix="/api/platform/billing")
 app.include_router(tenant_staff_router)
 app.include_router(pos_products_router)
 app.include_router(customers_router, prefix="/api/customers")
