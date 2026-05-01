@@ -34,6 +34,14 @@
     }
     .subdomain-wrap input { padding-right: 90px; }
     .check-badge { display: block; font-size: 12px; margin-top: 4px; min-height: 16px; }
+    /* theme.css ครอบเฉพาะ text/email/password — เพิ่ม tel ให้ full-width */
+    .field input[type=tel] {
+      width: 100%; padding: 8px 12px; background: var(--input-bg);
+      border: 1px solid var(--input-border); border-radius: var(--r-md);
+      color: var(--text); font-size: 13px; font-family: var(--font);
+      outline: none; transition: border-color 0.15s; box-sizing: border-box;
+    }
+    .field input[type=tel]:focus { border-color: var(--accent); }
     .check-ok  { color: var(--success-text); }
     .check-err { color: var(--danger); }
     .check-ing { color: var(--muted); }
@@ -295,14 +303,16 @@
     </label>
   </div>
 
-  <div class="form-actions" style="margin-top:20px">
-    <button class="btn btn-accent" id="v_submitBtn" onclick="vSubmitForm()" disabled>สร้างร้านค้า</button>
-    <button class="btn" onclick="vResetForm()">ล้างข้อมูล</button>
-  </div>
-  <div class="msg error" id="v_formMsg"></div>
-  <div class="result-box" id="v_resultBox">
+  <!-- Result + error messages above the submit row so users see them immediately -->
+  <div class="msg error" id="v_formMsg" style="margin-top:14px"></div>
+  <div class="result-box" id="v_resultBox" style="margin-top:14px;margin-bottom:0">
     <div class="result-title" id="v_resultTitle"></div>
     <div id="v_resultBody"></div>
+  </div>
+
+  <div class="form-actions" style="margin-top:16px">
+    <button class="btn btn-accent" id="v_submitBtn" onclick="vSubmitForm()" disabled>สร้างร้านค้า</button>
+    <button class="btn" onclick="vResetForm()">ล้างข้อมูล</button>
   </div>
 </div>
 
@@ -638,6 +648,7 @@ window.vSubmitForm = async function() {
     var result = await res.json();
     var box = document.getElementById('v_resultBox');
     box.style.display = 'block';
+    try { box.scrollIntoView({behavior:'smooth', block:'center'}); } catch(_){}
     if (res.ok) {
       box.className = 'result-box';
       document.getElementById('v_resultTitle').textContent = '✅ สร้างร้านค้าสำเร็จ!';
