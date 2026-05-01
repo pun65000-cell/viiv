@@ -76,11 +76,37 @@ app.add_middleware(
 # DevAuthMiddleware removed — was injecting fake auth on every request
 
 RESERVED_SUBDOMAINS = {"concore", "auth", "www", "api", "owner", "merchant", "viiv"}
-_subdomain_tenant_cache: dict[str, str | None] = {}
+
+from time import time as _now
+_SUBDOMAIN_CACHE_TTL = 60  # seconds
+_subdomain_tenant_cache: dict[str, tuple[str | None, float]] = {}
+# value = (tenant_id_or_None, expire_at)
+
+
+def _get_cached_tenant(sub: str):
+    """Return (hit, tenant_id). hit=False means cache miss/expired."""
+    entry = _subdomain_tenant_cache.get(sub)
+    if not entry:
+        return False, None
+    tenant_id, expire_at = entry
+    if _now() > expire_at:
+        _subdomain_tenant_cache.pop(sub, None)
+        return False, None
+    return True, tenant_id
+
+
+def _set_cached_tenant(sub: str, tenant_id: str | None):
+    _subdomain_tenant_cache[sub] = (tenant_id, _now() + _SUBDOMAIN_CACHE_TTL)
+
+
+def _clear_cached_tenant(sub: str) -> bool:
+    return _subdomain_tenant_cache.pop(sub, None) is not None
+
 
 def _resolve_tenant_from_subdomain(subdomain: str) -> str | None:
-    if subdomain in _subdomain_tenant_cache:
-        return _subdomain_tenant_cache[subdomain]
+    hit, tid = _get_cached_tenant(subdomain)
+    if hit:
+        return tid
     try:
         from app.core.db import SessionLocal
         from sqlalchemy import text as _sql_text
@@ -92,7 +118,7 @@ def _resolve_tenant_from_subdomain(subdomain: str) -> str | None:
             tid = row[0] if row else None
     except Exception:
         tid = None
-    _subdomain_tenant_cache[subdomain] = tid
+    _set_cached_tenant(subdomain, tid)
     return tid
 
 @app.middleware("http")

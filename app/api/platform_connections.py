@@ -93,6 +93,14 @@ def platform_overview(authorization: str = Header(None)):
     }
 
 
+@router.post("/cache/clear-subdomain/{subdomain}")
+def clear_subdomain_cache(subdomain: str, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    from app.main import _clear_cached_tenant
+    cleared = _clear_cached_tenant(subdomain.lower())
+    return {"cleared": subdomain, "had_entry": cleared}
+
+
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def _admin_auth(authorization: str):
     """Permissive auth (dev): ผ่านถ้า decode JWT ได้และมี identity field ใดๆ
