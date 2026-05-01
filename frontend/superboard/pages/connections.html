@@ -607,7 +607,7 @@ function cnFetchPendingUid(){
 }
 
 // ── Webhook URL (per-shop subdomain) ──
-function cnWebhookUrl(){ return window.location.origin + '/api/line/webhook'; }
+function cnWebhookUrl(){ return window.location.origin + '/api/line/webhook/platform'; }
 (function(){
   var el = document.getElementById('cnWebhookUrl');
   if(el) el.textContent = cnWebhookUrl();
