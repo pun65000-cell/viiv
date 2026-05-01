@@ -1,7 +1,7 @@
 # VIIV MASTER — Project Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
-> Version: v1.53 | Updated: 2026-04-29  
-> Claude Code อัปเดต Section [E] ทุกสิ้นวัน
+> Version: v3.0 | Updated: 2026-05-01 | Git Latest: 774b755  
+> Claude Code อัปเดต Section [J] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
 บทบาท (v1.45)
@@ -177,6 +177,24 @@ API Endpoints
 /api/pos/bills/upload-slip          — upload รูปสลิป
 /api/line/*                         — LINE webhook
 /api/pos/line/*                     — LINE settings
+
+# Platform AI manager (2026-05-01)
+GET    /api/platform/ai/stats              ✅
+GET    /api/platform/ai/keys               ✅
+POST   /api/platform/ai/keys               ✅
+DELETE /api/platform/ai/keys/{provider}    ✅
+GET    /api/platform/ai/models             ✅
+GET    /api/platform/ai/log                ✅
+PATCH  /api/platform/ai/credit/{tid}       ✅
+
+# Chat module (proxy via Caddy → :8003)
+GET    /chat/conversations                 ✅
+GET    /chat/conversations/{id}/messages   ✅
+POST   /chat/conversations/{id}/reply      ✅
+PATCH  /chat/conversations/{id}/bot        ✅
+GET    /chat/bot/settings                  ✅
+POST   /chat/bot/settings                  ✅
+GET    /chat/stats                         ✅
 ```
 Module Architecture (v1.31)
 ```
@@ -2267,7 +2285,102 @@ KNOWN STATE / INVARIANTS (อ่านก่อนต่องานพรุ่
 
 ---
 
+## [J] EOD 2026-05-01 (Part 2) — Chat Dashboard Refactor + AI Manager + Log Untracking
+
+SUMMARY
+- modulechat dashboard UI พลิกใหม่: ลบ topbar, ย้าย tabs เข้า panel-left,
+  เพิ่ม platform logos row (LINE/FB/TikTok/IG/YouTube) เป็น filter,
+  fix layout/styles ให้เข้ากับ Superboard theme
+- Platform AI Manager เต็มฟีเจอร์: backend `app/api/platform_ai.py`
+  (sync SQLAlchemy, _admin_auth header) + frontend `pages/ai.html`
+  (4 stats / API keys / models / by-model chart / tenant credits / token flow log)
+- DB ใหม่ 3 tables: `ai_api_keys`, `ai_token_log`, `ai_tenant_credits`
+  (option 3: แยก credits ออกจาก tenants เพราะ tenants owner = supabase_admin)
+- Logs untrack ออกจาก git แท้ (`logs/uvicorn.log`) — รอบแรก `git add -A`
+  re-stage ทันทีหลัง `git rm --cached`, ต้อง commit แบบไม่ผ่าน add -A
+- Deploy ทดสอบจริง: deploy.sh restart Blue :8000 + health×3 ผ่าน
+
+RULES ADDED
+103  modules/chat webhook gate = X-Forwarded-From: viiv-internal
+104  LINE webhook ทั้ง 2 routes forward ไป :8003 แบบ fire-and-forget
+105  platform_connections เพิ่ม column channel_id
+106  chat module รัน: `python -m uvicorn modules.chat.main:app --port 8003`
+107  chat_conversations เพิ่ม columns: unread_count + bot_enabled
+108  chat_bot_settings สร้าง auto ตอน GET /chat/bot/settings ครั้งแรก
+109  Chat Dashboard path: /modulechat/ui/dashboard/index.html
+110  modUrls.chat = /modulechat/ui/dashboard/index.html
+111  ai_api_keys + ai_token_log + ai_tenant_credits tables (2026-05-01)
+112  platform_ai_router prefix="/api/platform" → /api/platform/ai/*
+113  logs/ ทั้งหมดอยู่ใน .gitignore — ห้าม track ไฟล์ใต้ logs/ ลง git
+114  deploy.sh = restart Blue :8000 + health×3 + auto `git revert HEAD` ถ้าพัง
+
+KEY DECISIONS / DESIGN
+1. Chat dashboard structure
+   - body เป็น flex-row เต็มจอ (no topbar)
+   - panel-left: panel-head (title + online badge) → tab-row (Inbox/Bot/Stats)
+     → search box → platform-row (5 SVG logos) → conv-list
+   - tabs control panel-right content; panel-left always visible (desktop)
+   - mobile: panel-left.hidden เมื่อเปิด conv (ไม่ใช่ has-active บน main เก่า)
+
+2. AI Manager backend adapt to codebase
+   - spec ต้นฉบับใช้ async + Depends(get_db)/get_platform_user
+   - codebase pattern = sync `engine.connect()`/`engine.begin()` + Header auth
+   - _admin_auth() เลียน platform_connections.py — permissive JWT decode
+   - by_tenant query ต้องเพิ่ม `t.id AS tenant_id` เพราะ frontend PATCH
+     /credit/{tenant_id} ต้องใช้ id จริง (subdomain ไม่พอ)
+
+3. Tenants ownership constraint
+   - postgres role ไม่ใช่ owner ของ tenants (= supabase_admin)
+   - ALTER TABLE tenants ADD COLUMN ai_credit_* → ERROR must be owner
+   - แก้: สร้าง `ai_tenant_credits` table ใหม่ (PK tenant_id FK → tenants.id)
+   - LEFT JOIN + COALESCE(0) ในทุก query / UPSERT ใน PATCH
+
+4. Log untrack pitfall
+   - `.gitignore` รับ `logs/` + `*.log` อยู่แล้ว แต่ logs/uvicorn.log ยัง tracked
+   - `git rm --cached <file> && git add -A` = no-op เพราะ add -A ดู file
+     เป็น modification ของ tracked file (gitignore ใช้กับ untracked เท่านั้น)
+   - แก้: `git rm --cached <file>` แล้ว `git commit` ตรงๆ ไม่ผ่าน add -A
+
+FILES TOUCHED (major)
+  Backend:
+    app/api/platform_ai.py            [NEW] (7 endpoints)
+    app/main.py                       (register platform_ai_router)
+  Frontend:
+    frontend/platform/pages/ai.html   (overwrite — full AI manager UI)
+    modulechat/ui/dashboard/index.html (no-topbar refactor)
+    modulechat/ui/dashboard/chat.css  (new layout + platform-row styles)
+    modulechat/ui/dashboard/chat-ui.js (renderPlatformLogos + togglePlatform)
+  DB:
+    ai_api_keys, ai_token_log, ai_tenant_credits  [NEW tables, idempotent]
+  Tooling/Misc:
+    .gitignore                        (logs/uvicorn*.log + logs/chat.log lines)
+    logs/uvicorn.log                  (untracked)
+
+COMMITS (chronological)
+  e1a1c31  fix: chat dashboard no-topbar + platform logos + API base URL fix
+  e1266f5  feat: AI manager page (keys/models/token-flow/credits)
+  657d9cf  feat: AI manager page + platform_ai router + chat dashboard UI
+  ca25a67  chore: untrack log files from git  (← incomplete — see 774b755)
+  774b755  chore: actually untrack logs/uvicorn.log
+
+🔴 NEXT UP
+1. ทดสอบ Add เพื่อน LINE OA จริง → ดู conversation ปรากฏใน Chat Dashboard
+2. Message handler — รับข้อความธรรมดา (ปัจจุบันรับแค่ follow event)
+3. AI Manager page — ทดสอบ keys + token flow ใน browser ว่าทุกการ์ดโหลด
+4. True Blue/Green :9000 (deploy.sh ปัจจุบันยัง Blue-only restart)
+
+---
+
 ## [K] TOOLING & OPS (2026-05-01)
+
+> Version: v3.0 | Updated: 2026-05-01 | Git Latest: 774b755
+
+GIT RESTORE POINTS
+- 774b755 — chore: untrack log files
+- 657d9cf — feat: AI manager + platform_ai router + chat dashboard UI
+- 34c74eb — feat: chat API endpoints
+- 63b54e0 — feat: superboard switchMod chat
+- 1322b34 — feat: modules/chat LINE webhook Phase 1
 
 DEPLOY
 ```bash
