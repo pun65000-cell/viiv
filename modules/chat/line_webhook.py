@@ -62,6 +62,87 @@ async def save_message(db, conv_id: str, direction: str, content: str, raw_event
     )
     await db.commit()
 
+
+# ─── Bot Phase 1 — rule-based message handler (no AI) ──────────────────
+KEYWORD_RULES = [
+    (
+        ["สินค้า", "ราคา", "มีอะไรบ้าง", "catalog", "menu", "เมนู"],
+        "📦 สินค้าและราคา\n"
+        "พิมพ์ชื่อสินค้าที่สนใจมาได้เลยนะคะ\n"
+        "หรือรอทีมงานส่ง catalog ให้สักครู่ค่ะ 😊"
+    ),
+    (
+        ["สั่ง", "ซื้อ", "order", "ออเดอร์"],
+        "🛒 วิธีสั่งซื้อ:\n"
+        "1) แจ้งสินค้า + จำนวน\n"
+        "2) แจ้งที่อยู่จัดส่ง\n"
+        "3) โอนเงินตามที่แจ้ง แล้วส่งสลิป\n"
+        "ทีมงานจะดูแลออเดอร์ให้ค่ะ 📦"
+    ),
+    (
+        ["ที่อยู่", "อยู่ที่ไหน", "location", "address", "พิกัด"],
+        "📍 ที่อยู่ร้าน:\n"
+        "ทีมงานจะส่งพิกัด/แผนที่ละเอียดให้นะคะ"
+    ),
+    (
+        ["เวลา", "เปิด", "ปิด", "กี่โมง"],
+        "🕘 เวลาทำการ:\n"
+        "จันทร์-ศุกร์ 09:00-18:00\n"
+        "เสาร์ 10:00-16:00\n"
+        "อาทิตย์ ปิดค่ะ"
+    ),
+    (
+        ["โทร", "เบอร์", "ติดต่อ", "tel", "phone"],
+        "📞 ทีมงานจะแจ้งเบอร์โทรให้นะคะ\n"
+        "หรือคุยใน LINE นี้ได้สะดวกเหมือนกันค่ะ 😊"
+    ),
+    (
+        ["ขอบคุณ", "thank", "thx", "thanks"],
+        "ยินดีค่ะ 🙏\nหากมีคำถามอื่นทักได้เลยนะคะ 😊"
+    ),
+]
+
+
+async def get_bot_settings(db):
+    """อ่าน bot settings ของ platform LINE OA (tenant_id='__platform__')."""
+    default = {"welcome_message": "", "quick_replies": [], "persona": "friendly-female"}
+    try:
+        row = (await db.execute(
+            text("""
+                SELECT welcome_message, quick_replies, persona
+                FROM chat_bot_settings
+                WHERE tenant_id = '__platform__'
+                LIMIT 1
+            """)
+        )).fetchone()
+        if not row:
+            return default
+        wm, qr, persona = row
+        return {
+            "welcome_message": wm or "",
+            "quick_replies": qr or [],
+            "persona": persona or "friendly-female",
+        }
+    except Exception:
+        return default
+
+
+def bot_reply(text_in: str, bot_settings: dict) -> str | None:
+    """Match keyword rules; return reply text หรือ None ถ้าไม่ตรง rule ใดเลย."""
+    if not text_in:
+        return None
+    t = text_in.lower().strip()
+    for keywords, reply in KEYWORD_RULES:
+        for kw in keywords:
+            if kw.lower() in t:
+                return reply
+    return None
+
+
+def fallback_reply() -> str:
+    return "ขอบคุณที่ติดต่อมานะคะ 🙏\nทีมงานจะติดต่อกลับเร็วๆ นี้ค่ะ"
+
+
 @router.post("/webhook/line/platform")
 async def line_platform_webhook(request: Request):
     # Internal-only gate — :8000 sets this header; external callers won't.
@@ -110,5 +191,57 @@ async def line_platform_webhook(request: Request):
                 welcome = f"สวัสดีครับ คุณ{display_name} 👋\nขอบคุณที่เพิ่มเพื่อนกับเรานะครับ\nมีอะไรให้ช่วยแจ้งได้เลยครับ 😊"
                 await reply_message(event.get("replyToken"), [{"type": "text", "text": welcome}], channel_token)
                 await save_message(db, conv_id, "outbound", welcome, {})
+
+            elif event_type == "message":
+                msg = event.get("message", {})
+                if msg.get("type") != "text":
+                    continue
+                user_text = msg.get("text", "")
+
+                # Best-effort profile fetch
+                display_name, picture_url = "", ""
+                try:
+                    async with httpx.AsyncClient() as client:
+                        r = await client.get(
+                            f"https://api.line.me/v2/bot/profile/{platform_uid}",
+                            headers={"Authorization": f"Bearer {channel_token}"}
+                        )
+                        profile = r.json()
+                        display_name = profile.get("displayName", "")
+                        picture_url = profile.get("pictureUrl", "")
+                except Exception:
+                    pass
+
+                conv_id = await get_or_create_conversation(db, platform_uid, display_name, picture_url)
+                await save_message(db, conv_id, "inbound", user_text, event)
+
+                # Bot rule-based reply (no AI)
+                bot_settings = await get_bot_settings(db)
+                reply_text = bot_reply(user_text, bot_settings)
+                is_fallback = reply_text is None
+                if is_fallback:
+                    reply_text = fallback_reply()
+
+                await reply_message(
+                    event.get("replyToken"),
+                    [{"type": "text", "text": reply_text}],
+                    channel_token,
+                )
+                await save_message(
+                    db, conv_id, "outbound", reply_text,
+                    {"sent_by": "bot", "fallback": is_fallback},
+                )
+
+                # Bump unread + updated_at on the conversation
+                await db.execute(
+                    text("""
+                        UPDATE chat_conversations
+                        SET unread_count = COALESCE(unread_count, 0) + 1,
+                            updated_at   = now()
+                        WHERE id = :cid
+                    """),
+                    {"cid": conv_id},
+                )
+                await db.commit()
 
         return {"status": "ok"}
