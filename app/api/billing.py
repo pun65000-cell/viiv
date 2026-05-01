@@ -19,18 +19,20 @@ def _platform_line_token() -> str:
     return (row[0] if row else "") or ""
 
 
-def _line_push_text(channel_token: str, to_uid: str, msg: str) -> bool:
-    if not channel_token or not to_uid:
+def notify_tenant_line(line_uid: str, message: str, access_token: str) -> bool:
+    """Push a text message to a tenant via the platform LINE OA.
+    Returns True on HTTP 2xx, False otherwise (network errors swallowed)."""
+    if not line_uid or not access_token:
         return False
     try:
         import requests
         r = requests.post(
             "https://api.line.me/v2/bot/message/push",
             headers={
-                "Authorization": f"Bearer {channel_token}",
+                "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json",
             },
-            json={"to": to_uid, "messages": [{"type": "text", "text": msg}]},
+            json={"to": line_uid, "messages": [{"type": "text", "text": message}]},
             timeout=5,
         )
         return r.ok
@@ -43,6 +45,60 @@ def _days_remaining(deadline) -> int | None:
         return None
     now = datetime.datetime.now(datetime.timezone.utc)
     return int((deadline - now).total_seconds() // 86400)
+
+
+# Static notification templates (Phase 3 schedule)
+NOTIFY_TEMPLATES: dict[str, str] = {
+    "trial_warning": (
+        "🔔 ทดลองใช้งาน ViiV เหลืออีก 2 วันครับ\n"
+        "หากต้องการใช้งานต่อ ติดต่อทีมงานได้เลยครับ 😊\n"
+        "LINE: @004krtts"
+    ),
+    "trial_expiry": (
+        "⏰ วันสุดท้ายของการทดลองใช้งานครับ\n"
+        "ยังสามารถเข้าใช้งานได้ปกติวันนี้\n"
+        "ติดต่อต่ออายุได้เลยครับ 🙏\n"
+        "LINE: @004krtts"
+    ),
+    "expiry_warning_3d": (
+        "🔔 แพ็กเกจของคุณจะหมดอายุในอีก 3 วันครับ\n"
+        "ต่ออายุได้เลยเพื่อใช้งานต่อเนื่องครับ 😊\n"
+        "LINE: @004krtts"
+    ),
+    "expiry_warning_1d": (
+        "⏰ แพ็กเกจจะหมดพรุ่งนี้ครับ\n"
+        "ติดต่อต่ออายุได้เลยนะครับ 🙏\n"
+        "LINE: @004krtts"
+    ),
+    "overdue": (
+        "💙 ทีมงาน ViiV ห่วงใยครับ\n"
+        "หากมีข้อสงสัยหรือต้องการความช่วยเหลือ\n"
+        "ติดต่อได้เลยนะครับ 😊\n"
+        "LINE: @004krtts"
+    ),
+}
+
+
+def _select_notify_type(billing_status: str, days_remaining: int | None) -> str | None:
+    """Pick the template that fits today's schedule.
+    Returns None if no template matches (admin can pass ?type= to override)."""
+    if days_remaining is None:
+        return None
+    if billing_status == "trial":
+        if days_remaining <= 0:
+            return "trial_expiry"
+        if days_remaining <= 2:
+            return "trial_warning"
+        return None
+    if billing_status == "active":
+        if days_remaining < 0:
+            return "overdue"
+        if days_remaining <= 1:
+            return "expiry_warning_1d"
+        if days_remaining <= 3:
+            return "expiry_warning_3d"
+        return None
+    return None
 
 
 # ── 1) GET /subscriptions ─────────────────────────────────────────────────────
@@ -135,9 +191,10 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
     sent = False
     if line_uid:
         token = _platform_line_token()
-        sent = _line_push_text(
-            token, line_uid,
+        sent = notify_tenant_line(
+            line_uid,
             "✅ ได้รับการชำระเงินแล้วครับ ขอบคุณมากครับ 🙏",
+            token,
         )
     return {"ok": True, "tenant_id": tid, "line_notified": sent}
 
@@ -161,58 +218,50 @@ def get_prices(authorization: str = Header(None)):
 
 # ── 4) POST /notify/{tenant_id} ───────────────────────────────────────────────
 @router.post("/notify/{tenant_id}")
-def notify_tenant(tenant_id: str, authorization: str = Header(None)):
+def notify_tenant(
+    tenant_id: str,
+    type: str | None = None,        # admin override (optional)
+    dry_run: bool = False,          # preview without sending
+    authorization: str = Header(None),
+):
     _admin_auth(authorization)
     with engine.connect() as c:
         row = c.execute(text("""
-            SELECT t.id, t.store_name, t.line_uid, t.billing_status,
-                   t.trial_ends_at, t.subscription_ends_at,
-                   t.package_id, t.modules,
-                   bp.price AS amount_due
+            SELECT t.id, t.line_uid, t.billing_status,
+                   t.trial_ends_at, t.subscription_ends_at
             FROM tenants t
-            LEFT JOIN billing_prices bp
-              ON bp.package_id = t.package_id
-             AND bp.modules    = t.modules
             WHERE t.id = :tid
         """), {"tid": tenant_id}).mappings().first()
 
     if not row:
         raise HTTPException(404, "tenant not found")
-    if not row["line_uid"]:
-        raise HTTPException(400, "tenant has no LINE UID linked")
 
     bs = row["billing_status"] or "trial"
     deadline = row["trial_ends_at"] if bs == "trial" else row["subscription_ends_at"]
     days_left = _days_remaining(deadline)
-    amt = f"{float(row['amount_due']):,.0f}" if row["amount_due"] is not None else "-"
-    name = row["store_name"] or "ลูกค้า"
-    deadline_str = deadline.strftime("%d/%m/%Y") if deadline else "-"
 
-    if bs == "trial":
-        ntype = "trial_warning"
-        msg = (
-            f"🌟 สวัสดีครับ {name}\n"
-            f"ทดลองใช้ ViiV จะหมดอายุวันที่ {deadline_str}\n"
-            f"ค่าบริการ {amt} บาท/เดือน\n"
-            f"แจ้งชำระได้ที่ @004krtts"
-        )
-    elif days_left is not None and days_left < 0:
-        ntype = "overdue"
-        msg = (
-            f"⚠️ ค่าบริการ ViiV ค้างชำระแล้ว {abs(days_left)} วัน\n"
-            f"กรุณาชำระโดยเร็วเพื่อไม่ให้ระบบถูกระงับ\n"
-            f"แจ้งชำระได้ที่ @004krtts"
-        )
-    else:
-        ntype = "expiry_warning"
-        msg = (
-            f"🔔 ค่าบริการ ViiV จะครบกำหนดในอีก {days_left} วัน\n"
-            f"ยอด {amt} บาท/เดือน\n"
-            f"แจ้งชำระได้ที่ @004krtts"
-        )
+    ntype = type or _select_notify_type(bs, days_left)
+    if not ntype:
+        return {
+            "ok": False,
+            "tenant_id": tenant_id,
+            "reason": "no template matches today's schedule (pass ?type= to override)",
+            "billing_status": bs,
+            "days_remaining": days_left,
+        }
+    if ntype not in NOTIFY_TEMPLATES:
+        raise HTTPException(400, f"unknown type: {ntype}")
+    msg = NOTIFY_TEMPLATES[ntype]
+
+    if dry_run:
+        return {"ok": True, "tenant_id": tenant_id, "type": ntype,
+                "preview": msg, "dry_run": True}
+
+    if not row["line_uid"]:
+        raise HTTPException(400, "tenant has no LINE UID linked")
 
     token = _platform_line_token()
-    sent = _line_push_text(token, row["line_uid"], msg)
+    sent = notify_tenant_line(row["line_uid"], msg, token)
 
     with engine.begin() as c:
         c.execute(text("""
@@ -220,4 +269,5 @@ def notify_tenant(tenant_id: str, authorization: str = Header(None)):
             VALUES (:tid, :type, 'line')
         """), {"tid": tenant_id, "type": ntype})
 
-    return {"ok": True, "tenant_id": tenant_id, "type": ntype, "line_sent": sent}
+    return {"ok": True, "tenant_id": tenant_id, "type": ntype,
+            "days_remaining": days_left, "line_sent": sent}
