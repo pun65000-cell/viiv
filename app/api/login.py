@@ -153,6 +153,22 @@ def staff_login(payload: dict, request: Request):
     }
     token = _jwt.encode(token_payload, _JWT_SECRET, algorithm="HS256")
 
+    try:
+        with _db_engine.begin() as c:
+            for shop in valid:
+                c.execute(text("""
+                    INSERT INTO token_security_log
+                        (user_id, tenant_id, ip, user_agent, action)
+                    VALUES (:uid, :tid, :ip, :ua, 'login')
+                """), {
+                    "uid": str(shop.id),
+                    "tid": str(shop.tenant_id),
+                    "ip": ip,
+                    "ua": request.headers.get("User-Agent", "")[:200],
+                })
+    except Exception:
+        pass  # ไม่ให้ log พัง block login
+
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -219,6 +235,21 @@ def platform_login(payload: dict, request: Request):
         "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30),
     }
     token = _jwt.encode(token_payload, _JWT_SECRET, algorithm="HS256")
+
+    try:
+        with _db_engine.begin() as c:
+            c.execute(text("""
+                INSERT INTO token_security_log
+                    (user_id, tenant_id, ip, user_agent, action)
+                VALUES (:uid, :tid, :ip, :ua, 'platform_login')
+            """), {
+                "uid": str(user.id),
+                "tid": first_tid,
+                "ip": ip,
+                "ua": request.headers.get("User-Agent", "")[:200],
+            })
+    except Exception:
+        pass
 
     return {
         "access_token": token,
