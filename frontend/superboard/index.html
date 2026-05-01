@@ -138,6 +138,67 @@
 </head>
 <body>
 
+<!-- Billing soft-block modal (Phase 7) — populated by SbBillingBlock on 402 -->
+<div id="sb-billing-block" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:18px;max-width:440px;width:92vw;padding:32px 30px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center;">
+    <div style="font-size:48px;margin-bottom:8px;line-height:1">💙</div>
+    <div style="font-size:20px;font-weight:700;color:#1e3a8a;margin-bottom:10px;">แพ็กเกจของคุณหมดอายุแล้วครับ</div>
+    <div style="font-size:14.5px;color:#475569;margin-bottom:22px;line-height:1.55;">
+      ติดต่อทีมงานเพื่อต่ออายุได้เลยนะครับ<br>
+      ระบบจะกลับมาใช้งานได้ทันทีหลังต่ออายุ
+    </div>
+    <a id="sb-billing-block-link" href="https://line.me/R/ti/p/@004krtts" target="_blank" rel="noopener"
+       style="display:inline-block;background:#06C755;color:#fff;padding:11px 28px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">
+      ติดต่อ LINE @004krtts
+    </a>
+  </div>
+</div>
+<style>
+  body.billing-blocked iframe,
+  body.billing-blocked .sb-content > *:not(#sb-billing-block){
+    filter:blur(6px); pointer-events:none; user-select:none;
+  }
+</style>
+<script>
+(function(){
+  if (window.__sbBillingBlockInstalled) return;
+  window.__sbBillingBlockInstalled = true;
+  var _origFetch = window.fetch.bind(window);
+  window.fetch = async function(){
+    var res = await _origFetch.apply(null, arguments);
+    if (res && res.status === 402) {
+      try {
+        var data = await res.clone().json().catch(function(){ return {}; });
+        if ((data && data.detail) === 'subscription_expired') {
+          window.SbBillingBlock && window.SbBillingBlock.show(data);
+        }
+      } catch(e){}
+    }
+    return res;
+  };
+  window.SbBillingBlock = {
+    _shown: false,
+    show: function(data){
+      if (this._shown) return;
+      this._shown = true;
+      document.body.classList.add('billing-blocked');
+      var el = document.getElementById('sb-billing-block');
+      if (el) {
+        el.style.display = 'flex';
+        var link = document.getElementById('sb-billing-block-link');
+        if (link && data && data.contact) link.href = data.contact;
+      }
+    },
+    hide: function(){
+      this._shown = false;
+      document.body.classList.remove('billing-blocked');
+      var el = document.getElementById('sb-billing-block');
+      if (el) el.style.display = 'none';
+    }
+  };
+})();
+</script>
+
 <header class="sb-topbar">
   <a href="/superboard/" class="sb-logo" id="sbLogo">
     <img id="sbLogoImg" src="" alt="VIIV"

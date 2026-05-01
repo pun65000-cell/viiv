@@ -1,6 +1,49 @@
 /* VIIV PWA — app.js
  * Token ทั้งหมดดูแลโดย Auth (auth.js) — app.js ไม่แตะ localStorage โดยตรง
  */
+
+// ── Billing soft-block (Phase 7) ─────────────────────────────────────────────
+// Catch HTTP 402 from any fetch and show a top banner. Idempotent.
+(function(){
+  if (window.__billingBlockInstalled) return;
+  window.__billingBlockInstalled = true;
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = async function(...args){
+    const res = await _origFetch(...args);
+    if (res && res.status === 402) {
+      try {
+        const clone = res.clone();
+        const data = await clone.json().catch(() => ({}));
+        if ((data && data.detail) === 'subscription_expired') {
+          window.BillingBlock && window.BillingBlock.show(data);
+        }
+      } catch(_){}
+    }
+    return res;
+  };
+  window.BillingBlock = {
+    _shown: false,
+    show(data){
+      if (this._shown) return;
+      this._shown = true;
+      document.documentElement.classList.add('billing-blocked');
+      const el = document.getElementById('billing-block-banner');
+      if (el) {
+        const c = (data && data.contact) || 'https://line.me/R/ti/p/@004krtts';
+        const link = el.querySelector('a');
+        if (link) link.href = c;
+        el.style.display = 'flex';
+      }
+    },
+    hide(){
+      this._shown = false;
+      document.documentElement.classList.remove('billing-blocked');
+      const el = document.getElementById('billing-block-banner');
+      if (el) el.style.display = 'none';
+    },
+  };
+})();
+
 const App = {
   get token() { return Auth.token; },
   get tenantId() {
