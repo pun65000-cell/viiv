@@ -176,3 +176,205 @@ async def get_stats(tenant_id: Optional[str] = Query(None)):
             WHERE 1=1 {tid_filter}
         """), params)).fetchone()
         return {"today": r[0] or 0, "month": r[1] or 0, "bot_replies": r[2] or 0, "conversion": 0}
+
+
+# ─── Bot Rules CRUD + Status ──────────────────────────────────────────
+async def _ensure_rules_table(db):
+    await db.execute(text("""
+        CREATE TABLE IF NOT EXISTS chat_bot_rules (
+            id          bigserial PRIMARY KEY,
+            tenant_id   text,
+            keywords    text[] NOT NULL,
+            response    text NOT NULL,
+            is_flagged  boolean DEFAULT false,
+            is_active   boolean DEFAULT true,
+            hit_count   int DEFAULT 0,
+            created_at  timestamptz DEFAULT now(),
+            updated_at  timestamptz DEFAULT now()
+        )
+    """))
+    await db.execute(text("""
+        CREATE TABLE IF NOT EXISTS chat_bot_status (
+            key   text PRIMARY KEY,
+            value text
+        )
+    """))
+    await db.commit()
+
+
+@router.get("/bot/rules")
+async def list_bot_rules(
+    tenant_id: Optional[str] = Query(None),
+    flagged: Optional[bool] = Query(None),
+):
+    async with AsyncSessionLocal() as db:
+        await _ensure_rules_table(db)
+        where = "WHERE 1=1"
+        params = {}
+        if tenant_id:
+            where += " AND tenant_id = :tid"
+            params["tid"] = tenant_id
+        else:
+            where += " AND tenant_id IS NULL"
+        if flagged is not None:
+            where += " AND is_flagged = :flag"
+            params["flag"] = flagged
+        rows = (await db.execute(text(f"""
+            SELECT id, tenant_id, keywords, response, is_flagged, is_active,
+                   hit_count, created_at, updated_at
+            FROM chat_bot_rules
+            {where}
+            ORDER BY is_flagged DESC, updated_at DESC
+            LIMIT 500
+        """), params)).mappings().all()
+        return {"rules": [{
+            "id": r["id"],
+            "tenant_id": r["tenant_id"],
+            "keywords": list(r["keywords"] or []),
+            "response": r["response"],
+            "is_flagged": bool(r["is_flagged"]),
+            "is_active": bool(r["is_active"]),
+            "hit_count": r["hit_count"] or 0,
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            "updated_at": r["updated_at"].isoformat() if r["updated_at"] else None,
+        } for r in rows]}
+
+
+class RuleBody(BaseModel):
+    tenant_id: Optional[str] = None
+    keywords: List[str]
+    response: str
+    is_flagged: Optional[bool] = False
+    is_active: Optional[bool] = True
+
+
+@router.post("/bot/rules")
+async def create_bot_rule(body: RuleBody):
+    kws = [k.strip() for k in (body.keywords or []) if k and k.strip()]
+    if not kws or not (body.response or "").strip():
+        raise HTTPException(400, "keywords and response required")
+    async with AsyncSessionLocal() as db:
+        await _ensure_rules_table(db)
+        result = (await db.execute(text("""
+            INSERT INTO chat_bot_rules (tenant_id, keywords, response, is_flagged, is_active)
+            VALUES (:tid, :kws, :resp, :flag, :active)
+            RETURNING id
+        """), {
+            "tid": body.tenant_id,
+            "kws": kws,
+            "resp": body.response,
+            "flag": bool(body.is_flagged),
+            "active": bool(body.is_active),
+        })).fetchone()
+        await db.commit()
+        return {"ok": True, "id": result[0]}
+
+
+class RuleUpdate(BaseModel):
+    keywords: Optional[List[str]] = None
+    response: Optional[str] = None
+    is_flagged: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+@router.put("/bot/rules/{rule_id}")
+async def update_bot_rule(rule_id: int, body: RuleUpdate):
+    sets = []
+    params = {"rid": rule_id}
+    if body.keywords is not None:
+        kws = [k.strip() for k in body.keywords if k and k.strip()]
+        if not kws:
+            raise HTTPException(400, "at least one non-empty keyword required")
+        sets.append("keywords = :kws")
+        params["kws"] = kws
+    if body.response is not None:
+        sets.append("response = :resp")
+        params["resp"] = body.response
+    if body.is_flagged is not None:
+        sets.append("is_flagged = :flag")
+        params["flag"] = bool(body.is_flagged)
+    if body.is_active is not None:
+        sets.append("is_active = :active")
+        params["active"] = bool(body.is_active)
+    if not sets:
+        raise HTTPException(400, "no fields to update")
+    sets.append("updated_at = now()")
+    async with AsyncSessionLocal() as db:
+        await _ensure_rules_table(db)
+        await db.execute(text(f"UPDATE chat_bot_rules SET {', '.join(sets)} WHERE id = :rid"), params)
+        await db.commit()
+        return {"ok": True}
+
+
+@router.delete("/bot/rules/{rule_id}")
+async def delete_bot_rule(rule_id: int):
+    async with AsyncSessionLocal() as db:
+        await _ensure_rules_table(db)
+        await db.execute(text("DELETE FROM chat_bot_rules WHERE id = :rid"), {"rid": rule_id})
+        await db.commit()
+        return {"ok": True}
+
+
+@router.get("/bot/status")
+async def get_bot_status():
+    async with AsyncSessionLocal() as db:
+        await _ensure_rules_table(db)
+        row = (await db.execute(text(
+            "SELECT value FROM chat_bot_status WHERE key='enabled'"
+        ))).fetchone()
+        enabled = not (row and row[0] == "false")
+
+        rule_count = int((await db.execute(text(
+            "SELECT COUNT(*) FROM chat_bot_rules"
+        ))).fetchone()[0] or 0)
+
+        avg_row = (await db.execute(text("""
+            SELECT AVG(EXTRACT(EPOCH FROM (out_t - in_t)) * 1000)
+            FROM (
+              SELECT m1.created_at AS in_t,
+                     (SELECT MIN(m2.created_at) FROM chat_messages m2
+                      WHERE m2.conversation_id = m1.conversation_id
+                        AND m2.direction = 'outbound'
+                        AND m2.created_at > m1.created_at) AS out_t
+              FROM chat_messages m1
+              WHERE m1.direction = 'inbound'
+                AND m1.created_at >= now() - interval '7 days'
+              ORDER BY m1.created_at DESC
+              LIMIT 200
+            ) t
+            WHERE out_t IS NOT NULL
+        """))).fetchone()
+        avg_ms = float(avg_row[0]) if avg_row and avg_row[0] is not None else 0.0
+
+        size_row = (await db.execute(text("""
+            SELECT COALESCE(SUM(pg_total_relation_size(c.oid)), 0)
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind = 'r'
+              AND n.nspname = 'public'
+              AND c.relname LIKE 'chat_%'
+        """))).fetchone()
+        db_size = int(size_row[0] or 0)
+
+        return {
+            "enabled": enabled,
+            "avg_ms": round(avg_ms, 1),
+            "rule_count": rule_count,
+            "db_size_bytes": db_size,
+        }
+
+
+class StatusToggle(BaseModel):
+    enabled: bool
+
+
+@router.patch("/bot/status")
+async def patch_bot_status(body: StatusToggle):
+    async with AsyncSessionLocal() as db:
+        await _ensure_rules_table(db)
+        await db.execute(text("""
+            INSERT INTO chat_bot_status (key, value) VALUES ('enabled', :v)
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+        """), {"v": "true" if body.enabled else "false"})
+        await db.commit()
+        return {"ok": True, "enabled": body.enabled}

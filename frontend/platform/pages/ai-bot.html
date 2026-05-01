@@ -1,0 +1,394 @@
+<!doctype html><html><body>
+<style>
+.bot-wrap{
+  --bg:#111827; --surface:#1F2937; --surface2:#374151;
+  --border:#374151; --txt:#F9FAFB; --muted:#9CA3AF;
+  --accent:#F59E0B; --green:#10B981; --red:#EF4444;
+  background:var(--bg); color:var(--txt);
+  font-family:'Sarabun',system-ui,sans-serif; font-size:14px;
+  margin:-16px; padding:18px 20px; min-height:calc(100vh - 50px);
+}
+.bot-wrap *{box-sizing:border-box}
+.bot-num{font-family:'Chakra Petch','Sarabun',sans-serif;letter-spacing:.5px}
+
+/* Status bar */
+.bot-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.bot-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:5px}
+.bot-stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.bot-stat-val{font-size:22px;font-weight:700;color:var(--txt)}
+.bot-stat-sub{font-size:11px;color:var(--muted)}
+.bot-stat .accent{color:var(--accent)}
+.bot-stat .green{color:var(--green)}
+.bot-stat .red{color:var(--red)}
+
+/* Toggle switch */
+.bot-toggle{display:flex;align-items:center;gap:10px}
+.bot-switch{position:relative;width:46px;height:24px;background:#4B5563;border-radius:12px;cursor:pointer;transition:.2s;flex-shrink:0}
+.bot-switch.on{background:var(--green)}
+.bot-switch.error{background:var(--red)}
+.bot-switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
+.bot-switch.on::after{transform:translateX(22px)}
+.bot-switch.disabled{opacity:.5;cursor:wait}
+.bot-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px}
+.bot-badge.green{background:rgba(16,185,129,.15);color:var(--green)}
+.bot-badge.red{background:rgba(239,68,68,.15);color:var(--red)}
+.bot-badge.gray{background:rgba(156,163,175,.15);color:var(--muted)}
+
+/* Card */
+.bot-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.bot-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bot-card-title{font-size:14px;font-weight:700;color:var(--txt);flex:1}
+.bot-count{font-size:11px;color:var(--muted);background:var(--surface2);padding:2px 9px;border-radius:10px;font-weight:600}
+
+/* Buttons */
+.bot-btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--txt);font-family:'Sarabun',sans-serif;transition:.15s}
+.bot-btn:hover{background:#4B5563;border-color:#6B7280}
+.bot-btn.primary{background:var(--accent);border-color:var(--accent);color:#1F2937}
+.bot-btn.primary:hover{background:#D97706;border-color:#D97706}
+.bot-btn.danger{color:var(--red);border-color:rgba(239,68,68,.4)}
+.bot-btn.danger:hover{background:rgba(239,68,68,.12);border-color:var(--red)}
+.bot-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Filter tabs */
+.bot-tabs{display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:0}
+.bot-tab{padding:6px 14px;border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;font-family:'Sarabun',sans-serif;cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.bot-tab:hover{color:var(--txt)}
+.bot-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Rule list */
+.bot-rules{display:flex;flex-direction:column;gap:8px}
+.bot-rule{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;display:flex;align-items:flex-start;gap:12px}
+.bot-rule.flagged{border-left:3px solid var(--accent)}
+.bot-rule-info{flex:1;min-width:0}
+.bot-rule-kws{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+.bot-rule-kw{background:rgba(245,158,11,.15);color:var(--accent);font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px}
+.bot-rule-resp{font-size:12px;color:var(--muted);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bot-rule-actions{display:flex;gap:4px;flex-shrink:0;align-items:flex-start}
+.bot-icon-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface2);color:var(--muted);border-radius:6px;cursor:pointer;font-size:13px;transition:.15s}
+.bot-icon-btn:hover{background:#4B5563;color:var(--txt)}
+.bot-icon-btn.star.on{color:var(--accent);border-color:rgba(245,158,11,.4)}
+.bot-icon-btn.del:hover{color:var(--red);border-color:var(--red)}
+
+/* Form */
+.bot-form{background:var(--bg);border:1px dashed var(--accent);border-radius:10px;padding:14px;margin-top:10px;display:none}
+.bot-form.show{display:block}
+.bot-form-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.bot-form-lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.bot-form-input,.bot-form-textarea{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--txt);font-size:13px;font-family:'Sarabun',sans-serif;outline:none;resize:vertical}
+.bot-form-input:focus,.bot-form-textarea:focus{border-color:var(--accent)}
+.bot-form-textarea{min-height:60px}
+.bot-form-textarea.lg{min-height:90px}
+.bot-form-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--txt);cursor:pointer;user-select:none}
+.bot-form-check input{margin:0;cursor:pointer;accent-color:var(--accent)}
+.bot-form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+
+/* Loading / empty */
+.bot-loading{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+.bot-empty{text-align:center;color:var(--muted);font-size:12px;padding:18px;font-style:italic}
+
+/* Toast */
+.bot-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--txt);border:1px solid var(--accent);padding:9px 18px;border-radius:8px;font-size:12px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+
+@media (max-width:900px){
+  .bot-stats{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+
+<div class="bot-wrap">
+
+  <!-- ส่วน 1 — Status Bar -->
+  <div class="bot-stats">
+    <div class="bot-stat">
+      <div class="bot-stat-lbl">Bot Status</div>
+      <div class="bot-toggle">
+        <div class="bot-switch" id="bot-switch" onclick="botToggleStatus()"></div>
+        <span class="bot-badge gray" id="bot-status-badge">— โหลด...</span>
+      </div>
+    </div>
+    <div class="bot-stat">
+      <div class="bot-stat-lbl">ความเร็วเฉลี่ย</div>
+      <div class="bot-stat-val bot-num green" id="bot-stat-speed">—</div>
+      <div class="bot-stat-sub">ms · 7 วันล่าสุด</div>
+    </div>
+    <div class="bot-stat">
+      <div class="bot-stat-lbl">Rule ใน DB</div>
+      <div class="bot-stat-val bot-num accent" id="bot-stat-count">—</div>
+      <div class="bot-stat-sub">ทั้งหมด</div>
+    </div>
+    <div class="bot-stat">
+      <div class="bot-stat-lbl">พื้นที่ DB</div>
+      <div class="bot-stat-val bot-num" id="bot-stat-size">—</div>
+      <div class="bot-stat-sub">chat_* tables</div>
+    </div>
+  </div>
+
+  <!-- ส่วน 2 — Bot Rule Manager -->
+  <div class="bot-card">
+    <div class="bot-card-head">
+      <div class="bot-card-title">⚙ Bot Rules</div>
+      <span class="bot-count" id="bot-rule-count">0</span>
+      <button class="bot-btn primary" onclick="botShowForm()">+ เพิ่ม Rule</button>
+    </div>
+
+    <div class="bot-tabs">
+      <button class="bot-tab active" data-flag="" onclick="botFilter(this,'')">ทั้งหมด</button>
+      <button class="bot-tab" data-flag="true" onclick="botFilter(this,'true')">⭐ ข้อความสำคัญ</button>
+    </div>
+
+    <div class="bot-rules" id="bot-rules-list">
+      <div class="bot-loading">กำลังโหลด rules...</div>
+    </div>
+
+    <!-- Inline form (add/edit) -->
+    <div class="bot-form" id="bot-form">
+      <div class="bot-form-row">
+        <label class="bot-form-lbl">Keywords (คั่นด้วย , หรือขึ้นบรรทัดใหม่)</label>
+        <textarea class="bot-form-textarea" id="bot-form-kws"
+          placeholder="สินค้า, ราคา, มีอะไรบ้าง&#10;catalog, product"></textarea>
+      </div>
+      <div class="bot-form-row">
+        <label class="bot-form-lbl">Response (ข้อความตอบ)</label>
+        <textarea class="bot-form-textarea lg" id="bot-form-resp"
+          placeholder="ขอบคุณที่สนใจสินค้าของเรานะคะ..."></textarea>
+      </div>
+      <div class="bot-form-row">
+        <label class="bot-form-check">
+          <input type="checkbox" id="bot-form-flag">
+          <span>⭐ ข้อความสำคัญ (flagged)</span>
+        </label>
+      </div>
+      <div class="bot-form-actions">
+        <button class="bot-btn" onclick="botHideForm()">ยกเลิก</button>
+        <button class="bot-btn primary" id="bot-form-save" onclick="botSaveRule()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var BASE = '/chat';
+  function _tok(){
+    return (window.platformToken && window.platformToken())
+      || localStorage.getItem('platform_token') || '';
+  }
+  function _h(){
+    var t = _tok();
+    var h = {'Content-Type':'application/json'};
+    if (t) h['Authorization'] = 'Bearer '+t;
+    return h;
+  }
+  function _esc(s){
+    return String(s==null?'':s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function _fmt(n){ return Number(n||0).toLocaleString('en-US'); }
+  function _fmtSize(b){
+    b = Number(b||0);
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(2) + ' MB';
+  }
+  function _toast(msg){
+    var t = document.createElement('div');
+    t.className = 'bot-toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2200);
+  }
+
+  var _state = { rules:[], filter:'', editingId:null, statusEnabled:null };
+
+  // ── Status ──────────────────────────────────────────────────
+  async function loadStatus(){
+    try {
+      var r = await fetch(BASE+'/bot/status', {headers:_h()});
+      if (!r.ok) throw new Error('status '+r.status);
+      var d = await r.json();
+      _state.statusEnabled = d.enabled;
+      var sw = document.getElementById('bot-switch');
+      var badge = document.getElementById('bot-status-badge');
+      if (d.enabled) {
+        sw.classList.add('on'); sw.classList.remove('error');
+        badge.className = 'bot-badge green'; badge.textContent = '● Online';
+      } else {
+        sw.classList.remove('on');
+        badge.className = 'bot-badge gray'; badge.textContent = '○ Off';
+      }
+      document.getElementById('bot-stat-speed').textContent = _fmt(Math.round(d.avg_ms||0));
+      document.getElementById('bot-stat-count').textContent = _fmt(d.rule_count);
+      document.getElementById('bot-stat-size').textContent  = _fmtSize(d.db_size_bytes);
+    } catch (e) {
+      console.warn('loadStatus error', e);
+      var sw = document.getElementById('bot-switch');
+      sw.classList.remove('on'); sw.classList.add('error');
+      var badge = document.getElementById('bot-status-badge');
+      badge.className = 'bot-badge red';
+      badge.textContent = '✕ Error';
+    }
+  }
+
+  window.botToggleStatus = async function(){
+    if (_state.statusEnabled === null) return;
+    var sw = document.getElementById('bot-switch');
+    sw.classList.add('disabled');
+    try {
+      var r = await fetch(BASE+'/bot/status', {
+        method:'PATCH', headers:_h(),
+        body: JSON.stringify({enabled: !_state.statusEnabled})
+      });
+      if (!r.ok) throw new Error('toggle '+r.status);
+      await loadStatus();
+      _toast(_state.statusEnabled ? 'Bot เปิดแล้ว ✓' : 'Bot ปิดแล้ว');
+    } catch (e) {
+      _toast('toggle ไม่สำเร็จ: '+e.message);
+    } finally {
+      sw.classList.remove('disabled');
+    }
+  };
+
+  // ── Rules ──────────────────────────────────────────────────
+  async function loadRules(){
+    try {
+      var url = BASE+'/bot/rules';
+      if (_state.filter) url += '?flagged='+_state.filter;
+      var r = await fetch(url, {headers:_h()});
+      if (!r.ok) throw new Error('rules '+r.status);
+      var d = await r.json();
+      _state.rules = d.rules || [];
+      renderRules();
+    } catch (e) {
+      document.getElementById('bot-rules-list').innerHTML =
+        '<div class="bot-empty">โหลด rules ไม่สำเร็จ: '+_esc(e.message)+'</div>';
+    }
+  }
+
+  function renderRules(){
+    var list = document.getElementById('bot-rules-list');
+    document.getElementById('bot-rule-count').textContent = _state.rules.length;
+    if (!_state.rules.length) {
+      list.innerHTML = '<div class="bot-empty">ยังไม่มี rule — กด + เพิ่ม Rule เพื่อสร้างใหม่</div>';
+      return;
+    }
+    list.innerHTML = _state.rules.map(function(r){
+      var resp = (r.response||'').replace(/\n/g,' ').trim();
+      var trunc = resp.length > 80 ? resp.slice(0,80)+'…' : resp;
+      var kws = (r.keywords||[]).map(function(k){
+        return '<span class="bot-rule-kw">'+_esc(k)+'</span>';
+      }).join('');
+      return '<div class="bot-rule '+(r.is_flagged?'flagged':'')+'" data-id="'+r.id+'">'+
+        '<div class="bot-rule-info">'+
+          '<div class="bot-rule-kws">'+kws+'</div>'+
+          '<div class="bot-rule-resp">'+_esc(trunc)+'</div>'+
+        '</div>'+
+        '<div class="bot-rule-actions">'+
+          '<button class="bot-icon-btn star '+(r.is_flagged?'on':'')+'" title="ข้อความสำคัญ" '+
+            'onclick="botToggleFlag('+r.id+','+(!r.is_flagged)+')">⭐</button>'+
+          '<button class="bot-icon-btn" title="แก้ไข" onclick="botEdit('+r.id+')">✎</button>'+
+          '<button class="bot-icon-btn del" title="ลบ" onclick="botDelete('+r.id+')">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  window.botFilter = function(tab, flag){
+    document.querySelectorAll('.bot-tab').forEach(function(t){t.classList.remove('active')});
+    tab.classList.add('active');
+    _state.filter = flag;
+    loadRules();
+  };
+
+  window.botShowForm = function(){
+    _state.editingId = null;
+    document.getElementById('bot-form-kws').value = '';
+    document.getElementById('bot-form-resp').value = '';
+    document.getElementById('bot-form-flag').checked = false;
+    document.getElementById('bot-form-save').textContent = 'บันทึก';
+    document.getElementById('bot-form').classList.add('show');
+    document.getElementById('bot-form-kws').focus();
+  };
+
+  window.botHideForm = function(){
+    document.getElementById('bot-form').classList.remove('show');
+    _state.editingId = null;
+  };
+
+  window.botEdit = function(id){
+    var r = _state.rules.find(function(x){return x.id===id});
+    if (!r) return;
+    _state.editingId = id;
+    document.getElementById('bot-form-kws').value = (r.keywords||[]).join(', ');
+    document.getElementById('bot-form-resp').value = r.response || '';
+    document.getElementById('bot-form-flag').checked = !!r.is_flagged;
+    document.getElementById('bot-form-save').textContent = 'อัปเดต';
+    document.getElementById('bot-form').classList.add('show');
+    document.getElementById('bot-form-resp').focus();
+  };
+
+  window.botSaveRule = async function(){
+    var kwsRaw = document.getElementById('bot-form-kws').value;
+    var resp   = document.getElementById('bot-form-resp').value.trim();
+    var flag   = document.getElementById('bot-form-flag').checked;
+    var kws = kwsRaw.split(/[,\n]+/).map(function(s){return s.trim()}).filter(function(s){return s});
+    if (!kws.length || !resp) {
+      _toast('ต้องกรอก keyword และ response');
+      return;
+    }
+    var btn = document.getElementById('bot-form-save');
+    btn.disabled = true;
+    var orig = btn.textContent;
+    btn.textContent = 'กำลังบันทึก...';
+    try {
+      var url, method;
+      if (_state.editingId) {
+        url = BASE+'/bot/rules/'+_state.editingId;
+        method = 'PUT';
+      } else {
+        url = BASE+'/bot/rules';
+        method = 'POST';
+      }
+      var r = await fetch(url, {
+        method: method, headers:_h(),
+        body: JSON.stringify({keywords: kws, response: resp, is_flagged: flag, is_active: true})
+      });
+      if (!r.ok) throw new Error('save '+r.status);
+      _toast(_state.editingId ? 'อัปเดตแล้ว ✓' : 'เพิ่มแล้ว ✓');
+      botHideForm();
+      await loadRules();
+      await loadStatus();
+    } catch (e) {
+      _toast('บันทึกไม่สำเร็จ: '+e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
+  };
+
+  window.botToggleFlag = async function(id, newFlag){
+    try {
+      var r = await fetch(BASE+'/bot/rules/'+id, {
+        method:'PUT', headers:_h(),
+        body: JSON.stringify({is_flagged: newFlag})
+      });
+      if (!r.ok) throw new Error('flag '+r.status);
+      await loadRules();
+    } catch (e) { _toast('toggle ไม่สำเร็จ'); }
+  };
+
+  window.botDelete = async function(id){
+    if (!confirm('ลบ rule นี้?')) return;
+    try {
+      var r = await fetch(BASE+'/bot/rules/'+id, {method:'DELETE', headers:_h()});
+      if (!r.ok) throw new Error('del '+r.status);
+      _toast('ลบแล้ว');
+      await loadRules();
+      await loadStatus();
+    } catch (e) { _toast('ลบไม่สำเร็จ: '+e.message); }
+  };
+
+  loadStatus();
+  loadRules();
+})();
+</script>
+</body></html>

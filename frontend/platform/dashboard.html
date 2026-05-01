@@ -170,8 +170,17 @@
     </div>
 
     <div class="sb-group">System</div>
-    <div class="sb-item" data-page="ai" onclick="nav(this)">
+    <div class="sb-item" data-page="ai" id="sb-ai-parent" onclick="navParent(this,'ai-sub')">
       <span class="sb-item-icon">🤖</span> จัดการ AI
+      <span class="sb-item-arrow">▶</span>
+    </div>
+    <div class="sb-sub-wrap" id="ai-sub">
+      <div class="sb-sub-item" data-page="ai" data-parent="sb-ai-parent" onclick="navSub(this,'sb-ai-parent')">
+        <span class="sb-sub-item-icon">📊</span> ภาพรวม AI
+      </div>
+      <div class="sb-sub-item" data-page="ai-bot" data-parent="sb-ai-parent" onclick="navSub(this,'sb-ai-parent')">
+        <span class="sb-sub-item-icon">🤖</span> Bot พื้นฐาน
+      </div>
     </div>
     <div class="sb-item" data-page="notify" onclick="nav(this)">
       <span class="sb-item-icon">🔔</span> การแจ้งเตือน
@@ -314,6 +323,7 @@ const PAGE_META = {
   finance:  { title:'บัญชีการเงิน', badge:'Admin'    },
   orders:   { title:'คำสั่งซื้อ',   badge:'Admin'    },
   ai:       { title:'จัดการ AI',    badge:'System'   },
+  'ai-bot': { title:'Bot พื้นฐาน',  badge:'System'   },
   notify:   { title:'การแจ้งเตือน', badge:'Admin'    },
   apikeys:  { title:'API Keys',     badge:'System'   },
   security:          { title:'Security',     badge:'Security' },
