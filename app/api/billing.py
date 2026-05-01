@@ -223,6 +223,62 @@ def get_prices(authorization: str = Header(None)):
     } for r in rows]}
 
 
+# ── 3b) GET /invoices (history) ───────────────────────────────────────────────
+@router.get("/invoices")
+def list_invoices(authorization: str = Header(None), limit: int = 200):
+    _admin_auth(authorization)
+    n = max(1, min(int(limit or 200), 1000))
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT i.id, i.tenant_id, t.store_name, t.subdomain,
+                   i.amount, i.package_id, i.modules, i.status,
+                   i.due_date, i.paid_at, i.noted_by, i.created_at
+            FROM billing_invoices i
+            LEFT JOIN tenants t ON t.id = i.tenant_id
+            ORDER BY i.created_at DESC
+            LIMIT :n
+        """), {"n": n}).mappings().all()
+    return {"invoices": [{
+        "id":         r["id"],
+        "tenant_id":  r["tenant_id"],
+        "store_name": r["store_name"],
+        "subdomain":  r["subdomain"],
+        "amount":     float(r["amount"]) if r["amount"] is not None else None,
+        "package_id": r["package_id"],
+        "modules":    list(r["modules"] or []),
+        "status":     r["status"],
+        "due_date":   r["due_date"].isoformat() if r["due_date"] else None,
+        "paid_at":    r["paid_at"].isoformat() if r["paid_at"] else None,
+        "noted_by":   r["noted_by"],
+        "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+    } for r in rows]}
+
+
+# ── 3c) GET /notifications (history) ──────────────────────────────────────────
+@router.get("/notifications")
+def list_notifications(authorization: str = Header(None), limit: int = 200):
+    _admin_auth(authorization)
+    n = max(1, min(int(limit or 200), 1000))
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT n.id, n.tenant_id, t.store_name, t.subdomain,
+                   n.type, n.channel, n.sent_at
+            FROM billing_notifications n
+            LEFT JOIN tenants t ON t.id = n.tenant_id
+            ORDER BY n.sent_at DESC
+            LIMIT :n
+        """), {"n": n}).mappings().all()
+    return {"notifications": [{
+        "id":         r["id"],
+        "tenant_id":  r["tenant_id"],
+        "store_name": r["store_name"],
+        "subdomain":  r["subdomain"],
+        "type":       r["type"],
+        "channel":    r["channel"],
+        "sent_at":    r["sent_at"].isoformat() if r["sent_at"] else None,
+    } for r in rows]}
+
+
 # ── 4b) POST /run-check (admin-trigger scheduler manually) ────────────────────
 @router.post("/run-check")
 def run_check_now(authorization: str = Header(None)):

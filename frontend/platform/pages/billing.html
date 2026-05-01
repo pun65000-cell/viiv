@@ -1,0 +1,535 @@
+<!doctype html><html><head><meta charset="utf-8"></head>
+<body>
+<style>
+.bx-wrap{ display:flex; flex-direction:column; gap:0; }
+
+.bx-tabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.bx-tab{
+  padding:8px 16px; border:2px solid #e5e7eb; border-radius:10px;
+  font-size:14px; font-weight:600; cursor:pointer;
+  background:#fff; color:#6b7280; transition:.15s;
+}
+.bx-tab:hover{ border-color:#e8b93e; color:#1a1200; }
+.bx-tab.active{ border-color:#e8b93e; background:#e8b93e; color:#1a1200; box-shadow:0 2px 8px rgba(232,185,62,.3); }
+
+.bx-panel{ display:none; }
+.bx-panel.active{ display:block; }
+
+.bx-card{
+  background:#fff; border-radius:14px; padding:18px 22px;
+  margin-bottom:16px; border:1px solid #e5e7eb;
+}
+.bx-card-hdr{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; margin-bottom:12px; flex-wrap:wrap;
+}
+.bx-card-title{ font-weight:700; font-size:16px; color:#1a1a1a; }
+.bx-toolbar{ display:flex; gap:8px; align-items:center; }
+
+.bx-table{ width:100%; border-collapse:collapse; font-size:14px; }
+.bx-table th{
+  text-align:left; font-weight:600; color:#6b7280;
+  padding:10px 12px; border-bottom:2px solid #e5e7eb;
+  font-size:13px; text-transform:uppercase; letter-spacing:.4px;
+  background:#fafaf7;
+}
+.bx-table td{
+  padding:12px; border-bottom:1px solid #f1f1ee;
+  vertical-align:middle; color:#1f2937;
+}
+.bx-table tr:hover td{ background:#fbfaf6; }
+.bx-empty{ padding:24px; text-align:center; color:#9ca3af; font-size:14px; }
+
+.bx-badge{
+  display:inline-block; padding:3px 10px; border-radius:12px;
+  font-size:12px; font-weight:700; line-height:18px;
+}
+.bx-bs-active{   background:#dcfce7; color:#15803d; }
+.bx-bs-trial{    background:#fef9c3; color:#854d0e; }
+.bx-bs-suspended{background:#fee2e2; color:#b91c1c; }
+.bx-bs-cancelled{background:#e5e7eb; color:#4b5563; }
+
+.bx-days{ font-weight:700; }
+.bx-days.warn{ color:#b91c1c; }
+.bx-days.soon{ color:#b45309; }
+.bx-days.ok  { color:#15803d; }
+
+.bx-mod{
+  display:inline-block; padding:2px 8px; border-radius:8px;
+  background:#f3f4f6; color:#4b5563; font-size:11px; font-weight:600;
+  margin:1px 2px;
+}
+
+.bx-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:8px; border:1px solid transparent;
+  font-size:13px; font-weight:600; cursor:pointer; background:#fff;
+  color:#1f2937; transition:.15s;
+}
+.bx-btn:hover{ background:#f9fafb; border-color:#d1d5db; }
+.bx-btn-primary{ background:#e8b93e; color:#1a1200; border-color:#e8b93e; }
+.bx-btn-primary:hover{ filter:brightness(0.95); }
+.bx-btn-line{ background:#06C755; color:#fff; border-color:#06C755; }
+.bx-btn-line:hover{ filter:brightness(0.95); }
+.bx-btn-sm{ padding:4px 10px; font-size:12px; }
+
+.bx-row-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+
+.bx-search{
+  padding:8px 12px; border:2px solid #e5e7eb; border-radius:10px;
+  font-size:14px; outline:none; min-width:240px;
+}
+.bx-search:focus{ border-color:#e8b93e; }
+
+/* Modal */
+.bx-modal-mask{
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  display:none; align-items:center; justify-content:center; z-index:9000;
+}
+.bx-modal-mask.open{ display:flex; }
+.bx-modal{
+  background:#fff; border-radius:16px; padding:24px 26px;
+  width:min(540px,92vw); box-shadow:0 12px 40px rgba(0,0,0,.18);
+}
+.bx-modal h3{ margin:0 0 6px; font-size:18px; color:#1a1a1a; }
+.bx-modal .bx-modal-sub{ color:#6b7280; font-size:13px; margin-bottom:16px; }
+.bx-field{ margin-bottom:14px; }
+.bx-label{ font-size:13px; font-weight:600; color:#374151; margin-bottom:6px; display:block; }
+.bx-input, .bx-select{
+  width:100%; padding:10px 12px; border:2px solid #e5e7eb;
+  border-radius:10px; font-size:14px; outline:none; box-sizing:border-box;
+}
+.bx-input:focus, .bx-select:focus{ border-color:#e8b93e; }
+.bx-mods-grid{ display:flex; gap:8px; flex-wrap:wrap; }
+.bx-mod-chk{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 14px; border:2px solid #e5e7eb; border-radius:10px;
+  cursor:pointer; user-select:none; font-size:14px; font-weight:600;
+  color:#6b7280; background:#fff;
+}
+.bx-mod-chk.active{ border-color:#e8b93e; background:#fff8e7; color:#1a1200; }
+.bx-mod-chk input{ display:none; }
+.bx-amt-box{
+  background:#fafaf7; border:1px solid #e5e7eb; border-radius:10px;
+  padding:12px 14px; font-size:15px; font-weight:700; color:#1a1a1a;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.bx-amt-box small{ font-weight:500; color:#6b7280; font-size:12px; }
+.bx-modal-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:18px; }
+</style>
+
+<div class="bx-wrap">
+  <div class="bx-tabs">
+    <div class="bx-tab active" data-bxtab="subs">📋 Subscription</div>
+    <div class="bx-tab"        data-bxtab="invs">🧾 ประวัติชำระ</div>
+    <div class="bx-tab"        data-bxtab="ntfs">🔔 การแจ้งเตือน</div>
+  </div>
+
+  <!-- Tab 1: Subscriptions -->
+  <div class="bx-panel active" data-bxpanel="subs">
+    <div class="bx-card">
+      <div class="bx-card-hdr">
+        <div class="bx-card-title">รายชื่อร้านค้า</div>
+        <div class="bx-toolbar">
+          <input id="bxSubsSearch" class="bx-search" placeholder="ค้นหา ร้าน / subdomain / status">
+          <button class="bx-btn" onclick="bxLoadSubs()">↻ Refresh</button>
+          <button class="bx-btn" onclick="bxRunCheck()">▶ Run Check (DRY)</button>
+        </div>
+      </div>
+      <div id="bxSubsTable"><div class="bx-empty">กำลังโหลด…</div></div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Invoices -->
+  <div class="bx-panel" data-bxpanel="invs">
+    <div class="bx-card">
+      <div class="bx-card-hdr">
+        <div class="bx-card-title">ประวัติการชำระ</div>
+        <div class="bx-toolbar">
+          <input id="bxInvsSearch" class="bx-search" placeholder="ค้นหา ร้าน / package / admin">
+          <button class="bx-btn" onclick="bxLoadInvs()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="bxInvsTable"><div class="bx-empty">กำลังโหลด…</div></div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Notifications -->
+  <div class="bx-panel" data-bxpanel="ntfs">
+    <div class="bx-card">
+      <div class="bx-card-hdr">
+        <div class="bx-card-title">ประวัติการแจ้งเตือน</div>
+        <div class="bx-toolbar">
+          <input id="bxNtfsSearch" class="bx-search" placeholder="ค้นหา ร้าน / type">
+          <button class="bx-btn" onclick="bxLoadNtfs()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="bxNtfsTable"><div class="bx-empty">กำลังโหลด…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm-Payment Modal -->
+<div class="bx-modal-mask" id="bxPayMask" onclick="if(event.target===this)bxPayClose()">
+  <div class="bx-modal">
+    <h3>ยืนยันรับชำระเงิน</h3>
+    <div class="bx-modal-sub" id="bxPayShop">—</div>
+
+    <div class="bx-field">
+      <label class="bx-label">แพ็กเกจ</label>
+      <select class="bx-select" id="bxPayPkg" onchange="bxRecalcAmount()">
+        <option value="pkg_basic">pkg_basic</option>
+        <option value="pkg_standard">pkg_standard</option>
+        <option value="pkg_pro">pkg_pro</option>
+      </select>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">โมดูล</label>
+      <div class="bx-mods-grid" id="bxPayMods">
+        <label class="bx-mod-chk active"><input type="checkbox" value="pos" checked disabled> POS</label>
+        <label class="bx-mod-chk active"><input type="checkbox" value="affiliate" checked disabled> Affiliate</label>
+        <label class="bx-mod-chk"        onclick="bxToggleMod(this)"><input type="checkbox" value="chat"> Chat</label>
+        <label class="bx-mod-chk"        onclick="bxToggleMod(this)"><input type="checkbox" value="autopost"> AutoPost</label>
+      </div>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">วันที่ครบกำหนด (ออปชัน)</label>
+      <input type="date" class="bx-input" id="bxPayDue">
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">ยอดที่รับ</label>
+      <div class="bx-amt-box">
+        <span><span id="bxPayAmount">—</span> บาท <small id="bxPayAmountNote"></small></span>
+        <small>30 วันต่ออายุ</small>
+      </div>
+    </div>
+
+    <div class="bx-modal-actions">
+      <button class="bx-btn" onclick="bxPayClose()">ยกเลิก</button>
+      <button class="bx-btn bx-btn-primary" id="bxPayConfirm" onclick="bxPaySubmit()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const BX = window.bxBilling = {};
+  const tok = () => localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  const fmt = (n) => (n==null) ? '—' : Number(n).toLocaleString('th-TH', {maximumFractionDigits:0});
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDateTime = (iso) => iso ? new Date(iso).toLocaleString('th-TH', {dateStyle:'short', timeStyle:'short'}) : '—';
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('th-TH') : '—';
+
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Authorization':'Bearer '+tok()}, opts.headers||{});
+    const r = await fetch(path, opts);
+    if(r.status === 401){ alert('หมดเวลา session กรุณา login ใหม่'); throw new Error('401'); }
+    return r;
+  }
+
+  // ── Tabs ────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.bx-tab').forEach(t => {
+    t.onclick = () => {
+      document.querySelectorAll('.bx-tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.bx-panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const k = t.dataset.bxtab;
+      document.querySelector('[data-bxpanel="'+k+'"]').classList.add('active');
+      if(k==='subs' && !BX._subs) bxLoadSubs();
+      if(k==='invs' && !BX._invs) bxLoadInvs();
+      if(k==='ntfs' && !BX._ntfs) bxLoadNtfs();
+    };
+  });
+
+  // ── Tab 1: Subscriptions ────────────────────────────────────────────────
+  function badgeBs(bs){
+    return `<span class="bx-badge bx-bs-${esc(bs)}">${esc(bs||'-')}</span>`;
+  }
+  function daysCell(dr, bs){
+    if(dr == null) return '<span class="bx-days">—</span>';
+    let cls = 'ok';
+    if(bs==='suspended' || dr < 0) cls = 'warn';
+    else if(dr <= 3) cls = 'soon';
+    const txt = dr < 0 ? `เกิน ${Math.abs(dr)} วัน` : (dr === 0 ? 'วันนี้' : `${dr} วัน`);
+    return `<span class="bx-days ${cls}">${txt}</span>`;
+  }
+  function modsCell(mods){
+    return (mods||[]).map(m => `<span class="bx-mod">${esc(m)}</span>`).join('');
+  }
+  function deadlineCell(s){
+    const d = (s.billing_status === 'trial') ? s.trial_ends_at : s.subscription_ends_at;
+    return fmtDate(d);
+  }
+
+  window.bxLoadSubs = async function(){
+    const box = document.getElementById('bxSubsTable');
+    box.innerHTML = '<div class="bx-empty">กำลังโหลด…</div>';
+    try{
+      const r = await api('/api/platform/billing/subscriptions');
+      const j = await r.json();
+      BX._subs = j.subscriptions || [];
+      bxRenderSubs();
+    }catch(e){ box.innerHTML = '<div class="bx-empty">โหลดไม่สำเร็จ</div>'; }
+  };
+
+  function bxRenderSubs(){
+    const q = (document.getElementById('bxSubsSearch').value || '').toLowerCase().trim();
+    const rows = (BX._subs || []).filter(s => {
+      if(!q) return true;
+      return [s.store_name, s.subdomain, s.email, s.billing_status]
+        .some(x => (x||'').toString().toLowerCase().includes(q));
+    });
+    if(!rows.length){
+      document.getElementById('bxSubsTable').innerHTML = '<div class="bx-empty">— ไม่มีข้อมูล —</div>';
+      return;
+    }
+    const html = `
+      <table class="bx-table">
+        <thead><tr>
+          <th>ร้าน</th><th>Subdomain</th><th>Package</th><th>Modules</th>
+          <th>Status</th><th>วันหมดอายุ</th><th>คงเหลือ</th><th>ยอด</th><th></th>
+        </tr></thead>
+        <tbody>
+        ${rows.map(s => `
+          <tr>
+            <td>${esc(s.store_name || '—')}<br><small style="color:#9ca3af">${esc(s.tenant_id)}</small></td>
+            <td>${esc(s.subdomain || '—')}</td>
+            <td>${esc(s.package_id || '—')}</td>
+            <td>${modsCell(s.modules)}</td>
+            <td>${badgeBs(s.billing_status)}</td>
+            <td>${deadlineCell(s)}</td>
+            <td>${daysCell(s.days_remaining, s.billing_status)}</td>
+            <td>${fmt(s.amount_due)}</td>
+            <td><div class="bx-row-actions">
+              <button class="bx-btn bx-btn-sm bx-btn-primary"
+                      onclick='bxPayOpen(${JSON.stringify(s)})'>ยืนยันรับเงิน</button>
+              <button class="bx-btn bx-btn-sm bx-btn-line"
+                      onclick='bxNotify(${JSON.stringify(s.tenant_id)})'
+                      ${s.has_line ? '' : 'disabled title="ลูกค้ายังไม่ผูก LINE"'}>แจ้งเตือน LINE</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    document.getElementById('bxSubsTable').innerHTML = html;
+  }
+  document.getElementById('bxSubsSearch').oninput = bxRenderSubs;
+
+  window.bxRunCheck = async function(){
+    if(!confirm('Run scheduler now? (respects BILLING_SCHEDULER_DRY_RUN env)')) return;
+    try{
+      const r = await api('/api/platform/billing/run-check', {method:'POST'});
+      const j = await r.json();
+      alert('Run-check result:\n' + JSON.stringify(j, null, 2));
+      bxLoadSubs();
+    }catch(e){ alert('error: '+e); }
+  };
+
+  // ── Confirm-payment modal ───────────────────────────────────────────────
+  let _payRow = null;
+  window.bxPayOpen = function(row){
+    _payRow = row;
+    document.getElementById('bxPayShop').textContent =
+      (row.store_name || row.subdomain || row.tenant_id);
+    document.getElementById('bxPayPkg').value = row.package_id || 'pkg_basic';
+    // reset checkboxes
+    document.querySelectorAll('#bxPayMods .bx-mod-chk').forEach(el => {
+      const inp = el.querySelector('input');
+      if(inp.disabled) return;
+      const on = (row.modules || []).includes(inp.value);
+      inp.checked = on;
+      el.classList.toggle('active', on);
+    });
+    document.getElementById('bxPayDue').value = '';
+    bxRecalcAmount();
+    document.getElementById('bxPayMask').classList.add('open');
+  };
+  window.bxPayClose = () => document.getElementById('bxPayMask').classList.remove('open');
+
+  window.bxToggleMod = function(el){
+    const inp = el.querySelector('input');
+    inp.checked = !inp.checked;
+    el.classList.toggle('active', inp.checked);
+    bxRecalcAmount();
+  };
+
+  function bxSelectedMods(){
+    const out = ['pos','affiliate'];
+    document.querySelectorAll('#bxPayMods input').forEach(inp => {
+      if(!inp.disabled && inp.checked && !out.includes(inp.value)) out.push(inp.value);
+    });
+    return out;
+  }
+
+  window.bxRecalcAmount = async function(){
+    if(!BX._prices){
+      try{
+        const r = await api('/api/platform/billing/prices');
+        const j = await r.json();
+        BX._prices = j.prices || [];
+      }catch(e){ BX._prices = []; }
+    }
+    const pkg = document.getElementById('bxPayPkg').value;
+    const mods = bxSelectedMods();
+    const key = mods.slice().sort().join(',');
+    const hit = (BX._prices||[]).find(p =>
+      p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
+    document.getElementById('bxPayAmount').textContent = hit ? fmt(hit.price) : '—';
+    document.getElementById('bxPayAmountNote').textContent = hit ? '' : '(ไม่มีราคาสำหรับชุดนี้)';
+  };
+
+  window.bxPaySubmit = async function(){
+    if(!_payRow) return;
+    const pkg  = document.getElementById('bxPayPkg').value;
+    const mods = bxSelectedMods();
+    const due  = document.getElementById('bxPayDue').value || null;
+    const key  = mods.slice().sort().join(',');
+    const hit  = (BX._prices||[]).find(p =>
+      p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
+    if(!hit){ alert('ไม่มีราคาสำหรับชุดนี้'); return; }
+
+    const btn = document.getElementById('bxPayConfirm');
+    btn.disabled = true; btn.textContent = 'กำลังส่ง…';
+    try{
+      const r = await api('/api/platform/billing/confirm-payment', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          tenant_id: _payRow.tenant_id,
+          amount:    hit.price,
+          package_id: pkg,
+          modules:   mods,
+          due_date:  due,
+        }),
+      });
+      const j = await r.json();
+      if(!r.ok){ throw new Error(j.detail || 'error'); }
+      alert('สำเร็จ • LINE notified: ' + (j.line_notified ? '✅' : '—'));
+      bxPayClose();
+      bxLoadSubs();
+      BX._invs = null;
+    }catch(e){
+      alert('ส่งไม่สำเร็จ: ' + e.message);
+    }finally{
+      btn.disabled = false; btn.textContent = 'ยืนยัน';
+    }
+  };
+
+  window.bxNotify = async function(tid){
+    if(!confirm('ส่งแจ้งเตือน LINE ให้ ' + tid + ' ?')) return;
+    try{
+      const r = await api('/api/platform/billing/notify/' + encodeURIComponent(tid), {method:'POST'});
+      const j = await r.json();
+      if(j.ok){
+        alert('ส่งแล้ว • type=' + j.type + ' • LINE=' + (j.line_sent ? '✅' : '—'));
+      } else {
+        // pick template manually
+        const opts = ['trial_warning','trial_expiry','expiry_warning_3d','expiry_warning_1d','overdue'];
+        const choice = prompt(
+          'ไม่มี template ตรง schedule\nระบุ type (' + opts.join(' / ') + '):',
+          'expiry_warning_3d');
+        if(!choice || !opts.includes(choice)) return;
+        const r2 = await api('/api/platform/billing/notify/' + encodeURIComponent(tid)
+                             + '?type=' + choice, {method:'POST'});
+        const j2 = await r2.json();
+        if(!r2.ok){ alert('ส่งไม่สำเร็จ: ' + (j2.detail || 'error')); return; }
+        alert('ส่งแล้ว • type=' + j2.type + ' • LINE=' + (j2.line_sent ? '✅' : '—'));
+      }
+      BX._ntfs = null;
+    }catch(e){ alert('error: ' + e); }
+  };
+
+  // ── Tab 2: Invoices ─────────────────────────────────────────────────────
+  window.bxLoadInvs = async function(){
+    const box = document.getElementById('bxInvsTable');
+    box.innerHTML = '<div class="bx-empty">กำลังโหลด…</div>';
+    try{
+      const r = await api('/api/platform/billing/invoices');
+      const j = await r.json();
+      BX._invs = j.invoices || [];
+      bxRenderInvs();
+    }catch(e){ box.innerHTML = '<div class="bx-empty">โหลดไม่สำเร็จ</div>'; }
+  };
+  function bxRenderInvs(){
+    const q = (document.getElementById('bxInvsSearch').value || '').toLowerCase().trim();
+    const rows = (BX._invs || []).filter(i => {
+      if(!q) return true;
+      return [i.store_name, i.package_id, i.noted_by, i.tenant_id]
+        .some(x => (x||'').toString().toLowerCase().includes(q));
+    });
+    if(!rows.length){
+      document.getElementById('bxInvsTable').innerHTML = '<div class="bx-empty">— ไม่มีข้อมูล —</div>';
+      return;
+    }
+    const html = `
+      <table class="bx-table">
+        <thead><tr>
+          <th>ร้าน</th><th>วันที่</th><th>Package</th><th>Modules</th>
+          <th>ยอด</th><th>สถานะ</th><th>Admin</th>
+        </tr></thead>
+        <tbody>
+        ${rows.map(i => `
+          <tr>
+            <td>${esc(i.store_name || '—')}<br><small style="color:#9ca3af">${esc(i.tenant_id)}</small></td>
+            <td>${fmtDateTime(i.paid_at || i.created_at)}</td>
+            <td>${esc(i.package_id || '—')}</td>
+            <td>${modsCell(i.modules)}</td>
+            <td>${fmt(i.amount)}</td>
+            <td><span class="bx-badge bx-bs-${i.status==='paid'?'active':(i.status==='cancelled'?'cancelled':'trial')}">${esc(i.status)}</span></td>
+            <td>${esc(i.noted_by || '—')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    document.getElementById('bxInvsTable').innerHTML = html;
+  }
+  document.getElementById('bxInvsSearch').oninput = bxRenderInvs;
+
+  // ── Tab 3: Notifications ────────────────────────────────────────────────
+  window.bxLoadNtfs = async function(){
+    const box = document.getElementById('bxNtfsTable');
+    box.innerHTML = '<div class="bx-empty">กำลังโหลด…</div>';
+    try{
+      const r = await api('/api/platform/billing/notifications');
+      const j = await r.json();
+      BX._ntfs = j.notifications || [];
+      bxRenderNtfs();
+    }catch(e){ box.innerHTML = '<div class="bx-empty">โหลดไม่สำเร็จ</div>'; }
+  };
+  function bxRenderNtfs(){
+    const q = (document.getElementById('bxNtfsSearch').value || '').toLowerCase().trim();
+    const rows = (BX._ntfs || []).filter(n => {
+      if(!q) return true;
+      return [n.store_name, n.type, n.tenant_id]
+        .some(x => (x||'').toString().toLowerCase().includes(q));
+    });
+    if(!rows.length){
+      document.getElementById('bxNtfsTable').innerHTML = '<div class="bx-empty">— ยังไม่มีบันทึก —</div>';
+      return;
+    }
+    const html = `
+      <table class="bx-table">
+        <thead><tr>
+          <th>ร้าน</th><th>ประเภท</th><th>ช่องทาง</th><th>วันเวลา</th>
+        </tr></thead>
+        <tbody>
+        ${rows.map(n => `
+          <tr>
+            <td>${esc(n.store_name || '—')}<br><small style="color:#9ca3af">${esc(n.tenant_id)}</small></td>
+            <td><span class="bx-badge bx-bs-trial">${esc(n.type || '-')}</span></td>
+            <td>${esc(n.channel || '—')}</td>
+            <td>${fmtDateTime(n.sent_at)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    document.getElementById('bxNtfsTable').innerHTML = html;
+  }
+  document.getElementById('bxNtfsSearch').oninput = bxRenderNtfs;
+
+  // initial load
+  bxLoadSubs();
+})();
+</script>
+</body></html>
