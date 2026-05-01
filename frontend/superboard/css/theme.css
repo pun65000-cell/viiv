@@ -53,25 +53,36 @@ body {
   width: 38px; height: 38px;
   object-fit: contain; border-radius: 8px;
 }
-.sb-shop-wrap { position: relative; flex-shrink: 0; }
+.sb-shop-wrap {
+  position: relative; flex-shrink: 0;
+  display: flex; align-items: center;
+  height: 50px;
+  overflow: visible; /* dropdown ห้อยลงได้ */
+}
 .sb-shop-btn {
   display: flex; align-items: center; gap: 8px;
   background: #fff; border: 1px solid var(--border);
-  border-radius: var(--r-md); padding: 5px 10px 5px 6px;
+  border-radius: var(--r-md);
+  height: 38px; padding: 0 10px 0 6px;
+  box-sizing: border-box;
   cursor: pointer; color: var(--text);
   transition: border-color 0.12s;
 }
 .sb-shop-btn:hover { border-color: rgba(0,0,0,0.2); }
 .sb-shop-avatar {
-  width: 26px; height: 26px; border-radius: 7px;
+  width: 28px; height: 28px;
+  min-width: 28px; min-height: 28px;
+  max-width: 28px; max-height: 28px;
+  border-radius: 6px;
   background: var(--accent-dim); border: 1.5px solid var(--accent-border);
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 800; color: var(--accent); flex-shrink: 0;
+  box-sizing: border-box;
 }
-.sb-shop-name  { font-size: 15px; font-weight: 600; color: var(--text); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
-.sb-shop-sub   { font-size: 12px; color: var(--muted); }
-.sb-shop-star  { font-size: 12px; color: var(--accent); margin-left: 2px; }
-.sb-shop-arrow { font-size: 12px; color: var(--muted); margin-left: 4px; }
+.sb-shop-name  { font-size: 13px; font-weight: 600; color: var(--text); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+.sb-shop-sub   { font-size: 11px; color: var(--muted); line-height: 1.2; opacity: .65; }
+.sb-shop-star  { font-size: 12px; color: var(--accent); margin-left: 2px; line-height: 1.2; }
+.sb-shop-arrow { font-size: 12px; color: var(--muted); margin-left: 4px; line-height: 1.2; }
 .sb-shop-dropdown {
   display: none; position: absolute; top: calc(100% + 6px); left: 0;
   background: #fff; border: 1px solid var(--border);
