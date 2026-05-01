@@ -185,6 +185,38 @@ async def push_quote(request: Request, payload: dict, authorization: str = Heade
 # ── Platform LINE OA webhook ──────────────────────────────────────────────────
 # Separate from per-tenant /webhook above — platform-level OA used to activate
 # pending tenants by replying with their registered email.
+#
+# Architecture: LINE Console → concore.viiv.me/api/line/webhook/platform (this :8000 router)
+#   - follow + email activation logic stays here (existing behaviour)
+#   - every event ALSO fire-and-forget forwarded to modules.chat (:8003) so
+#     it can persist the conversation. modules.chat trusts X-Forwarded-From
+#     internal header instead of re-verifying the signature.
+
+import asyncio
+import logging
+import httpx as _httpx
+_log = logging.getLogger("pos_line")
+
+CHAT_FORWARD_URL = "http://localhost:8003/chat/webhook/line/platform"
+
+
+async def _forward_to_chat_module(body: bytes, signature: str) -> None:
+    """Fire-and-forget POST to modules.chat. Never raises — LINE must always
+    receive 200 from us regardless of internal forwarding status."""
+    try:
+        async with _httpx.AsyncClient(timeout=3.0) as c:
+            await c.post(
+                CHAT_FORWARD_URL,
+                content=body,
+                headers={
+                    "Content-Type":      "application/json",
+                    "X-Line-Signature":  signature,
+                    "X-Forwarded-From":  "viiv-internal",
+                },
+            )
+    except Exception as e:
+        _log.warning("forward to chat module failed: %s", e)
+
 
 def _line_reply_text(channel_token: str, reply_token: str, msg: str) -> None:
     if not channel_token or not reply_token:
@@ -233,6 +265,13 @@ async def line_platform_webhook(request: Request):
 
     if not _verify_signature(channel_secret, body, sig_header):
         raise HTTPException(400, "Invalid signature")
+
+    # Fan-out: forward original body + signature to modules.chat (:8003)
+    # for persistence/inbox. Background task — does NOT block our reply.
+    try:
+        asyncio.create_task(_forward_to_chat_module(body, sig_header))
+    except Exception as e:
+        _log.warning("forward task creation failed: %s", e)
 
     for ev in events:
         etype       = ev.get("type")
