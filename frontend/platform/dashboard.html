@@ -156,11 +156,14 @@
     <div class="sb-item" data-page="packet" onclick="nav(this)">
       <span class="sb-item-icon">📦</span> แพ็กเกจ
     </div>
-    <div class="sb-item" data-page="finance" onclick="nav(this)">
+    <div class="sb-item" data-page="finance" id="sb-finance-parent" onclick="navParent(this,'finance-sub')">
       <span class="sb-item-icon">💰</span> บัญชีการเงิน
+      <span class="sb-item-arrow">▶</span>
     </div>
-    <div class="sb-item" data-page="billing" onclick="nav(this)">
-      <span class="sb-item-icon">💳</span> Subscription
+    <div class="sb-sub-wrap" id="finance-sub">
+      <div class="sb-sub-item" data-page="billing" data-parent="sb-finance-parent" onclick="navSub(this,'sb-finance-parent')">
+        <span class="sb-sub-item-icon">💳</span> Subscription
+      </div>
     </div>
     <div class="sb-item" data-page="orders" onclick="nav(this)">
       <span class="sb-item-icon">🧾</span> คำสั่งซื้อ
