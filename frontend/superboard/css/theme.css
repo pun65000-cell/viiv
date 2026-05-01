@@ -60,13 +60,25 @@ body {
   overflow: visible; /* dropdown ห้อยลงได้ */
 }
 .sb-shop-btn {
-  display: flex; align-items: center; gap: 8px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center; gap: 8px;
   background: #fff; border: 1px solid var(--border);
   border-radius: var(--r-md);
-  height: 38px; padding: 0 10px 0 6px;
+  height: 38px; max-height: 38px;
+  padding: 0 10px 0 6px;
   box-sizing: border-box;
+  overflow: hidden;             /* clip Thai descenders / 2-line text */
   cursor: pointer; color: var(--text);
   transition: border-color 0.12s;
+}
+.sb-shop-info {
+  display: flex; flex-direction: column;
+  justify-content: center;
+  min-width: 0;                  /* allow ellipsis on name */
+  max-height: 38px;
+  overflow: hidden;
 }
 .sb-shop-btn:hover { border-color: rgba(0,0,0,0.2); }
 .sb-shop-avatar {
@@ -79,10 +91,10 @@ body {
   font-size: 13px; font-weight: 800; color: var(--accent); flex-shrink: 0;
   box-sizing: border-box;
 }
-.sb-shop-name  { font-size: 13px; font-weight: 600; color: var(--text); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
-.sb-shop-sub   { font-size: 11px; color: var(--muted); line-height: 1.2; opacity: .65; }
-.sb-shop-star  { font-size: 12px; color: var(--accent); margin-left: 2px; line-height: 1.2; }
-.sb-shop-arrow { font-size: 12px; color: var(--muted); margin-left: 4px; line-height: 1.2; }
+.sb-shop-name  { font-size: 13px; font-weight: 600; color: var(--text); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.15; }
+.sb-shop-sub   { font-size: 10px; color: var(--muted); line-height: 1.15; opacity: .5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-shop-star  { font-size: 12px; color: var(--accent); margin-left: 2px; line-height: 1.15; }
+.sb-shop-arrow { font-size: 12px; color: var(--muted); margin-left: 4px; line-height: 1.15; }
 .sb-shop-dropdown {
   display: none; position: absolute; top: calc(100% + 6px); left: 0;
   background: #fff; border: 1px solid var(--border);
