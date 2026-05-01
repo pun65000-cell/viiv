@@ -188,6 +188,13 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
         line_uid = c.execute(text("SELECT line_uid FROM tenants WHERE id=:tid"),
                              {"tid": tid}).scalar()
 
+    # Invalidate the billing-guard cache so the next request sees 'active' immediately.
+    try:
+        from app.middleware.billing_guard import clear_billing_cache
+        clear_billing_cache(tid)
+    except Exception:
+        pass
+
     sent = False
     if line_uid:
         token = _platform_line_token()

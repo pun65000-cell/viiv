@@ -122,6 +122,15 @@ def _resolve_tenant_from_subdomain(subdomain: str) -> str | None:
     _set_cached_tenant(subdomain, tid)
     return tid
 
+
+# Register billing_guard BEFORE inject_tenant in source order.
+# Starlette insert(0) semantics → first registered = innermost; we want
+# inject_tenant to run BEFORE billing_guard on request, so inject_tenant
+# is registered AFTER billing_guard (below).
+from app.middleware.billing_guard import billing_guard_middleware
+app.middleware("http")(billing_guard_middleware)
+
+
 @app.middleware("http")
 async def inject_tenant(request: Request, call_next):
     tenant_id = None
@@ -148,6 +157,7 @@ async def inject_tenant(request: Request, call_next):
 
     response = await call_next(request)
     return response
+
 
 shops = {}
 
