@@ -18,8 +18,8 @@ RESOLVED=$(git rev-parse --verify "$TARGET" 2>/dev/null) || {
 }
 SHORT=$(git rev-parse --short "$RESOLVED")
 
-echo "▶ git checkout $SHORT"
-git checkout "$RESOLVED" || { echo "❌ git checkout failed"; exit 1; }
+echo "▶ git revert $SHORT..HEAD --no-edit"
+git revert "$RESOLVED"..HEAD --no-edit || { echo "❌ git revert failed"; exit 1; }
 
 echo "▶ restart uvicorn"
 kill $(lsof -ti:$PORT) 2>/dev/null
