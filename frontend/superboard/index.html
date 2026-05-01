@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777614187" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777614385" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -578,11 +578,20 @@ async function loadShopBadge(){
     if(!sres.ok) return;
     var shop = await sres.json();
     var name = shop.store_name||'My Shop';
+    var initial = escHtml(name.charAt(0).toUpperCase());
     document.getElementById('shopName').textContent = name;
+    var av = document.getElementById('shopAvatar');
     if(shop.logo_url){
-      document.getElementById('shopAvatar').innerHTML='<img src="'+shop.logo_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:5px;">';
+      // Fixed 28×28 + onerror fallback to initial. Inline styles act as
+      // belt-and-braces over .sb-shop-avatar img CSS rule.
+      av.innerHTML = '<img src="'+escHtml(shop.logo_url)+'" '
+        + 'style="width:28px;height:28px;min-width:28px;min-height:28px;'
+        +        'max-width:28px;max-height:28px;border-radius:5px;'
+        +        'object-fit:cover;display:block" '
+        + 'onerror="this.style.display=\'none\';'
+        +              'this.parentNode.textContent=\''+initial+'\'">';
     } else {
-      document.getElementById('shopAvatar').textContent = name.charAt(0).toUpperCase();
+      av.textContent = name.charAt(0).toUpperCase();
     }
   }catch(e){}
 }

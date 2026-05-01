@@ -90,6 +90,11 @@ body {
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 800; color: var(--accent); flex-shrink: 0;
   box-sizing: border-box;
+  overflow: hidden;            /* clip injected <img> in case it ignores styles */
+}
+.sb-shop-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
 }
 .sb-shop-name  { font-size: 13px; font-weight: 600; color: var(--text); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.15; }
 .sb-shop-sub   { font-size: 10px; color: var(--muted); line-height: 1.15; opacity: .5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
