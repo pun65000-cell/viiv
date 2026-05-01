@@ -290,17 +290,26 @@ window.ShopSwitcher = {
   },
 
   async select(subdomain) {
-    if (!subdomain) return;
+    console.log('[ShopSwitcher.select]', subdomain);
+    if (!subdomain) {
+      console.warn('[ShopSwitcher.select] empty subdomain — abort');
+      App.toast('Shop ID ว่าง');
+      return;
+    }
     try {
       const data = await App.api('/api/platform/join-shop', {
         method:'POST', body: JSON.stringify({ subdomain })
       });
-      if (data && data.access_token) {
+      if (data && data.access_token && data.subdomain) {
         window.location.href = 'https://' + data.subdomain + '.viiv.me/pwa/?token=' + encodeURIComponent(data.access_token);
       } else {
+        console.warn('[ShopSwitcher.select] bad response', data);
         App.toast('สลับร้านไม่สำเร็จ');
       }
-    } catch(e) { App.toast(e.message || 'สลับร้านไม่สำเร็จ'); }
+    } catch(e) {
+      console.error('[ShopSwitcher.select]', e);
+      App.toast(e.message || 'สลับร้านไม่สำเร็จ');
+    }
   },
 
   showAdd() {
