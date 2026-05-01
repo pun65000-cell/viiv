@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777628884" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777628933" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -427,7 +427,8 @@ window.switchMod = function(mod, btn){
   var c = document.getElementById('sbContent');
   c.classList.remove('home-fullscreen');
   var modUrls = {
-    pos: '/modules/pos/merchant/ui/dashboard/dashboard.html'
+    pos:  '/modules/pos/merchant/ui/dashboard/dashboard.html',
+    chat: '/modulechat/ui/dashboard/index.html'
   };
   if(modUrls[mod]){
     // iframe เต็มพื้นที่ — ต้องการ #sbContent { position:relative }
