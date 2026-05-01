@@ -62,7 +62,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 /* ── TAB-PLATFORMS BAR ── */
 #tab-platforms{
   position:fixed;top:0;left:0;right:0;
-  height:var(--ph);
+  height:40px;min-height:40px;max-height:40px;
+  overflow:hidden;
+  box-sizing:border-box;
   background:var(--bg2);
   border-bottom:1px solid var(--bdr);
   display:flex;flex-direction:row;align-items:center;justify-content:center;
@@ -71,6 +73,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   z-index:190;
   cursor:pointer;user-select:none;
 }
+/* keep --ph in sync so #canvas (top:var(--ph)) sits flush below */
+:root{ --ph: 40px; }
 
 /* ── CANVAS ── */
 #canvas{position:fixed;top:var(--ph);left:0;right:0;bottom:0;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:2px 26px 12px 0;}
