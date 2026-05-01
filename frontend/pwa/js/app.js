@@ -261,15 +261,16 @@ window.ShopSwitcher = {
       list.innerHTML = '<div style="padding:10px 14px;color:var(--muted);font-size:12px">ยังไม่มีร้าน</div>';
       return;
     }
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     list.innerHTML = this._shops.map(s => {
       const active = s.id === this._curTid ? ' active' : '';
       const initial = (s.store_name || s.subdomain || '?').charAt(0).toUpperCase();
-      const av = '<div class="tb-shop-item-av">'+initial+'</div>';
-      return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+(s.subdomain||'')+'\')">'
-        + av
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(s.store_name||s.subdomain||'Shop')+'</div>'
-        + '<div style="font-size:10px;color:var(--muted);font-family:monospace">'+(s.subdomain||'')+'.viiv.me</div>'
+      const sub = (s.subdomain || '');
+      return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+esc(sub)+'\')">'
+        + '<div class="tb-shop-item-av">'+esc(initial)+'</div>'
+        + '<div class="tb-shop-info">'
+        +   '<div class="name">'+esc(s.store_name || sub || 'Shop')+'</div>'
+        +   '<div class="sub">'+esc(sub)+'.viiv.me</div>'
         + '</div></div>';
     }).join('');
   },
