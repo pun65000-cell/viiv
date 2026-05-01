@@ -130,14 +130,16 @@ body {
   box-sizing: border-box;
 }
 .sb-topnav-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: var(--r-md);
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 12px; border-radius: var(--r-md);
   border: none; background: transparent;
   color: var(--muted); font-size: 15px; font-weight: 500;
   cursor: pointer; transition: background 0.1s, color 0.1s;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 110px; flex-shrink: 1;
-  height: 36px; line-height: 1.15; box-sizing: border-box;
+  max-width: 110px; flex-shrink: 1; min-width: 0;
+  height: 34px; min-height: 34px; max-height: 34px;
+  line-height: 34px;
+  box-sizing: border-box;
 }
 .sb-topnav-btn:hover { background: #f0ede8; color: var(--text); }
 .sb-topnav-btn.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
