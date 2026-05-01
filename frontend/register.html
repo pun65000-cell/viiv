@@ -41,6 +41,21 @@
     .content { max-width:720px; margin:0 auto; padding:28px 20px 60px; }
 
     .loading-msg { color:#888; font-size:14px; text-align:center; padding:40px 0; }
+
+    /* register-shop.html ถูก fetch+inject ผ่าน DOMParser → body innerHTML
+       เท่านั้น (style ใน head หลุด) — ดังนั้น rule สำหรับ input[type=tel]
+       ต้อง mirror ที่นี่ ให้ phone field กว้างเต็ม row เท่ากับ field อื่น */
+    #form-mount .field input[type=tel] {
+      width: 100%; padding: 8px 12px;
+      background: var(--input-bg, #fff);
+      border: 1px solid var(--input-border, #d4cfc4);
+      border-radius: var(--r-md, 8px);
+      color: var(--text, #1f2937);
+      font-size: 13px; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
+      box-sizing: border-box;
+    }
+    #form-mount .field input[type=tel]:focus { border-color: var(--accent, #c9a84c); }
   </style>
 </head>
 <body>
