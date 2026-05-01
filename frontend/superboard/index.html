@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777615988" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777616217" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -199,7 +199,7 @@
 })();
 </script>
 
-<header class="sb-topbar" style="height:50px!important;min-height:50px!important;max-height:50px!important;overflow:visible!important;display:flex!important;align-items:center!important;">
+<header class="sb-topbar" style="height:50px!important;min-height:50px!important;max-height:50px!important;overflow:hidden!important;display:flex!important;align-items:center!important;position:relative!important;">
   <a href="/superboard/" class="sb-logo" id="sbLogo">
     <img id="sbLogoImg" src="" alt="VIIV"
       style="width:36px;height:36px;object-fit:contain;border-radius:8px;display:none;">
@@ -218,10 +218,6 @@
         <div class="sb-shop-sub">เลือกร้าน</div>
       </div>
       <span class="sb-shop-arrow">▾</span>
-    </div>
-    <div class="sb-shop-dropdown" id="shopDropdown">
-      <div class="sb-dd-header">ร้านค้าของฉัน</div>
-      <div id="shopList"><div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div></div>
     </div>
   </div>
 
@@ -277,29 +273,6 @@
         <span class="sb-bell-dot" id="bellDot"></span>
       </span>
     </button>
-    <div class="sb-bell-dropdown" id="bellDropdown">
-      <div class="sb-bell-header">
-        <span>การแจ้งเตือน</span>
-        <button onclick="markAllRead()" class="sb-bell-markread">อ่านทั้งหมด</button>
-      </div>
-      <div id="bellList">
-        <div class="sb-bell-item unread">
-          <span class="sb-bell-item-dot"></span>
-          <div>
-            <div class="sb-bell-item-title">VIIV v0.1.0 พร้อมใช้งานแล้ว!</div>
-            <div class="sb-bell-item-time">วันนี้</div>
-          </div>
-        </div>
-        <div class="sb-bell-item unread">
-          <span class="sb-bell-item-dot"></span>
-          <div>
-            <div class="sb-bell-item-title">ฟีเจอร์ AI Chat เปิดให้ใช้งานแล้ว</div>
-            <div class="sb-bell-item-time">เมื่อวาน</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <div class="sb-profile-wrap">
@@ -308,16 +281,47 @@
       <span class="sb-profile-name" id="profileName">Admin</span>
       <span class="sb-profile-arrow">▾</span>
     </div>
-    <div class="sb-profile-dropdown" id="profileDropdown">
-      <div class="sb-profile-dd-item" onclick="openProfileModal()">
-        <span>⚙</span> แก้ไขโปรไฟล์
+  </div>
+</header>
+
+<!-- Dropdowns moved OUT of <header> so header overflow:hidden cannot
+     clip them. position:fixed top:50px sticks them right under the bar. -->
+<div class="sb-shop-dropdown" id="shopDropdown" style="position:fixed;top:50px;left:120px;z-index:1000;">
+  <div class="sb-dd-header">ร้านค้าของฉัน</div>
+  <div id="shopList"><div class="sb-shop-dd-item"><span>กำลังโหลด...</span></div></div>
+</div>
+
+<div class="sb-bell-dropdown" id="bellDropdown" style="position:fixed;top:50px;right:80px;z-index:1000;">
+  <div class="sb-bell-header">
+    <span>การแจ้งเตือน</span>
+    <button onclick="markAllRead()" class="sb-bell-markread">อ่านทั้งหมด</button>
+  </div>
+  <div id="bellList">
+    <div class="sb-bell-item unread">
+      <span class="sb-bell-item-dot"></span>
+      <div>
+        <div class="sb-bell-item-title">VIIV v0.1.0 พร้อมใช้งานแล้ว!</div>
+        <div class="sb-bell-item-time">วันนี้</div>
       </div>
-      <div class="sb-profile-dd-item danger" onclick="sbLogout()">
-        <span>⏻</span> ออกจากระบบ
+    </div>
+    <div class="sb-bell-item unread">
+      <span class="sb-bell-item-dot"></span>
+      <div>
+        <div class="sb-bell-item-title">ฟีเจอร์ AI Chat เปิดให้ใช้งานแล้ว</div>
+        <div class="sb-bell-item-time">เมื่อวาน</div>
       </div>
     </div>
   </div>
-</header>
+</div>
+
+<div class="sb-profile-dropdown" id="profileDropdown" style="position:fixed;top:50px;right:16px;z-index:1000;">
+  <div class="sb-profile-dd-item" onclick="openProfileModal()">
+    <span>⚙</span> แก้ไขโปรไฟล์
+  </div>
+  <div class="sb-profile-dd-item danger" onclick="sbLogout()">
+    <span>⏻</span> ออกจากระบบ
+  </div>
+</div>
 
 <div class="sb-body">
   <aside class="sb-sidebar">
@@ -492,8 +496,15 @@ function closeDD(){
 document.addEventListener('click', function(e){
   // ไม่ปิด dropdown ถ้า popup เพิ่มสาขาเปิดอยู่ (popup ซ้อนบน dropdown)
   var popupOpen = document.getElementById('shopAddMask')?.classList.contains('open');
-  if(!popupOpen && !e.target.closest('.sb-shop-wrap') && !e.target.closest('.sb-profile-wrap')) closeDD();
-  if(!e.target.closest('.sb-top-actions')) document.getElementById('bellDropdown').classList.remove('open');
+  // dropdowns ย้ายออกนอก header แล้ว — เช็ค #ID ของ dropdown ตรงๆ ด้วย
+  if(!popupOpen
+     && !e.target.closest('.sb-shop-wrap')
+     && !e.target.closest('#shopDropdown')
+     && !e.target.closest('.sb-profile-wrap')
+     && !e.target.closest('#profileDropdown')) closeDD();
+  if(!e.target.closest('.sb-top-actions') && !e.target.closest('#bellDropdown')) {
+    document.getElementById('bellDropdown').classList.remove('open');
+  }
 });
 
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }

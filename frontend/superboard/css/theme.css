@@ -101,10 +101,10 @@ body {
 .sb-shop-star  { font-size: 12px; color: var(--accent); margin-left: 2px; line-height: 1.15; }
 .sb-shop-arrow { font-size: 12px; color: var(--muted); margin-left: 4px; line-height: 1.15; }
 .sb-shop-dropdown {
-  display: none; position: absolute; top: calc(100% + 6px); left: 0;
+  display: none; position: fixed; top: 50px;
   background: #fff; border: 1px solid var(--border);
   border-radius: var(--r-lg); min-width: 210px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.10); z-index: 999; overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10); z-index: 1000; overflow: hidden;
 }
 .sb-shop-dropdown.open { display: block; }
 .sb-dd-header {
@@ -167,10 +167,10 @@ body {
 .sb-profile-name  { font-size: 15px; font-weight: 600; color: var(--text); }
 .sb-profile-arrow { font-size: 12px; color: var(--muted); }
 .sb-profile-dropdown {
-  display: none; position: absolute; top: calc(100% + 6px); right: 0;
+  display: none; position: fixed; top: 50px;
   background: #fff; border: 1px solid var(--border);
   border-radius: var(--r-lg); min-width: 175px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.10); z-index: 999; overflow: hidden; padding: 4px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10); z-index: 1000; overflow: hidden; padding: 4px;
 }
 .sb-profile-dropdown.open { display: block; }
 .sb-profile-dd-item {
@@ -388,9 +388,8 @@ body {
 
 /* Bell dropdown */
 .sb-bell-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
+  top: 50px;
   width: 300px;
   background: var(--card-bg, #fff);
   border: 1px solid var(--border, #e5e5e5);
