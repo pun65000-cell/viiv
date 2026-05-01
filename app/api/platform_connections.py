@@ -37,13 +37,59 @@ def platform_health():
 
 @router.get("/overview")
 def platform_overview(authorization: str = Header(None)):
-    # decode token ได้ user_id → return basic stats
-    # ถ้าไม่มี token หรือ invalid → return empty stats (ไม่ 401)
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        t = c.execute(text("""
+            SELECT
+              COUNT(*)                                                                          AS total,
+              COUNT(*) FILTER (WHERE status = 'active')                                         AS active,
+              COUNT(*) FILTER (WHERE status = 'pending')                                        AS pending,
+              COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE)                           AS new_today,
+              COUNT(*) FILTER (WHERE date_trunc('month', created_at)
+                                   = date_trunc('month', CURRENT_DATE))                         AS new_this_month
+            FROM tenants
+        """)).mappings().first()
+
+        a = c.execute(text("""
+            SELECT
+              COUNT(*)                              AS total,
+              COUNT(*) FILTER (WHERE is_active)     AS active
+            FROM viiv_accounts
+        """)).mappings().first()
+
+        rows = c.execute(text("""
+            SELECT package_id, COUNT(*) AS cnt
+            FROM tenants
+            GROUP BY package_id
+        """)).mappings().all()
+        pkg = {"pkg_basic": 0, "pkg_standard": 0, "pkg_pro": 0}
+        for r in rows:
+            key = r["package_id"]
+            if key in pkg:
+                pkg[key] = int(r["cnt"])
+
+        act = c.execute(text("""
+            SELECT COUNT(DISTINCT tenant_id) AS shops_active_7d
+            FROM tenant_staff
+            WHERE last_seen >= NOW() - INTERVAL '7 days'
+        """)).mappings().first()
+
     return {
-        "total_shops": 0,
-        "total_staff": 0,
-        "total_orders_today": 0,
-        "revenue_today": 0,
+        "tenants": {
+            "total":          int(t["total"]),
+            "active":         int(t["active"]),
+            "pending":        int(t["pending"]),
+            "new_today":      int(t["new_today"]),
+            "new_this_month": int(t["new_this_month"]),
+        },
+        "accounts": {
+            "total":  int(a["total"]),
+            "active": int(a["active"]),
+        },
+        "packages": pkg,
+        "activity": {
+            "shops_active_7d": int(act["shops_active_7d"]),
+        },
     }
 
 
