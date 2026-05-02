@@ -122,8 +122,6 @@
       </a>
       <div class="divider">─── หรือสมัครด้วยอีเมล ───</div>
 
-      <div id="form-mount"><div class="loading-msg">กำลังโหลดแบบฟอร์ม...</div></div>
-
       <button id="btn-next" onclick="goStep2()">ถัดไป →</button>
     </div>
   </div>
@@ -237,23 +235,5 @@
   </div>
 
 <script src="/register.js"></script>
-  <script>
-    fetch('/platform/pages/register-shop.html')
-      .then(function(r){ return r.text(); })
-      .then(function(html) {
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(html, 'text/html');
-        document.getElementById('form-mount').innerHTML = doc.body.innerHTML;
-        document.getElementById('form-mount').querySelectorAll('script').forEach(function(old) {
-          var s = document.createElement('script');
-          s.textContent = old.textContent;
-          old.parentNode.replaceChild(s, old);
-        });
-      })
-      .catch(function() {
-        document.getElementById('form-mount').innerHTML =
-          '<div class="loading-msg" style="color:#c00">ไม่สามารถโหลดแบบฟอร์มได้ กรุณาลองใหม่</div>';
-      });
-  </script>
 </body>
 </html>
