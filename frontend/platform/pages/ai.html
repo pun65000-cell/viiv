@@ -21,7 +21,7 @@
   --jp-sans:     'Noto Sans JP', system-ui, sans-serif;
 }
 
-.aim-wrap{padding:0 24px;font-family:var(--jp-sans);font-size:14px;color:var(--jp-text);background:var(--jp-bg);min-height:100%;width:100%;max-width:none;margin:0}
+.aim-wrap{margin-left:0;padding:24px;font-family:var(--jp-sans);font-size:14px;color:var(--jp-text);background:var(--jp-bg);min-height:100%;width:100%;max-width:none}
 .aim-wrap *{box-sizing:border-box}
 .aim-num{font-family:var(--jp-mono);letter-spacing:.3px}
 
@@ -48,13 +48,17 @@
 /* ─── Keys ─────────────────────────────────────────────── */
 .aim-key-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--jp-border);font-size:14px;min-height:44px}
 .aim-key-row:last-of-type{border-bottom:1px solid var(--jp-border)}
-.aim-key-prov{width:90px;font-family:var(--jp-mono);color:#9090a8;font-size:14px;font-weight:500;text-transform:lowercase;letter-spacing:.05em}
-.aim-key-mask{font-family:var(--jp-mono);font-size:14px;color:var(--jp-text);background:var(--jp-surface2);padding:7px 12px;border-radius:4px;flex:1;border:1px solid var(--jp-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.aim-key-empty{color:var(--jp-dim);font-style:italic;flex:1;font-size:13px;font-family:var(--jp-mono)}
-.aim-key-badge{font-size:12px;padding:4px 10px;border-radius:3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--jp-mono)}
+.aim-key-prov{width:90px;flex-shrink:0;font-family:var(--jp-mono);color:#9090a8;font-size:14px;font-weight:500;text-transform:lowercase;letter-spacing:.05em}
+.aim-key-display{flex:1;min-width:0;font-family:var(--jp-mono);font-size:13px;color:#7a7a8a;letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 12px;background:var(--jp-surface2);border:1px solid var(--jp-border);border-radius:4px}
+.aim-key-display.revealed{color:var(--jp-text);letter-spacing:.02em}
+.aim-key-empty{color:var(--jp-dim);font-style:italic;flex:1;min-width:0;font-size:13px;font-family:var(--jp-mono);padding:7px 12px}
+.aim-eye-btn{flex-shrink:0;background:transparent;border:1px solid var(--jp-border2);cursor:pointer;color:var(--jp-muted);padding:7px 9px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s}
+.aim-eye-btn:hover{color:var(--jp-gold);border-color:var(--jp-gold)}
+.aim-eye-btn svg{display:block;width:16px;height:16px}
+.aim-key-badge{flex-shrink:0;font-size:12px;padding:4px 10px;border-radius:3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--jp-mono)}
 .aim-key-badge.on{background:rgba(76,175,122,.15);color:var(--jp-green);border:1px solid rgba(76,175,122,.35)}
 .aim-key-badge.off{background:rgba(224,90,90,.12);color:var(--jp-red);border:1px solid rgba(224,90,90,.3)}
-.aim-key-del{color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:5px 11px;border-radius:4px;font-size:12px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
+.aim-key-del{flex-shrink:0;color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:5px 11px;border-radius:4px;font-size:12px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
 .aim-key-del:hover{background:rgba(224,90,90,.1)}
 .aim-key-form{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px solid var(--jp-border2)}
 .aim-key-form select,.aim-key-form input{padding:10px 14px;border:1px solid var(--jp-border2);border-radius:4px;font-size:14px;background:var(--jp-surface2);color:var(--jp-text);outline:none;font-family:var(--jp-sans);min-height:40px}
@@ -391,6 +395,10 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
   }
 
   // ─── 2 — API Keys (4 providers) ────────────────────────
+  var EYE_OPEN  = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  var EYE_CLOSE = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  var DOTS = '••••••••••••••••';
+
   async function loadKeys(){
     try {
       var d = await _get('/api/platform/ai/keys');
@@ -400,14 +408,17 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
       var html = providers.map(function(p){
         var k = existing[p];
         if (k) {
-          return '<div class="aim-key-row">' +
+          return '<div class="aim-key-row" data-provider="' + _esc(p) + '" data-key="' + _esc(k.masked||'') + '">' +
             '<div class="aim-key-prov">' + _esc(p) + '</div>' +
-            '<div class="aim-key-mask">' + _esc(k.masked) + '</div>' +
+            '<div class="aim-key-display">' + DOTS + '</div>' +
+            '<button class="aim-eye-btn" type="button" onclick="aimToggleKey(this)" title="แสดง/ซ่อน">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + EYE_OPEN + '</svg>' +
+            '</button>' +
             '<span class="aim-key-badge on">ใช้งาน</span>' +
             '<button class="aim-key-del" onclick="aimDelKey(\'' + _esc(p) + '\')">ลบ</button>' +
           '</div>';
         }
-        return '<div class="aim-key-row">' +
+        return '<div class="aim-key-row" data-provider="' + _esc(p) + '">' +
           '<div class="aim-key-prov">' + _esc(p) + '</div>' +
           '<div class="aim-key-empty">— ยังไม่ตั้งค่า —</div>' +
           '<span class="aim-key-badge off">ไม่มี</span>' +
@@ -419,6 +430,24 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
         '<div class="aim-empty">โหลด keys ไม่สำเร็จ: ' + _esc(e.message) + '</div>';
     }
   }
+
+  window.aimToggleKey = function(btn){
+    var row = btn.closest('.aim-key-row');
+    if (!row) return;
+    var disp = row.querySelector('.aim-key-display');
+    var svg  = btn.querySelector('svg');
+    var realKey = row.dataset.key || '';
+    var hidden = disp.textContent.indexOf('•') >= 0;
+    if (hidden) {
+      disp.textContent = realKey || DOTS;
+      disp.classList.add('revealed');
+      if (svg) svg.innerHTML = EYE_CLOSE;
+    } else {
+      disp.textContent = DOTS;
+      disp.classList.remove('revealed');
+      if (svg) svg.innerHTML = EYE_OPEN;
+    }
+  };
 
   // ─── 3 — Models (6 dropdown slots) ─────────────────────
   function _renderSlots(){
