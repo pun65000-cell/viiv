@@ -4,7 +4,7 @@ from app.core.db import engine
 import jwt, os
 from datetime import datetime
 
-router = APIRouter(prefix="/api/chat", tags=["chat"])
+router = APIRouter(tags=["chat"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
 
 def get_tenant_user(authorization=""):
