@@ -122,6 +122,23 @@
       </a>
       <div class="divider">─── หรือสมัครด้วยอีเมล ───</div>
 
+      <div style="max-width:480px; margin:0 auto; padding:0 20px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div>
+            <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:6px;">ชื่อ-นามสกุล *</label>
+            <input id="full_name" type="text" placeholder="สมชาย ใจดี" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px; outline:none;">
+          </div>
+          <div>
+            <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:6px;">อีเมล *</label>
+            <input id="email" type="email" placeholder="you@email.com" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px; outline:none;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:6px;">รหัสผ่าน * (อย่างน้อย 4 ตัวอักษร)</label>
+          <input id="password" type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px; outline:none; margin-bottom:16px;">
+        </div>
+      </div>
+
       <button id="btn-next" onclick="goStep2()">ถัดไป →</button>
     </div>
   </div>
