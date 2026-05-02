@@ -160,7 +160,7 @@ async def line_webhook(request: Request):
                      group_id, message, raw, created_at)
                 VALUES
                     (:id, :tid, :etype, :luid, :dname,
-                     :gid, :msg, :raw::jsonb, NOW())
+                     :gid, :msg, CAST(:raw AS jsonb), NOW())
                 ON CONFLICT (id) DO NOTHING
             """), {
                 "id":    _new_id("lwl"),
@@ -213,7 +213,7 @@ async def line_webhook(request: Request):
                         c.execute(text("""
                             INSERT INTO chat_messages
                                 (conversation_id, direction, content, raw_event)
-                            VALUES (:cid, :dir, :content, :raw::jsonb)
+                            VALUES (:cid, :dir, :content, CAST(:raw AS jsonb))
                         """), {"cid": conv_id, "dir": direction,
                                "content": content, "raw": json.dumps(event)})
 
@@ -245,7 +245,7 @@ async def line_webhook(request: Request):
                                     c.execute(text("""
                                         INSERT INTO chat_messages
                                             (conversation_id, direction, content, raw_event)
-                                        VALUES (:cid, 'outbound', :txt, :raw::jsonb)
+                                        VALUES (:cid, 'outbound', :txt, CAST(:raw AS jsonb))
                                     """), {"cid": conv_id, "txt": bot_reply_text,
                                            "raw": json.dumps({"sent_by": "bot"})})
                                 except Exception as e:
