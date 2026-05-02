@@ -88,16 +88,14 @@ async function goStep2(){
   }
   document.getElementById("step-auth").style.display="none";
   document.getElementById("step-shop").style.display="block";
-  if(typeof loadShopForm==='function'){
-    const mount=document.getElementById('form-mount');
-    if(mount && !mount.dataset.loaded){
-      mount.dataset.loaded='1';
-      loadShopForm();
-    }
-  }
   document.getElementById("si-1").classList.remove("active");
   document.getElementById("si-2").classList.add("active");
   window.scrollTo(0,0);
+  const mount = document.getElementById('form-mount');
+  if(mount && !mount.dataset.loaded){
+    mount.dataset.loaded = '1';
+    loadShopForm();
+  }
 }
 
 window.initBizCascade = function(){
