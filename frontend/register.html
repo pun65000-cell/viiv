@@ -56,33 +56,6 @@
       box-sizing: border-box;
     }
     #form-mount .field input[type=tel]:focus { border-color: var(--accent, #c9a84c); }
-
-    .step-bar { display:flex; align-items:center; gap:12px; padding:16px 32px; background:#fff; border-bottom:1px solid #e8dfc8; }
-    .step { font-size:14px; color:#aaa; font-weight:500; }
-    .step.active { color:#c9a84c; font-weight:700; }
-    .step-arrow { color:#ccc; font-size:14px; }
-
-    .btn-social { display:flex; align-items:center; gap:12px; width:100%; min-height:48px; padding:12px 20px; border-radius:10px; font-size:15px; font-weight:500; text-decoration:none; margin-bottom:12px; justify-content:center; }
-    .btn-google { background:#fff; border:1.5px solid #ddd; color:#333; }
-    .btn-line { background:#06C755; border:none; color:#fff; }
-    .divider { text-align:center; color:#aaa; font-size:13px; margin:16px 0; }
-
-    #btn-next {
-      display:block; width:100%; min-height:48px; margin-top:16px;
-      background:#c9a84c; color:#fff; border:none; border-radius:10px;
-      font-size:15px; font-weight:700; cursor:pointer;
-    }
-    #btn-next:hover { background:#b89640; }
-
-    .pkg-card {
-      border: 2px solid #e8dfc8; border-radius:10px;
-      padding:14px 10px; text-align:center; cursor:pointer;
-      transition:all .15s; background:#fff;
-    }
-    .pkg-card.selected {
-      border-color:#c9a84c; background:#fdf9ef;
-    }
-    .pkg-card:hover { border-color:#c9a84c; }
   </style>
 </head>
 <body>
@@ -91,88 +64,33 @@
     <a class="login-link" href="/login.html">มีบัญชีแล้ว? เข้าสู่ระบบ</a>
   </div>
 
-  <div class="step-bar">
-    <div class="step active" id="si-1">① เข้าสู่ระบบ</div>
-    <div class="step-arrow">→</div>
-    <div class="step" id="si-2">② สร้างร้าน</div>
+  <div class="hero-band">
+    <div class="hero-badge">ทดลองใช้ฟรี 10 วัน</div>
+    <div class="hero-title">สร้างร้านค้า<span> VIIV</span> ของคุณ</div>
+    <div class="hero-sub">ไม่ต้องใช้บัตรเครดิต · <strong>ฟรี 10 วัน</strong> · ยกเลิกได้ทุกเมื่อ</div>
   </div>
 
-  <div id="step-auth">
-    <div class="hero-band">
-      <div class="hero-badge">ทดลองใช้ฟรี 10 วัน</div>
-      <div class="hero-title">สร้างร้านค้า<span> VIIV</span> ของคุณ</div>
-      <div class="hero-sub">ไม่ต้องใช้บัตรเครดิต · <strong>ฟรี 10 วัน</strong> · ยกเลิกได้ทุกเมื่อ</div>
-    </div>
-
-    <div class="content">
-      <a href="/auth/google" class="btn-social btn-google">
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        เข้าสู่ระบบด้วย Google
-      </a>
-      <a href="/auth/line" class="btn-social btn-line">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M19.952 11.156c0-3.563-3.572-6.461-7.96-6.461-4.39 0-7.962 2.898-7.962 6.461 0 3.193 2.832 5.866 6.658 6.371.26.056.612.171.701.394.08.201.052.516.026.719l-.114.683c-.035.201-.16.789.691.43.852-.359 4.589-2.703 6.262-4.628 1.156-1.268 1.698-2.554 1.698-3.969zM9.146 13.05H7.567c-.23 0-.418-.187-.418-.418V9.476c0-.23.188-.418.418-.418.231 0 .418.188.418.418v2.738h1.161c.231 0 .418.188.418.418 0 .231-.187.418-.418.418zm1.642-.418c0 .231-.188.418-.418.418-.231 0-.418-.187-.418-.418V9.476c0-.23.187-.418.418-.418.23 0 .418.188.418.418v3.156zm3.804 0c0 .181-.115.341-.286.398-.043.014-.088.02-.132.02-.131 0-.258-.062-.336-.169l-1.616-2.198v1.949c0 .231-.188.418-.418.418-.231 0-.418-.187-.418-.418V9.476c0-.18.115-.34.285-.398.043-.014.088-.02.133-.02.13 0 .257.062.335.17l1.616 2.198V9.476c0-.23.188-.418.418-.418.231 0 .418.188.418.418v3.156zm2.612-1.997c.231 0 .418.188.418.418 0 .231-.187.418-.418.418h-1.16v.743h1.16c.231 0 .418.188.418.418 0 .231-.187.418-.418.418h-1.578c-.231 0-.418-.187-.418-.418V9.476c0-.23.187-.418.418-.418h1.578c.231 0 .418.188.418.418 0 .231-.187.418-.418.418h-1.16v.743h1.16z"/>
-        </svg>
-        เข้าสู่ระบบด้วย LINE
-      </a>
-      <div class="divider">─── หรือสมัครด้วยอีเมล ───</div>
-
-      <div style="max-width:480px; margin:0 auto; padding:0 20px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-          <div>
-            <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:6px;">ชื่อ-นามสกุล *</label>
-            <input id="full_name" type="text" placeholder="สมชาย ใจดี" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px; outline:none;">
-          </div>
-          <div>
-            <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:6px;">อีเมล *</label>
-            <input id="email" type="email" placeholder="you@email.com" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px; outline:none;">
-          </div>
-        </div>
-        <div>
-          <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:6px;">รหัสผ่าน * (อย่างน้อย 4 ตัวอักษร)</label>
-          <input id="password" type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px; outline:none; margin-bottom:16px;">
-        </div>
-      </div>
-
-      <button id="btn-next" onclick="goStep2()">ถัดไป →</button>
-    </div>
+  <div class="content">
+    <div id="form-mount"><div class="loading-msg">กำลังโหลดแบบฟอร์ม...</div></div>
   </div>
 
-  <div id="step-shop" style="display:none">
-    <div id="form-mount"><div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div></div>
-  </div>
-
-<script src="/register.js?v=2"></script>
-<script>
-function loadShopForm(){
-  fetch('/platform/pages/register-shop.html')
-    .then(r=>r.text())
-    .then(html=>{
-      var parser=new DOMParser();
-      var doc=parser.parseFromString(html,'text/html');
-      // inject หมวดหมู่ก่อน field ชื่อร้าน
-      var firstField=doc.querySelector('.field-group, .field, form>div');
-      if(firstField){
-        var bizDiv=doc.createElement('div');
-        bizDiv.id='biz-inject';
-        bizDiv.innerHTML='<div class="field" style="margin-bottom:16px;"><label style="font-size:13px;color:#555;font-weight:600;display:block;margin-bottom:8px;">ประเภทธุรกิจ</label><select id="biz-l1" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d4cfc4;border-radius:8px;margin-bottom:8px;background:#fff;"><option value="">— เลือกรูปแบบธุรกิจ —</option></select><select id="biz-l2" disabled style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d4cfc4;border-radius:8px;margin-bottom:8px;background:#f5f5f5;color:#aaa;"><option value="">— เลือกกลุ่มสินค้า/บริการ —</option></select><select id="biz-l3" disabled style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d4cfc4;border-radius:8px;background:#f5f5f5;color:#aaa;"><option value="">— เลือกประเภทย่อย —</option></select><input id="biz-custom" type="text" placeholder="ระบุประเภทธุรกิจ..." style="display:none;width:100%;padding:10px 12px;font-size:14px;border:1px solid #c9a84c;border-radius:8px;margin-top:8px;"></div>';
-        firstField.parentNode.insertBefore(bizDiv, firstField);
-      }
-      document.getElementById('form-mount').innerHTML=doc.body.innerHTML;
-      document.getElementById('form-mount').querySelectorAll('script').forEach(function(old){
-        var s=document.createElement('script');s.textContent=old.textContent;
-        old.parentNode.replaceChild(s,old);
+  <script>
+    fetch('/platform/pages/register-shop.html')
+      .then(function(r){ return r.text(); })
+      .then(function(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        document.getElementById('form-mount').innerHTML = doc.body.innerHTML;
+        document.getElementById('form-mount').querySelectorAll('script').forEach(function(old) {
+          var s = document.createElement('script');
+          s.textContent = old.textContent;
+          old.parentNode.replaceChild(s, old);
+        });
+      })
+      .catch(function() {
+        document.getElementById('form-mount').innerHTML =
+          '<div class="loading-msg" style="color:#c00">ไม่สามารถโหลดแบบฟอร์มได้ กรุณาลองใหม่</div>';
       });
-      // init biz cascade หลัง inject
-      if(window.initBizCascade) window.initBizCascade();
-    })
-    .catch(err=>{ console.error(err); document.getElementById('form-mount').innerHTML='<p style="color:red;text-align:center">โหลดไม่ได้: '+err.message+'</p>'; });
-}
-</script>
+  </script>
 </body>
 </html>
