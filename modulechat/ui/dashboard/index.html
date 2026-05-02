@@ -103,6 +103,25 @@
 <script src="chat-api.js"></script>
 <script src="chat-ui.js"></script>
 <script src="chat-bot.js"></script>
-<script>App.init()</script>
+<script>
+(function(){
+  var _initialized = false;
+  function tryInit(){
+    if(_initialized) return;
+    _initialized = true;
+    App.init();
+  }
+  if(localStorage.getItem('viiv_token')){
+    tryInit();
+  } else {
+    window.addEventListener('message', function(e){
+      if(e.data && e.data.type === 'init_staff' && e.data.token){
+        localStorage.setItem('viiv_token', e.data.token);
+        tryInit();
+      }
+    });
+  }
+})();
+</script>
 </body>
 </html>

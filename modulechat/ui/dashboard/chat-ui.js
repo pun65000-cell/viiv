@@ -34,6 +34,7 @@ const App = (() => {
   }
 
   async function loadConversations() {
+    console.log('[Chat] loading convs, tenantId=', _tenantId);
     try {
       const data = await API.getConversations(_tenantId, '');
       _convs = data.conversations || [];
