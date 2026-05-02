@@ -27,53 +27,53 @@
 
 /* ─── Stats ─────────────────────────────────────────────── */
 .aim-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
-.aim-stat{position:relative;background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:20px 22px;overflow:hidden}
+.aim-stat{position:relative;background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:24px 24px;overflow:hidden}
 .aim-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--jp-dim)}
 .aim-stat.gold::before{background:linear-gradient(90deg,var(--jp-gold-dim),var(--jp-gold))}
-.aim-stat-lbl{font-size:11px;color:var(--jp-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.15em;font-weight:500}
+.aim-stat-lbl{font-size:12px;color:#9090a8;margin-bottom:14px;text-transform:uppercase;letter-spacing:.1em;font-weight:500}
 .aim-stat-val{font-size:28px;font-weight:700;color:var(--jp-text);font-family:var(--jp-mono);line-height:1.1}
 .aim-stat.gold .aim-stat-val{color:var(--jp-gold)}
-.aim-stat-sub{font-size:11px;color:var(--jp-muted);margin-top:6px;letter-spacing:.05em}
+.aim-stat-sub{font-size:12px;color:var(--jp-muted);margin-top:8px;letter-spacing:.05em}
 
 /* ─── Cards ────────────────────────────────────────────── */
 .aim-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.aim-card{background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:20px 22px;margin-bottom:16px}
-.aim-card-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--jp-border)}
-.aim-card-title{font-size:13px;font-weight:700;color:var(--jp-text);flex:1;letter-spacing:.05em;text-transform:uppercase}
-.aim-card-sub{font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono)}
+.aim-card{background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:28px;margin-bottom:16px}
+.aim-card-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--jp-border)}
+.aim-card-title{font-size:14px;font-weight:700;color:var(--jp-text);flex:1;letter-spacing:.05em;text-transform:uppercase}
+.aim-card-sub{font-size:12px;color:var(--jp-muted);font-family:var(--jp-mono)}
 
 /* ─── Keys ─────────────────────────────────────────────── */
-.aim-key-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--jp-border);font-size:13px}
-.aim-key-row:last-of-type{border-bottom:none}
-.aim-key-prov{width:80px;font-family:var(--jp-mono);color:var(--jp-muted);font-size:12px;text-transform:lowercase}
-.aim-key-mask{font-family:var(--jp-mono);font-size:12px;color:var(--jp-text);background:var(--jp-surface2);padding:5px 10px;border-radius:4px;flex:1;border:1px solid var(--jp-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.aim-key-empty{color:var(--jp-dim);font-style:italic;flex:1;font-size:12px;font-family:var(--jp-mono)}
-.aim-key-badge{font-size:10px;padding:3px 8px;border-radius:3px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:var(--jp-mono)}
+.aim-key-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--jp-border);font-size:14px;min-height:44px}
+.aim-key-row:last-of-type{border-bottom:1px solid var(--jp-border)}
+.aim-key-prov{width:90px;font-family:var(--jp-mono);color:#9090a8;font-size:14px;font-weight:500;text-transform:lowercase;letter-spacing:.05em}
+.aim-key-mask{font-family:var(--jp-mono);font-size:14px;color:var(--jp-text);background:var(--jp-surface2);padding:7px 12px;border-radius:4px;flex:1;border:1px solid var(--jp-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aim-key-empty{color:var(--jp-dim);font-style:italic;flex:1;font-size:13px;font-family:var(--jp-mono)}
+.aim-key-badge{font-size:12px;padding:4px 10px;border-radius:3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--jp-mono)}
 .aim-key-badge.on{background:rgba(76,175,122,.15);color:var(--jp-green);border:1px solid rgba(76,175,122,.35)}
 .aim-key-badge.off{background:rgba(224,90,90,.12);color:var(--jp-red);border:1px solid rgba(224,90,90,.3)}
-.aim-key-del{color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
+.aim-key-del{color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:5px 11px;border-radius:4px;font-size:12px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
 .aim-key-del:hover{background:rgba(224,90,90,.1)}
-.aim-key-form{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--jp-border2)}
-.aim-key-form select,.aim-key-form input{padding:8px 11px;border:1px solid var(--jp-border2);border-radius:4px;font-size:13px;background:var(--jp-surface2);color:var(--jp-text);outline:none;font-family:var(--jp-sans)}
-.aim-key-form select{width:130px;font-family:var(--jp-mono);font-size:12px}
+.aim-key-form{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px solid var(--jp-border2)}
+.aim-key-form select,.aim-key-form input{padding:10px 14px;border:1px solid var(--jp-border2);border-radius:4px;font-size:14px;background:var(--jp-surface2);color:var(--jp-text);outline:none;font-family:var(--jp-sans);min-height:40px}
+.aim-key-form select{width:140px;font-family:var(--jp-mono);font-size:13px}
 .aim-key-form input{flex:1;font-family:var(--jp-mono)}
 .aim-key-form input:focus,.aim-key-form select:focus{border-color:var(--jp-gold)}
-.aim-btn-gold{padding:8px 18px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--jp-gold);color:#1a1a1a;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
+.aim-btn-gold{padding:10px 20px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:var(--jp-gold);color:#1a1a1a;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;min-height:40px}
 .aim-btn-gold:hover{background:#f0d077}
 .aim-btn-gold:disabled{opacity:.4;cursor:not-allowed}
 .aim-btn-ghost{padding:6px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;border:1px solid var(--jp-border2);color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
 .aim-btn-ghost:hover{border-color:var(--jp-gold);color:var(--jp-gold)}
 
 /* ─── Models (dropdown slots) ─────────────────────────── */
-.aim-slot-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--jp-border)}
-.aim-slot-row:last-child{border-bottom:none}
-.aim-slot-label{width:120px;color:var(--jp-muted);font-size:11px;text-transform:uppercase;letter-spacing:.15em;font-weight:500;font-family:var(--jp-mono)}
-.aim-slot-select{flex:1;padding:8px 10px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:4px;font-family:var(--jp-mono);font-size:12px;outline:none;cursor:pointer}
+.aim-slot-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--jp-border);min-height:44px}
+.aim-slot-row:last-child{border-bottom:1px solid var(--jp-border)}
+.aim-slot-label{width:130px;color:#9090a8;font-size:14px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;font-family:var(--jp-mono)}
+.aim-slot-select{flex:1;padding:10px 14px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:4px;font-family:var(--jp-mono);font-size:15px;outline:none;cursor:pointer;min-height:40px}
 .aim-slot-select:focus{border-color:var(--jp-gold)}
 .aim-slot-select option{background:var(--jp-surface2);color:var(--jp-text)}
-.aim-slot-cost{min-width:140px;font-family:var(--jp-mono);font-size:11px;color:var(--jp-muted);text-align:right;letter-spacing:.05em}
+.aim-slot-cost{min-width:150px;font-family:var(--jp-mono);font-size:13px;color:var(--jp-muted);text-align:right;letter-spacing:.05em}
 .aim-slot-cost b{color:var(--jp-gold);font-weight:700}
-.aim-models-actions{margin-top:18px;padding-top:14px;border-top:1px solid var(--jp-border2);display:flex;justify-content:flex-end}
+.aim-models-actions{margin-top:20px;padding-top:16px;border-top:1px solid var(--jp-border2);display:flex;justify-content:flex-end}
 
 /* ─── Tables ──────────────────────────────────────────── */
 .aim-tbl-wrap{overflow-x:auto;margin:0 -22px;padding:0 22px}
