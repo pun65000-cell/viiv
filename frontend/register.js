@@ -74,10 +74,43 @@ function goStep2(){
   }
   document.getElementById("step-auth").style.display="none";
   document.getElementById("step-shop").style.display="block";
+  if(typeof loadShopForm==='function' && !document.getElementById('form-mount')._loaded){ loadShopForm(); document.getElementById('form-mount')._loaded=true; }
   document.getElementById("si-1").classList.remove("active");
   document.getElementById("si-2").classList.add("active");
   window.scrollTo(0,0);
 }
+
+window.initBizCascade = function(){
+  const l1=document.getElementById('biz-l1');
+  if(!l1||l1._init)return; l1._init=true;
+  Object.keys(BIZ).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;l1.appendChild(o);});
+  l1.addEventListener('change',function(){
+    const l2=document.getElementById('biz-l2');const l3=document.getElementById('biz-l3');
+    l2.innerHTML='<option value="">— เลือกกลุ่มสินค้า/บริการ —</option>';
+    l3.innerHTML='<option value="">— เลือกประเภทย่อย —</option>';
+    l3.disabled=true;document.getElementById('biz-custom').style.display='none';
+    if(!this.value){l2.disabled=true;return;}
+    const cats=BIZ[this.value]||{};
+    Object.keys(cats).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;l2.appendChild(o);});
+    l2.disabled=false;l2.style.background='#fff';l2.style.color='inherit';
+  });
+  const l2el=document.getElementById('biz-l2');
+  if(l2el)l2el.addEventListener('change',function(){
+    const l1v=document.getElementById('biz-l1').value;
+    const l3=document.getElementById('biz-l3');
+    l3.innerHTML='<option value="">— เลือกประเภทย่อย —</option>';
+    document.getElementById('biz-custom').style.display='none';
+    if(!this.value){l3.disabled=true;return;}
+    const items=(BIZ[l1v]||{})[this.value]||[];
+    items.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;l3.appendChild(o);});
+    l3.disabled=false;l3.style.background='#fff';l3.style.color='inherit';
+  });
+  const l3el=document.getElementById('biz-l3');
+  if(l3el)l3el.addEventListener('change',function(){
+    const c=document.getElementById('biz-custom');
+    if(c)c.style.display=this.value==='อื่นๆ'?'block':'none';
+  });
+};
 function toggleAddress(){const b=document.getElementById("address-block");if(b)b.style.display=b.style.display==="none"?"block":"none";}
 function selectPkg(el){document.querySelectorAll(".pkg-card").forEach(c=>c.classList.remove("selected"));el.classList.add("selected");_selectedPkg=el.dataset.pkg;}
 function showTerms(){alert("VIIV เป็นผู้ให้บริการแพลตฟอร์มเท่านั้น ไม่รับผิดชอบต่อข้อมูล สินค้า หรือบริการของร้านค้า");}

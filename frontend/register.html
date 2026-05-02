@@ -144,113 +144,34 @@
   </div>
 
   <div id="step-shop" style="display:none">
-    <div class="content">
-      <!-- Google user info bar (ซ่อนไว้ก่อน) -->
-      <div id="google-info" style="display:none; align-items:center; gap:12px; background:#fdf9ef; border:1px solid #e8dfc8; border-radius:10px; padding:14px 18px; margin-bottom:20px;">
-        <img id="google-avatar" src="" width="40" height="40" style="border-radius:50%; object-fit:cover;">
-        <div>
-          <div id="google-name" style="font-weight:600; font-size:14px; color:#1a1200;"></div>
-          <div id="google-email" style="font-size:12px; color:#888;"></div>
-        </div>
-        <span style="margin-left:auto; font-size:11px; background:#e8f5e9; color:#2e7d32; padding:3px 10px; border-radius:20px;">Google</span>
-      </div>
-
-      <!-- ชื่อร้าน -->
-      <div class="field-group" style="margin-bottom:16px;">
-        <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:8px;">
-          ชื่อร้านค้า <span style="color:#e53935;">*</span>
-        </label>
-        <input id="store-name" type="text" placeholder="ชื่อร้านของคุณ"
-               style="width:100%; padding:12px; font-size:15px; border:1px solid #d4cfc4; border-radius:8px;">
-      </div>
-
-      <!-- Subdomain -->
-      <div class="field-group" style="margin-bottom:16px;">
-        <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:8px;">
-          Subdomain <span style="color:#e53935;">*</span>
-          <span style="font-weight:400; color:#888; font-size:12px;">(a-z 0-9 ขีดกลาง ≥ 4 ตัว)</span>
-        </label>
-        <div style="display:flex; align-items:center; border:1px solid #d4cfc4; border-radius:8px; background:#fff; overflow:hidden;">
-          <input id="subdomain" type="text" placeholder="myshop" maxlength="40"
-                 style="flex:1; padding:12px; font-size:15px; border:none; outline:none;">
-          <span style="padding:12px 14px; background:#faf8f3; color:#888; font-size:13px; border-left:1px solid #e8dfc8;">.viiv.me</span>
-        </div>
-        <div id="subdomain-status" style="font-size:12px; margin-top:6px; min-height:16px;"></div>
-      </div>
-
-      <!-- ประเภทธุรกิจ 3 ชั้น -->
-      <div class="field-group" style="margin-bottom:16px;">
-        <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:8px;">ประเภทธุรกิจ</label>
-        <select id="biz-l1" style="width:100%; padding:12px; font-size:15px; border:1px solid #d4cfc4; border-radius:8px; margin-bottom:8px; background:#fff;">
-          <option value="">— เลือกรูปแบบธุรกิจ —</option>
-        </select>
-        <select id="biz-l2" disabled style="width:100%; padding:12px; font-size:15px; border:1px solid #d4cfc4; border-radius:8px; margin-bottom:8px; background:#f5f5f5; color:#aaa;">
-          <option value="">— เลือกกลุ่มสินค้า/บริการ —</option>
-        </select>
-        <select id="biz-l3" disabled style="width:100%; padding:12px; font-size:15px; border:1px solid #d4cfc4; border-radius:8px; background:#f5f5f5; color:#aaa;">
-          <option value="">— เลือกประเภทย่อย —</option>
-        </select>
-        <input id="biz-custom" type="text" placeholder="ระบุประเภทธุรกิจ..." style="display:none; width:100%; padding:12px; font-size:15px; border:1px solid #c9a84c; border-radius:8px; margin-top:8px;">
-      </div>
-
-      <!-- เบอร์โทร (บังคับ) -->
-      <div class="field-group" style="margin-bottom:16px;">
-        <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:8px;">เบอร์โทรศัพท์ <span style="color:#e53935;">*</span></label>
-        <input id="shop-phone" type="tel" placeholder="0812345678" style="width:100%; padding:12px; font-size:15px; border:1px solid #d4cfc4; border-radius:8px;">
-      </div>
-
-      <!-- ที่อยู่ collapsible -->
-      <div style="margin-bottom:16px;">
-        <button type="button" onclick="toggleAddress()" style="background:none; border:none; color:#c9a84c; font-size:13px; font-weight:600; cursor:pointer; padding:0;">
-          + เพิ่มที่อยู่ร้าน (ไม่บังคับ)
-        </button>
-        <div id="address-block" style="display:none; margin-top:12px; padding:16px; background:#faf8f3; border-radius:10px; border:1px solid #e8dfc8;">
-          <button type="button" id="btn-location" style="display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #c9a84c; color:#c9a84c; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px; width:100%; justify-content:center;">
-            📍 ใช้ตำแหน่งปัจจุบัน
-          </button>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <input id="addr-province" type="text" placeholder="จังหวัด" style="padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px;">
-            <input id="addr-district" type="text" placeholder="อำเภอ" style="padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px;">
-            <input id="addr-sub" type="text" placeholder="ตำบล" style="padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px;">
-            <input id="addr-post" type="text" placeholder="รหัสไปรษณีย์" style="padding:10px 12px; font-size:14px; border:1px solid #d4cfc4; border-radius:8px;">
-          </div>
-          <input id="addr-lat" type="hidden">
-          <input id="addr-lng" type="hidden">
-        </div>
-      </div>
-
-      <!-- เลือกแพ็คเกจ -->
-      <div style="margin-bottom:20px;">
-        <label style="font-size:13px; color:#555; font-weight:600; display:block; margin-bottom:10px;">เลือกแพ็คเกจ</label>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
-          <div class="pkg-card selected" data-pkg="pkg_basic" onclick="selectPkg(this)">
-            <div style="font-weight:700; font-size:14px;">Basic</div>
-            <div style="font-size:11px; color:#888; margin-top:4px;">ฟรี 10 วัน</div>
-          </div>
-          <div class="pkg-card" data-pkg="pkg_standard" onclick="selectPkg(this)">
-            <div style="font-weight:700; font-size:14px;">Standard</div>
-            <div style="font-size:11px; color:#888; margin-top:4px;">฿490/เดือน</div>
-          </div>
-          <div class="pkg-card" data-pkg="pkg_pro" onclick="selectPkg(this)">
-            <div style="font-weight:700; font-size:14px;">Pro</div>
-            <div style="font-size:11px; color:#888; margin-top:4px;">฿990/เดือน</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Terms -->
-      <label style="display:flex; align-items:flex-start; gap:10px; font-size:13px; color:#555; margin-bottom:20px; cursor:pointer;">
-        <input id="chk-terms" type="checkbox" style="margin-top:2px; width:16px; height:16px; accent-color:#c9a84c;">
-        <span>ฉันยอมรับ <a href="#" onclick="showTerms()" style="color:#c9a84c; text-decoration:underline;">ข้อตกลงการใช้งาน</a> และรับทราบว่า VIIV เป็นเพียงผู้ให้บริการแพลตฟอร์ม ไม่รับผิดชอบต่อข้อมูลของร้านค้า</span>
-      </label>
-
-      <!-- Submit -->
-      <button id="btn-submit" onclick="submitShop()" style="width:100%; min-height:52px; background:#c9a84c; color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer;">
-        🚀 เริ่มใช้งานเลย
-      </button>
-    </div>
+    <div id="form-mount"><div style="text-align:center;padding:40px;color:#888;">กำลังโหลด...</div></div>
   </div>
 
 <script src="/register.js"></script>
+<script>
+function loadShopForm(){
+  fetch('/platform/pages/register-shop.html')
+    .then(r=>r.text())
+    .then(html=>{
+      var parser=new DOMParser();
+      var doc=parser.parseFromString(html,'text/html');
+      // inject หมวดหมู่ก่อน field ชื่อร้าน
+      var firstField=doc.querySelector('.field-group, .field, form>div');
+      if(firstField){
+        var bizDiv=doc.createElement('div');
+        bizDiv.id='biz-inject';
+        bizDiv.innerHTML='<div class="field" style="margin-bottom:16px;"><label style="font-size:13px;color:#555;font-weight:600;display:block;margin-bottom:8px;">ประเภทธุรกิจ</label><select id="biz-l1" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d4cfc4;border-radius:8px;margin-bottom:8px;background:#fff;"><option value="">— เลือกรูปแบบธุรกิจ —</option></select><select id="biz-l2" disabled style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d4cfc4;border-radius:8px;margin-bottom:8px;background:#f5f5f5;color:#aaa;"><option value="">— เลือกกลุ่มสินค้า/บริการ —</option></select><select id="biz-l3" disabled style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d4cfc4;border-radius:8px;background:#f5f5f5;color:#aaa;"><option value="">— เลือกประเภทย่อย —</option></select><input id="biz-custom" type="text" placeholder="ระบุประเภทธุรกิจ..." style="display:none;width:100%;padding:10px 12px;font-size:14px;border:1px solid #c9a84c;border-radius:8px;margin-top:8px;"></div>';
+        firstField.parentNode.insertBefore(bizDiv, firstField);
+      }
+      document.getElementById('form-mount').innerHTML=doc.body.innerHTML;
+      document.getElementById('form-mount').querySelectorAll('script').forEach(function(old){
+        var s=document.createElement('script');s.textContent=old.textContent;
+        old.parentNode.replaceChild(s,old);
+      });
+      // init biz cascade หลัง inject
+      if(window.initBizCascade) window.initBizCascade();
+    });
+}
+</script>
 </body>
 </html>
