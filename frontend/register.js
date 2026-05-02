@@ -65,16 +65,36 @@ document.addEventListener('DOMContentLoaded',()=>{
     },()=>{btnLoc.disabled=false;});});
 });
 
-function goStep2(){
+async function goStep2(){
   if(!_googleSession){
     const n=document.getElementById("full_name")?.value?.trim();
     const e=document.getElementById("email")?.value?.trim();
     const p=document.getElementById("password")?.value;
     if(!n||!e||!p||p.length<4){alert("กรุณากรอกชื่อ อีเมล และรหัสผ่านให้ครบ");return;}
   }
+  const emailVal = document.getElementById('email')?.value?.trim();
+  if(emailVal){
+    try{
+      const r = await fetch('/api/check-email?email='+encodeURIComponent(emailVal));
+      if(r.ok){
+        const d = await r.json();
+        if(!d.available){
+          alert('อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบแทน');
+          window.location.href='/login.html';
+          return;
+        }
+      }
+    }catch(e){}
+  }
   document.getElementById("step-auth").style.display="none";
   document.getElementById("step-shop").style.display="block";
-  if(typeof loadShopForm==='function' && !document.getElementById('form-mount')._loaded){ loadShopForm(); document.getElementById('form-mount')._loaded=true; }
+  if(typeof loadShopForm==='function'){
+    const mount=document.getElementById('form-mount');
+    if(mount && !mount.dataset.loaded){
+      mount.dataset.loaded='1';
+      loadShopForm();
+    }
+  }
   document.getElementById("si-1").classList.remove("active");
   document.getElementById("si-2").classList.add("active");
   window.scrollTo(0,0);

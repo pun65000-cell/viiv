@@ -170,7 +170,8 @@ function loadShopForm(){
       });
       // init biz cascade หลัง inject
       if(window.initBizCascade) window.initBizCascade();
-    });
+    })
+    .catch(err=>{ console.error(err); document.getElementById('form-mount').innerHTML='<p style="color:red;text-align:center">โหลดไม่ได้: '+err.message+'</p>'; });
 }
 </script>
 </body>
