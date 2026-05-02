@@ -2,6 +2,7 @@
 # Admin-facing endpoints under /api/platform/billing/*
 
 import datetime
+import itertools
 from fastapi import APIRouter, Header, HTTPException
 from sqlalchemy import text
 from app.core.db import engine
@@ -45,6 +46,30 @@ def _days_remaining(deadline) -> int | None:
         return None
     now = datetime.datetime.now(datetime.timezone.utc)
     return int((deadline - now).total_seconds() // 86400)
+
+
+def _calc_amount(package_id: str | None, modules, conn) -> float:
+    """Dynamic price = SUM(module_prices.price) × packages.multiplier
+       Returns 0.0 for free packages, missing data, or empty modules."""
+    if not package_id:
+        return 0.0
+    pkg = conn.execute(
+        text("SELECT multiplier, type FROM packages WHERE id = :pid"),
+        {"pid": package_id},
+    ).first()
+    if not pkg:
+        return 0.0
+    if (pkg.type or "") == "free":
+        return 0.0
+    mods = list(modules or [])
+    if not mods:
+        return 0.0
+    rows = conn.execute(
+        text("SELECT module, price FROM module_prices WHERE module = ANY(:mods)"),
+        {"mods": mods},
+    ).all()
+    total = sum(float(r[1]) for r in rows)
+    return round(total * float(pkg.multiplier or 0), 2)
 
 
 # Static notification templates (Phase 3 schedule)
@@ -105,38 +130,35 @@ def _select_notify_type(billing_status: str, days_remaining: int | None) -> str 
 @router.get("/subscriptions")
 def list_subscriptions(authorization: str = Header(None)):
     _admin_auth(authorization)
+    out = []
     with engine.connect() as c:
         rows = c.execute(text("""
             SELECT t.id, t.email, t.store_name, t.subdomain, t.status,
                    t.billing_status, t.package_id, t.modules,
-                   t.trial_ends_at, t.subscription_ends_at, t.line_uid,
-                   bp.price AS amount_due
+                   t.trial_ends_at, t.subscription_ends_at, t.line_uid
             FROM tenants t
-            LEFT JOIN billing_prices bp
-              ON bp.package_id = t.package_id
-             AND bp.modules    = t.modules
             ORDER BY t.created_at DESC
         """)).mappings().all()
 
-    out = []
-    for r in rows:
-        bs = r["billing_status"] or "trial"
-        deadline = r["trial_ends_at"] if bs == "trial" else r["subscription_ends_at"]
-        out.append({
-            "tenant_id":            r["id"],
-            "email":                r["email"],
-            "store_name":           r["store_name"],
-            "subdomain":            r["subdomain"],
-            "status":               r["status"],
-            "billing_status":       bs,
-            "package_id":           r["package_id"],
-            "modules":              list(r["modules"] or []),
-            "trial_ends_at":        r["trial_ends_at"].isoformat() if r["trial_ends_at"] else None,
-            "subscription_ends_at": r["subscription_ends_at"].isoformat() if r["subscription_ends_at"] else None,
-            "days_remaining":       _days_remaining(deadline),
-            "amount_due":           float(r["amount_due"]) if r["amount_due"] is not None else None,
-            "has_line":             bool(r["line_uid"]),
-        })
+        for r in rows:
+            bs = r["billing_status"] or "trial"
+            deadline = r["trial_ends_at"] if bs == "trial" else r["subscription_ends_at"]
+            mods = list(r["modules"] or [])
+            out.append({
+                "tenant_id":            r["id"],
+                "email":                r["email"],
+                "store_name":           r["store_name"],
+                "subdomain":            r["subdomain"],
+                "status":               r["status"],
+                "billing_status":       bs,
+                "package_id":           r["package_id"],
+                "modules":              mods,
+                "trial_ends_at":        r["trial_ends_at"].isoformat() if r["trial_ends_at"] else None,
+                "subscription_ends_at": r["subscription_ends_at"].isoformat() if r["subscription_ends_at"] else None,
+                "days_remaining":       _days_remaining(deadline),
+                "amount_due":           _calc_amount(r["package_id"], mods, c),
+                "has_line":             bool(r["line_uid"]),
+            })
     return {"subscriptions": out, "total": len(out)}
 
 
@@ -146,13 +168,12 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
     auth = _admin_auth(authorization)
 
     tid       = (payload.get("tenant_id") or "").strip()
-    amount    = payload.get("amount")
     pkg       = (payload.get("package_id") or "").strip()
     modules   = payload.get("modules") or []
     due_date  = payload.get("due_date")  # optional ISO date string
 
-    if not tid or amount is None or not pkg or not isinstance(modules, list):
-        raise HTTPException(400, "tenant_id, amount, package_id, modules[] required")
+    if not tid or not pkg or not isinstance(modules, list):
+        raise HTTPException(400, "tenant_id, package_id, modules[] required")
 
     noted_by = (auth.get("email") or auth.get("user_id")
                 or auth.get("sub") or "admin")
@@ -162,6 +183,8 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
                            {"tid": tid}).first()
         if not exists:
             raise HTTPException(404, "tenant not found")
+
+        amount = _calc_amount(pkg, modules, c)
 
         c.execute(text("""
             INSERT INTO billing_invoices
@@ -211,16 +234,32 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
 def get_prices(authorization: str = Header(None)):
     _admin_auth(authorization)
     with engine.connect() as c:
-        rows = c.execute(text("""
-            SELECT package_id, modules, price
-            FROM billing_prices
-            ORDER BY package_id, array_length(modules, 1)
-        """)).mappings().all()
-    return {"prices": [{
-        "package_id": r["package_id"],
-        "modules":    list(r["modules"] or []),
-        "price":      float(r["price"]),
-    } for r in rows]}
+        pkgs = c.execute(text(
+            "SELECT id, multiplier, type FROM packages ORDER BY sort_order, id"
+        )).mappings().all()
+        mods = c.execute(text(
+            "SELECT module, price, is_required FROM module_prices ORDER BY sort_order, module"
+        )).mappings().all()
+
+    required = [m["module"] for m in mods if m["is_required"]]
+    optional = [m["module"] for m in mods if not m["is_required"]]
+    price_map = {m["module"]: float(m["price"]) for m in mods}
+
+    out = []
+    for pkg in pkgs:
+        mult = float(pkg["multiplier"] or 0)
+        is_free = (pkg["type"] or "") == "free"
+        for r in range(len(optional) + 1):
+            for combo in itertools.combinations(optional, r):
+                modules = required + list(combo)
+                total = sum(price_map[m] for m in modules)
+                price = 0.0 if is_free else round(total * mult, 2)
+                out.append({
+                    "package_id": pkg["id"],
+                    "modules":    modules,
+                    "price":      price,
+                })
+    return {"prices": out}
 
 
 # ── 1b) PATCH /subscriptions/{tenant_id} (manual edit) ────────────────────────
@@ -264,16 +303,16 @@ def update_subscription(tenant_id: str, payload: dict, authorization: str = Head
         row = c.execute(text("""
             SELECT t.id, t.email, t.store_name, t.subdomain, t.status,
                    t.billing_status, t.package_id, t.modules,
-                   t.trial_ends_at, t.subscription_ends_at, t.line_uid,
-                   bp.price AS amount_due
+                   t.trial_ends_at, t.subscription_ends_at, t.line_uid
             FROM tenants t
-            LEFT JOIN billing_prices bp
-              ON bp.package_id = t.package_id AND bp.modules = t.modules
             WHERE t.id = :tid
         """), {"tid": tenant_id}).mappings().first()
 
-    bs = row["billing_status"] or "trial"
-    deadline = row["trial_ends_at"] if bs == "trial" else row["subscription_ends_at"]
+        bs = row["billing_status"] or "trial"
+        deadline = row["trial_ends_at"] if bs == "trial" else row["subscription_ends_at"]
+        mods = list(row["modules"] or [])
+        amount_due = _calc_amount(row["package_id"], mods, c)
+
     return {"ok": True, "tenant": {
         "tenant_id":            row["id"],
         "email":                row["email"],
@@ -282,11 +321,11 @@ def update_subscription(tenant_id: str, payload: dict, authorization: str = Head
         "status":               row["status"],
         "billing_status":       bs,
         "package_id":           row["package_id"],
-        "modules":              list(row["modules"] or []),
+        "modules":              mods,
         "trial_ends_at":        row["trial_ends_at"].isoformat() if row["trial_ends_at"] else None,
         "subscription_ends_at": row["subscription_ends_at"].isoformat() if row["subscription_ends_at"] else None,
         "days_remaining":       _days_remaining(deadline),
-        "amount_due":           float(row["amount_due"]) if row["amount_due"] is not None else None,
+        "amount_due":           amount_due,
         "has_line":             bool(row["line_uid"]),
     }}
 
