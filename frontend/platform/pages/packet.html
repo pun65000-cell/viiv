@@ -331,12 +331,12 @@ function renderPlans(){
       '<div class="pk-field"><label>Badge / Label</label>' +
         '<input id="pk-p-badge-'+i+'" value="'+esc(p.badge||'')+'" placeholder="แนะนำ / Custom / ฯลฯ"/></div>' +
       '<div class="pk-field-row">' +
-        '<div class="pk-field"><label>ราคาฐาน (฿)</label>' +
-          '<input type="number" id="pk-p-price-'+i+'" value="'+Number(p.price||0)+'" min="0" '+
+        '<div class="pk-field"><label>ตัวคูณ (×)</label>' +
+          '<input type="number" id="pk-p-mult-'+i+'" value="'+Number(p.multiplier||1)+'" min="0" step="0.1" '+
             'oninput="pkUpdatePlanPreview('+i+')"/>' +
-          '<div class="pk-field-note">ก่อนบวกโมดูลเสริม</div>' +
+          '<div class="pk-field-note">×1=เริ่มต้น ×2=ออนไลน์ ×3=มืออาชีพ</div>' +
         '</div>' +
-        '<div class="pk-field"><label>ถูกลง / ส่วนลด (฿)</label>' +
+        '<div class="pk-field"><label>ส่วนลด (฿)</label>' +
           '<input type="number" id="pk-p-disc-'+i+'" value="'+Number(p.discount||0)+'" min="0" '+
             'oninput="pkUpdatePlanPreview('+i+')"/>' +
           '<div class="pk-field-note">0 = ไม่มีส่วนลด</div>' +
@@ -360,14 +360,15 @@ function renderPlans(){
   }).join('');
 }
 
-window.pkUpdatePlanPreview=function(i){
-  var base=Number(document.getElementById('pk-p-price-'+i).value)||0;
-  var disc=Number(document.getElementById('pk-p-disc-'+i).value)||0;
-  var unit=document.getElementById('pk-p-unit-'+i)?document.getElementById('pk-p-unit-'+i).value||'/เดือน':'/เดือน';
-  var el=document.getElementById('pk-p-fdisp-'+i);
-  if(!el) return;
-  var final=Math.max(0,base-disc);
-  el.textContent='฿'+final.toLocaleString()+' '+unit;
+window.pkUpdatePlanPreview = function(i) {
+  var mult = Number(document.getElementById('pk-p-mult-'+i) ? document.getElementById('pk-p-mult-'+i).value : 1) || 1;
+  var disc = Number(document.getElementById('pk-p-disc-'+i).value) || 0;
+  var unit = document.getElementById('pk-p-unit-'+i) ? document.getElementById('pk-p-unit-'+i).value || '/เดือน' : '/เดือน';
+  var el = document.getElementById('pk-p-fdisp-'+i);
+  if (!el) return;
+  // ตัวอย่าง: POS(299) × multiplier
+  var example = Math.max(0, 299 * mult - disc);
+  el.textContent = '฿' + example.toLocaleString() + ' ' + unit + ' (POS เดี่ยว)';
 };
 window.pkRemovePlan=function(i){
   if(!confirm('ลบแผน "'+_plans[i].name+'" ?')) return;
@@ -381,14 +382,14 @@ window.pkAddPlan=function(){
 };
 window.pkSavePlanRow=function(i){
   var type=document.getElementById('pk-p-type-'+i).value;
-  _plans[i].name     =document.getElementById('pk-p-name-'+i).value.trim();
-  _plans[i].badge    =document.getElementById('pk-p-badge-'+i).value.trim();
-  _plans[i].price    =Number(document.getElementById('pk-p-price-'+i).value)||0;
-  _plans[i].discount =Number(document.getElementById('pk-p-disc-'+i).value)||0;
-  _plans[i].unit     =document.getElementById('pk-p-unit-'+i).value.trim();
-  _plans[i].features =document.getElementById('pk-p-feat-'+i).value.trim();
-  _plans[i].is_free  =type==='free';
-  _plans[i].is_custom=type==='custom';
+  _plans[i].name      =document.getElementById('pk-p-name-'+i).value.trim();
+  _plans[i].badge     =document.getElementById('pk-p-badge-'+i).value.trim();
+  _plans[i].multiplier=Number(document.getElementById('pk-p-mult-'+i).value)||1;
+  _plans[i].discount  =Number(document.getElementById('pk-p-disc-'+i).value)||0;
+  _plans[i].unit      =document.getElementById('pk-p-unit-'+i).value.trim();
+  _plans[i].features  =document.getElementById('pk-p-feat-'+i).value.trim();
+  _plans[i].is_free   =type==='free';
+  _plans[i].is_custom =type==='custom';
   renderPlans();
   showToast('✅ อัปเดตแผนแล้ว','#16a34a');
 };
@@ -405,7 +406,7 @@ window.pkSaveAll=function(){
   _plans.forEach(function(p,i){
     var n=document.getElementById('pk-p-name-'+i);   if(n) p.name=n.value.trim();
     var b=document.getElementById('pk-p-badge-'+i);  if(b) p.badge=b.value.trim();
-    var pr=document.getElementById('pk-p-price-'+i); if(pr) p.price=Number(pr.value)||0;
+    var mu=document.getElementById('pk-p-mult-'+i);  if(mu) p.multiplier=Number(mu.value)||1;
     var di=document.getElementById('pk-p-disc-'+i);  if(di) p.discount=Number(di.value)||0;
     var u=document.getElementById('pk-p-unit-'+i);   if(u) p.unit=u.value.trim();
     var f=document.getElementById('pk-p-feat-'+i);   if(f) p.features=f.value.trim();

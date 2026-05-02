@@ -322,14 +322,67 @@ async def upload_qr(platform: str, file: UploadFile = File(...),
 # ── PKG Config GET (public — price data shown to customers) ───────────────────
 @router.get("/pkg-config")
 def get_pkg_config(authorization: str = Header("")):
+    """ดึง modules จาก module_prices และ plans จาก packages table
+    พร้อม multiplier สำหรับ register page คำนวณราคา"""
     with engine.connect() as c:
-        rows = c.execute(text(
-            "SELECT config_key, config_value FROM platform_pkg_config"
-        )).fetchall()
-    result = {}
-    for r in rows:
-        result[r[0]] = r[1]
-    return result
+        mod_rows = c.execute(text("""
+            SELECT module as id, label as name, price, is_required as locked, sort_order
+            FROM module_prices ORDER BY sort_order
+        """)).mappings().all()
+
+        pkg_rows = c.execute(text("""
+            SELECT id, label as name, multiplier, type, sort_order,
+                   unit, feature_flags, badge
+            FROM packages ORDER BY sort_order
+        """)).mappings().all()
+
+    # แปลง module_prices → format เดิมที่ frontend ใช้
+    modules = []
+    icon_map = {'pos':'🖥', 'affiliate':'🔗', 'chat':'💬', 'autopost':'📲'}
+    desc_map = {
+        'pos': 'ระบบขายหน้าร้าน จัดการสินค้า สต็อก',
+        'affiliate': 'ระบบ Affiliate แนะนำ-รับค่าคอมมิชชัน',
+        'chat': 'AI ปิดการขายใน DM keyword trigger',
+        'autopost': 'โพสต์อัตโนมัติทุก platform',
+    }
+    for m in mod_rows:
+        modules.append({
+            'id':          m['id'],
+            'name':        m['name'] or m['id'],
+            'icon':        icon_map.get(m['id'], '📦'),
+            'description': desc_map.get(m['id'], ''),
+            'locked':      bool(m['locked']),
+            'price':       float(m['price'] or 0),
+        })
+
+    # แปลง packages → format plans ที่ frontend ใช้
+    plans = []
+    for p in pkg_rows:
+        is_free   = p['type'] == 'free'
+        is_custom = p['type'] == 'custom'
+        ff = p['feature_flags'] or {}
+        # สร้าง features text จาก feature_flags หรือ DB
+        feat_map = {
+            'pkg_free':     'ทุกโมดูลครบ\nไม่ต้องใช้บัตรเครดิต',
+            'pkg_basic':    '1 ร้าน · AI Basic\n500 credits/เดือน',
+            'pkg_standard': '3 ร้าน · AI Pro\n2,000 credits/เดือน',
+            'pkg_pro':      '10 ร้าน · AI Max\n5,000 credits/เดือน',
+            'pkg_privacy':  'เริ่มต้น 3,459฿ ปรับตามความต้องการ',
+        }
+        plans.append({
+            'id':          p['id'],
+            'name':        p['name'] or p['id'],
+            'badge':       p['badge'] or '',
+            'multiplier':  float(p['multiplier'] or 1),
+            'price':       0,   # ไม่ใช้แล้ว — คำนวณจาก module_prices × multiplier
+            'unit':        p['unit'] or '/เดือน',
+            'features':    feat_map.get(p['id'], ''),
+            'is_free':     is_free,
+            'is_custom':   is_custom,
+            'discount':    0,
+        })
+
+    return {'modules': modules, 'plans': plans}
 
 # ── PKG Config POST ────────────────────────────────────────────────────────────
 @router.post("/pkg-config")

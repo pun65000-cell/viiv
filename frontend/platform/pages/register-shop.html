@@ -443,36 +443,35 @@ window.vSelectTier = function(val) {
 
 // ── Dynamic Pricing ───────────────────────────────────────────
 function vUpdatePricing() {
-  // Sum add-on prices of selected optional modules
-  var modAddon = 0;
-  var selectedMods = ['POS','Affiliate'];
+  var selectedMods = [];
+  var modTotal = 0;
   _vCfgModules.forEach(function(m) {
-    if (m.locked) return;
-    var cb = document.getElementById('mod_'+m.id);
-    if (cb && cb.checked) {
-      modAddon += Number(m.price) || 0;
+    var cb = document.getElementById('mod_' + m.id);
+    var checked = m.locked || (cb && cb.checked);
+    if (checked) {
       selectedMods.push(m.name);
+      modTotal += Number(m.price) || 0;
     }
   });
 
-  // Update each non-free, non-custom tier card
   _vCfgPlans.forEach(function(p) {
     if (p.is_free || p.is_custom) return;
-    var base  = Number(p.price) || 0;
+    var multiplier = Number(p.multiplier) || 1;
     var disc  = Number(p.discount) || 0;
-    var total = base + modAddon;
+    var total = modTotal * multiplier;
     var final = Math.max(0, total - disc);
     var unit  = p.unit || '/เดือน';
 
-    var priceEl = document.getElementById('price_'+p.id);
-    var origEl  = document.getElementById('orig_'+p.id);
-    var discEl  = document.getElementById('disc_'+p.id);
+    var priceEl = document.getElementById('price_' + p.id);
+    var origEl  = document.getElementById('orig_' + p.id);
+    var discEl  = document.getElementById('disc_' + p.id);
 
-    if (priceEl) priceEl.innerHTML = '฿'+final.toLocaleString()+' <small style="font-size:10px;font-weight:400;color:#9ca3af">'+unit+'</small>';
+    if (priceEl) priceEl.innerHTML = '฿' + final.toLocaleString() +
+      ' <small style="font-size:10px;font-weight:400;color:#9ca3af">' + unit + '</small>';
     if (disc > 0 && origEl && discEl) {
-      origEl.textContent = '฿'+total.toLocaleString()+' '+unit;
+      origEl.textContent = '฿' + total.toLocaleString() + ' ' + unit;
       origEl.style.display = 'block';
-      discEl.textContent = 'ถูกลง ฿'+disc.toLocaleString();
+      discEl.textContent = 'ถูกลง ฿' + disc.toLocaleString();
       discEl.style.display = 'inline-block';
     } else {
       if (origEl) origEl.style.display = 'none';
@@ -480,10 +479,15 @@ function vUpdatePricing() {
     }
   });
 
-  // Update price note
+  var modAddon = 0;
+  _vCfgModules.forEach(function(m) {
+    if (m.locked) return;
+    var cb = document.getElementById('mod_' + m.id);
+    if (cb && cb.checked) modAddon += Number(m.price) || 0;
+  });
   document.getElementById('v_priceNote').textContent =
     '💡 ราคาสำหรับโมดูล: ' + selectedMods.join(' + ') +
-    (modAddon > 0 ? ' (+฿'+modAddon.toLocaleString()+'/เดือน)' : '');
+    (modAddon > 0 ? ' (+฿' + modAddon.toLocaleString() + '/เดือน)' : '');
 }
 
 // ── Geo ──────────────────────────────────────────────────────
