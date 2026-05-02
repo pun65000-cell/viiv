@@ -22,7 +22,11 @@ COST_PER_TOKEN = {
     "gpt-4o-mini":         {"input": 0.00000015, "output": 0.0000006},
     "gpt-4o":              {"input": 0.000005,   "output": 0.000015},
     "gemini-1.5-flash":    {"input": 0.000000075,"output": 0.0000003},
+    "deepseek-chat":       {"input": 0.00000014, "output": 0.00000028},
+    "deepseek-reasoner":   {"input": 0.00000055, "output": 0.00000219},
 }
+
+ALLOWED_PROVIDERS = ("anthropic", "openai", "google", "deepseek")
 
 
 def _admin_auth(authorization: Optional[str]):
@@ -58,19 +62,22 @@ def get_keys(authorization: str = Header(None)):
 
 # ─── POST /api/platform/ai/keys ──────────────────────────────────────
 class KeyBody(BaseModel):
-    provider: str   # anthropic | openai | gemini
+    provider: str   # anthropic | openai | google | deepseek
     api_key: str
 
 @router.post("/keys")
 def save_key(body: KeyBody, authorization: str = Header(None)):
     _admin_auth(authorization)
+    prov = (body.provider or "").strip().lower()
+    if prov not in ALLOWED_PROVIDERS:
+        raise HTTPException(400, f"Invalid provider. Allowed: {', '.join(ALLOWED_PROVIDERS)}")
     with engine.begin() as c:
         c.execute(text("""
             INSERT INTO ai_api_keys (provider, api_key)
             VALUES (:p, :k)
             ON CONFLICT (provider) DO UPDATE
               SET api_key=EXCLUDED.api_key, updated_at=now()
-        """), {"p": body.provider, "k": body.api_key})
+        """), {"p": prov, "k": body.api_key})
     return {"ok": True}
 
 
@@ -190,5 +197,7 @@ def get_models(authorization: str = Header(None)):
         {"id": "claude-haiku-4-5",  "provider": "anthropic", "use": "chat/bot",     "cost_in": 0.25,  "cost_out": 1.25},
         {"id": "claude-sonnet-4-7", "provider": "anthropic", "use": "complex/post", "cost_in": 3.0,   "cost_out": 15.0},
         {"id": "gpt-4o-mini",       "provider": "openai",    "use": "fallback",     "cost_in": 0.15,  "cost_out": 0.60},
-        {"id": "gemini-1.5-flash",  "provider": "google",    "use": "fallback",     "cost_in": 0.075, "cost_out": 0.30},
+        {"id": "gemini-1.5-flash",  "provider": "google",    "use": "fallback",     "cost_in": 0.07,  "cost_out": 0.30},
+        {"id": "deepseek-chat",     "provider": "deepseek",  "use": "low-cost",     "cost_in": 0.14,  "cost_out": 0.28},
+        {"id": "deepseek-reasoner", "provider": "deepseek",  "use": "deep-reason",  "cost_in": 0.55,  "cost_out": 2.19},
     ]}

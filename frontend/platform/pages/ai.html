@@ -1,88 +1,125 @@
-<!doctype html><html><body>
+<!doctype html><html><head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head><body>
 <style>
-.aim-wrap{padding:0;font-family:'Sarabun',system-ui,sans-serif;font-size:15px}
-.aim-num{font-family:'Chakra Petch','Sarabun',sans-serif;letter-spacing:.5px}
+:root{
+  --jp-bg:       #0a0a0c;
+  --jp-surface:  #0d0d10;
+  --jp-surface2: #13131a;
+  --jp-border:   #1e1e28;
+  --jp-border2:  #2a2a38;
+  --jp-text:     #e8e6e0;
+  --jp-muted:    #6a6a7a;
+  --jp-dim:      #3a3a4a;
+  --jp-gold:     #e8c56a;
+  --jp-gold-dim: #b89a42;
+  --jp-green:    #4caf7a;
+  --jp-red:      #e05a5a;
+  --jp-mono:     'Space Mono', ui-monospace, monospace;
+  --jp-sans:     'Noto Sans JP', system-ui, sans-serif;
+}
 
-/* Stats */
-.aim-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-.aim-stat{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid rgba(0,0,0,.07)}
-.aim-stat-lbl{font-size:13px;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-.aim-stat-val{font-size:24px;font-weight:700;color:#1f2937}
-.aim-stat-sub{font-size:13px;color:#9ca3af;margin-top:2px}
-.aim-stat.gold .aim-stat-val{color:#C8960A}
-.aim-stat.green .aim-stat-val{color:#16a34a}
+.aim-wrap{padding:0;font-family:var(--jp-sans);font-size:14px;color:var(--jp-text);background:var(--jp-bg);min-height:100%}
+.aim-wrap *{box-sizing:border-box}
+.aim-num{font-family:var(--jp-mono);letter-spacing:.3px}
 
-/* Cards / row2 */
-.aim-row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-.aim-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid rgba(0,0,0,.07);margin-bottom:16px}
-.aim-card-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.aim-card-title{font-size:14px;font-weight:700;color:#374151;flex:1}
-.aim-card-sub{font-size:13px;color:#9ca3af}
+/* ─── Stats ─────────────────────────────────────────────── */
+.aim-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+.aim-stat{position:relative;background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:20px 22px;overflow:hidden}
+.aim-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--jp-dim)}
+.aim-stat.gold::before{background:linear-gradient(90deg,var(--jp-gold-dim),var(--jp-gold))}
+.aim-stat-lbl{font-size:11px;color:var(--jp-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.15em;font-weight:500}
+.aim-stat-val{font-size:28px;font-weight:700;color:var(--jp-text);font-family:var(--jp-mono);line-height:1.1}
+.aim-stat.gold .aim-stat-val{color:var(--jp-gold)}
+.aim-stat-sub{font-size:11px;color:var(--jp-muted);margin-top:6px;letter-spacing:.05em}
 
-/* Keys */
-.aim-key-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+/* ─── Cards ────────────────────────────────────────────── */
+.aim-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.aim-card{background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:20px 22px;margin-bottom:16px}
+.aim-card-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--jp-border)}
+.aim-card-title{font-size:13px;font-weight:700;color:var(--jp-text);flex:1;letter-spacing:.05em;text-transform:uppercase}
+.aim-card-sub{font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono)}
+
+/* ─── Keys ─────────────────────────────────────────────── */
+.aim-key-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--jp-border);font-size:13px}
 .aim-key-row:last-of-type{border-bottom:none}
-.aim-key-prov{font-weight:700;color:#1f2937;width:90px}
-.aim-key-mask{font-family:monospace;font-size:13px;color:#6b7280;background:#f9fafb;padding:3px 8px;border-radius:4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.aim-key-empty{color:#9ca3af;font-style:italic;flex:1;font-size:13px}
-.aim-key-del{color:#dc2626;background:none;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif}
-.aim-key-del:hover{background:#fee2e2}
-.aim-key-form{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:2px dashed #f3f4f6}
-.aim-key-form select,.aim-key-form input{padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none}
-.aim-key-form select{width:120px;background:#fff}
-.aim-key-form input{flex:1}
-.aim-key-form input:focus,.aim-key-form select:focus{border-color:#C8960A}
-.aim-btn-gold{padding:7px 16px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:#C8960A;color:#fff;font-family:'Sarabun',sans-serif}
-.aim-btn-gold:hover{background:#a6790a}
-.aim-btn-gold:disabled{opacity:.5;cursor:not-allowed}
+.aim-key-prov{width:80px;font-family:var(--jp-mono);color:var(--jp-muted);font-size:12px;text-transform:lowercase}
+.aim-key-mask{font-family:var(--jp-mono);font-size:12px;color:var(--jp-text);background:var(--jp-surface2);padding:5px 10px;border-radius:4px;flex:1;border:1px solid var(--jp-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aim-key-empty{color:var(--jp-dim);font-style:italic;flex:1;font-size:12px;font-family:var(--jp-mono)}
+.aim-key-badge{font-size:10px;padding:3px 8px;border-radius:3px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:var(--jp-mono)}
+.aim-key-badge.on{background:rgba(76,175,122,.15);color:var(--jp-green);border:1px solid rgba(76,175,122,.35)}
+.aim-key-badge.off{background:rgba(224,90,90,.12);color:var(--jp-red);border:1px solid rgba(224,90,90,.3)}
+.aim-key-del{color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
+.aim-key-del:hover{background:rgba(224,90,90,.1)}
+.aim-key-form{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--jp-border2)}
+.aim-key-form select,.aim-key-form input{padding:8px 11px;border:1px solid var(--jp-border2);border-radius:4px;font-size:13px;background:var(--jp-surface2);color:var(--jp-text);outline:none;font-family:var(--jp-sans)}
+.aim-key-form select{width:130px;font-family:var(--jp-mono);font-size:12px}
+.aim-key-form input{flex:1;font-family:var(--jp-mono)}
+.aim-key-form input:focus,.aim-key-form select:focus{border-color:var(--jp-gold)}
+.aim-btn-gold{padding:8px 18px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--jp-gold);color:#1a1a1a;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
+.aim-btn-gold:hover{background:#f0d077}
+.aim-btn-gold:disabled{opacity:.4;cursor:not-allowed}
+.aim-btn-ghost{padding:6px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;border:1px solid var(--jp-border2);color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
+.aim-btn-ghost:hover{border-color:var(--jp-gold);color:var(--jp-gold)}
 
-/* Models */
-.aim-model-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
-.aim-model-row:last-child{border-bottom:none}
-.aim-model-name{font-weight:600;color:#1f2937;flex:1}
-.aim-model-prov{font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
-.aim-model-cost{font-family:'Chakra Petch',sans-serif;color:#6b7280;font-size:13px;text-align:right;min-width:140px}
-.aim-model-cost b{color:#C8960A}
+/* ─── Models (dropdown slots) ─────────────────────────── */
+.aim-slot-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--jp-border)}
+.aim-slot-row:last-child{border-bottom:none}
+.aim-slot-label{width:120px;color:var(--jp-muted);font-size:11px;text-transform:uppercase;letter-spacing:.15em;font-weight:500;font-family:var(--jp-mono)}
+.aim-slot-select{flex:1;padding:8px 10px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:4px;font-family:var(--jp-mono);font-size:12px;outline:none;cursor:pointer}
+.aim-slot-select:focus{border-color:var(--jp-gold)}
+.aim-slot-select option{background:var(--jp-surface2);color:var(--jp-text)}
+.aim-slot-cost{min-width:140px;font-family:var(--jp-mono);font-size:11px;color:var(--jp-muted);text-align:right;letter-spacing:.05em}
+.aim-slot-cost b{color:var(--jp-gold);font-weight:700}
+.aim-models-actions{margin-top:18px;padding-top:14px;border-top:1px solid var(--jp-border2);display:flex;justify-content:flex-end}
 
-/* Tables */
-.aim-tbl-wrap{overflow-x:auto;margin:0 -20px;padding:0 20px}
-table.aim-tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:600px}
-table.aim-tbl th{padding:10px 12px;text-align:left;color:#6b7280;font-weight:600;background:#fafafa;border-bottom:1px solid #f3f4f6;font-size:13px;text-transform:uppercase;letter-spacing:.3px}
-table.aim-tbl td{padding:11px 12px;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle}
+/* ─── Tables ──────────────────────────────────────────── */
+.aim-tbl-wrap{overflow-x:auto;margin:0 -22px;padding:0 22px}
+table.aim-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+table.aim-tbl th{padding:10px 12px;text-align:left;color:var(--jp-muted);font-weight:600;background:var(--jp-surface2);border-bottom:1px solid var(--jp-border2);font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-family:var(--jp-mono)}
+table.aim-tbl td{padding:11px 12px;border-bottom:1px solid var(--jp-border);color:var(--jp-text);vertical-align:middle;font-family:var(--jp-mono);font-size:12px}
 table.aim-tbl tr:last-child td{border:none}
-table.aim-tbl tr:hover td{background:#fffbf2}
-.aim-tbl .num{font-family:'Chakra Petch',sans-serif;text-align:right;color:#1f2937}
-.aim-tbl .muted{color:#9ca3af;font-size:13px}
+table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
+.aim-tbl .num{text-align:right}
+.aim-tbl .muted{color:var(--jp-muted);font-size:11px}
 
-/* Progress bar */
-.aim-bar{width:100%;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden;min-width:100px}
-.aim-bar-fill{height:100%;background:linear-gradient(90deg,#C8960A,#e8b93e);transition:width .3s}
-.aim-bar-fill.warn{background:linear-gradient(90deg,#dc2626,#f59e0b)}
-.aim-bar-fill.green{background:linear-gradient(90deg,#16a34a,#22c55e)}
+/* ─── Bars ────────────────────────────────────────────── */
+.aim-bar{width:100%;height:6px;background:var(--jp-border);border-radius:3px;overflow:hidden;min-width:100px}
+.aim-bar-fill{height:100%;background:linear-gradient(90deg,var(--jp-gold-dim),var(--jp-gold));transition:width .3s}
+.aim-bar-fill.warn{background:linear-gradient(90deg,#a83838,var(--jp-red))}
+.aim-bar-fill.green{background:linear-gradient(90deg,#2f7a52,var(--jp-green))}
 
-/* Credit input */
-.aim-credit-input{width:90px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:5px;font-size:14px;font-family:'Chakra Petch',sans-serif;text-align:right;outline:none}
-.aim-credit-input:focus{border-color:#C8960A}
-.aim-credit-save{margin-left:6px;padding:5px 10px;background:#C8960A;color:#fff;border:none;border-radius:5px;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif}
-.aim-credit-save:hover{background:#a6790a}
+/* ─── Credit input ───────────────────────────────────── */
+.aim-credit-input{width:90px;padding:6px 9px;border:1px solid var(--jp-border2);border-radius:3px;font-size:12px;font-family:var(--jp-mono);text-align:right;outline:none;background:var(--jp-surface2);color:var(--jp-text)}
+.aim-credit-input:focus{border-color:var(--jp-gold)}
+.aim-credit-save{margin-left:6px;padding:6px 11px;background:var(--jp-gold);color:#1a1a1a;border:none;border-radius:3px;font-size:11px;cursor:pointer;font-family:var(--jp-mono);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.aim-credit-save:hover{background:#f0d077}
 
-/* Source badge */
-.aim-source{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.aim-source.chat{background:#dbeafe;color:#1e40af}
-.aim-source.autopost{background:#fce7f3;color:#9d174d}
-.aim-source.pos_help{background:#dcfce7;color:#166534}
-.aim-source.unknown{background:#f3f4f6;color:#6b7280}
+/* ─── Source badge ───────────────────────────────────── */
+.aim-source{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:var(--jp-mono)}
+.aim-source.chat{background:rgba(76,175,180,.15);color:#7ed1d6;border:1px solid rgba(76,175,180,.3)}
+.aim-source.autopost{background:rgba(200,90,140,.15);color:#e08bb0;border:1px solid rgba(200,90,140,.3)}
+.aim-source.pos_help{background:rgba(76,175,122,.15);color:var(--jp-green);border:1px solid rgba(76,175,122,.3)}
+.aim-source.unknown{background:var(--jp-surface2);color:var(--jp-muted);border:1px solid var(--jp-border2)}
 
-/* Status dot */
-.aim-status{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600}
-.aim-status::before{content:'';width:8px;height:8px;border-radius:50%}
-.aim-status.online{color:#16a34a}.aim-status.online::before{background:#22c55e}
-.aim-status.offline{color:#dc2626}.aim-status.offline::before{background:#ef4444}
-.aim-status.error{color:#d97706}.aim-status.error::before{background:#f59e0b}
-.aim-status.unknown{color:#9ca3af}.aim-status.unknown::before{background:#9ca3af}
+/* ─── Status pulse dot ────────────────────────────────── */
+.aim-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;font-family:var(--jp-mono);text-transform:lowercase;letter-spacing:.05em}
+.aim-status::before{content:'';width:7px;height:7px;border-radius:50%;display:inline-block}
+.aim-status.online{color:var(--jp-green)}
+.aim-status.online::before{background:var(--jp-green);box-shadow:0 0 0 0 rgba(76,175,122,.7);animation:aim-pulse 2s infinite}
+.aim-status.offline{color:var(--jp-red)}.aim-status.offline::before{background:var(--jp-red)}
+.aim-status.error{color:#d97706}.aim-status.error::before{background:#d97706}
+.aim-status.unknown{color:var(--jp-muted)}.aim-status.unknown::before{background:var(--jp-muted)}
+@keyframes aim-pulse{
+  0%{box-shadow:0 0 0 0 rgba(76,175,122,.55)}
+  70%{box-shadow:0 0 0 8px rgba(76,175,122,0)}
+  100%{box-shadow:0 0 0 0 rgba(76,175,122,0)}
+}
 
-.aim-loading{text-align:center;color:#9ca3af;padding:24px;font-size:14px}
-.aim-empty{text-align:center;color:#9ca3af;padding:18px;font-size:13px;font-style:italic}
+.aim-loading{text-align:center;color:var(--jp-muted);padding:24px;font-size:12px;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
+.aim-empty{text-align:center;color:var(--jp-muted);padding:18px;font-size:12px;font-style:italic;font-family:var(--jp-mono)}
 
 @media (max-width:900px){
   .aim-stats{grid-template-columns:repeat(2,1fr)}
@@ -97,7 +134,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     <div class="aim-stat">
       <div class="aim-stat-lbl">Token วันนี้</div>
       <div class="aim-stat-val aim-num" id="aim-stat-today-tok">—</div>
-      <div class="aim-stat-sub" id="aim-stat-today-calls">— ครั้ง</div>
+      <div class="aim-stat-sub" id="aim-stat-today-calls">— calls</div>
     </div>
     <div class="aim-stat gold">
       <div class="aim-stat-lbl">ค่าใช้จ่ายวันนี้</div>
@@ -107,7 +144,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     <div class="aim-stat">
       <div class="aim-stat-lbl">Token เดือนนี้</div>
       <div class="aim-stat-val aim-num" id="aim-stat-month-tok">—</div>
-      <div class="aim-stat-sub" id="aim-stat-month-calls">— ครั้ง</div>
+      <div class="aim-stat-sub" id="aim-stat-month-calls">— calls</div>
     </div>
     <div class="aim-stat gold">
       <div class="aim-stat-lbl">ค่าใช้จ่ายเดือนนี้</div>
@@ -120,30 +157,34 @@ table.aim-tbl tr:hover td{background:#fffbf2}
   <div class="aim-row2">
     <div class="aim-card">
       <div class="aim-card-head">
-        <div class="aim-card-title">🔑 API Keys</div>
+        <div class="aim-card-title">API Keys</div>
         <div class="aim-card-sub">เก็บใน DB (encrypted phase 2)</div>
       </div>
       <div id="aim-keys-list">
-        <div class="aim-loading">กำลังโหลด...</div>
+        <div class="aim-loading">loading...</div>
       </div>
       <form class="aim-key-form" onsubmit="return aimSaveKey(event)">
         <select id="aim-new-prov">
           <option value="anthropic">Anthropic</option>
           <option value="openai">OpenAI</option>
           <option value="google">Google</option>
+          <option value="deepseek">DeepSeek</option>
         </select>
-        <input id="aim-new-key" type="password" placeholder="sk-ant-... / sk-... / AIza..." autocomplete="off">
+        <input id="aim-new-key" type="password" placeholder="sk-ant-... / sk-... / AIza... / sk-..." autocomplete="off">
         <button type="submit" class="aim-btn-gold" id="aim-save-key-btn">บันทึก</button>
       </form>
     </div>
 
     <div class="aim-card">
       <div class="aim-card-head">
-        <div class="aim-card-title">🧠 Models ที่ใช้</div>
+        <div class="aim-card-title">Models ที่ใช้</div>
         <div class="aim-card-sub">$/1M tokens</div>
       </div>
-      <div id="aim-models-list">
-        <div class="aim-loading">กำลังโหลด...</div>
+      <div id="aim-slots">
+        <div class="aim-loading">loading...</div>
+      </div>
+      <div class="aim-models-actions">
+        <button type="button" class="aim-btn-gold" id="aim-save-models-btn" onclick="aimSaveModels()">บันทึก Model Config</button>
       </div>
     </div>
   </div>
@@ -151,7 +192,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
   <!-- 4. TOKEN BY MODEL -->
   <div class="aim-card">
     <div class="aim-card-head">
-      <div class="aim-card-title">📊 Token usage แยกตาม Model (เดือนนี้)</div>
+      <div class="aim-card-title">Token usage แยกตาม Model (เดือนนี้)</div>
     </div>
     <div class="aim-tbl-wrap">
       <table class="aim-tbl">
@@ -164,7 +205,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
           <th style="width:30%">สัดส่วน</th>
         </tr></thead>
         <tbody id="aim-by-model">
-          <tr><td colspan="6" class="aim-loading">กำลังโหลด...</td></tr>
+          <tr><td colspan="6" class="aim-loading">loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -173,7 +214,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
   <!-- 5. TENANT CREDITS -->
   <div class="aim-card">
     <div class="aim-card-head">
-      <div class="aim-card-title">🏪 Credit รายร้าน (top 10 เดือนนี้)</div>
+      <div class="aim-card-title">Credit รายร้าน (top 10 เดือนนี้)</div>
       <div class="aim-card-sub">ตั้ง limit แล้วกดบันทึก</div>
     </div>
     <div class="aim-tbl-wrap">
@@ -187,7 +228,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
           <th>Limit</th>
         </tr></thead>
         <tbody id="aim-by-tenant">
-          <tr><td colspan="6" class="aim-loading">กำลังโหลด...</td></tr>
+          <tr><td colspan="6" class="aim-loading">loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -196,8 +237,8 @@ table.aim-tbl tr:hover td{background:#fffbf2}
   <!-- 6. TOKEN FLOW LOG -->
   <div class="aim-card">
     <div class="aim-card-head">
-      <div class="aim-card-title">📜 Token Flow Log (50 ล่าสุด)</div>
-      <button class="aim-btn-gold" style="padding:5px 12px;font-size:11px" onclick="aimLoadLog()">รีเฟรช</button>
+      <div class="aim-card-title">Token Flow Log (50 ล่าสุด)</div>
+      <button class="aim-btn-ghost" onclick="aimLoadLog()">รีเฟรช</button>
     </div>
     <div class="aim-tbl-wrap">
       <table class="aim-tbl">
@@ -213,7 +254,7 @@ table.aim-tbl tr:hover td{background:#fffbf2}
           <th class="num">Cost</th>
         </tr></thead>
         <tbody id="aim-log">
-          <tr><td colspan="9" class="aim-loading">กำลังโหลด...</td></tr>
+          <tr><td colspan="9" class="aim-loading">loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -223,6 +264,31 @@ table.aim-tbl tr:hover td{background:#fffbf2}
 
 <script>
 (function(){
+  // ─── Slot definitions ──────────────────────────────────
+  var SLOTS = [
+    {id:'chat_bot',     label:'CHAT/BOT',     defaultModel:'claude-haiku-4-5'},
+    {id:'complex_post', label:'COMPLEX/POST', defaultModel:'claude-sonnet-4-7'},
+    {id:'fallback',     label:'FALLBACK AI',  defaultModel:'gpt-4o-mini'},
+    {id:'pos_help',     label:'POS HELP',     defaultModel:'claude-haiku-4-5'},
+    {id:'autopost',     label:'AUTOPOST',     defaultModel:'claude-sonnet-4-7'},
+    {id:'analytics',    label:'ANALYTICS',    defaultModel:'gemini-1.5-flash'}
+  ];
+
+  // ─── Model catalog (id → meta) — fallback hardcoded
+  // Updated from /api/platform/ai/models on load
+  var MODEL_CATALOG = {
+    'claude-haiku-4-5':   {provider:'Anthropic', tag:'ถูก/เร็ว',    cost_in:0.25,  cost_out:1.25},
+    'claude-sonnet-4-7':  {provider:'Anthropic', tag:'ฉลาด',         cost_in:3.00,  cost_out:15.00},
+    'gpt-4o-mini':        {provider:'OpenAI',    tag:'Fallback',     cost_in:0.15,  cost_out:0.60},
+    'gemini-1.5-flash':   {provider:'Google',    tag:'ถูกมาก',       cost_in:0.07,  cost_out:0.30},
+    'deepseek-chat':      {provider:'DeepSeek',  tag:'ราคาต่ำ',      cost_in:0.14,  cost_out:0.28},
+    'deepseek-reasoner':  {provider:'DeepSeek',  tag:'คิดลึก',       cost_in:0.55,  cost_out:2.19}
+  };
+  var MODEL_ORDER = [
+    'claude-haiku-4-5','claude-sonnet-4-7','gpt-4o-mini',
+    'gemini-1.5-flash','deepseek-chat','deepseek-reasoner'
+  ];
+
   function _tok(){
     return (window.platformToken && window.platformToken())
         || localStorage.getItem('platform_token')
@@ -244,13 +310,14 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     if (n < 0.01) return '$' + n.toFixed(4);
     return '$' + n.toFixed(2);
   }
+  function _fmtPrice(n){ return '$' + Number(n||0).toFixed(2); }
   function _relTime(iso){
     if (!iso) return '—';
     var d = new Date(iso);
     var diff = Date.now() - d.getTime();
-    if (diff < 60000)    return 'เมื่อกี้';
-    if (diff < 3600000)  return Math.floor(diff/60000) + ' นาที';
-    if (diff < 86400000) return Math.floor(diff/3600000) + ' ชม.';
+    if (diff < 60000)    return 'just now';
+    if (diff < 3600000)  return Math.floor(diff/60000) + 'm';
+    if (diff < 86400000) return Math.floor(diff/3600000) + 'h';
     return d.toLocaleDateString('th-TH', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
   }
 
@@ -260,16 +327,16 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     return r.json();
   }
 
-  // ─── 1 + 4 + 5 — Stats + ByModel + ByTenant ───────────────────────
+  // ─── 1 + 4 + 5 — Stats + ByModel + ByTenant ─────────────
   async function loadStats(){
     try {
       var d = await _get('/api/platform/ai/stats');
       document.getElementById('aim-stat-today-tok').textContent   = _fmt(d.today.tokens);
       document.getElementById('aim-stat-today-cost').textContent  = _fmtCost(d.today.cost);
-      document.getElementById('aim-stat-today-calls').textContent = _fmt(d.today.calls) + ' ครั้ง';
+      document.getElementById('aim-stat-today-calls').textContent = _fmt(d.today.calls) + ' calls';
       document.getElementById('aim-stat-month-tok').textContent   = _fmt(d.month.tokens);
       document.getElementById('aim-stat-month-cost').textContent  = _fmtCost(d.month.cost);
-      document.getElementById('aim-stat-month-calls').textContent = _fmt(d.month.calls) + ' ครั้ง';
+      document.getElementById('aim-stat-month-calls').textContent = _fmt(d.month.calls) + ' calls';
       var st = d.ai_status || 'unknown';
       document.getElementById('aim-stat-ai-status').innerHTML =
         'moduleai: <span class="aim-status ' + _esc(st) + '">' + _esc(st) + '</span>';
@@ -313,7 +380,6 @@ table.aim-tbl tr:hover td{background:#fffbf2}
       document.getElementById('aim-by-tenant').innerHTML = bt ||
         '<tr><td colspan="6" class="aim-empty">ยังไม่มีข้อมูล</td></tr>';
     } catch (e) {
-      console.warn('stats error', e);
       document.getElementById('aim-by-model').innerHTML  =
         '<tr><td colspan="6" class="aim-empty">โหลด stats ไม่สำเร็จ: ' + _esc(e.message) + '</td></tr>';
       document.getElementById('aim-by-tenant').innerHTML =
@@ -321,11 +387,11 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     }
   }
 
-  // ─── 2 — API Keys ────────────────────────────────────────────────
+  // ─── 2 — API Keys (4 providers) ────────────────────────
   async function loadKeys(){
     try {
       var d = await _get('/api/platform/ai/keys');
-      var providers = ['anthropic','openai','google'];
+      var providers = ['anthropic','openai','google','deepseek'];
       var existing = {};
       (d.keys||[]).forEach(function(k){ existing[k.provider] = k; });
       var html = providers.map(function(p){
@@ -334,12 +400,14 @@ table.aim-tbl tr:hover td{background:#fffbf2}
           return '<div class="aim-key-row">' +
             '<div class="aim-key-prov">' + _esc(p) + '</div>' +
             '<div class="aim-key-mask">' + _esc(k.masked) + '</div>' +
+            '<span class="aim-key-badge on">ใช้งาน</span>' +
             '<button class="aim-key-del" onclick="aimDelKey(\'' + _esc(p) + '\')">ลบ</button>' +
           '</div>';
         }
         return '<div class="aim-key-row">' +
           '<div class="aim-key-prov">' + _esc(p) + '</div>' +
           '<div class="aim-key-empty">— ยังไม่ตั้งค่า —</div>' +
+          '<span class="aim-key-badge off">ไม่มี</span>' +
         '</div>';
       }).join('');
       document.getElementById('aim-keys-list').innerHTML = html;
@@ -349,27 +417,59 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     }
   }
 
-  // ─── 3 — Models ──────────────────────────────────────────────────
+  // ─── 3 — Models (6 dropdown slots) ─────────────────────
+  function _renderSlots(){
+    var html = SLOTS.map(function(s){
+      var current = window.aimSlotConfig && window.aimSlotConfig[s.id]
+                    ? window.aimSlotConfig[s.id] : s.defaultModel;
+      var opts = MODEL_ORDER.map(function(mid){
+        var m = MODEL_CATALOG[mid] || {provider:'?', tag:''};
+        var sel = mid === current ? ' selected' : '';
+        return '<option value="' + _esc(mid) + '"' + sel + '>' +
+          _esc(mid) + ' (' + _esc(m.provider) + (m.tag ? ' · ' + _esc(m.tag) : '') + ')' +
+        '</option>';
+      }).join('');
+      var cm = MODEL_CATALOG[current] || {cost_in:0, cost_out:0};
+      return '<div class="aim-slot-row" data-slot="' + _esc(s.id) + '">' +
+        '<div class="aim-slot-label">' + _esc(s.label) + '</div>' +
+        '<select class="aim-slot-select" data-slot="' + _esc(s.id) + '" onchange="aimUpdateSlotPrice(this)">' +
+          opts +
+        '</select>' +
+        '<div class="aim-slot-cost" id="aim-cost-' + _esc(s.id) + '">' +
+          'in <b>' + _fmtPrice(cm.cost_in) + '</b> · out <b>' + _fmtPrice(cm.cost_out) + '</b>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    document.getElementById('aim-slots').innerHTML = html;
+  }
+
   async function loadModels(){
     try {
       var d = await _get('/api/platform/ai/models');
-      var html = (d.models||[]).map(function(m){
-        return '<div class="aim-model-row">' +
-          '<div class="aim-model-name">' + _esc(m.id) +
-            '<div class="aim-model-prov">' + _esc(m.provider) + ' · ' + _esc(m.use) + '</div>' +
-          '</div>' +
-          '<div class="aim-model-cost">in <b>$' + Number(m.cost_in||0).toFixed(2) + '</b> · out <b>$' + Number(m.cost_out||0).toFixed(2) + '</b></div>' +
-        '</div>';
-      }).join('');
-      document.getElementById('aim-models-list').innerHTML = html ||
-        '<div class="aim-empty">ยังไม่มี model</div>';
+      // Update catalog + order from server
+      if (d && d.models && d.models.length) {
+        var cat = {}, order = [];
+        d.models.forEach(function(m){
+          var prov = String(m.provider||'').replace(/^./,function(c){return c.toUpperCase()});
+          cat[m.id] = {
+            provider: prov,
+            tag: m.use || '',
+            cost_in: Number(m.cost_in||0),
+            cost_out: Number(m.cost_out||0)
+          };
+          order.push(m.id);
+        });
+        MODEL_CATALOG = cat;
+        MODEL_ORDER   = order;
+      }
+      _renderSlots();
     } catch (e) {
-      document.getElementById('aim-models-list').innerHTML =
-        '<div class="aim-empty">โหลด models ไม่สำเร็จ: ' + _esc(e.message) + '</div>';
+      // Fallback to hardcoded catalog
+      _renderSlots();
     }
   }
 
-  // ─── 6 — Token Flow Log ─────────────────────────────────────────
+  // ─── 6 — Token Flow Log ────────────────────────────────
   async function loadLog(){
     try {
       var d = await _get('/api/platform/ai/log?limit=50');
@@ -395,14 +495,36 @@ table.aim-tbl tr:hover td{background:#fffbf2}
     }
   }
 
-  // ─── Actions ─────────────────────────────────────────────────────
+  // ─── Actions ───────────────────────────────────────────
+  window.aimUpdateSlotPrice = function(sel){
+    var mid = sel.value;
+    var slot = sel.dataset.slot;
+    var m = MODEL_CATALOG[mid] || {cost_in:0, cost_out:0};
+    var el = document.getElementById('aim-cost-' + slot);
+    if (el) el.innerHTML =
+      'in <b>' + _fmtPrice(m.cost_in) + '</b> · out <b>' + _fmtPrice(m.cost_out) + '</b>';
+  };
+
+  window.aimSaveModels = function(){
+    var cfg = {};
+    document.querySelectorAll('.aim-slot-select').forEach(function(s){
+      cfg[s.dataset.slot] = s.value;
+    });
+    try { localStorage.setItem('aim_slot_config', JSON.stringify(cfg)); } catch(e){}
+    var btn = document.getElementById('aim-save-models-btn');
+    var old = btn.textContent;
+    btn.textContent = '✓ บันทึกแล้ว';
+    btn.disabled = true;
+    setTimeout(function(){ btn.textContent = old; btn.disabled = false; }, 1500);
+  };
+
   window.aimSaveKey = async function(ev){
     ev.preventDefault();
     var prov = document.getElementById('aim-new-prov').value;
     var key  = document.getElementById('aim-new-key').value.trim();
     if (!key) { alert('กรุณากรอก API key'); return false; }
     var btn  = document.getElementById('aim-save-key-btn');
-    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+    btn.disabled = true; btn.textContent = '...';
     try {
       var r = await fetch('/api/platform/ai/keys', {
         method:'POST',
@@ -453,6 +575,12 @@ table.aim-tbl tr:hover td{background:#fffbf2}
   };
 
   window.aimLoadLog = loadLog;
+
+  // ─── Init ──────────────────────────────────────────────
+  try {
+    var saved = localStorage.getItem('aim_slot_config');
+    window.aimSlotConfig = saved ? JSON.parse(saved) : {};
+  } catch(e) { window.aimSlotConfig = {}; }
 
   loadKeys();
   loadModels();
