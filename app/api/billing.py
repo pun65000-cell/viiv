@@ -172,10 +172,13 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
     tid       = (payload.get("tenant_id") or "").strip()
     pkg       = (payload.get("package_id") or "").strip()
     modules   = payload.get("modules") or []
-    due_date  = payload.get("due_date")  # optional ISO date string
+    duration_months = int(payload.get("duration_months") or 1)
+    discount  = float(payload.get("discount") or 0)
 
     if not tid or not pkg or not isinstance(modules, list):
         raise HTTPException(400, "tenant_id, package_id, modules[] required")
+    if duration_months < 1 or duration_months > 36:
+        raise HTTPException(400, "duration_months must be 1-36")
 
     noted_by = (auth.get("email") or auth.get("user_id")
                 or auth.get("sub") or "admin")
@@ -186,7 +189,9 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
         if not exists:
             raise HTTPException(404, "tenant not found")
 
-        amount = _calc_amount(pkg, modules, c)
+        monthly = _calc_amount(pkg, modules, c)
+        amount = max(0.0, round(monthly * duration_months - discount, 2))
+        duration_days = duration_months * 30
 
         c.execute(text("""
             INSERT INTO billing_invoices
@@ -194,21 +199,21 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
                  due_date, paid_at, noted_by)
             VALUES
                 (:tid, :amt, :pkg, :mods, 'paid',
-                 :due, NOW(), :by)
+                 (NOW() + (:days || ' days')::interval)::date, NOW(), :by)
         """), {
             "tid": tid, "amt": amount, "pkg": pkg,
-            "mods": modules, "due": due_date, "by": noted_by,
+            "mods": modules, "days": duration_days, "by": noted_by,
         })
 
         c.execute(text("""
             UPDATE tenants
-            SET subscription_ends_at = NOW() + interval '30 days',
+            SET subscription_ends_at = NOW() + (:days || ' days')::interval,
                 billing_status        = 'active',
                 modules               = :mods,
                 package_id            = :pkg,
                 updated_at            = NOW()
             WHERE id = :tid
-        """), {"mods": modules, "pkg": pkg, "tid": tid})
+        """), {"mods": modules, "pkg": pkg, "tid": tid, "days": duration_days})
 
         line_uid = c.execute(text("SELECT line_uid FROM tenants WHERE id=:tid"),
                              {"tid": tid}).scalar()

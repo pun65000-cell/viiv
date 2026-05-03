@@ -195,15 +195,35 @@
     </div>
 
     <div class="bx-field">
-      <label class="bx-label">วันที่ครบกำหนด (ออปชัน)</label>
-      <input type="date" class="bx-input" id="bxPayDue">
+      <label class="bx-label">ระยะเวลา</label>
+      <select class="bx-select" id="bxPayDuration" onchange="bxRecalcAmount()">
+        <option value="1">1 เดือน</option>
+        <option value="2">2 เดือน</option>
+        <option value="3">3 เดือน</option>
+        <option value="4">4 เดือน</option>
+        <option value="5">5 เดือน</option>
+        <option value="6">6 เดือน</option>
+        <option value="7">7 เดือน</option>
+        <option value="8">8 เดือน</option>
+        <option value="9">9 เดือน</option>
+        <option value="10">10 เดือน</option>
+        <option value="11">11 เดือน</option>
+        <option value="12">1 ปี (12 เดือน)</option>
+        <option value="24">2 ปี (24 เดือน)</option>
+        <option value="36">3 ปี (36 เดือน)</option>
+      </select>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">ส่วนลด (฿)</label>
+      <input type="number" class="bx-input" id="bxPayDiscount" min="0" value="0" oninput="bxRecalcAmount()">
     </div>
 
     <div class="bx-field">
       <label class="bx-label">ยอดที่รับ</label>
       <div class="bx-amt-box">
         <span><span id="bxPayAmount">—</span> บาท <small id="bxPayAmountNote"></small></span>
-        <small>30 วันต่ออายุ</small>
+        <small id="bxPayDurNote">30 วันต่ออายุ</small>
       </div>
     </div>
 
@@ -404,7 +424,8 @@
       inp.checked = on;
       el.classList.toggle('active', on);
     });
-    document.getElementById('bxPayDue').value = '';
+    document.getElementById('bxPayDuration').value = '1';
+    document.getElementById('bxPayDiscount').value = '0';
     bxRecalcAmount();
     document.getElementById('bxPayMask').classList.add('open');
   };
@@ -438,15 +459,33 @@
     const key = mods.slice().sort().join(',');
     const hit = (BX._prices||[]).find(p =>
       p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
-    document.getElementById('bxPayAmount').textContent = hit ? fmt(hit.price) : '—';
-    document.getElementById('bxPayAmountNote').textContent = hit ? '' : '(ไม่มีราคาสำหรับชุดนี้)';
+    const months = parseInt(document.getElementById('bxPayDuration').value) || 1;
+    const discount = parseInt(document.getElementById('bxPayDiscount').value) || 0;
+    if (!hit) {
+      document.getElementById('bxPayAmount').textContent = '—';
+      document.getElementById('bxPayAmountNote').textContent = '(ไม่มีราคาสำหรับชุดนี้)';
+      document.getElementById('bxPayDurNote').textContent = (months * 30) + ' วันต่ออายุ';
+      return;
+    }
+    const subtotal = hit.price * months;
+    const total = Math.max(0, subtotal - discount);
+    document.getElementById('bxPayAmount').textContent = fmt(total);
+    let note = '';
+    if (months > 1 || discount > 0) {
+      note = '(' + fmt(hit.price) + ' × ' + months + ' = ' + fmt(subtotal);
+      if (discount > 0) note += ' − ' + fmt(discount);
+      note += ')';
+    }
+    document.getElementById('bxPayAmountNote').textContent = note;
+    document.getElementById('bxPayDurNote').textContent = (months * 30) + ' วันต่ออายุ';
   };
 
   window.bxPaySubmit = async function(){
     if(!_payRow) return;
     const pkg  = document.getElementById('bxPayPkg').value;
     const mods = bxSelectedMods();
-    const due  = document.getElementById('bxPayDue').value || null;
+    const months = parseInt(document.getElementById('bxPayDuration').value) || 1;
+    const discount = parseInt(document.getElementById('bxPayDiscount').value) || 0;
     const key  = mods.slice().sort().join(',');
     const hit  = (BX._prices||[]).find(p =>
       p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
@@ -463,7 +502,8 @@
           amount:    hit.price,
           package_id: pkg,
           modules:   mods,
-          due_date:  due,
+          duration_months: months,
+          discount:  discount,
         }),
       });
       const j = await r.json();
