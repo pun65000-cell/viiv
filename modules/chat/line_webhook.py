@@ -127,20 +127,73 @@ async def get_bot_settings(db):
         return default
 
 
+PERSONA_MAP = {
+    "friendly-female": {
+        "suffix": "ค่ะ 😊",
+        "greeting": "สวัสดีค่ะ",
+        "pronoun": "หนู",
+        "sign": "ค่ะ",
+    },
+    "professional-female": {
+        "suffix": "ค่ะ",
+        "greeting": "สวัสดีค่ะ",
+        "pronoun": "ดิฉัน",
+        "sign": "ค่ะ",
+    },
+    "cute-female": {
+        "suffix": "นะคะ 🌸",
+        "greeting": "สวัสดีค้า~",
+        "pronoun": "หนู",
+        "sign": "ค้า",
+    },
+    "friendly-male": {
+        "suffix": "ครับ 😊",
+        "greeting": "สวัสดีครับ",
+        "pronoun": "ผม",
+        "sign": "ครับ",
+    },
+    "professional-male": {
+        "suffix": "ครับ",
+        "greeting": "สวัสดีครับ",
+        "pronoun": "ผม",
+        "sign": "ครับ",
+    },
+    "casual-male": {
+        "suffix": "นะครับ 👍",
+        "greeting": "หวัดดีครับ",
+        "pronoun": "ผม",
+        "sign": "ครับ",
+    },
+}
+
+DEFAULT_PERSONA = PERSONA_MAP["friendly-female"]
+
+
+def apply_persona(text: str, persona_key: str) -> str:
+    """แทน {END} ด้วย suffix ของ persona และปรับ pronoun/sign"""
+    p = PERSONA_MAP.get(persona_key, DEFAULT_PERSONA)
+    # แทน {END} ด้วย suffix
+    result = text.replace("{END}", p["suffix"])
+    # ถ้าไม่มี {END} เลย และ text ไม่ได้ลงท้ายด้วย sign อยู่แล้ว → ไม่แตะ
+    return result
+
+
 def bot_reply(text_in: str, bot_settings: dict) -> str | None:
     """Match keyword rules; return reply text หรือ None ถ้าไม่ตรง rule ใดเลย."""
     if not text_in:
         return None
+    persona_key = bot_settings.get("persona", "friendly-female")
     t = text_in.lower().strip()
     for keywords, reply in KEYWORD_RULES:
         for kw in keywords:
             if kw.lower() in t:
-                return reply
+                return apply_persona(reply, persona_key)
     return None
 
 
-def fallback_reply() -> str:
-    return "ขอบคุณที่ติดต่อมานะคะ 🙏\nทีมงานจะติดต่อกลับเร็วๆ นี้ค่ะ"
+def fallback_reply(persona_key: str = "friendly-female") -> str:
+    p = PERSONA_MAP.get(persona_key, DEFAULT_PERSONA)
+    return f"ขอบคุณที่ติดต่อมานะ{p['sign']} 🙏\nทีมงานจะติดต่อกลับเร็วๆ นี้{p['suffix']}"
 
 
 @router.post("/webhook/line/platform")
@@ -187,8 +240,19 @@ async def line_platform_webhook(request: Request):
                 conv_id = await get_or_create_conversation(db, platform_uid, display_name, picture_url)
                 await save_message(db, conv_id, "inbound", "[follow]", event)
 
-                # Welcome message
-                welcome = f"สวัสดีครับ คุณ{display_name} 👋\nขอบคุณที่เพิ่มเพื่อนกับเรานะครับ\nมีอะไรให้ช่วยแจ้งได้เลยครับ 😊"
+                # Welcome message (apply persona + custom welcome from settings)
+                bot_settings = await get_bot_settings(db)
+                persona_key = bot_settings.get("persona", "friendly-female")
+                p = PERSONA_MAP.get(persona_key, DEFAULT_PERSONA)
+                custom_welcome = bot_settings.get("welcome_message", "")
+                if custom_welcome:
+                    welcome = apply_persona(custom_welcome.replace("{NAME}", display_name), persona_key)
+                else:
+                    welcome = (
+                        f"{p['greeting']} คุณ{display_name} 👋\n"
+                        f"ขอบคุณที่เพิ่มเพื่อนกับเรานะ{p['sign']}\n"
+                        f"มีอะไรให้ช่วยแจ้งได้เลย{p['suffix']}"
+                    )
                 await reply_message(event.get("replyToken"), [{"type": "text", "text": welcome}], channel_token)
                 await save_message(db, conv_id, "outbound", welcome, {})
 
@@ -219,8 +283,9 @@ async def line_platform_webhook(request: Request):
                 bot_settings = await get_bot_settings(db)
                 reply_text = bot_reply(user_text, bot_settings)
                 is_fallback = reply_text is None
+                persona_key = bot_settings.get("persona", "friendly-female")
                 if is_fallback:
-                    reply_text = fallback_reply()
+                    reply_text = fallback_reply(persona_key)
 
                 await reply_message(
                     event.get("replyToken"),

@@ -16,7 +16,7 @@
 
   --hh:    clamp(40px, 5.5vh, 54px);
   --tbh:   38px;
-  --ph:    clamp(32px, 4vh, 44px);
+  --ph:    10px;
   --mg:    20px;
   --gap:   clamp(6px, .8vw, 11px);
   --r:     clamp(8px, 1vw, 13px);
@@ -60,7 +60,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 
 /* TAB-PLATFORMS BAR ลบออกแล้ว — ย้ายขึ้น Superboard topbar (#sb-platforms) */
-:root{ --ph: 0px; }
+:root{ --ph: 10px; }
 
 /* ── CANVAS ── */
 #canvas{position:fixed;top:var(--ph);left:0;right:0;bottom:0;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:2px 26px 12px 0;}

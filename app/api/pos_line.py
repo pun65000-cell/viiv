@@ -65,12 +65,37 @@ def _get_channel_token(tenant_id):
     return row[0] if row and row[0] else ""
 
 
+PERSONA_MAP = {
+    "friendly-female": {"suffix": "ค่ะ", "greeting": "สวัสดีค่ะ", "sign": "ค่ะ"},
+    "professional-female": {"suffix": "ค่ะ", "greeting": "สวัสดีค่ะ", "sign": "ค่ะ"},
+    "cute-female": {"suffix": "นะคะ", "greeting": "สวัสดีค่ะ", "sign": "ค้า"},
+    "friendly-male": {"suffix": "ครับ", "greeting": "สวัสดีครับ", "sign": "ครับ"},
+    "professional-male": {"suffix": "ครับ", "greeting": "สวัสดีครับ", "sign": "ครับ"},
+    "casual-male": {"suffix": "นะครับ", "greeting": "หวัดดีครับ", "sign": "ครับ"},
+}
+DEFAULT_PERSONA = PERSONA_MAP["friendly-female"]
+
+
+def _apply_persona(text: str, persona_key: str) -> str:
+    p = PERSONA_MAP.get(persona_key, DEFAULT_PERSONA)
+    return text.replace("{END}", p["suffix"])
+
+
+def _get_tenant_persona(tenant_id: str, conn) -> str:
+    try:
+        row = conn.execute(text("""
+            SELECT persona FROM chat_bot_settings
+            WHERE tenant_id = :tid LIMIT 1
+        """), {"tid": tenant_id}).fetchone()
+        return (row[0] or "friendly-female") if row else "friendly-female"
+    except Exception:
+        return "friendly-female"
+
+
 def _tenant_bot_reply(text_in: str, tenant_id: str, conn) -> str:
-    """Rule-based bot reply สำหรับ per-tenant webhook
-    อ่าน rules จาก chat_bot_rules WHERE tenant_id=:tid OR tenant_id IS NULL
-    fallback = ข้อความจาก chat_bot_settings (tenant_id='__platform__')
-    """
     txt = text_in.lower().strip()
+    persona_key = _get_tenant_persona(tenant_id, conn)
+    p = PERSONA_MAP.get(persona_key, DEFAULT_PERSONA)
 
     # อ่าน rules จาก DB (tenant-specific มาก่อน, ตามด้วย global rules)
     try:
@@ -80,46 +105,35 @@ def _tenant_bot_reply(text_in: str, tenant_id: str, conn) -> str:
               AND is_active = true
             ORDER BY tenant_id NULLS LAST, id
         """), {"tid": tenant_id}).fetchall()
-
         for rule in rules:
             keywords = rule[0] or []
             for kw in keywords:
                 if kw and kw.lower().strip() in txt:
-                    return rule[1]
+                    return _apply_persona(rule[1], persona_key)
     except Exception:
         pass
 
-    # default keyword rules (fallback ถ้า DB ว่าง)
+    # fallback keyword rules
+    sign = p["sign"]
     KEYWORDS = {
         ("สินค้า","ราคา","มีอะไร","catalog","product"):
-            "สวัสดีค่ะ 😊 สามารถดูสินค้าของเราได้เลยนะคะ\nมีอะไรให้ช่วยเพิ่มเติมไหมคะ?",
+            f"ดูสินค้าของเราได้เลยนะ{sign}\nมีอะไรให้ช่วยเพิ่มเติมไหม{sign}",
         ("สั่ง","ซื้อ","order"):
-            "ขอบคุณที่สนใจสั่งซื้อนะคะ 🛍️\nกรุณาแจ้งรายการสินค้าที่ต้องการได้เลยค่ะ",
+            f"แจ้งรายการสินค้าที่ต้องการได้เลย{sign}",
         ("ที่อยู่","อยู่ที่ไหน","location","map"):
-            "สามารถติดต่อเราได้ที่สาขานะคะ 📍\nหรือสั่งออนไลน์ได้เลยค่ะ",
+            f"ทีมงานจะส่งที่อยู่ให้นะ{sign}",
         ("เวลา","เปิด","ปิด","กี่โมง"):
-            "เปิดให้บริการทุกวันค่ะ 🕐\nมีอะไรให้ช่วยเพิ่มเติมไหมคะ?",
+            f"เปิดให้บริการทุกวัน{sign} มีอะไรให้ช่วยเพิ่มเติมไหม{sign}",
         ("โทร","เบอร์","ติดต่อ","tel","phone"):
-            "สามารถติดต่อทีมงานได้เลยนะคะ 📞\nหรือทักแชทได้เลยค่ะ",
+            f"ทักแชทได้เลย{sign} หรือรอทีมงานติดต่อกลับนะ{sign}",
         ("ขอบคุณ","thank","ขอบใจ"):
-            "ขอบคุณเช่นกันนะคะ 🙏 ยินดีให้บริการเสมอค่ะ",
+            f"ยินดีให้บริการเสมอ{sign}",
     }
     for kws, reply in KEYWORDS.items():
-        if any(kw in txt for kw in kws):
+        if any(kw in txt for kw in reply):
             return reply
 
-    # fallback — ใช้ welcome_message ของ platform เป็น generic reply
-    try:
-        row = conn.execute(text("""
-            SELECT welcome_message FROM chat_bot_settings
-            WHERE tenant_id = '__platform__' LIMIT 1
-        """)).fetchone()
-        if row and row[0]:
-            return row[0]
-    except Exception:
-        pass
-
-    return "ขอบคุณที่ติดต่อมานะคะ 🙏\nทีมงานจะติดต่อกลับเร็วๆ นี้ค่ะ"
+    return f"ขอบคุณที่ติดต่อมานะ{sign} ทีมงานจะติดต่อกลับเร็ว ๆ นี้{sign}"
 
 
 @router.post("/webhook")

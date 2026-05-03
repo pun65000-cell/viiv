@@ -234,6 +234,20 @@ def get_connections(authorization: str = Header("")):
         )).fetchall()
     return [_row(r) for r in rows]
 
+# ── GET connected status ของทุก platform (Superboard topbar dots) ────────────
+# ⚠️ ต้องอยู่ก่อน /connections/{platform} ไม่งั้นถูก path-param ดัก
+@router.get("/connections/status")
+def get_connections_status(authorization: str = Header("")):
+    _admin_auth(authorization)
+    platforms = ["line", "facebook", "tiktok", "instagram", "youtube"]
+    with engine.connect() as c:
+        rows = c.execute(text(
+            "SELECT platform, channel_token, oa_id FROM platform_connections "
+            "WHERE platform = ANY(:p)"
+        ), {"p": platforms}).fetchall()
+    connected = {r[0]: bool(r[1] or r[2]) for r in rows}
+    return {p: {"connected": connected.get(p, False)} for p in platforms}
+
 # ── GET single platform ────────────────────────────────────────────────────────
 @router.get("/connections/{platform}")
 def get_connection(platform: str, authorization: str = Header("")):
