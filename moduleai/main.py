@@ -22,7 +22,7 @@ app = FastAPI(title="ViiV AI Module", version="0.2.0")
 collector = TrainingCollector()
 
 # Test mode: lock single model
-LOCKED_MODEL = os.getenv("AI_MODEL", "gpt-5-nano")
+LOCKED_MODEL = os.getenv("AI_MODEL", "gpt-4.1-nano")
 LOCKED_PROVIDER = "openai"
 
 
@@ -87,7 +87,7 @@ def chat(payload: ChatIn):
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": payload.message},
             ],
-            max_tokens=300,
+            max_tokens=500,
             temperature=1,
         )
         reply = r["choices"][0]["message"]["content"]
