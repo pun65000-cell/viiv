@@ -136,6 +136,34 @@ def _tenant_bot_reply(text_in: str, tenant_id: str, conn) -> str:
     return f"ขอบคุณที่ติดต่อมานะ{sign} ทีมงานจะติดต่อกลับเร็ว ๆ นี้{sign}"
 
 
+def _ai_reply(message_text: str, tenant_id: str, conv_id: str) -> str | None:
+    """
+    เรียก moduleai /chat → return reply string
+    ถ้า fail → return None (caller ใช้ bot fallback)
+    timeout 8 วินาที (LINE replyToken หมดอายุ 30s)
+    """
+    try:
+        import httpx as _httpx
+        with _httpx.Client(timeout=8.0) as hc:
+            r = hc.post(
+                "http://localhost:8002/chat",
+                json={
+                    "message":   message_text,
+                    "slot":      "chat_bot",
+                    "tenant_id": tenant_id,
+                    "source":    "line_chat",
+                    "shop_id":   tenant_id,
+                },
+            )
+            if r.status_code == 200:
+                return r.json().get("reply")
+            _log.warning("moduleai returned %d for tenant=%s", r.status_code, tenant_id)
+            return None
+    except Exception as e:
+        _log.warning("_ai_reply failed tenant=%s: %s", tenant_id, e)
+        return None
+
+
 @router.post("/webhook")
 async def line_webhook(request: Request):
     body = await request.body()
@@ -241,7 +269,11 @@ async def line_webhook(request: Request):
                         # 4. bot reply (message only)
                         if event_type == "message" and message_text:
                             reply_token = event.get("replyToken", "")
-                            bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
+                            # Phase E: AI first → bot fallback
+                            bot_reply_text = _ai_reply(message_text, tenant_id, conv_id or "")
+                            if not bot_reply_text:
+                                # fallback: rule-based bot (ถ้า moduleai down หรือ timeout)
+                                bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
                             if reply_token and bot_reply_text and channel_token:
                                 try:
                                     with _httpx.Client(timeout=5) as hc:
