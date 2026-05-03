@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777628933" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=1777785888" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -707,17 +707,20 @@ function sbLoadPlatformStatus() {
 }
 
 function sbLoadLogo() {
-  var savedIcon = localStorage.getItem('viiv_app_icon');
   var img = document.getElementById('sbLogoImg');
   var txt = document.getElementById('sbLogoText');
-  if (savedIcon && img) {
-    img.src = savedIcon;
+  if (!img) return;
+  var testImg = new Image();
+  testImg.onload = function() {
+    img.src = '/superboard/icon-192.png?_=' + Date.now();
     img.style.display = 'block';
     if (txt) txt.style.display = 'none';
-  } else {
-    if (img) img.style.display = 'none';
+  };
+  testImg.onerror = function() {
+    img.style.display = 'none';
     if (txt) txt.style.display = '';
-  }
+  };
+  testImg.src = '/superboard/icon-192.png?_=' + Date.now();
 }
 
 // Dropdown: รายการร้านทั้งหมดที่ user มีสิทธิ์ — fetch ทุกครั้งที่เปิด
