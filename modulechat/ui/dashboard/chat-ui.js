@@ -17,12 +17,6 @@ const App = (() => {
   }
 
   // ── panel-head status indicators (AI / Bot / Platforms) ──────────────
-  function _setPill(id, state, title) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.dataset.state = state;
-    if (title) el.title = title;
-  }
   function _setPlat(platform, online) {
     const el = document.querySelector('.platform-pill[data-platform="' + platform + '"]');
     if (!el) return;
@@ -32,24 +26,71 @@ const App = (() => {
     const t = localStorage.getItem('viiv_token');
     return t ? { 'Authorization': 'Bearer ' + t } : {};
   }
-  async function _fetchAI() {
+  async function fetchAiBotStatus() {
+    const aiPill = document.getElementById('ai-pill');
+    const botPill = document.getElementById('bot-pill');
+    if (!aiPill || !botPill) return;
+
+    // ===== AI pill =====
+    // ปัจจุบัน /api/platform/ai/health-proxy ยังไม่ได้ deploy
+    // → fallback เป็น "stub" (เหลือง) แทน "offline" (แดง)
     try {
-      const r = await fetch('/ai/health-proxy', { headers: _authH() });
-      if (!r.ok) throw 0;
-      const d = await r.json();
-      const state = d.key_loaded ? 'online' : 'stub';
-      _setPill('ai-pill', state, 'AI: ' + (d.model || '?'));
-    } catch (_) { _setPill('ai-pill', 'error', 'AI: offline'); }
-  }
-  async function _fetchBot() {
+      const r = await fetch('/api/platform/ai/health-proxy', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(2500),
+      });
+
+      if (r.ok) {
+        const d = await r.json();
+        if (d.key_loaded === true) {
+          aiPill.dataset.state = 'online';
+          aiPill.title = `AI: ${d.model || 'gpt-5-nano'} (online)`;
+        } else if (d.status === 'error') {
+          aiPill.dataset.state = 'offline';
+          aiPill.title = `AI: error - ${d.error || 'unknown'}`;
+        } else {
+          aiPill.dataset.state = 'stub';
+          aiPill.title = 'AI: stub mode (no key)';
+        }
+      } else if (r.status === 404 || r.status === 401) {
+        // endpoint ยังไม่ deploy → stub (เหลือง)
+        aiPill.dataset.state = 'stub';
+        aiPill.title = 'AI: รอ deploy endpoint (HTTP ' + r.status + ')';
+      } else {
+        aiPill.dataset.state = 'offline';
+        aiPill.title = 'AI: HTTP ' + r.status;
+      }
+    } catch (e) {
+      // network error / timeout → stub (เหลือง) ไม่ใช่ offline
+      aiPill.dataset.state = 'stub';
+      aiPill.title = 'AI: ไม่สามารถเชื่อมต่อ (network)';
+    }
+
+    // ===== Bot pill =====
     try {
-      const r = await fetch('/chat/bot/status', { headers: _authH() });
-      if (!r.ok) throw 0;
-      const d = await r.json();
-      const state = d.enabled !== false ? 'online' : 'offline';
-      _setPill('bot-pill', state, 'Bot: ' + (state === 'online' ? 'ทำงาน' : 'ปิด'));
-    } catch (_) { _setPill('bot-pill', 'error', 'Bot: offline'); }
+      const r = await fetch('/api/chat/bot/status', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(2500),
+      });
+
+      if (r.ok) {
+        const d = await r.json();
+        botPill.dataset.state = d.enabled ? 'online' : 'offline';
+        botPill.title = `Bot: ${d.enabled ? 'ON' : 'OFF'}`;
+      } else if (r.status === 404 || r.status === 401) {
+        // endpoint ยังไม่พร้อม → stub
+        botPill.dataset.state = 'stub';
+        botPill.title = 'Bot: รอ deploy endpoint (HTTP ' + r.status + ')';
+      } else {
+        botPill.dataset.state = 'offline';
+        botPill.title = 'Bot: HTTP ' + r.status;
+      }
+    } catch (e) {
+      botPill.dataset.state = 'stub';
+      botPill.title = 'Bot: ไม่สามารถเชื่อมต่อ (network)';
+    }
   }
+
   async function _fetchPlatforms() {
     try {
       const r = await fetch('/api/platform/connections/status', { headers: _authH() });
@@ -61,8 +102,7 @@ const App = (() => {
     } catch (_) { /* leave offline state */ }
   }
   async function fetchStatus() {
-    _fetchAI();
-    _fetchBot();
+    fetchAiBotStatus();
     _fetchPlatforms();
   }
 
