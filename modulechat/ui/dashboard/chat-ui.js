@@ -32,38 +32,30 @@ const App = (() => {
     if (!aiPill || !botPill) return;
 
     // ===== AI pill =====
-    // ปัจจุบัน /api/platform/ai/health-proxy ยังไม่ได้ deploy
-    // → fallback เป็น "stub" (เหลือง) แทน "offline" (แดง)
     try {
-      const r = await fetch('/api/platform/ai/health-proxy', {
+      const r = await fetch('/chat/ai/health', {
         cache: 'no-store',
         signal: AbortSignal.timeout(2500),
       });
-
       if (r.ok) {
         const d = await r.json();
-        if (d.key_loaded === true) {
+        if (d.status === 'online') {
           aiPill.dataset.state = 'online';
           aiPill.title = `AI: ${d.model || 'gpt-5-nano'} (online)`;
-        } else if (d.status === 'error') {
-          aiPill.dataset.state = 'offline';
-          aiPill.title = `AI: error - ${d.error || 'unknown'}`;
-        } else {
+        } else if (d.status === 'stub') {
           aiPill.dataset.state = 'stub';
-          aiPill.title = 'AI: stub mode (no key)';
+          aiPill.title = `AI: stub - ${d.reason || 'no_api_key'}`;
+        } else {
+          aiPill.dataset.state = 'offline';
+          aiPill.title = `AI: ${d.reason || 'offline'}`;
         }
-      } else if (r.status === 404 || r.status === 401) {
-        // endpoint ยังไม่ deploy → stub (เหลือง)
-        aiPill.dataset.state = 'stub';
-        aiPill.title = 'AI: รอ deploy endpoint (HTTP ' + r.status + ')';
       } else {
         aiPill.dataset.state = 'offline';
         aiPill.title = 'AI: HTTP ' + r.status;
       }
     } catch (e) {
-      // network error / timeout → stub (เหลือง) ไม่ใช่ offline
-      aiPill.dataset.state = 'stub';
-      aiPill.title = 'AI: ไม่สามารถเชื่อมต่อ (network)';
+      aiPill.dataset.state = 'offline';
+      aiPill.title = 'AI: network error';
     }
 
     // ===== Bot pill =====

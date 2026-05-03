@@ -378,3 +378,31 @@ async def patch_bot_status(body: StatusToggle):
         """), {"v": "true" if body.enabled else "false"})
         await db.commit()
         return {"ok": True, "enabled": body.enabled}
+
+
+@router.get("/ai/health")
+def get_ai_health():
+    """
+    Public health proxy for moduleai (port 8002).
+    No auth - status check only, no sensitive data.
+    Used by Chat Dashboard AI pill.
+    """
+    try:
+        with httpx.Client(timeout=3.0) as client:
+            r = client.get("http://localhost:8002/health")
+        if r.status_code != 200:
+            return {"status": "offline", "reason": f"http_{r.status_code}"}
+        data = r.json()
+        if data.get("key_loaded"):
+            return {
+                "status": "online",
+                "model": data.get("model", "gpt-5-nano"),
+                "provider": data.get("provider", "openai"),
+            }
+        return {"status": "stub", "reason": "no_api_key"}
+    except httpx.TimeoutException:
+        return {"status": "offline", "reason": "timeout"}
+    except (httpx.ConnectError, httpx.RequestError):
+        return {"status": "offline", "reason": "moduleai_down"}
+    except Exception as e:
+        return {"status": "offline", "reason": f"error:{type(e).__name__}"}
