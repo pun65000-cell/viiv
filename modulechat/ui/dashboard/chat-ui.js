@@ -71,12 +71,12 @@ const App = (() => {
 
   function startPolling() {
     clearInterval(_pollInterval);
-    _pollInterval = setInterval(loadConversations, 10000);
+    _pollInterval = setInterval(loadConversations, 3000);
   }
 
   function startMsgPolling(convId) {
     clearInterval(_msgPollInterval);
-    _msgPollInterval = setInterval(() => loadMessages(convId), 5000);
+    _msgPollInterval = setInterval(() => loadMessages(convId), 2000);
   }
 
   async function loadStats() {
@@ -224,7 +224,7 @@ const UI = (() => {
         ${!isOut ? '<div class="msg-avatar">👤</div>' : ''}
         ${isBot  ? '<div class="msg-avatar bot">🤖</div>' : ''}
         <div>
-          <div class="msg-bubble ${isOut ? 'out' : ''} ${isBot ? 'bot' : ''}">${_escHtml(m.content || '')}</div>
+          <div class="msg-bubble ${isOut ? 'out' : ''} ${isBot ? 'bot' : ''}">${_escHtml((m.content || '').trim())}</div>
           <div class="msg-time ${isOut ? 'right' : ''}">${_escHtml(time)}</div>
         </div>
       </div>`;
