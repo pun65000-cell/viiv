@@ -456,3 +456,157 @@ def notify_tenant(
 
     return {"ok": True, "tenant_id": tenant_id, "type": ntype,
             "days_remaining": days_left, "line_sent": sent}
+
+
+# ── Discount System ───────────────────────────────────────────────────────────
+
+def _resolve_discount(tenant_id: str, package_id: str, duration_months: int, conn):
+    """
+    Resolve discount: tenant override → package preset → none
+    Returns: {value, type, source} where source ∈ {'tenant_override','preset','none'}
+    """
+    row = conn.execute(text("""
+        SELECT discount_value, discount_type
+        FROM tenant_discount_overrides
+        WHERE tenant_id = :tid AND duration_months = :m AND is_active = true
+        LIMIT 1
+    """), {"tid": tenant_id, "m": duration_months}).first()
+    if row:
+        return {"value": float(row[0]), "type": row[1], "source": "tenant_override"}
+
+    row = conn.execute(text("""
+        SELECT discount_value, discount_type
+        FROM discount_presets
+        WHERE package_id = :pkg AND duration_months = :m AND is_active = true
+        LIMIT 1
+    """), {"pkg": package_id, "m": duration_months}).first()
+    if row:
+        return {"value": float(row[0]), "type": row[1], "source": "preset"}
+
+    return {"value": 0.0, "type": "thb", "source": "none"}
+
+
+@router.get("/discount/resolve")
+def discount_resolve(tenant_id: str, package_id: str, duration_months: int,
+                     authorization: str = Header(None)):
+    _admin_auth(authorization)
+    if duration_months < 1 or duration_months > 36:
+        raise HTTPException(400, "duration_months 1-36")
+    with engine.connect() as c:
+        return _resolve_discount(tenant_id, package_id, duration_months, c)
+
+
+@router.get("/discount/presets")
+def discount_presets_list(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT id, package_id, duration_months, discount_value, discount_type,
+                   is_active, note, updated_at
+            FROM discount_presets
+            ORDER BY package_id, duration_months
+        """)).mappings().all()
+    return {"presets": [dict(r) for r in rows]}
+
+
+@router.post("/discount/presets")
+def discount_preset_save(payload: dict, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    pkg     = (payload.get("package_id") or "").strip()
+    months  = int(payload.get("duration_months") or 0)
+    val     = float(payload.get("discount_value") or 0)
+    dtype   = (payload.get("discount_type") or "pct").lower()
+    active  = bool(payload.get("is_active", True))
+    note    = payload.get("note") or ""
+
+    if not pkg or months < 1 or months > 36:
+        raise HTTPException(400, "package_id + duration_months 1-36 required")
+    if dtype not in ("thb", "pct"):
+        raise HTTPException(400, "discount_type must be 'thb' or 'pct'")
+    if val < 0 or (dtype == "pct" and val > 100):
+        raise HTTPException(400, "invalid discount_value")
+
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO discount_presets
+                (package_id, duration_months, discount_value, discount_type, is_active, note)
+            VALUES (:pkg, :m, :v, :t, :a, :n)
+            ON CONFLICT (package_id, duration_months) DO UPDATE
+            SET discount_value = EXCLUDED.discount_value,
+                discount_type  = EXCLUDED.discount_type,
+                is_active      = EXCLUDED.is_active,
+                note           = EXCLUDED.note,
+                updated_at     = NOW()
+        """), {"pkg": pkg, "m": months, "v": val, "t": dtype, "a": active, "n": note})
+    return {"ok": True}
+
+
+@router.delete("/discount/presets/{preset_id}")
+def discount_preset_delete(preset_id: int, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("DELETE FROM discount_presets WHERE id = :id"), {"id": preset_id})
+    return {"ok": True}
+
+
+@router.get("/discount/overrides")
+def discount_overrides_list(tenant_id: str = "", authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        if tenant_id:
+            rows = c.execute(text("""
+                SELECT id, tenant_id, duration_months, discount_value, discount_type,
+                       is_active, note, updated_at
+                FROM tenant_discount_overrides
+                WHERE tenant_id = :tid
+                ORDER BY duration_months
+            """), {"tid": tenant_id}).mappings().all()
+        else:
+            rows = c.execute(text("""
+                SELECT o.id, o.tenant_id, t.store_name, o.duration_months,
+                       o.discount_value, o.discount_type, o.is_active, o.note, o.updated_at
+                FROM tenant_discount_overrides o
+                LEFT JOIN tenants t ON t.id = o.tenant_id
+                ORDER BY o.tenant_id, o.duration_months
+            """)).mappings().all()
+    return {"overrides": [dict(r) for r in rows]}
+
+
+@router.post("/discount/overrides")
+def discount_override_save(payload: dict, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    tid     = (payload.get("tenant_id") or "").strip()
+    months  = int(payload.get("duration_months") or 0)
+    val     = float(payload.get("discount_value") or 0)
+    dtype   = (payload.get("discount_type") or "pct").lower()
+    active  = bool(payload.get("is_active", True))
+    note    = payload.get("note") or ""
+
+    if not tid or months < 1 or months > 36:
+        raise HTTPException(400, "tenant_id + duration_months 1-36 required")
+    if dtype not in ("thb", "pct"):
+        raise HTTPException(400, "discount_type must be 'thb' or 'pct'")
+    if val < 0 or (dtype == "pct" and val > 100):
+        raise HTTPException(400, "invalid discount_value")
+
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO tenant_discount_overrides
+                (tenant_id, duration_months, discount_value, discount_type, is_active, note)
+            VALUES (:tid, :m, :v, :t, :a, :n)
+            ON CONFLICT (tenant_id, duration_months) DO UPDATE
+            SET discount_value = EXCLUDED.discount_value,
+                discount_type  = EXCLUDED.discount_type,
+                is_active      = EXCLUDED.is_active,
+                note           = EXCLUDED.note,
+                updated_at     = NOW()
+        """), {"tid": tid, "m": months, "v": val, "t": dtype, "a": active, "n": note})
+    return {"ok": True}
+
+
+@router.delete("/discount/overrides/{override_id}")
+def discount_override_delete(override_id: int, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        c.execute(text("DELETE FROM tenant_discount_overrides WHERE id = :id"), {"id": override_id})
+    return {"ok": True}

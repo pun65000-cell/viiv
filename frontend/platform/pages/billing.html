@@ -75,6 +75,20 @@
 
 .bx-row-actions{ display:flex; gap:6px; flex-wrap:wrap; }
 
+/* Discount toggle */
+.bx-discount-row{ display:flex; gap:8px; align-items:stretch; }
+.bx-discount-input{ flex:1; }
+.bx-discount-toggle{ display:flex; gap:0; border:2px solid #e5e7eb; border-radius:10px; overflow:hidden; }
+.bx-tg{
+  padding:0 16px; background:#fff; border:none; cursor:pointer;
+  font-size:14px; font-weight:600; color:#6b7280; min-width:48px;
+  border-right:1px solid #e5e7eb;
+}
+.bx-tg:last-child{ border-right:none; }
+.bx-tg:hover{ background:#fbfaf6; color:#1a1200; }
+.bx-tg.active{ background:#e8b93e; color:#1a1200; }
+.bx-disc-hint{ display:block; margin-top:6px; font-size:12px; min-height:16px; }
+
 .bx-search{
   padding:8px 12px; border:2px solid #e5e7eb; border-radius:10px;
   font-size:14px; outline:none; min-width:240px;
@@ -123,6 +137,7 @@
     <div class="bx-tab active" data-bxtab="subs">📋 Subscription</div>
     <div class="bx-tab"        data-bxtab="invs">🧾 ประวัติชำระ</div>
     <div class="bx-tab"        data-bxtab="ntfs">🔔 การแจ้งเตือน</div>
+    <div class="bx-tab"        data-bxtab="disc">🎁 ส่วนลด</div>
   </div>
 
   <!-- Tab 1: Subscriptions -->
@@ -167,6 +182,31 @@
       <div id="bxNtfsTable"><div class="bx-empty">กำลังโหลด…</div></div>
     </div>
   </div>
+
+  <!-- Tab 4: Discount Presets + Overrides -->
+  <div class="bx-panel" data-bxpanel="disc">
+    <div class="bx-card" style="margin-bottom:16px">
+      <div class="bx-card-hdr">
+        <div class="bx-card-title">Default Presets (ตามแพ็กเกจ)</div>
+        <div class="bx-toolbar">
+          <button class="bx-btn bx-btn-primary" onclick="bxOpenPresetEdit()">+ เพิ่ม Preset</button>
+          <button class="bx-btn" onclick="bxLoadPresets()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="bxPresetsTable"><div class="bx-empty">กำลังโหลด…</div></div>
+    </div>
+
+    <div class="bx-card">
+      <div class="bx-card-hdr">
+        <div class="bx-card-title">Per-Tenant Overrides (เฉพาะร้าน)</div>
+        <div class="bx-toolbar">
+          <button class="bx-btn bx-btn-primary" onclick="bxOpenOverrideEdit()">+ เพิ่ม Override</button>
+          <button class="bx-btn" onclick="bxLoadOverrides()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="bxOverridesTable"><div class="bx-empty">กำลังโหลด…</div></div>
+    </div>
+  </div>
 </div>
 
 <!-- Confirm-Payment Modal -->
@@ -196,7 +236,7 @@
 
     <div class="bx-field">
       <label class="bx-label">ระยะเวลา</label>
-      <select class="bx-select" id="bxPayDuration" onchange="bxRecalcAmount()">
+      <select class="bx-select" id="bxPayDuration" onchange="bxAutoResolveDiscount()">
         <option value="1">1 เดือน</option>
         <option value="2">2 เดือน</option>
         <option value="3">3 เดือน</option>
@@ -217,6 +257,7 @@
     <div class="bx-field">
       <label class="bx-label">ส่วนลด (฿)</label>
       <input type="number" class="bx-input" id="bxPayDiscount" min="0" value="0" oninput="bxRecalcAmount()">
+      <small class="bx-disc-hint" id="bxDiscHint"></small>
     </div>
 
     <div class="bx-field">
@@ -230,6 +271,61 @@
     <div class="bx-modal-actions">
       <button class="bx-btn" onclick="bxPayClose()">ยกเลิก</button>
       <button class="bx-btn bx-btn-primary" id="bxPayConfirm" onclick="bxPaySubmit()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Discount Edit Modal -->
+<div class="bx-modal-mask" id="bxDiscMask" onclick="if(event.target===this)bxDiscClose()">
+  <div class="bx-modal">
+    <h3 id="bxDiscTitle">แก้ไขส่วนลด</h3>
+
+    <div class="bx-field" id="bxDiscPkgField">
+      <label class="bx-label">แพ็กเกจ</label>
+      <select class="bx-select" id="bxDiscPkg">
+        <option value="pkg_basic">pkg_basic</option>
+        <option value="pkg_standard">pkg_standard</option>
+        <option value="pkg_pro">pkg_pro</option>
+        <option value="pkg_privacy">pkg_privacy</option>
+      </select>
+    </div>
+
+    <div class="bx-field" id="bxDiscTenantField" style="display:none">
+      <label class="bx-label">Tenant ID</label>
+      <input type="text" class="bx-input" id="bxDiscTenant" placeholder="ten_xxx">
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">ระยะเวลา</label>
+      <select class="bx-select" id="bxDiscMonths">
+        <option value="1">1 เดือน</option>
+        <option value="3">3 เดือน</option>
+        <option value="6">6 เดือน</option>
+        <option value="12" selected>1 ปี (12 เดือน)</option>
+        <option value="24">2 ปี (24 เดือน)</option>
+        <option value="36">3 ปี (36 เดือน)</option>
+      </select>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">ส่วนลด</label>
+      <div class="bx-discount-row">
+        <input type="number" class="bx-input bx-discount-input" id="bxDiscValue" min="0" value="10">
+        <div class="bx-discount-toggle">
+          <button type="button" class="bx-tg" id="bxDiscTypeThb" onclick="bxDiscSetType('thb')">฿</button>
+          <button type="button" class="bx-tg active" id="bxDiscTypePct" onclick="bxDiscSetType('pct')">%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bx-field">
+      <label class="bx-label">หมายเหตุ</label>
+      <input type="text" class="bx-input" id="bxDiscNote" placeholder="ซื้อ 1 ปี ลด 10% / VIP deal">
+    </div>
+
+    <div class="bx-modal-actions">
+      <button class="bx-btn" onclick="bxDiscClose()">ยกเลิก</button>
+      <button class="bx-btn bx-btn-primary" id="bxDiscSave" onclick="bxDiscSubmit()">บันทึก</button>
     </div>
   </div>
 </div>
@@ -321,6 +417,7 @@
       if(k==='subs' && !BX._subs) bxLoadSubs();
       if(k==='invs' && !BX._invs) bxLoadInvs();
       if(k==='ntfs' && !BX._ntfs) bxLoadNtfs();
+      if(k==='disc'){ bxLoadPresets(); bxLoadOverrides(); }
     };
   });
 
@@ -426,7 +523,9 @@
     });
     document.getElementById('bxPayDuration').value = '1';
     document.getElementById('bxPayDiscount').value = '0';
-    bxRecalcAmount();
+    const _hint = document.getElementById('bxDiscHint');
+    if (_hint) _hint.innerHTML = '';
+    bxAutoResolveDiscount();
     document.getElementById('bxPayMask').classList.add('open');
   };
   window.bxPayClose = () => document.getElementById('bxPayMask').classList.remove('open');
@@ -445,6 +544,34 @@
     });
     return out;
   }
+
+  window.bxAutoResolveDiscount = async function(){
+    const hint = document.getElementById('bxDiscHint');
+    if (!_payRow) { if (hint) hint.innerHTML = ''; bxRecalcAmount(); return; }
+    const months = parseInt(document.getElementById('bxPayDuration').value) || 1;
+    const pkg = document.getElementById('bxPayPkg').value;
+    try {
+      const r = await api('/api/platform/billing/discount/resolve?'
+        + 'tenant_id=' + encodeURIComponent(_payRow.tenant_id)
+        + '&package_id=' + encodeURIComponent(pkg)
+        + '&duration_months=' + months);
+      const j = await r.json();
+      if (j.source && j.source !== 'none') {
+        document.getElementById('bxPayDiscount').value = j.value;
+        if (hint) {
+          const srcLabel = j.source === 'tenant_override' ? '🎯 ส่วนลดเฉพาะร้าน' : '🎁 ส่วนลดทั่วไป';
+          const unit = j.type === 'pct' ? '%' : '฿';
+          hint.innerHTML = '<span style="color:#059669">' + srcLabel + ' ' + j.value + unit + '</span>';
+        }
+      } else {
+        document.getElementById('bxPayDiscount').value = 0;
+        if (hint) hint.innerHTML = '';
+      }
+    } catch(e) {
+      if (hint) hint.innerHTML = '';
+    }
+    bxRecalcAmount();
+  };
 
   window.bxRecalcAmount = async function(){
     if(!BX._prices){
@@ -752,6 +879,173 @@
     document.getElementById('bxNtfsTable').innerHTML = html;
   }
   document.getElementById('bxNtfsSearch').oninput = bxRenderNtfs;
+
+  // ═════ Discount System ═════
+  let _discMode = 'preset';
+  let _discEditId = null;
+  let _discCurrentType = 'pct';
+
+  window.bxLoadPresets = async function(){
+    const wrap = document.getElementById('bxPresetsTable');
+    wrap.innerHTML = '<div class="bx-empty">กำลังโหลด…</div>';
+    try {
+      const r = await api('/api/platform/billing/discount/presets');
+      const j = await r.json();
+      const list = j.presets || [];
+      if (!list.length) { wrap.innerHTML = '<div class="bx-empty">ยังไม่มี preset</div>'; return; }
+      let html = '<table class="bx-table"><thead><tr>'
+        + '<th>แพ็กเกจ</th><th>ระยะเวลา</th><th>ส่วนลด</th><th>หมายเหตุ</th><th>สถานะ</th><th></th>'
+        + '</tr></thead><tbody>';
+      list.forEach(p => {
+        const dispVal = (p.discount_type === 'pct')
+          ? p.discount_value + '%'
+          : '฿' + Number(p.discount_value).toLocaleString();
+        html += '<tr>'
+          + '<td>' + esc(p.package_id) + '</td>'
+          + '<td>' + p.duration_months + ' เดือน</td>'
+          + '<td><strong>' + dispVal + '</strong></td>'
+          + '<td>' + esc(p.note || '—') + '</td>'
+          + '<td>' + (p.is_active ? '✅' : '⏸') + '</td>'
+          + '<td>'
+            + '<button class="bx-btn bx-btn-sm" onclick="bxOpenPresetEdit(' + p.id + ')">แก้ไข</button> '
+            + '<button class="bx-btn bx-btn-sm" style="color:#b91c1c" onclick="bxDeletePreset(' + p.id + ')">ลบ</button>'
+          + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    } catch(e) {
+      wrap.innerHTML = '<div class="bx-empty">โหลดไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    }
+  };
+
+  window.bxLoadOverrides = async function(){
+    const wrap = document.getElementById('bxOverridesTable');
+    wrap.innerHTML = '<div class="bx-empty">กำลังโหลด…</div>';
+    try {
+      const r = await api('/api/platform/billing/discount/overrides');
+      const j = await r.json();
+      const list = j.overrides || [];
+      if (!list.length) { wrap.innerHTML = '<div class="bx-empty">ยังไม่มี override</div>'; return; }
+      let html = '<table class="bx-table"><thead><tr>'
+        + '<th>ร้าน</th><th>Tenant ID</th><th>ระยะเวลา</th><th>ส่วนลด</th><th>หมายเหตุ</th><th></th>'
+        + '</tr></thead><tbody>';
+      list.forEach(o => {
+        const dispVal = (o.discount_type === 'pct')
+          ? o.discount_value + '%'
+          : '฿' + Number(o.discount_value).toLocaleString();
+        html += '<tr>'
+          + '<td>' + esc(o.store_name || '—') + '</td>'
+          + '<td><code>' + esc(o.tenant_id) + '</code></td>'
+          + '<td>' + o.duration_months + ' เดือน</td>'
+          + '<td><strong>' + dispVal + '</strong></td>'
+          + '<td>' + esc(o.note || '—') + '</td>'
+          + '<td>'
+            + '<button class="bx-btn bx-btn-sm" onclick="bxOpenOverrideEdit(' + o.id + ',\'' + esc(o.tenant_id) + '\')">แก้ไข</button> '
+            + '<button class="bx-btn bx-btn-sm" style="color:#b91c1c" onclick="bxDeleteOverride(' + o.id + ')">ลบ</button>'
+          + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    } catch(e) {
+      wrap.innerHTML = '<div class="bx-empty">โหลดไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    }
+  };
+
+  window.bxOpenPresetEdit = function(id){
+    _discMode = 'preset';
+    _discEditId = id || null;
+    document.getElementById('bxDiscTitle').textContent = id ? 'แก้ไข Preset' : 'เพิ่ม Preset';
+    document.getElementById('bxDiscPkgField').style.display = '';
+    document.getElementById('bxDiscTenantField').style.display = 'none';
+    document.getElementById('bxDiscValue').value = '10';
+    document.getElementById('bxDiscNote').value = '';
+    bxDiscSetType('pct');
+    document.getElementById('bxDiscMask').classList.add('open');
+  };
+
+  window.bxOpenOverrideEdit = function(id, tid){
+    _discMode = 'override';
+    _discEditId = id || null;
+    document.getElementById('bxDiscTitle').textContent = id ? 'แก้ไข Override' : 'เพิ่ม Override';
+    document.getElementById('bxDiscPkgField').style.display = 'none';
+    document.getElementById('bxDiscTenantField').style.display = '';
+    document.getElementById('bxDiscTenant').value = tid || '';
+    document.getElementById('bxDiscValue').value = '10';
+    document.getElementById('bxDiscNote').value = '';
+    bxDiscSetType('pct');
+    document.getElementById('bxDiscMask').classList.add('open');
+  };
+
+  window.bxDiscClose = function(){
+    document.getElementById('bxDiscMask').classList.remove('open');
+  };
+
+  window.bxDiscSetType = function(t){
+    _discCurrentType = t;
+    document.getElementById('bxDiscTypeThb').classList.toggle('active', t === 'thb');
+    document.getElementById('bxDiscTypePct').classList.toggle('active', t === 'pct');
+  };
+
+  window.bxDiscSubmit = async function(){
+    const months = parseInt(document.getElementById('bxDiscMonths').value);
+    const value  = parseFloat(document.getElementById('bxDiscValue').value) || 0;
+    const note   = document.getElementById('bxDiscNote').value.trim();
+    const btn = document.getElementById('bxDiscSave');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    try {
+      let url, body;
+      if (_discMode === 'preset') {
+        url = '/api/platform/billing/discount/presets';
+        body = {
+          package_id: document.getElementById('bxDiscPkg').value,
+          duration_months: months,
+          discount_value: value,
+          discount_type: _discCurrentType,
+          note: note,
+          is_active: true,
+        };
+      } else {
+        const tid = document.getElementById('bxDiscTenant').value.trim();
+        if (!tid) { alert('กรุณาใส่ Tenant ID'); btn.disabled=false; btn.textContent='บันทึก'; return; }
+        url = '/api/platform/billing/discount/overrides';
+        body = {
+          tenant_id: tid,
+          duration_months: months,
+          discount_value: value,
+          discount_type: _discCurrentType,
+          note: note,
+          is_active: true,
+        };
+      }
+      const r = await api(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.detail || 'error');
+      bxDiscClose();
+      if (_discMode === 'preset') bxLoadPresets(); else bxLoadOverrides();
+    } catch(e) {
+      alert('บันทึกไม่สำเร็จ: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'บันทึก';
+    }
+  };
+
+  window.bxDeletePreset = async function(id){
+    if (!confirm('ลบ preset นี้?')) return;
+    await api('/api/platform/billing/discount/presets/' + id, {method:'DELETE'});
+    bxLoadPresets();
+  };
+
+  window.bxDeleteOverride = async function(id){
+    if (!confirm('ลบ override นี้?')) return;
+    await api('/api/platform/billing/discount/overrides/' + id, {method:'DELETE'});
+    bxLoadOverrides();
+  };
 
   // initial load
   bxLoadSubs();
