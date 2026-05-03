@@ -109,11 +109,9 @@
 
 <div class="brn-wrap">
 
-  <!-- TABS: slot picker -->
+  <!-- TABS: slot picker (rendered dynamically from /roles) -->
   <div class="brn-tabs" id="brn-tabs">
-    <button type="button" class="brn-tab active" data-slot="greet">🌸 ทักทาย</button>
-    <button type="button" class="brn-tab" data-slot="funnel">🤖 Funnel</button>
-    <button type="button" class="brn-tab" data-slot="rescue">✨ ฉุกเฉิน</button>
+    <span style="padding:14px 28px;color:var(--jp-muted);font-family:var(--jp-mono);font-size:13px">กำลังโหลด roles...</span>
   </div>
 
   <!-- 1. BASE PROMPT -->
@@ -241,10 +239,11 @@
 
   // ─── Constants ──────────────────────────────────────
   const API = '/api/platform/ai/prompts';
-  const SLOTS = ['greet','funnel','rescue'];
+  let SLOTS = [];          // populated from /roles at init
+  let ROLES_META = {};     // {slot: {label, icon, desc}}
 
   // ─── State ─────────────────────────────────────────
-  let _slot = 'greet';
+  let _slot = '';
   let _data = null;             // current slot data {base_text, custom_text, patches, ...}
   let _editingPatchId = null;   // null = add mode, string = edit mode
 
@@ -254,7 +253,14 @@
     setSlot(s){ _slot = s; },
     setData(d){ _data = d; },
     setEditing(id){ _editingPatchId = id; },
-    SLOTS, API,
+    setRoles(roles){
+      SLOTS = roles.map(r => r.slot);
+      ROLES_META = {};
+      roles.forEach(r => { ROLES_META[r.slot] = {label:r.label, icon:r.icon, desc:r.desc}; });
+    },
+    getSlots(){ return SLOTS; },
+    getRolesMeta(){ return ROLES_META; },
+    API,
   };
 
   // ─── Auth ───────────────────────────────────────────
@@ -297,6 +303,21 @@
     return (s||'').replace(/[&<>"']/g, c => (
       {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
     ));
+  }
+
+  // ─── Tabs renderer (D-1c) ────────────────────────
+  function renderTabs(){
+    const wrap = document.getElementById('brn-tabs');
+    if(!wrap) return;
+    if(!SLOTS.length){
+      wrap.innerHTML = '<span style="padding:14px 28px;color:var(--jp-red);font-family:var(--jp-mono);font-size:13px">โหลด roles ไม่ได้</span>';
+      return;
+    }
+    wrap.innerHTML = SLOTS.map(s => {
+      const m = ROLES_META[s] || {label:s, icon:'•', desc:''};
+      return `<button type="button" class="brn-tab" data-slot="${s}" title="${(m.desc||'').replace(/"/g,'&quot;')}">` +
+             `<span class="brn-tab-icon">${m.icon}</span>${m.label}</button>`;
+    }).join('');
   }
 
   // ─── API client ─────────────────────────────────────
@@ -401,6 +422,7 @@
   window.__brn.toast = toast;
   window.__brn.api = {get:apiGet, put:apiPut, post:apiPost, patch:apiPatch, del:apiDelete};
   window.__brn.render = {slot:renderSlot, patches:renderPatches, versions:renderVersions, counters:updateCounters};
+  window.__brn.render.tabs = renderTabs;
   window.__brn.helpers = {fmtDate, escapeHtml, estTokens};
 
   console.log('[ai-brain] C-3a loaded — helpers + api + renderers ready');
@@ -415,12 +437,12 @@
     return;
   }
   const B = window.__brn;
-  const {api, render, toast, helpers, SLOTS} = B;
+  const {api, render, toast, helpers} = B;
 
   // ─── Loaders ────────────────────────────────────────
   async function loadSlot(slot){
     B.setSlot(slot);
-    SLOTS.forEach(s => {
+    B.getSlots().forEach(s => {
       const btn = document.querySelector(`.brn-tab[data-slot="${s}"]`);
       if(btn) btn.classList.toggle('active', s === slot);
     });
@@ -597,9 +619,6 @@
   }
 
   // ─── Wire events ────────────────────────────────────
-  document.querySelectorAll('.brn-tab').forEach(btn => {
-    btn.addEventListener('click', () => loadSlot(btn.dataset.slot));
-  });
   document.getElementById('brn-base-text').addEventListener('input', render.counters);
   document.getElementById('brn-custom-text').addEventListener('input', render.counters);
   document.getElementById('brn-base-save').addEventListener('click', saveBase);
@@ -633,10 +652,37 @@
     if(e.target.id === 'brn-modal-bg') closeModal();
   });
 
-  // initial load
-  loadSlot('greet');
+  // ─── Initial load (D-1c — load roles first) ──────
+  async function init(){
+    try{
+      const r = await api.get('/roles');
+      const roles = r.roles || [];
+      if(!roles.length){
+        toast('ไม่พบ roles จาก backend', 'error');
+        return;
+      }
+      B.setRoles(roles);
+      B.render.tabs();
 
-  console.log('[ai-brain] C-3b loaded — events wired, initial load triggered');
+      // attach tab listeners (delegation จะดีกว่า แต่ใช้ direct เพื่อตรงกับ pattern เดิม)
+      document.querySelectorAll('.brn-tab').forEach(btn => {
+        btn.addEventListener('click', () => loadSlot(btn.dataset.slot));
+      });
+
+      // load first role
+      const firstSlot = B.getSlots()[0];
+      await loadSlot(firstSlot);
+    }catch(e){
+      console.error('[ai-brain] init failed:', e);
+      toast('Init ล้มเหลว: ' + e.message, 'error');
+      const wrap = document.getElementById('brn-tabs');
+      if(wrap) wrap.innerHTML = '<span style="padding:14px 28px;color:var(--jp-red);font-family:var(--jp-mono);font-size:13px">Init failed: ' + e.message + '</span>';
+    }
+  }
+
+  init();
+
+  console.log('[ai-brain] C-3b loaded — events wired, init() triggered');
 })();
 </script>
 
