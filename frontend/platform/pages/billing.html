@@ -255,8 +255,14 @@
     </div>
 
     <div class="bx-field">
-      <label class="bx-label">ส่วนลด (฿)</label>
-      <input type="number" class="bx-input" id="bxPayDiscount" min="0" value="0" oninput="bxRecalcAmount()">
+      <label class="bx-label">ส่วนลด</label>
+      <div class="bx-discount-row">
+        <input type="number" class="bx-input bx-discount-input" id="bxPayDiscount" min="0" value="0" oninput="bxRecalcAmount()">
+        <div class="bx-discount-toggle">
+          <button type="button" class="bx-tg active" id="bxPayDiscThb" onclick="bxPayDiscSetType('thb')">฿</button>
+          <button type="button" class="bx-tg" id="bxPayDiscPct" onclick="bxPayDiscSetType('pct')">%</button>
+        </div>
+      </div>
       <small class="bx-disc-hint" id="bxDiscHint"></small>
     </div>
 
@@ -523,6 +529,7 @@
     });
     document.getElementById('bxPayDuration').value = '1';
     document.getElementById('bxPayDiscount').value = '0';
+    if (typeof bxPayDiscSetType === 'function') bxPayDiscSetType('thb');
     const _hint = document.getElementById('bxDiscHint');
     if (_hint) _hint.innerHTML = '';
     bxAutoResolveDiscount();
@@ -558,6 +565,7 @@
       const j = await r.json();
       if (j.source && j.source !== 'none') {
         document.getElementById('bxPayDiscount').value = j.value;
+        bxPayDiscSetType(j.type);
         if (hint) {
           const srcLabel = j.source === 'tenant_override' ? '🎯 ส่วนลดเฉพาะร้าน' : '🎁 ส่วนลดทั่วไป';
           const unit = j.type === 'pct' ? '%' : '฿';
@@ -565,11 +573,22 @@
         }
       } else {
         document.getElementById('bxPayDiscount').value = 0;
+        bxPayDiscSetType('thb');
         if (hint) hint.innerHTML = '';
       }
     } catch(e) {
       if (hint) hint.innerHTML = '';
     }
+    bxRecalcAmount();
+  };
+
+  // Confirm modal discount type state
+  if (typeof BX._payDiscType === 'undefined') BX._payDiscType = 'thb';
+
+  window.bxPayDiscSetType = function(t){
+    BX._payDiscType = t;
+    document.getElementById('bxPayDiscThb').classList.toggle('active', t === 'thb');
+    document.getElementById('bxPayDiscPct').classList.toggle('active', t === 'pct');
     bxRecalcAmount();
   };
 
@@ -587,7 +606,9 @@
     const hit = (BX._prices||[]).find(p =>
       p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
     const months = parseInt(document.getElementById('bxPayDuration').value) || 1;
-    const discount = parseInt(document.getElementById('bxPayDiscount').value) || 0;
+    const discRaw = parseFloat(document.getElementById('bxPayDiscount').value) || 0;
+    const dType = BX._payDiscType || 'thb';
+
     if (!hit) {
       document.getElementById('bxPayAmount').textContent = '—';
       document.getElementById('bxPayAmountNote').textContent = '(ไม่มีราคาสำหรับชุดนี้)';
@@ -595,12 +616,19 @@
       return;
     }
     const subtotal = hit.price * months;
-    const total = Math.max(0, subtotal - discount);
+    let discThb = 0;
+    if (dType === 'pct') {
+      const pct = Math.min(100, Math.max(0, discRaw));
+      discThb = Math.round(subtotal * pct / 100 * 100) / 100;
+    } else {
+      discThb = Math.max(0, discRaw);
+    }
+    const total = Math.max(0, subtotal - discThb);
     document.getElementById('bxPayAmount').textContent = fmt(total);
     let note = '';
-    if (months > 1 || discount > 0) {
+    if (months > 1 || discThb > 0) {
       note = '(' + fmt(hit.price) + ' × ' + months + ' = ' + fmt(subtotal);
-      if (discount > 0) note += ' − ' + fmt(discount);
+      if (discThb > 0) note += ' − ' + fmt(discThb);
       note += ')';
     }
     document.getElementById('bxPayAmountNote').textContent = note;
@@ -612,7 +640,8 @@
     const pkg  = document.getElementById('bxPayPkg').value;
     const mods = bxSelectedMods();
     const months = parseInt(document.getElementById('bxPayDuration').value) || 1;
-    const discount = parseInt(document.getElementById('bxPayDiscount').value) || 0;
+    const discount = parseFloat(document.getElementById('bxPayDiscount').value) || 0;
+    const dType = BX._payDiscType || 'thb';
     const key  = mods.slice().sort().join(',');
     const hit  = (BX._prices||[]).find(p =>
       p.package_id === pkg && (p.modules||[]).slice().sort().join(',') === key);
@@ -626,11 +655,11 @@
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           tenant_id: _payRow.tenant_id,
-          amount:    hit.price,
           package_id: pkg,
           modules:   mods,
           duration_months: months,
-          discount:  discount,
+          discount_value: discount,
+          discount_type:  dType,
         }),
       });
       const j = await r.json();

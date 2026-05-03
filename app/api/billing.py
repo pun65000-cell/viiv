@@ -173,12 +173,21 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
     pkg       = (payload.get("package_id") or "").strip()
     modules   = payload.get("modules") or []
     duration_months = int(payload.get("duration_months") or 1)
-    discount  = float(payload.get("discount") or 0)
+    # discount_value + discount_type (new); fallback to legacy "discount" (thb)
+    if "discount_value" in payload:
+        discount_value = float(payload.get("discount_value") or 0)
+    else:
+        discount_value = float(payload.get("discount") or 0)
+    discount_type = (payload.get("discount_type") or "thb").lower()
+    if discount_type not in ("thb", "pct"):
+        discount_type = "thb"
 
     if not tid or not pkg or not isinstance(modules, list):
         raise HTTPException(400, "tenant_id, package_id, modules[] required")
     if duration_months < 1 or duration_months > 36:
         raise HTTPException(400, "duration_months must be 1-36")
+    if discount_value < 0 or (discount_type == "pct" and discount_value > 100):
+        raise HTTPException(400, "invalid discount_value")
 
     noted_by = (auth.get("email") or auth.get("user_id")
                 or auth.get("sub") or "admin")
@@ -190,7 +199,12 @@ def confirm_payment(payload: dict, authorization: str = Header(None)):
             raise HTTPException(404, "tenant not found")
 
         monthly = _calc_amount(pkg, modules, c)
-        amount = max(0.0, round(monthly * duration_months - discount, 2))
+        subtotal = monthly * duration_months
+        if discount_type == "pct":
+            discount_thb = round(subtotal * discount_value / 100.0, 2)
+        else:
+            discount_thb = discount_value
+        amount = max(0.0, round(subtotal - discount_thb, 2))
         duration_days = duration_months * 30
 
         c.execute(text("""
