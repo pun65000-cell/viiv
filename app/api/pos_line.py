@@ -4,7 +4,7 @@ from app.api.pos_line_quote import render_quote_jpg, push_image_to_line
 
 import hmac, hashlib, base64, json, os, random, string, time
 import jwt
-from fastapi import APIRouter, Request, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Request, Header, HTTPException
 from sqlalchemy import text
 from app.core.db import engine
 
@@ -164,8 +164,79 @@ def _ai_reply(message_text: str, tenant_id: str, conv_id: str) -> str | None:
         return None
 
 
+def _ai_push_reply(
+    message_text: str,
+    tenant_id: str,
+    line_uid: str,
+    channel_token: str,
+    conv_id: str,
+):
+    """
+    Background task:
+    เรียก moduleai → ได้ reply → push ไปลูกค้าผ่าน LINE push API
+    ไม่มี replyToken timeout
+    """
+    try:
+        import httpx as _httpx
+
+        # 1. เรียก AI (timeout 25s — push ไม่มี deadline)
+        with _httpx.Client(timeout=25.0) as hc:
+            r = hc.post(
+                "http://localhost:8002/chat",
+                json={
+                    "message":   message_text,
+                    "slot":      "chat_bot",
+                    "tenant_id": tenant_id,
+                    "source":    "line_chat",
+                    "shop_id":   tenant_id,
+                },
+            )
+            if r.status_code != 200:
+                _log.warning("moduleai %d tenant=%s", r.status_code, tenant_id)
+                return
+            ai_reply = r.json().get("reply", "")
+
+        if not ai_reply:
+            return
+
+        # 2. push ไปลูกค้า (ไม่ใช่ reply — ไม่หมดอายุ)
+        with _httpx.Client(timeout=10.0) as hc:
+            resp = hc.post(
+                "https://api.line.me/v2/bot/message/push",
+                headers={
+                    "Authorization": f"Bearer {channel_token}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "to": line_uid,
+                    "messages": [{"type": "text", "text": ai_reply}],
+                },
+            )
+            if resp.status_code != 200:
+                _log.warning("LINE push failed %d: %s", resp.status_code, resp.text[:100])
+                return
+
+        # 3. save outbound message
+        with engine.begin() as c:
+            c.execute(text("""
+                INSERT INTO chat_messages
+                    (conversation_id, direction, content, raw_event)
+                VALUES (:cid, 'outbound', :txt, CAST(:raw AS jsonb))
+            """), {
+                "cid": conv_id,
+                "txt": ai_reply,
+                "raw": '{"sent_by":"ai_push"}',
+            })
+
+        _log.info("[ai_push] tenant=%s uid=%s reply=%d chars",
+                  tenant_id, line_uid[:8], len(ai_reply))
+
+    except Exception as e:
+        _log.warning("[ai_push] failed tenant=%s: %s", tenant_id, e)
+
+
 @router.post("/webhook")
-async def line_webhook(request: Request):
+async def line_webhook(request: Request, background_tasks: BackgroundTasks):
     body = await request.body()
     sig_header = request.headers.get("X-Line-Signature", "")
     tenant_id = request.query_params.get("tenant", "")
@@ -269,11 +340,18 @@ async def line_webhook(request: Request):
                         # 4. bot reply (message only)
                         if event_type == "message" and message_text:
                             reply_token = event.get("replyToken", "")
-                            # Phase E: AI first → bot fallback
-                            bot_reply_text = _ai_reply(message_text, tenant_id, conv_id or "")
-                            if not bot_reply_text:
-                                # fallback: rule-based bot (ถ้า moduleai down หรือ timeout)
-                                bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
+                            # Phase E v2: Bot reply ก่อนทันที → AI push background
+                            bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
+
+                            # Background: AI ตอบผ่าน push (ไม่บล็อก replyToken)
+                            background_tasks.add_task(
+                                _ai_push_reply,
+                                message_text,
+                                tenant_id,
+                                line_uid,
+                                channel_token,
+                                conv_id or "",
+                            )
                             if reply_token and bot_reply_text and channel_token:
                                 try:
                                     with _httpx.Client(timeout=5) as hc:
