@@ -1,0 +1,6 @@
+BEGIN;
+DROP TABLE IF EXISTS ai_prompt_test_log CASCADE;
+DROP TABLE IF EXISTS ai_prompt_versions CASCADE;
+DROP TABLE IF EXISTS ai_prompt_patches CASCADE;
+DROP TABLE IF EXISTS ai_prompts CASCADE;
+COMMIT;
