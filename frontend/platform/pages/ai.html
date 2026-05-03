@@ -5,20 +5,20 @@
 </head><body>
 <style>
 :root{
-  --jp-bg:       #0a0a0c;
-  --jp-surface:  #0d0d10;
-  --jp-surface2: #13131a;
-  --jp-border:   #1e1e28;
-  --jp-border2:  #2a2a38;
-  --jp-text:     #e8e6e0;
-  --jp-muted:    #6a6a7a;
-  --jp-dim:      #3a3a4a;
-  --jp-gold:     #e8c56a;
-  --jp-gold-dim: #b89a42;
-  --jp-green:    #4caf7a;
-  --jp-red:      #e05a5a;
-  --jp-mono:     'Space Mono', ui-monospace, monospace;
-  --jp-sans:     'Noto Sans JP', system-ui, sans-serif;
+  --jp-bg:       var(--color-background-tertiary,#f5f5f5);
+  --jp-surface:  var(--color-background-primary,#fff);
+  --jp-surface2: var(--color-background-secondary,#f9f9f9);
+  --jp-border:   var(--color-border-tertiary,rgba(0,0,0,.12));
+  --jp-border2:  var(--color-border-secondary,rgba(0,0,0,.2));
+  --jp-text:     var(--color-text-primary,#111);
+  --jp-muted:    var(--color-text-secondary,#666);
+  --jp-dim:      var(--color-border-tertiary,rgba(0,0,0,.12));
+  --jp-gold:     #c9a84c;
+  --jp-gold-dim: #a8893c;
+  --jp-green:    var(--color-text-success,#16a34a);
+  --jp-red:      var(--color-text-danger,#dc2626);
+  --jp-mono:     var(--font-mono,'Space Mono',monospace);
+  --jp-sans:     var(--font-sans,-apple-system,sans-serif);
 }
 
 .aim-wrap{margin-left:0;padding:24px;font-family:var(--jp-sans);font-size:14px;color:var(--jp-text);background:var(--jp-bg);min-height:100%;width:100%;max-width:none}
@@ -173,8 +173,10 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
       <form class="aim-key-form" onsubmit="return aimSaveKey(event)">
         <select id="aim-new-prov">
           <option value="anthropic">Anthropic</option>
-          <option value="openai">OpenAI</option>
-          <option value="google">Google</option>
+          <option value="openai_customer">OpenAI (Customer)</option>
+          <option value="openai_internal">OpenAI (Internal)</option>
+          <option value="gemini_customer">Gemini (Customer)</option>
+          <option value="gemini_internal">Gemini (Internal)</option>
           <option value="deepseek">DeepSeek</option>
         </select>
         <input id="aim-new-key" type="password" placeholder="sk-ant-... / sk-... / AIza... / sk-..." autocomplete="off">
@@ -186,6 +188,7 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
       <div class="aim-card-head">
         <div class="aim-card-title">Models ที่ใช้</div>
         <div class="aim-card-sub">$/1M tokens</div>
+        <div class="aim-card-sub" style="margin-left:auto;opacity:.6;font-size:11px">Updated: 03 May 2026</div>
       </div>
       <div style="background:#1a1a1c;border:1px solid #d4af37;
                   padding:10px 14px;border-radius:6px;margin-bottom:14px;
@@ -280,27 +283,28 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
 (function(){
   // ─── Slot definitions ──────────────────────────────────
   var SLOTS = [
-    {id:'chat_bot',     label:'CHAT/BOT',     defaultModel:'claude-haiku-4-5'},
-    {id:'complex_post', label:'COMPLEX/POST', defaultModel:'claude-sonnet-4-7'},
-    {id:'fallback',     label:'FALLBACK AI',  defaultModel:'gpt-4o-mini'},
-    {id:'pos_help',     label:'POS HELP',     defaultModel:'claude-haiku-4-5'},
-    {id:'autopost',     label:'AUTOPOST',     defaultModel:'claude-sonnet-4-7'},
-    {id:'analytics',    label:'ANALYTICS',    defaultModel:'gemini-1.5-flash'}
+    {id:'chat_bot',  label:'Chat/Bot',  defaultModel:'gpt-5-nano'},
+    {id:'pos_help',  label:'POS Help',  defaultModel:'gpt-5-nano'},
+    {id:'autopost',  label:'AutoPost',  defaultModel:'gpt-5-nano'},
+    {id:'analytics', label:'Analytics', defaultModel:'gpt-5-nano'},
+    {id:'internal',  label:'Internal',  defaultModel:'gpt-5-nano'}
   ];
 
   // ─── Model catalog (id → meta) — fallback hardcoded
   // Updated from /api/platform/ai/models on load
   var MODEL_CATALOG = {
-    'claude-haiku-4-5':   {provider:'Anthropic', tag:'ถูก/เร็ว',    cost_in:0.25,  cost_out:1.25},
-    'claude-sonnet-4-7':  {provider:'Anthropic', tag:'ฉลาด',         cost_in:3.00,  cost_out:15.00},
-    'gpt-4o-mini':        {provider:'OpenAI',    tag:'Fallback',     cost_in:0.15,  cost_out:0.60},
-    'gemini-1.5-flash':   {provider:'Google',    tag:'ถูกมาก',       cost_in:0.07,  cost_out:0.30},
-    'deepseek-chat':      {provider:'DeepSeek',  tag:'ราคาต่ำ',      cost_in:0.14,  cost_out:0.28},
-    'deepseek-reasoner':  {provider:'DeepSeek',  tag:'คิดลึก',       cost_in:0.55,  cost_out:2.19}
+    'gpt-5-nano':        {provider:'OpenAI',   tag:'หลัก/เร็ว',  cost_in:0.05,  cost_out:0.40},
+    'gpt-5-mini':        {provider:'OpenAI',   tag:'กลาง',        cost_in:0.40,  cost_out:1.60},
+    'gpt-4o':            {provider:'OpenAI',   tag:'ฉลาด',        cost_in:2.50,  cost_out:10.00},
+    'gemini-2.0-flash':  {provider:'Google',   tag:'เร็ว/ถูก',   cost_in:0.10,  cost_out:0.40},
+    'gemini-2.5-pro':    {provider:'Google',   tag:'ฉลาด',        cost_in:1.25,  cost_out:10.00},
+    'deepseek-chat':     {provider:'DeepSeek', tag:'ราคาต่ำ',     cost_in:0.14,  cost_out:0.28},
+    'deepseek-reasoner': {provider:'DeepSeek', tag:'คิดลึก',      cost_in:0.55,  cost_out:2.19}
   };
   var MODEL_ORDER = [
-    'claude-haiku-4-5','claude-sonnet-4-7','gpt-4o-mini',
-    'gemini-1.5-flash','deepseek-chat','deepseek-reasoner'
+    'gpt-5-nano','gpt-5-mini','gpt-4o',
+    'gemini-2.0-flash','gemini-2.5-pro',
+    'deepseek-chat','deepseek-reasoner'
   ];
 
   function _tok(){
@@ -409,7 +413,7 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
   async function loadKeys(){
     try {
       var d = await _get('/api/platform/ai/keys');
-      var providers = ['anthropic','openai','google','deepseek'];
+      var providers = ['anthropic','openai_customer','openai_internal','gemini_customer','gemini_internal','deepseek'];
       var existing = {};
       (d.keys||[]).forEach(function(k){ existing[k.provider] = k; });
       var html = providers.map(function(p){
@@ -456,19 +460,28 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
     }
   };
 
-  // ─── 3 — Models (6 dropdown slots) — TEST MODE: lock gpt-5-nano ─────
+  // ─── 3 — Models (5 dropdown slots) ─────
   function _renderSlots(){
-    var LOCKED = 'gpt-5-nano';
+    var isLocked = true;
     var html = SLOTS.map(function(s){
-      return '<div class="aim-slot-row" data-slot="' + _esc(s.id) + '" style="opacity:.6;">' +
-        '<div class="aim-slot-label">' + _esc(s.label) + '</div>' +
-        '<select class="aim-slot-select" data-slot="' + _esc(s.id) + '" disabled>' +
-          '<option value="' + LOCKED + '" selected>' + LOCKED + ' (OpenAI · Test mode)</option>' +
-        '</select>' +
-        '<div class="aim-slot-cost" id="aim-cost-' + _esc(s.id) + '">' +
-          'in <b>$0.05</b> · out <b>$0.40</b>' +
-        '</div>' +
-      '</div>';
+      var selVal = isLocked ? 'gpt-5-nano' : s.defaultModel;
+      var rowOpts = MODEL_ORDER.map(function(id){
+        var m = MODEL_CATALOG[id]||{};
+        var sel = id===selVal?' selected':'';
+        return '<option value="'+_esc(id)+'"'+sel+'>'
+          +_esc(id)+' ('+_esc(m.provider||'')+')</option>';
+      }).join('');
+      var m = MODEL_CATALOG[selVal]||{};
+      return '<div class="aim-slot-row" data-slot="'+_esc(s.id)+'">'
+        +'<div class="aim-slot-label">'+_esc(s.label)+'</div>'
+        +'<select class="aim-slot-select" data-slot="'+_esc(s.id)+'"'+(isLocked?' disabled':'')+'>'
+          +rowOpts
+        +'</select>'
+        +'<div class="aim-slot-cost" id="aim-cost-'+_esc(s.id)+'">'
+          +'in <b>$'+Number(m.cost_in||0).toFixed(2)+'</b>'
+          +' · out <b>$'+Number(m.cost_out||0).toFixed(2)+'</b>'
+        +'</div>'
+        +'</div>';
     }).join('');
     document.getElementById('aim-slots').innerHTML = html;
   }
