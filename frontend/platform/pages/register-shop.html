@@ -403,8 +403,14 @@ function vRenderTiers() {
     if (p.is_free) {
       priceBlock = '<div class="tier-price free" id="price_'+p.id+'">'+p.unit+'</div>';
     } else if (p.is_custom) {
-      var customText = (p.features||'').split('\n')[0] || 'ติดต่อทีมงาน';
-      priceBlock = '<div class="tier-price custom" id="price_'+p.id+'">'+customText+'</div>';
+      if (p.fixed_price && Number(p.fixed_price) > 0) {
+        var fpUnit = p.unit || '/เดือน';
+        priceBlock = '<div class="tier-price custom" id="price_'+p.id+'">฿'+Number(p.fixed_price).toLocaleString()+
+          ' <small style="font-size:11px;color:#9ca3af">'+fpUnit+'</small></div>';
+      } else {
+        var customText = (p.features||'').split('\n')[0] || 'ติดต่อทีมงาน';
+        priceBlock = '<div class="tier-price custom" id="price_'+p.id+'">'+customText+'</div>';
+      }
     } else {
       priceBlock = '<div class="tier-price-orig" id="orig_'+p.id+'" style="display:none"></div>'
         +'<div class="tier-price" id="price_'+p.id+'"></div>'
@@ -455,16 +461,26 @@ function vUpdatePricing() {
   });
 
   _vCfgPlans.forEach(function(p) {
-    if (p.is_free || p.is_custom) return;
+    if (p.is_free) return;
+    var priceEl = document.getElementById('price_' + p.id);
+    var origEl  = document.getElementById('orig_' + p.id);
+    var discEl  = document.getElementById('disc_' + p.id);
+    // Fixed price override (Privacy/custom) — ข้าม multiplier
+    if (p.fixed_price && Number(p.fixed_price) > 0) {
+      var fp = Number(p.fixed_price);
+      var unitFp = p.unit || '/เดือน';
+      if (priceEl) priceEl.innerHTML = '฿' + fp.toLocaleString() +
+        ' <small style="font-size:11px;color:#9ca3af">' + unitFp + '</small>';
+      if (origEl) origEl.style.display = 'none';
+      if (discEl) discEl.style.display = 'none';
+      return;
+    }
+    if (p.is_custom) return;
     var multiplier = Number(p.multiplier) || 1;
     var disc  = Number(p.discount) || 0;
     var total = modTotal * multiplier;
     var final = Math.max(0, total - disc);
     var unit  = p.unit || '/เดือน';
-
-    var priceEl = document.getElementById('price_' + p.id);
-    var origEl  = document.getElementById('orig_' + p.id);
-    var discEl  = document.getElementById('disc_' + p.id);
 
     if (priceEl) priceEl.innerHTML = '฿' + final.toLocaleString() +
       ' <small style="font-size:10px;font-weight:400;color:#9ca3af">' + unit + '</small>';

@@ -345,7 +345,7 @@ def get_pkg_config(authorization: str = Header("")):
         """)).mappings().all()
 
         pkg_rows = c.execute(text("""
-            SELECT id, label as name, multiplier, type, sort_order,
+            SELECT id, label as name, multiplier, fixed_price, type, sort_order,
                    unit, feature_flags, badge
             FROM packages ORDER BY sort_order
         """)).mappings().all()
@@ -388,6 +388,7 @@ def get_pkg_config(authorization: str = Header("")):
             'name':        p['name'] or p['id'],
             'badge':       p['badge'] or '',
             'multiplier':  float(p['multiplier'] or 1),
+            'fixed_price': float(p['fixed_price']) if p['fixed_price'] is not None else None,
             'price':       0,   # ไม่ใช้แล้ว — คำนวณจาก module_prices × multiplier
             'unit':        p['unit'] or '/เดือน',
             'features':    feat_map.get(p['id'], ''),

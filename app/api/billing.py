@@ -54,13 +54,15 @@ def _calc_amount(package_id: str | None, modules, conn) -> float:
     if not package_id:
         return 0.0
     pkg = conn.execute(
-        text("SELECT multiplier, type FROM packages WHERE id = :pid"),
+        text("SELECT multiplier, fixed_price, type FROM packages WHERE id = :pid"),
         {"pid": package_id},
     ).first()
     if not pkg:
         return 0.0
     if (pkg.type or "") == "free":
         return 0.0
+    if pkg.fixed_price is not None:
+        return round(float(pkg.fixed_price), 2)
     mods = list(modules or [])
     if not mods:
         return 0.0

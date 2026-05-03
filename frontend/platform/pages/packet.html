@@ -296,6 +296,11 @@ window.pkSaveModuleRow=function(i){
 function pkPlanPriceHTML(p,i){
   if(p.is_free) return '<div class="pk-plan-price-block"><div class="pk-plan-final-price free" id="pk-p-fdisp-'+i+'">'+esc(p.unit||'ฟรี')+'</div></div>';
   if(p.is_custom){
+    var fp = Number(p.fixed_price)||0;
+    var unit = esc(p.unit||'/เดือน');
+    if(fp > 0){
+      return '<div class="pk-plan-price-block"><div class="pk-plan-final-price custom" id="pk-p-fdisp-'+i+'">฿'+fp.toLocaleString()+' <small style="font-size:12px;font-weight:400;color:#9ca3af">'+unit+'</small></div></div>';
+    }
     var lines=(p.features||'').split('\n');
     return '<div class="pk-plan-price-block"><div class="pk-plan-final-price custom" id="pk-p-fdisp-'+i+'">'+esc(lines[0]||'Custom')+'</div></div>';
   }
@@ -343,6 +348,13 @@ function renderPlans(){
           '<div class="pk-field-note">0 = ไม่มีส่วนลด</div>' +
         '</div>' +
       '</div>' +
+      (p.is_custom ?
+        '<div class="pk-field"><label>ราคา Fixed (฿) — เฉพาะ Custom</label>' +
+          '<input type="number" id="pk-p-fixed-'+i+'" value="'+Number(p.fixed_price||0)+'" min="0" '+
+            'oninput="pkUpdatePlanPreview('+i+')"/>' +
+          '<div class="pk-field-note">ใส่ราคาคงที่ — ข้ามการคำนวณ multiplier</div>' +
+        '</div>'
+      : '') +
       '<div class="pk-field"><label>หน่วย</label>' +
         '<input id="pk-p-unit-'+i+'" value="'+esc(p.unit||'')+'" placeholder="/เดือน หรือ /ปี"/></div>' +
       '<div class="pk-field"><label>รายละเอียด / Features</label>' +
@@ -362,12 +374,19 @@ function renderPlans(){
 }
 
 window.pkUpdatePlanPreview = function(i) {
-  var mult = Number(document.getElementById('pk-p-mult-'+i) ? document.getElementById('pk-p-mult-'+i).value : 1) || 1;
-  var disc = Number(document.getElementById('pk-p-disc-'+i).value) || 0;
   var unit = document.getElementById('pk-p-unit-'+i) ? document.getElementById('pk-p-unit-'+i).value || '/เดือน' : '/เดือน';
   var el = document.getElementById('pk-p-fdisp-'+i);
   if (!el) return;
-  // ตัวอย่าง: POS(299) × multiplier
+  // Fixed price mode (custom plans)
+  var fixedEl = document.getElementById('pk-p-fixed-'+i);
+  if (fixedEl) {
+    var fp = Number(fixedEl.value) || 0;
+    el.innerHTML = '฿' + fp.toLocaleString() + ' <small style="font-size:12px;font-weight:400;color:#9ca3af">' + unit + '</small>';
+    return;
+  }
+  // Normal mode — multiplier
+  var mult = Number(document.getElementById('pk-p-mult-'+i) ? document.getElementById('pk-p-mult-'+i).value : 1) || 1;
+  var disc = Number(document.getElementById('pk-p-disc-'+i).value) || 0;
   var example = Math.max(0, 299 * mult - disc);
   el.textContent = '฿' + example.toLocaleString() + ' ' + unit + ' (POS เดี่ยว)';
 };
@@ -387,6 +406,8 @@ window.pkSavePlanRow=function(i){
   _plans[i].badge     =document.getElementById('pk-p-badge-'+i).value.trim();
   _plans[i].multiplier=Number(document.getElementById('pk-p-mult-'+i).value)||1;
   _plans[i].discount  =Number(document.getElementById('pk-p-disc-'+i).value)||0;
+  var fxEl = document.getElementById('pk-p-fixed-'+i);
+  _plans[i].fixed_price = fxEl ? (Number(fxEl.value)||null) : null;
   _plans[i].unit      =document.getElementById('pk-p-unit-'+i).value.trim();
   _plans[i].features  =document.getElementById('pk-p-feat-'+i).value.trim();
   _plans[i].is_free   =type==='free';
@@ -409,6 +430,7 @@ window.pkSaveAll=function(){
     var b=document.getElementById('pk-p-badge-'+i);  if(b) p.badge=b.value.trim();
     var mu=document.getElementById('pk-p-mult-'+i);  if(mu) p.multiplier=Number(mu.value)||1;
     var di=document.getElementById('pk-p-disc-'+i);  if(di) p.discount=Number(di.value)||0;
+    var fx=document.getElementById('pk-p-fixed-'+i); if(fx) p.fixed_price=Number(fx.value)||null;
     var u=document.getElementById('pk-p-unit-'+i);   if(u) p.unit=u.value.trim();
     var f=document.getElementById('pk-p-feat-'+i);   if(f) p.features=f.value.trim();
     var t=document.getElementById('pk-p-type-'+i);
