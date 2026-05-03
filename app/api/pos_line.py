@@ -355,10 +355,7 @@ async def line_webhook(request: Request, background_tasks: BackgroundTasks):
                                 _log.info("skip duplicate replyToken %s", reply_token[:12])
                                 continue
 
-                            # Phase E v2: Bot reply ก่อนทันที → AI push background
-                            bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
-
-                            # Background: AI ตอบผ่าน push (ไม่บล็อก replyToken)
+                            # AI push reply (background — ไม่บล็อก webhook response)
                             background_tasks.add_task(
                                 _ai_push_reply,
                                 message_text,
@@ -367,28 +364,6 @@ async def line_webhook(request: Request, background_tasks: BackgroundTasks):
                                 channel_token,
                                 conv_id or "",
                             )
-                            if reply_token and bot_reply_text and channel_token:
-                                try:
-                                    with _httpx.Client(timeout=5) as hc:
-                                        hc.post(
-                                            "https://api.line.me/v2/bot/message/reply",
-                                            headers={
-                                                "Authorization": f"Bearer {channel_token}",
-                                                "Content-Type": "application/json"
-                                            },
-                                            json={"replyToken": reply_token,
-                                                  "messages": [{"type": "text",
-                                                                 "text": bot_reply_text}]}
-                                        )
-                                    # save outbound
-                                    c.execute(text("""
-                                        INSERT INTO chat_messages
-                                            (conversation_id, direction, content, raw_event)
-                                        VALUES (:cid, 'outbound', :txt, CAST(:raw AS jsonb))
-                                    """), {"cid": conv_id, "txt": bot_reply_text,
-                                           "raw": json.dumps({"sent_by": "bot", "replyToken": reply_token})})
-                                except Exception as e:
-                                    _log.warning("tenant bot reply failed: %s", e)
                 except Exception as e:
                     _log.warning("chat integration error tenant=%s: %s", tenant_id, e)
     return {"status": "ok"}
