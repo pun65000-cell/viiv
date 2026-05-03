@@ -462,6 +462,7 @@ window.sbNav = function(page){
 window.switchMod = function(mod, btn){
   document.querySelectorAll('.sb-topnav-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  if (location.hash !== '#mod-'+mod) history.replaceState(null, '', '#mod-'+mod);
   var c = document.getElementById('sbContent');
   c.classList.remove('home-fullscreen');
   var modUrls = {
@@ -757,7 +758,14 @@ async function loadShopList(){
 
 window.addEventListener('hashchange', function(){
   var p = location.hash.replace('#','');
-  if (p) window.sbNav(p);
+  if (!p) return;
+  if (p.startsWith('mod-')) {
+    var mod = p.replace('mod-','');
+    var btn = document.getElementById('mod-'+mod);
+    if (btn) window.switchMod(mod, btn);
+  } else {
+    window.sbNav(p);
+  }
 });
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -765,8 +773,15 @@ document.addEventListener('DOMContentLoaded', function(){
   loadShopBadge();   // topbar เท่านั้น — list โหลดเมื่อเปิด dropdown
   sbLoadPlatformStatus();
   setInterval(sbLoadPlatformStatus, 30000);
-  var _initialPage = (location.hash.replace('#','')) || 'home';
-  sbNav(_initialPage); checkBellDot();
+  var _initialHash = location.hash.replace('#','') || 'home';
+  if (_initialHash.startsWith('mod-')) {
+    var _mod = _initialHash.replace('mod-','');
+    var _btn = document.getElementById('mod-'+_mod);
+    if (_btn) switchMod(_mod, _btn);
+  } else {
+    sbNav(_initialHash);
+  }
+  checkBellDot();
 
   // ── Shop popup bindings (เลี่ยง onclick attribute → ใช้ addEventListener) ──
   var saveBtn = document.getElementById('shopAddSaveBtn');
