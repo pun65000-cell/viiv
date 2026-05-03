@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <title>VIIV Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="chat.css?v=5885">
+  <link rel="stylesheet" href="chat.css?v=8410">
 </head>
 <body>
 <div class="layout">
@@ -42,9 +42,9 @@
           <div class="chat-head-sub"><span class="status-dot"></span><span id="head-platform">LINE</span> · <span id="head-time">-</span></div>
         </div>
         <div class="head-actions">
-          <button class="action-btn" onclick="UI.createBill()">+ บิล</button>
-          <button class="action-btn" onclick="App.reloadChat()" title="รีเฟรช">↺</button>
-          <button class="action-btn danger" onclick="UI.closeConv()">✕</button>
+          <button type="button" class="action-btn" onclick="UI.createBill()">+ บิล</button>
+          <button type="button" class="action-btn" onclick="App.reloadChat()" title="รีเฟรช">↺</button>
+          <button type="button" class="action-btn danger" onclick="UI.closeConv()">✕</button>
         </div>
       </div>
       <div class="chat-messages" id="chat-messages"></div>
@@ -99,9 +99,9 @@
     </div>
   </div>
 </div>
-<script src="chat-api.js?v=5885"></script>
-<script src="chat-ui.js?v=5885"></script>
-<script src="chat-bot.js?v=5885"></script>
+<script src="chat-api.js?v=8410"></script>
+<script src="chat-ui.js?v=8410"></script>
+<script src="chat-bot.js?v=8410"></script>
 <script>
 (function(){
   var _initialized = false;
