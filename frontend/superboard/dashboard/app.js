@@ -365,9 +365,6 @@ function updateChatFeed() {
 
 // ── init ───────────────────────────────────────
 function init(){
-  // canvas ต้องอยู่ใต้ header + tab bar เสมอ
-  const _canvas = document.getElementById('canvas');
-  if (_canvas) _canvas.style.top = 'calc(var(--hh) + var(--tbh))';
   clearTimers();
   // Staff heartbeat
   (function(){
