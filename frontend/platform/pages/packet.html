@@ -79,12 +79,13 @@
 .pk-plan-foot { margin-top:4px;display:flex;justify-content:flex-end;gap:8px; }
 
 /* ── Fields ── */
-.pk-field { display:flex;flex-direction:column;gap:4px; }
+.pk-field { display:flex;flex-direction:column;gap:4px;min-width:0; }
 .pk-field label { font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.4px; }
 .pk-field input,.pk-field textarea,.pk-field select {
   padding:8px 11px;border:1px solid #e5e7eb;border-radius:8px;
   font-size:13px;outline:none;background:#fff;font-family:inherit;
   transition:border-color .15s;
+  width:100%;min-width:0;box-sizing:border-box;
 }
 .pk-field input:focus,.pk-field textarea:focus,.pk-field select:focus { border-color:#e8b93e; }
 .pk-field textarea { resize:vertical;min-height:58px; }
