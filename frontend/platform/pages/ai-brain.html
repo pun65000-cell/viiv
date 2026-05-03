@@ -4,686 +4,680 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head><body>
 <style>
-:root{
-  --jp-bg:       #0a0a0c;
-  --jp-surface:  #0d0d10;
-  --jp-surface2: #13131a;
-  --jp-border:   #1e1e28;
-  --jp-border2:  #2a2a38;
-  --jp-text:     #e8e6e0;
-  --jp-muted:    #6a6a7a;
-  --jp-dim:      #3a3a4a;
-  --jp-gold:     #e8c56a;
-  --jp-gold-dim: #b89a42;
-  --jp-green:    #4caf7a;
-  --jp-red:      #e05a5a;
-  --jp-blue:     #5a8ade;
-  --jp-mono:     'Space Mono', ui-monospace, monospace;
-  --jp-sans:     'Noto Sans JP', system-ui, sans-serif;
+*{box-sizing:border-box;margin:0;padding:0}
+
+.brn-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
 }
 
-.brn-wrap{margin-left:0;padding:24px;font-family:var(--jp-sans);font-size:14px;color:var(--jp-text);background:var(--jp-bg);min-height:100%;width:100%;max-width:none}
-.brn-wrap *{box-sizing:border-box}
+/* ─── Group Tabs (3 หลัก) ─────────────────────────── */
+.brn-group-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.brn-gtab{
+  padding:8px 20px;
+  border-radius:var(--border-radius-lg,12px);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  font-size:14px;font-weight:400;cursor:pointer;
+  background:var(--color-background-primary,#fff);
+  color:var(--color-text-secondary,#666);
+  transition:all .15s;font-family:inherit;
+}
+.brn-gtab:hover{color:var(--color-text-primary,#111);border-color:var(--color-border-secondary,#bbb)}
+.brn-gtab.active{
+  background:var(--color-background-info,#e8f0fe);
+  color:var(--color-text-info,#1a56db);
+  border-color:var(--color-border-info,#93c5fd);
+  font-weight:500;
+}
 
-/* ─── Tabs ─────────────────────────────────────────────── */
-.brn-tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--jp-border2);padding-bottom:0}
-.brn-tab{padding:11px 22px;background:transparent;border:1px solid var(--jp-border2);border-bottom:none;border-radius:5px 5px 0 0;color:var(--jp-muted);font-family:var(--jp-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s,border-color .15s;position:relative;top:1px}
-.brn-tab:hover{color:var(--jp-text);background:var(--jp-surface2)}
-.brn-tab.active{color:var(--jp-gold);background:var(--jp-surface);border-color:var(--jp-border2);border-bottom:1px solid var(--jp-surface)}
+/* ─── Slot Tabs (แถวที่ 2) ────────────────────────── */
+.brn-slot-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.brn-stab{
+  padding:6px 14px;
+  border-radius:var(--border-radius-md,8px);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  font-size:12px;cursor:pointer;
+  background:transparent;
+  color:var(--color-text-secondary,#666);
+  transition:all .15s;font-family:inherit;
+}
+.brn-stab:hover{color:var(--color-text-primary,#111);border-color:var(--color-border-secondary,#bbb)}
+.brn-stab.active{
+  background:var(--color-background-primary,#fff);
+  color:var(--color-text-primary,#111);
+  border-color:var(--color-border-secondary,#bbb);
+  font-weight:500;
+}
 
-/* ─── Cards ────────────────────────────────────────────── */
-.brn-card{background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:24px;margin-bottom:16px}
-.brn-card-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:13px;border-bottom:1px solid var(--jp-border)}
-.brn-card-title{font-size:13px;font-weight:700;color:var(--jp-text);letter-spacing:.08em;text-transform:uppercase;flex:1}
-.brn-card-sub{font-size:12px;color:var(--jp-muted);font-family:var(--jp-mono)}
-.brn-card-meta{font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.05em;display:flex;gap:14px;align-items:center}
-.brn-card-meta b{color:var(--jp-gold);font-weight:700}
+/* ─── Cards ───────────────────────────────────────── */
+.brn-card{
+  background:var(--color-background-primary,#fff);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-radius:var(--border-radius-lg,12px);
+  padding:16px 20px;
+  margin-bottom:12px;
+}
+.brn-card-head{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:14px;padding-bottom:12px;
+  border-bottom:0.5px solid var(--color-border-tertiary,#ddd);
+}
+.brn-card-title{
+  font-size:14px;font-weight:500;
+  color:var(--color-text-primary,#111);flex:1;
+}
+.brn-card-meta{
+  font-size:11px;color:var(--color-text-tertiary,#999);
+  font-family:var(--font-mono,monospace);
+}
 
-/* ─── Inputs ───────────────────────────────────────────── */
-.brn-textarea{width:100%;min-height:200px;padding:14px 16px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:5px;font-family:var(--jp-mono);font-size:13px;line-height:1.7;outline:none;resize:vertical}
-.brn-textarea:focus{border-color:var(--jp-gold)}
-.brn-textarea.preview{background:#08080a;color:#bcbcc9;cursor:default}
-.brn-textarea.preview:focus{border-color:var(--jp-border2)}
+/* ─── Form elements ───────────────────────────────── */
+.brn-textarea{
+  width:100%;min-height:140px;
+  padding:12px 14px;
+  background:var(--color-background-secondary,#f9f9f9);
+  color:var(--color-text-primary,#111);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-radius:var(--border-radius-md,8px);
+  font-family:var(--font-mono,monospace);
+  font-size:13px;line-height:1.65;resize:vertical;outline:none;
+}
+.brn-textarea:focus{border-color:var(--color-border-secondary,#bbb)}
+.brn-textarea.preview{
+  background:var(--color-background-tertiary,#f5f5f5);
+  color:var(--color-text-secondary,#666);
+  cursor:default;min-height:100px;
+}
+.brn-input{
+  width:100%;padding:9px 13px;
+  background:var(--color-background-secondary,#f9f9f9);
+  color:var(--color-text-primary,#111);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-radius:var(--border-radius-md,8px);
+  font-family:inherit;font-size:13px;outline:none;min-height:38px;
+}
+.brn-input:focus{border-color:var(--color-border-secondary,#bbb)}
+.brn-char-row{
+  font-size:11px;color:var(--color-text-tertiary,#999);
+  font-family:var(--font-mono,monospace);
+  margin-top:6px;text-align:right;
+}
 
-.brn-input{padding:10px 14px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:4px;font-family:var(--jp-mono);font-size:13px;outline:none;min-height:40px;width:100%}
-.brn-input:focus{border-color:var(--jp-gold)}
+/* ─── Buttons ─────────────────────────────────────── */
+.brn-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;align-items:center}
+.brn-btn{
+  padding:8px 18px;border-radius:var(--border-radius-md,8px);
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;
+  min-height:36px;transition:all .12s;
+}
+.brn-btn-primary{
+  background:var(--color-text-primary,#111);
+  color:var(--color-background-primary,#fff);
+  border:none;
+}
+.brn-btn-primary:hover{opacity:.85}
+.brn-btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.brn-btn-ghost{
+  background:transparent;
+  border:0.5px solid var(--color-border-secondary,#bbb);
+  color:var(--color-text-secondary,#666);
+}
+.brn-btn-ghost:hover{border-color:var(--color-border-primary,#999);color:var(--color-text-primary,#111)}
+.brn-btn-danger{
+  background:transparent;
+  border:0.5px solid var(--color-border-danger,#fca5a5);
+  color:var(--color-text-danger,#dc2626);
+  font-size:12px;padding:6px 12px;
+}
+.brn-btn-danger:hover{background:var(--color-background-danger,#fef2f2)}
 
-/* ─── Buttons ──────────────────────────────────────────── */
-.brn-actions{display:flex;gap:10px;margin-top:14px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
-.brn-btn-gold{padding:10px 22px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--jp-gold);color:#1a1a1a;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;min-height:40px}
-.brn-btn-gold:hover{background:#f0d077}
-.brn-btn-gold:disabled{opacity:.4;cursor:not-allowed}
-.brn-btn-ghost{padding:9px 18px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;border:1px solid var(--jp-border2);color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;min-height:38px}
-.brn-btn-ghost:hover{border-color:var(--jp-gold);color:var(--jp-gold)}
-.brn-btn-danger{padding:7px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;color:var(--jp-red);border:1px solid rgba(224,90,90,.35);font-family:var(--jp-mono);letter-spacing:.08em;text-transform:uppercase}
-.brn-btn-danger:hover{background:rgba(224,90,90,.1)}
-
-/* ─── Patches ──────────────────────────────────────────── */
-.brn-patch{background:var(--jp-surface2);border:1px solid var(--jp-border2);border-left:3px solid var(--jp-blue);border-radius:5px;padding:14px 16px;margin-bottom:10px;transition:opacity .15s}
-.brn-patch.paused{opacity:.55;border-left-color:var(--jp-dim)}
+/* ─── Patches ─────────────────────────────────────── */
+.brn-patch{
+  background:var(--color-background-secondary,#f9f9f9);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-left:2px solid var(--color-border-info,#93c5fd);
+  border-radius:0 var(--border-radius-md,8px) var(--border-radius-md,8px) 0;
+  padding:12px 14px;margin-bottom:8px;transition:opacity .15s;
+}
+.brn-patch.paused{opacity:.5;border-left-color:var(--color-border-tertiary,#ddd)}
 .brn-patch-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.brn-patch-title{font-size:13px;font-weight:700;color:var(--jp-text);flex:1;font-family:var(--jp-sans)}
-.brn-patch-text{font-size:13px;color:var(--jp-text);font-family:var(--jp-mono);line-height:1.65;white-space:pre-wrap;margin-bottom:8px;background:#08080a;border:1px solid var(--jp-border);border-radius:4px;padding:10px 12px}
-.brn-patch-meta{font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.05em;display:flex;gap:12px;flex-wrap:wrap}
-.brn-patch-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
-
-/* ─── Versions ─────────────────────────────────────────── */
-.brn-version-list{display:flex;flex-direction:column;gap:8px}
-.brn-version{background:var(--jp-surface2);border:1px solid var(--jp-border2);border-radius:5px;padding:12px 14px;display:grid;grid-template-columns:80px 1fr 130px;gap:14px;align-items:center}
-.brn-version-num{font-family:var(--jp-mono);font-size:14px;color:var(--jp-gold);font-weight:700;letter-spacing:.05em}
-.brn-version-date{font-family:var(--jp-mono);font-size:11px;color:var(--jp-muted);letter-spacing:.05em;text-align:right}
-.brn-version-by{font-family:var(--jp-mono);font-size:11px;color:#9090a8;text-align:right}
-.brn-version-notes{font-size:12px;color:var(--jp-text);font-family:var(--jp-sans);line-height:1.5}
-
-/* ─── Sandbox ──────────────────────────────────────────── */
-.brn-sandbox-result{background:#08080a;border:1px solid var(--jp-border);border-radius:5px;padding:14px 16px;font-family:var(--jp-mono);font-size:13px;line-height:1.7;color:var(--jp-text);white-space:pre-wrap;min-height:80px;margin-top:14px}
-.brn-sandbox-result.empty{color:var(--jp-dim);font-style:italic;text-align:center;padding:28px}
-.brn-sandbox-meta{font-family:var(--jp-mono);font-size:11px;color:var(--jp-muted);letter-spacing:.05em;margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
-.brn-sandbox-meta b{color:var(--jp-gold);font-weight:700}
-
-/* ─── Empty / spinner ──────────────────────────────────── */
-.brn-empty{text-align:center;color:var(--jp-muted);padding:24px;font-size:12px;font-style:italic;font-family:var(--jp-mono)}
-.brn-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--jp-border2);border-top-color:var(--jp-gold);border-radius:50%;animation:brn-spin 0.7s linear infinite;vertical-align:middle}
-@keyframes brn-spin{to{transform:rotate(360deg)}}
-
-/* ─── Toast ────────────────────────────────────────────── */
-.brn-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--jp-surface);color:var(--jp-text);border:1px solid var(--jp-border2);border-left:3px solid var(--jp-gold);border-radius:5px;padding:13px 22px;font-family:var(--jp-mono);font-size:13px;letter-spacing:.05em;box-shadow:0 8px 32px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10000}
-.brn-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
-.brn-toast.success{border-left-color:var(--jp-green);color:var(--jp-green)}
-.brn-toast.error{border-left-color:var(--jp-red);color:var(--jp-red)}
-
-/* ─── Modal ────────────────────────────────────────────── */
-.brn-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:9000;padding:20px}
-.brn-modal-bg.show{display:flex}
-.brn-modal{background:var(--jp-surface);border:1px solid var(--jp-border2);border-radius:6px;padding:26px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.7)}
-.brn-modal-head{font-size:13px;font-weight:700;color:var(--jp-gold);letter-spacing:.1em;text-transform:uppercase;font-family:var(--jp-mono);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--jp-border2)}
-.brn-modal-row{margin-bottom:14px}
-.brn-modal-label{display:block;font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
-
-@media (max-width:900px){
-  .brn-tabs{flex-wrap:wrap}
-  .brn-version{grid-template-columns:1fr;gap:6px}
-  .brn-version-date,.brn-version-by{text-align:left}
+.brn-patch-title{font-size:13px;font-weight:500;color:var(--color-text-primary,#111);flex:1}
+.brn-badge{
+  font-size:11px;padding:2px 9px;border-radius:var(--border-radius-md,8px);
+  font-weight:500;
 }
+.brn-badge-active{background:var(--color-background-success,#f0fdf4);color:var(--color-text-success,#16a34a)}
+.brn-badge-paused{background:var(--color-background-secondary,#f5f5f5);color:var(--color-text-tertiary,#999)}
+.brn-patch-text{
+  font-size:12px;color:var(--color-text-secondary,#666);
+  font-family:var(--font-mono,monospace);line-height:1.55;
+  background:var(--color-background-tertiary,#f5f5f5);
+  border-radius:var(--border-radius-md,8px);padding:8px 10px;
+  white-space:pre-wrap;
+}
+.brn-patch-meta{
+  font-size:11px;color:var(--color-text-tertiary,#999);
+  font-family:var(--font-mono,monospace);margin-top:6px;
+  display:flex;gap:12px;flex-wrap:wrap;
+}
+.brn-patch-actions{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}
+
+/* ─── Versions ────────────────────────────────────── */
+.brn-version{
+  display:grid;grid-template-columns:56px 1fr 110px auto;
+  gap:12px;align-items:center;padding:10px 12px;
+  background:var(--color-background-secondary,#f9f9f9);
+  border-radius:var(--border-radius-md,8px);margin-bottom:6px;
+}
+.brn-version-num{font-family:var(--font-mono,monospace);font-size:13px;font-weight:500;color:var(--color-text-primary,#111)}
+.brn-version-note{font-size:12px;color:var(--color-text-secondary,#666)}
+.brn-version-date{font-family:var(--font-mono,monospace);font-size:11px;color:var(--color-text-tertiary,#999);text-align:right}
+
+/* ─── Sandbox result ──────────────────────────────── */
+.brn-sandbox-result{
+  background:var(--color-background-secondary,#f9f9f9);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-radius:var(--border-radius-md,8px);
+  padding:14px;font-size:13px;line-height:1.65;
+  color:var(--color-text-primary,#111);white-space:pre-wrap;
+  min-height:70px;margin-top:12px;
+}
+.brn-sandbox-result.empty{color:var(--color-text-tertiary,#999);font-style:italic;text-align:center;padding:28px}
+.brn-sandbox-meta{font-size:11px;color:var(--color-text-tertiary,#999);font-family:var(--font-mono,monospace);margin-top:8px}
+
+/* ─── Toast ───────────────────────────────────────── */
+.brn-toast{
+  position:fixed;top:20px;right:20px;
+  padding:12px 18px;
+  background:var(--color-background-primary,#fff);
+  border:0.5px solid var(--color-border-secondary,#bbb);
+  border-left:3px solid var(--color-border-secondary,#bbb);
+  border-radius:var(--border-radius-md,8px);
+  color:var(--color-text-primary,#111);
+  font-size:13px;z-index:9999;
+  opacity:0;transform:translateY(-8px);
+  transition:all .2s;max-width:320px;font-family:inherit;
+  box-shadow:0 2px 12px rgba(0,0,0,.08);
+  pointer-events:none;
+}
+.brn-toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.brn-toast.error{border-left-color:var(--color-border-danger,#fca5a5);color:var(--color-text-danger,#dc2626)}
+.brn-toast.success{border-left-color:var(--color-border-success,#86efac);color:var(--color-text-success,#16a34a)}
+
+/* ─── Modal ───────────────────────────────────────── */
+.brn-modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;align-items:center;justify-content:center;
+  z-index:9000;
+}
+.brn-modal-bg.show{display:flex}
+.brn-modal{
+  background:var(--color-background-primary,#fff);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-radius:var(--border-radius-lg,12px);
+  padding:22px 24px;
+  width:min(540px,92vw);
+  max-height:88vh;
+  overflow-y:auto;
+  font-family:inherit;
+}
+.brn-modal-head{
+  font-size:15px;font-weight:500;
+  color:var(--color-text-primary,#111);
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:0.5px solid var(--color-border-tertiary,#ddd);
+}
+.brn-modal-row{margin-bottom:14px}
+.brn-modal-label{
+  font-size:12px;font-weight:500;
+  color:var(--color-text-secondary,#666);
+  margin-bottom:6px;
+}
+
+/* ─── Empty state / spinner ───────────────────────── */
+.brn-empty{padding:24px;text-align:center;color:var(--color-text-tertiary,#999);font-style:italic;font-size:13px}
+.brn-spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--color-border-tertiary,#ddd);border-top-color:var(--color-text-primary,#111);border-radius:50%;animation:brn-spin .65s linear infinite}
+@keyframes brn-spin{to{transform:rotate(360deg)}}
+.brn-label{font-size:12px;color:var(--color-text-secondary,#666);font-weight:500;margin-bottom:6px}
+.brn-section-gap{margin-top:4px}
 </style>
 
 <div class="brn-wrap">
 
-  <!-- TABS: slot picker (rendered dynamically from /roles) -->
-  <div class="brn-tabs" id="brn-tabs">
-    <span style="padding:14px 28px;color:var(--jp-muted);font-family:var(--jp-mono);font-size:13px">กำลังโหลด roles...</span>
+  <!-- Group Tabs -->
+  <div class="brn-group-tabs" id="brn-group-tabs">
+    <button class="brn-gtab active" data-group="customer" type="button">🛍️ ลูกค้า</button>
+    <button class="brn-gtab" data-group="internal" type="button">🏢 หลังบ้าน ViiV</button>
+    <button class="brn-gtab" data-group="fallback" type="button">🛟 สำรอง</button>
   </div>
 
-  <!-- 1. BASE PROMPT -->
+  <!-- Slot Tabs -->
+  <div class="brn-slot-tabs" id="brn-slot-tabs">
+    <span style="font-size:13px;color:var(--color-text-tertiary,#999)">กำลังโหลด...</span>
+  </div>
+
+  <!-- BASE PROMPT -->
   <div class="brn-card">
     <div class="brn-card-head">
-      <div class="brn-card-title">Base Prompt (ระบบ)</div>
-      <div class="brn-card-meta">
-        <span id="brn-base-meta">v—</span>
-        <span id="brn-base-chars">— chars</span>
-        <span id="brn-base-tokens">~— tokens</span>
-      </div>
+      <span class="brn-card-title">Base prompt</span>
+      <span class="brn-card-meta" id="brn-base-meta">v.- · -</span>
     </div>
-    <textarea class="brn-textarea" id="brn-base-text" placeholder="Base prompt…"></textarea>
+    <textarea class="brn-textarea" id="brn-base-text" placeholder="กำลังโหลด..."></textarea>
+    <div class="brn-char-row"><span id="brn-base-chars">0</span> chars · ~<span id="brn-base-tokens">0</span> tokens</div>
     <div class="brn-actions">
-      <button type="button" class="brn-btn-ghost" id="brn-base-revert">ย้อนกลับ</button>
-      <button type="button" class="brn-btn-gold" id="brn-base-save">บันทึก Base</button>
+      <button class="brn-btn brn-btn-ghost" id="brn-base-revert" type="button">ย้อนกลับ</button>
+      <button class="brn-btn brn-btn-primary" id="brn-base-save" type="button">บันทึก</button>
     </div>
   </div>
 
-  <!-- 2. CUSTOM (per-shop overlay) -->
+  <!-- CUSTOM OVERLAY -->
   <div class="brn-card">
     <div class="brn-card-head">
-      <div class="brn-card-title">Custom Overlay (เฉพาะร้าน)</div>
-      <div class="brn-card-meta">
-        <span id="brn-custom-chars">— chars</span>
-        <span id="brn-custom-tokens">~— tokens</span>
-      </div>
+      <span class="brn-card-title">Custom overlay <span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary,#999)">(บริบทเพิ่มเติม)</span></span>
+      <span class="brn-card-meta"><span id="brn-custom-chars">0</span> chars</span>
     </div>
-    <textarea class="brn-textarea" id="brn-custom-text" placeholder="คำสั่งเสริมเฉพาะร้าน…"></textarea>
+    <textarea class="brn-textarea" id="brn-custom-text" style="min-height:90px" placeholder="ใส่ข้อกำหนดเพิ่มเติม เช่น ห้ามพูดถึงคู่แข่ง ห้ามให้ส่วนลด..."></textarea>
     <div class="brn-actions">
-      <button type="button" class="brn-btn-gold" id="brn-custom-save">บันทึก Custom</button>
+      <button class="brn-btn brn-btn-primary" id="brn-custom-save" type="button">บันทึก</button>
     </div>
   </div>
 
-  <!-- 3. PATCHES -->
+  <!-- PATCHES -->
   <div class="brn-card">
     <div class="brn-card-head">
-      <div class="brn-card-title">Patches (เพิ่ม/ลบเฉพาะจุด)</div>
-      <div class="brn-card-meta">
-        <span id="brn-patch-count">0 patches</span>
-      </div>
-      <button type="button" class="brn-btn-gold" id="brn-patch-add">+ เพิ่ม Patch</button>
+      <span class="brn-card-title">Patches</span>
+      <span class="brn-card-meta" id="brn-patch-count">-</span>
+      <button class="brn-btn brn-btn-ghost" id="brn-patch-add" type="button" style="font-size:12px;padding:6px 12px;margin-left:8px">+ เพิ่ม</button>
     </div>
-    <div id="brn-patches">
-      <div class="brn-empty">ยังไม่มี patch</div>
-    </div>
+    <div id="brn-patches"><div class="brn-empty">ยังไม่มี patch</div></div>
   </div>
 
-  <!-- 4. PREVIEW -->
+  <!-- PREVIEW -->
   <div class="brn-card">
     <div class="brn-card-head">
-      <div class="brn-card-title">Preview (Base + Custom + Patches)</div>
-      <div class="brn-card-meta">
-        <span id="brn-preview-meta">— chars · ~— tokens</span>
-      </div>
-      <button type="button" class="brn-btn-ghost" id="brn-preview-refresh">รีเฟรช</button>
+      <span class="brn-card-title">Preview (final prompt)</span>
+      <span class="brn-card-meta" id="brn-preview-meta">-</span>
+      <button class="brn-btn brn-btn-ghost" id="brn-preview-refresh" type="button" style="font-size:12px;padding:6px 12px;margin-left:8px">รีเฟรช</button>
     </div>
-    <textarea class="brn-textarea preview" id="brn-preview-text" readonly placeholder="Preview will render here…"></textarea>
+    <textarea class="brn-textarea preview" id="brn-preview-text" readonly placeholder="กด รีเฟรช เพื่อดู final prompt"></textarea>
   </div>
 
-  <!-- 5. SANDBOX -->
+  <!-- SANDBOX -->
   <div class="brn-card">
     <div class="brn-card-head">
-      <div class="brn-card-title">Sandbox (ทดสอบ Prompt)</div>
-      <div class="brn-card-sub">ทดลองข้อความก่อน publish</div>
+      <span class="brn-card-title">ทดสอบ (Sandbox)</span>
+      <span class="brn-card-meta">gpt-5-nano</span>
     </div>
-    <div style="display:grid;grid-template-columns:200px 1fr auto;gap:10px;align-items:center">
-      <input type="text" class="brn-input" id="brn-test-shop" placeholder="subdomain ร้าน">
-      <input type="text" class="brn-input" id="brn-test-input" placeholder="ข้อความลูกค้า…">
-      <button type="button" class="brn-btn-gold" id="brn-test-run">รัน</button>
+    <div class="brn-label">Shop ID (ไม่จำเป็น)</div>
+    <input class="brn-input" id="brn-test-shop" placeholder="ten_xxx (เว้นว่าง = global test)" style="margin-bottom:10px">
+    <div class="brn-label brn-section-gap">ข้อความทดสอบ</div>
+    <input class="brn-input" id="brn-test-input" placeholder="สวัสดีค่ะ มีสีชมพูไหมคะ">
+    <div class="brn-actions" style="justify-content:flex-start;margin-top:10px">
+      <button class="brn-btn brn-btn-primary" id="brn-test-run" type="button">▶ รัน</button>
     </div>
-    <div class="brn-sandbox-result empty" id="brn-test-result">— ยังไม่ได้ทดสอบ —</div>
+    <div class="brn-sandbox-result empty" id="brn-test-result">รอผลลัพธ์...</div>
     <div class="brn-sandbox-meta" id="brn-test-meta"></div>
   </div>
 
-  <!-- 6. VERSION HISTORY -->
+  <!-- VERSION HISTORY -->
   <div class="brn-card">
     <div class="brn-card-head">
-      <div class="brn-card-title">Version History</div>
-      <div class="brn-card-meta">
-        <span id="brn-version-count">— versions</span>
-      </div>
-      <button type="button" class="brn-btn-ghost" id="brn-version-refresh">รีเฟรช</button>
+      <span class="brn-card-title">ประวัติเวอร์ชัน</span>
+      <span class="brn-card-meta" id="brn-version-count">-</span>
+      <button class="brn-btn brn-btn-ghost" id="brn-version-refresh" type="button" style="font-size:12px;padding:6px 12px;margin-left:8px">รีเฟรช</button>
     </div>
-    <div class="brn-version-list" id="brn-versions">
-      <div class="brn-empty">loading…</div>
-    </div>
+    <div id="brn-versions"><div class="brn-empty">ยังไม่มีประวัติ</div></div>
   </div>
 
 </div>
 
-<!-- MODAL: add / edit patch -->
+<!-- Modal: Add/Edit Patch -->
 <div class="brn-modal-bg" id="brn-modal-bg">
   <div class="brn-modal">
     <div class="brn-modal-head" id="brn-modal-title">เพิ่ม Patch</div>
     <div class="brn-modal-row">
-      <label class="brn-modal-label">Title</label>
-      <input type="text" class="brn-input" id="brn-modal-title-input" placeholder="ชื่อ patch (ภายใน)">
+      <div class="brn-modal-label">ชื่อ (สั้น)</div>
+      <input class="brn-input" id="brn-modal-title-input" placeholder="เช่น ห้ามให้ส่วนลด">
     </div>
     <div class="brn-modal-row">
-      <label class="brn-modal-label">Patch text</label>
-      <textarea class="brn-textarea" id="brn-modal-text" style="min-height:140px" placeholder="คำสั่งเพิ่มเติม…"></textarea>
+      <div class="brn-modal-label">เนื้อหา patch</div>
+      <textarea class="brn-textarea" id="brn-modal-text" style="min-height:100px" placeholder="ใส่ข้อกำหนด..."></textarea>
     </div>
     <div class="brn-modal-row">
-      <label class="brn-modal-label">Note</label>
-      <input type="text" class="brn-input" id="brn-modal-note" placeholder="เหตุผล / context (optional)">
+      <div class="brn-modal-label">หมายเหตุ (เพิ่มเพราะอะไร)</div>
+      <input class="brn-input" id="brn-modal-note" placeholder="เช่น เคสลูกค้าขอลด 50%">
     </div>
     <div class="brn-modal-row">
-      <label class="brn-modal-label">Priority (0–100)</label>
-      <input type="number" class="brn-input" id="brn-modal-priority" value="50" min="0" max="100">
+      <div class="brn-modal-label">Priority</div>
+      <input class="brn-input" id="brn-modal-priority" type="number" value="100" style="width:100px">
     </div>
     <div class="brn-actions">
-      <button type="button" class="brn-btn-ghost" id="brn-modal-cancel">ยกเลิก</button>
-      <button type="button" class="brn-btn-gold" id="brn-modal-save">บันทึก</button>
+      <button class="brn-btn brn-btn-ghost" id="brn-modal-cancel" type="button">ยกเลิก</button>
+      <button class="brn-btn brn-btn-primary" id="brn-modal-save" type="button">บันทึก</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="brn-toast" id="brn-toast">—</div>
+<div class="brn-toast" id="brn-toast"></div>
 
 <script>
 (function(){
-  'use strict';
+'use strict';
 
-  // ─── Constants ──────────────────────────────────────
-  const API = '/api/platform/ai/prompts';
-  let SLOTS = [];          // populated from /roles at init
-  let ROLES_META = {};     // {slot: {label, icon, desc}}
+const API='/api/platform/ai/prompts';
+let _group='customer';
+let _slot='';
+let _slots=[];
+let _rolesMeta={};
+let _data=null;
+let _editingPatchId=null;
+let _toastTimer=null;
 
-  // ─── State ─────────────────────────────────────────
-  let _slot = '';
-  let _data = null;             // current slot data {base_text, custom_text, patches, ...}
-  let _editingPatchId = null;   // null = add mode, string = edit mode
+function _token(){
+  return localStorage.getItem('platform_token')||localStorage.getItem('viiv_token')||'';
+}
+function _h(){
+  const t=_token();
+  return Object.assign({'Content-Type':'application/json'},t?{'Authorization':'Bearer '+t}:{});
+}
+function toast(msg,type){
+  const el=document.getElementById('brn-toast');
+  if(!el)return;
+  el.textContent=msg;
+  el.className='brn-toast show '+(type||'');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),3200);
+}
+function estTokens(s){return Math.max(0,Math.round((s||'').length/3));}
+function fmtDate(iso){
+  if(!iso)return '-';
+  try{
+    const d=new Date(iso);
+    const p=n=>String(n).padStart(2,'0');
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }catch(_){return iso;}
+}
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-  // expose for Phase C-3b wire-up
-  window.__brn = {
-    state(){ return {slot:_slot, data:_data, editingPatchId:_editingPatchId}; },
-    setSlot(s){ _slot = s; },
-    setData(d){ _data = d; },
-    setEditing(id){ _editingPatchId = id; },
-    setRoles(roles){
-      SLOTS = roles.map(r => r.slot);
-      ROLES_META = {};
-      roles.forEach(r => { ROLES_META[r.slot] = {label:r.label, icon:r.icon, desc:r.desc}; });
-    },
-    getSlots(){ return SLOTS; },
-    getRolesMeta(){ return ROLES_META; },
-    API,
-  };
+async function GET(path){
+  const r=await fetch(API+path,{headers:_h(),cache:'no-store'});
+  if(!r.ok)throw new Error('GET '+path+' → '+r.status);
+  return r.json();
+}
+async function PUT(path,body){
+  const r=await fetch(API+path,{method:'PUT',headers:_h(),body:JSON.stringify(body)});
+  if(!r.ok)throw new Error('PUT '+path+' → '+r.status);
+  return r.json();
+}
+async function POST(path,body){
+  const r=await fetch(API+path,{method:'POST',headers:_h(),body:JSON.stringify(body||{})});
+  if(!r.ok){let t='';try{t=await r.text();}catch(_){}throw new Error('POST '+path+' → '+r.status+' '+t.slice(0,120));}
+  return r.json();
+}
+async function PATCH(path){
+  const r=await fetch(API+path,{method:'PATCH',headers:_h()});
+  if(!r.ok)throw new Error('PATCH '+path+' → '+r.status);
+  return r.json();
+}
+async function DEL(path){
+  const r=await fetch(API+path,{method:'DELETE',headers:_h()});
+  if(!r.ok)throw new Error('DELETE '+path+' → '+r.status);
+  return r.json();
+}
 
-  // ─── Auth ───────────────────────────────────────────
-  function _token(){
-    return localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
-  }
-  function _h(extra){
-    const tok = _token();
-    return Object.assign(
-      {'Content-Type':'application/json'},
-      tok ? {'Authorization':'Bearer ' + tok} : {},
-      extra || {}
-    );
-  }
+function updateCounters(){
+  const b=document.getElementById('brn-base-text').value;
+  const c=document.getElementById('brn-custom-text').value;
+  document.getElementById('brn-base-chars').textContent=b.length;
+  document.getElementById('brn-base-tokens').textContent=estTokens(b);
+  document.getElementById('brn-custom-chars').textContent=c.length;
+}
 
-  // ─── Toast ──────────────────────────────────────────
-  let _toastTimer = null;
-  function toast(msg, type){
-    const t = document.getElementById('brn-toast');
-    if(!t) return;
-    t.textContent = msg;
-    t.className = 'brn-toast show ' + (type || '');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
-  }
-
-  // ─── Helpers ────────────────────────────────────────
-  function estTokens(s){
-    return Math.max(0, Math.round((s||'').length / 3));
-  }
-  function fmtDate(iso){
-    if(!iso) return '-';
-    try{
-      const d = new Date(iso);
-      const pad = n => String(n).padStart(2,'0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }catch(_){ return iso; }
-  }
-  function escapeHtml(s){
-    return (s||'').replace(/[&<>"']/g, c => (
-      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
-    ));
-  }
-
-  // ─── Tabs renderer (D-1c) ────────────────────────
-  function renderTabs(){
-    const wrap = document.getElementById('brn-tabs');
-    if(!wrap) return;
-    if(!SLOTS.length){
-      wrap.innerHTML = '<span style="padding:14px 28px;color:var(--jp-red);font-family:var(--jp-mono);font-size:13px">โหลด roles ไม่ได้</span>';
-      return;
-    }
-    wrap.innerHTML = SLOTS.map(s => {
-      const m = ROLES_META[s] || {label:s, icon:'•', desc:''};
-      return `<button type="button" class="brn-tab" data-slot="${s}" title="${(m.desc||'').replace(/"/g,'&quot;')}">` +
-             `<span class="brn-tab-icon">${m.icon}</span>${m.label}</button>`;
-    }).join('');
-  }
-
-  // ─── API client ─────────────────────────────────────
-  async function apiGet(path){
-    const r = await fetch(API + path, {headers: _h(), cache:'no-store'});
-    if(!r.ok) throw new Error('GET ' + path + ' → ' + r.status);
-    return r.json();
-  }
-  async function apiPut(path, body){
-    const r = await fetch(API + path, {method:'PUT', headers:_h(), body: JSON.stringify(body)});
-    if(!r.ok) throw new Error('PUT ' + path + ' → ' + r.status);
-    return r.json();
-  }
-  async function apiPost(path, body){
-    const r = await fetch(API + path, {method:'POST', headers:_h(), body: JSON.stringify(body || {})});
-    if(!r.ok){
-      let txt = ''; try{ txt = await r.text(); }catch(_){}
-      throw new Error('POST ' + path + ' → ' + r.status + ' ' + txt.slice(0,200));
-    }
-    return r.json();
-  }
-  async function apiPatch(path){
-    const r = await fetch(API + path, {method:'PATCH', headers:_h()});
-    if(!r.ok) throw new Error('PATCH ' + path + ' → ' + r.status);
-    return r.json();
-  }
-  async function apiDelete(path){
-    const r = await fetch(API + path, {method:'DELETE', headers:_h()});
-    if(!r.ok) throw new Error('DELETE ' + path + ' → ' + r.status);
-    return r.json();
-  }
-
-  // ─── Renderers ──────────────────────────────────────
-  function updateCounters(){
-    const b = document.getElementById('brn-base-text').value;
-    const c = document.getElementById('brn-custom-text').value;
-    document.getElementById('brn-base-chars').textContent = b.length;
-    document.getElementById('brn-base-tokens').textContent = estTokens(b);
-    document.getElementById('brn-custom-chars').textContent = c.length;
-    document.getElementById('brn-custom-tokens').textContent = estTokens(c);
-  }
-  function renderSlot(){
-    if(!_data) return;
-    document.getElementById('brn-base-text').value = _data.base_text || '';
-    document.getElementById('brn-custom-text').value = _data.custom_text || '';
-    document.getElementById('brn-base-meta').textContent =
-      `v.${_data.current_version} · ${fmtDate(_data.updated_at)}` +
-      (_data.updated_by ? ` · ${_data.updated_by}` : '');
-    updateCounters();
-    renderPatches(_data.patches || []);
-  }
-  function renderPatches(patches){
-    const list = document.getElementById('brn-patches');
-    if(!list) return;
-    let active = 0, paused = 0;
-    patches.forEach(p => p.is_active ? active++ : paused++);
-    document.getElementById('brn-patch-count').textContent = `${active} active · ${paused} paused`;
-    if(!patches.length){
-      list.innerHTML = '<div class="brn-empty">ยังไม่มี patch — กด "+ เพิ่ม Patch"</div>';
-      return;
-    }
-    list.innerHTML = patches.map(p => `
-      <div class="brn-patch ${p.is_active?'':'paused'}" data-id="${escapeHtml(p.id)}">
-        <div class="brn-patch-head">
-          <span class="brn-patch-status">${p.is_active?'✅':'⏸️'}</span>
-          <span class="brn-patch-title">${escapeHtml(p.title)}</span>
-        </div>
-        <div class="brn-patch-text">${escapeHtml(p.patch_text)}</div>
-        ${p.note?`<div class="brn-patch-meta">📝 ${escapeHtml(p.note)}</div>`:''}
-        <div class="brn-patch-meta">
-          Priority: ${p.priority} · Created: ${fmtDate(p.created_at)}
-          ${p.paused_at?` · Paused: ${fmtDate(p.paused_at)}`:''}
-        </div>
-        <div class="brn-patch-actions">
-          <button class="brn-btn-ghost" data-act="edit">✏️ Edit</button>
-          <button class="brn-btn-ghost" data-act="toggle">${p.is_active?'⏸️ Pause':'▶️ Resume'}</button>
-          <button class="brn-btn-danger" data-act="delete">🗑️ Delete</button>
-        </div>
-      </div>
-    `).join('');
-  }
-  function renderVersions(versions){
-    const list = document.getElementById('brn-versions');
-    if(!list) return;
-    document.getElementById('brn-version-count').textContent = `${versions.length} versions`;
-    if(!versions.length){
-      list.innerHTML = '<div class="brn-empty">ยังไม่มี history</div>';
-      return;
-    }
-    list.innerHTML = versions.map(v => `
-      <div class="brn-version">
-        <span class="brn-version-num">v.${v.version}</span>
-        <span class="brn-version-date">${fmtDate(v.saved_at)}</span>
-        <span class="brn-version-by">${escapeHtml(v.saved_by||'-')}</span>
-        <span class="brn-version-notes">${escapeHtml(v.notes||'')}</span>
-        <button class="brn-btn-ghost" data-version="${v.version}">↩️ Restore</button>
-      </div>
-    `).join('');
-  }
-
-  // expose for Phase C-3b
-  window.__brn.toast = toast;
-  window.__brn.api = {get:apiGet, put:apiPut, post:apiPost, patch:apiPatch, del:apiDelete};
-  window.__brn.render = {slot:renderSlot, patches:renderPatches, versions:renderVersions, counters:updateCounters};
-  window.__brn.render.tabs = renderTabs;
-  window.__brn.helpers = {fmtDate, escapeHtml, estTokens};
-
-  console.log('[ai-brain] C-3a loaded — helpers + api + renderers ready');
-})();
-</script>
-
-<script>
-(function(){
-  'use strict';
-  if(!window.__brn){
-    console.error('[ai-brain] C-3a not loaded — abort C-3b');
+function renderSlotTabs(){
+  const wrap=document.getElementById('brn-slot-tabs');
+  if(!wrap)return;
+  if(!_slots.length){
+    wrap.innerHTML='<span style="font-size:13px;color:var(--color-text-tertiary,#999)">ไม่พบ slots</span>';
     return;
   }
-  const B = window.__brn;
-  const {api, render, toast, helpers} = B;
-
-  // ─── Loaders ────────────────────────────────────────
-  async function loadSlot(slot){
-    B.setSlot(slot);
-    B.getSlots().forEach(s => {
-      const btn = document.querySelector(`.brn-tab[data-slot="${s}"]`);
-      if(btn) btn.classList.toggle('active', s === slot);
-    });
-    try{
-      const data = await api.get('/' + slot);
-      B.setData(data);
-      render.slot();
-      loadVersions();
-    }catch(e){
-      console.error(e);
-      toast('โหลด ' + slot + ' ไม่สำเร็จ: ' + e.message, 'error');
-    }
-  }
-  async function loadVersions(){
-    try{
-      const slot = B.state().slot;
-      const d = await api.get(`/${slot}/versions`);
-      render.versions(d.versions || []);
-    }catch(e){
-      const list = document.getElementById('brn-versions');
-      if(list) list.innerHTML = '<div class="brn-empty">โหลด history ไม่ได้</div>';
-    }
-  }
-
-  // ─── Save handlers ──────────────────────────────────
-  async function saveBase(){
-    const btn = document.getElementById('brn-base-save');
-    btn.disabled = true;
-    try{
-      const slot = B.state().slot;
-      const txt = document.getElementById('brn-base-text').value;
-      await api.put('/' + slot, {base_text: txt, notes: 'Edit base via UI'});
-      toast('บันทึก Base เรียบร้อย', 'success');
-      await loadSlot(slot);
-    }catch(e){
-      toast('บันทึกไม่สำเร็จ: ' + e.message, 'error');
-    }finally{
-      btn.disabled = false;
-    }
-  }
-  async function saveCustom(){
-    const btn = document.getElementById('brn-custom-save');
-    btn.disabled = true;
-    try{
-      const slot = B.state().slot;
-      const txt = document.getElementById('brn-custom-text').value;
-      await api.put('/' + slot, {custom_text: txt, notes: 'Edit custom via UI'});
-      toast('บันทึก Custom เรียบร้อย', 'success');
-      await loadSlot(slot);
-    }catch(e){
-      toast('บันทึกไม่สำเร็จ: ' + e.message, 'error');
-    }finally{
-      btn.disabled = false;
-    }
-  }
-  function revertBase(){
-    const data = B.state().data;
-    if(data) document.getElementById('brn-base-text').value = data.base_text || '';
-    render.counters();
-  }
-
-  // ─── Preview ────────────────────────────────────────
-  async function refreshPreview(){
-    try{
-      const slot = B.state().slot;
-      const r = await api.post(`/${slot}/preview`, {});
-      document.getElementById('brn-preview-text').value = r.final_prompt || '';
-      document.getElementById('brn-preview-meta').textContent =
-        `${r.char_count||0} chars · ~${r.estimated_tokens||0} tokens`;
-    }catch(e){
-      toast('Preview ไม่สำเร็จ: ' + e.message, 'error');
-    }
-  }
-
-  // ─── Sandbox test ───────────────────────────────────
-  async function runTest(){
-    const input = document.getElementById('brn-test-input').value.trim();
-    if(!input){ toast('ใส่ข้อความก่อน', 'error'); return; }
-    const shop = document.getElementById('brn-test-shop').value.trim();
-    const btn = document.getElementById('brn-test-run');
-    const result = document.getElementById('brn-test-result');
-    const meta = document.getElementById('brn-test-meta');
-    btn.disabled = true;
-    result.className = 'brn-sandbox-result empty';
-    result.innerHTML = '<span class="brn-spinner"></span> กำลังถาม AI...';
-    meta.textContent = '';
-    try{
-      const slot = B.state().slot;
-      const body = {test_input: input};
-      if(shop) body.shop_id = shop;
-      const r = await api.post(`/${slot}/test`, body);
-      result.className = 'brn-sandbox-result';
-      result.textContent = r.reply || '(no reply)';
-      meta.textContent =
-        `tokens in: ${r.tokens_in||0} · out: ${r.tokens_out||0} · ` +
-        `cost: $${(r.cost_usd||0).toFixed(6)} · prompt: ${r.prompt_used_chars||0} chars`;
-    }catch(e){
-      result.className = 'brn-sandbox-result empty';
-      result.textContent = '❌ ' + e.message;
-      meta.textContent = '';
-    }finally{
-      btn.disabled = false;
-    }
-  }
-
-  // ─── Patch modal ────────────────────────────────────
-  function openModal(patch){
-    B.setEditing(patch ? patch.id : null);
-    document.getElementById('brn-modal-title').textContent = patch ? '✏️ แก้ไข Patch' : '+ เพิ่ม Patch';
-    document.getElementById('brn-modal-title-input').value = patch ? patch.title : '';
-    document.getElementById('brn-modal-text').value = patch ? patch.patch_text : '';
-    document.getElementById('brn-modal-note').value = patch ? (patch.note || '') : '';
-    document.getElementById('brn-modal-priority').value = patch ? patch.priority : 100;
-    document.getElementById('brn-modal-bg').classList.add('show');
-  }
-  function closeModal(){
-    document.getElementById('brn-modal-bg').classList.remove('show');
-    B.setEditing(null);
-  }
-  async function savePatchModal(){
-    const title = document.getElementById('brn-modal-title-input').value.trim();
-    const text = document.getElementById('brn-modal-text').value.trim();
-    const note = document.getElementById('brn-modal-note').value.trim();
-    const priority = parseInt(document.getElementById('brn-modal-priority').value, 10) || 100;
-    if(!title || !text){ toast('Title + Patch text จำเป็น', 'error'); return; }
-    try{
-      const editing = B.state().editingPatchId;
-      const slot = B.state().slot;
-      if(editing){
-        await api.put(`/patches/${editing}`, {title, patch_text: text, note, priority});
-      }else{
-        await api.post(`/${slot}/patches`, {title, patch_text: text, note, priority, is_active: true});
-      }
-      toast(editing ? 'แก้ไขแล้ว' : 'เพิ่ม patch แล้ว', 'success');
-      closeModal();
-      await loadSlot(slot);
-    }catch(e){
-      toast('บันทึก patch ไม่ได้: ' + e.message, 'error');
-    }
-  }
-
-  // ─── Patch row actions ──────────────────────────────
-  async function patchAction(id, act){
-    const data = B.state().data;
-    const patch = (data.patches || []).find(p => p.id === id);
-    if(act === 'edit'){
-      openModal(patch);
-    }else if(act === 'toggle'){
-      try{
-        await api.patch(`/patches/${id}/toggle`);
-        await loadSlot(B.state().slot);
-      }catch(e){ toast('Toggle ไม่ได้: ' + e.message, 'error'); }
-    }else if(act === 'delete'){
-      if(!confirm('ลบ patch "' + (patch?.title || id) + '" ?')) return;
-      try{
-        await api.del(`/patches/${id}`);
-        toast('ลบแล้ว', 'success');
-        await loadSlot(B.state().slot);
-      }catch(e){ toast('ลบไม่ได้: ' + e.message, 'error'); }
-    }
-  }
-
-  // ─── Restore version ────────────────────────────────
-  async function restoreVersion(version){
-    if(!confirm('Restore เป็น v.' + version + ' ?\n(version ปัจจุบันจะถูก snapshot เก็บไว้)')) return;
-    try{
-      const slot = B.state().slot;
-      await api.post(`/${slot}/restore/${version}`, {notes: 'Restore via UI'});
-      toast('Restore สำเร็จ', 'success');
-      await loadSlot(slot);
-    }catch(e){
-      toast('Restore ไม่ได้: ' + e.message, 'error');
-    }
-  }
-
-  // ─── Wire events ────────────────────────────────────
-  document.getElementById('brn-base-text').addEventListener('input', render.counters);
-  document.getElementById('brn-custom-text').addEventListener('input', render.counters);
-  document.getElementById('brn-base-save').addEventListener('click', saveBase);
-  document.getElementById('brn-base-revert').addEventListener('click', revertBase);
-  document.getElementById('brn-custom-save').addEventListener('click', saveCustom);
-  document.getElementById('brn-preview-refresh').addEventListener('click', refreshPreview);
-  document.getElementById('brn-test-run').addEventListener('click', runTest);
-  document.getElementById('brn-version-refresh').addEventListener('click', loadVersions);
-  document.getElementById('brn-patch-add').addEventListener('click', () => openModal(null));
-  document.getElementById('brn-modal-cancel').addEventListener('click', closeModal);
-  document.getElementById('brn-modal-save').addEventListener('click', savePatchModal);
-
-  // event delegation: patches list
-  document.getElementById('brn-patches').addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-act]');
-    if(!btn) return;
-    const card = e.target.closest('.brn-patch');
-    if(!card) return;
-    patchAction(card.dataset.id, btn.dataset.act);
+  wrap.innerHTML=_slots.map(s=>{
+    const m=_rolesMeta[s]||{label:s,icon:''};
+    return '<button class="brn-stab'+(s===_slot?' active':'')+'" data-slot="'+esc(s)+'" type="button">'+(m.icon?m.icon+' ':'')+esc(m.label)+'</button>';
+  }).join('');
+  wrap.querySelectorAll('.brn-stab').forEach(btn=>{
+    btn.addEventListener('click',()=>loadSlot(btn.dataset.slot));
   });
+}
 
-  // event delegation: versions list
-  document.getElementById('brn-versions').addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-version]');
-    if(!btn) return;
-    restoreVersion(parseInt(btn.dataset.version, 10));
-  });
+function renderData(){
+  if(!_data)return;
+  document.getElementById('brn-base-text').value=_data.base_text||'';
+  document.getElementById('brn-custom-text').value=_data.custom_text||'';
+  document.getElementById('brn-base-meta').textContent=
+    'v.'+_data.current_version+' · '+fmtDate(_data.updated_at)+
+    (_data.updated_by?' · '+_data.updated_by:'');
+  updateCounters();
+  renderPatches(_data.patches||[]);
+}
 
-  // close modal by click backdrop
-  document.getElementById('brn-modal-bg').addEventListener('click', (e) => {
-    if(e.target.id === 'brn-modal-bg') closeModal();
-  });
-
-  // ─── Initial load (D-1c — load roles first) ──────
-  async function init(){
-    try{
-      const r = await api.get('/roles');
-      const roles = r.roles || [];
-      if(!roles.length){
-        toast('ไม่พบ roles จาก backend', 'error');
-        return;
-      }
-      B.setRoles(roles);
-      B.render.tabs();
-
-      // attach tab listeners (delegation จะดีกว่า แต่ใช้ direct เพื่อตรงกับ pattern เดิม)
-      document.querySelectorAll('.brn-tab').forEach(btn => {
-        btn.addEventListener('click', () => loadSlot(btn.dataset.slot));
-      });
-
-      // load first role
-      const firstSlot = B.getSlots()[0];
-      await loadSlot(firstSlot);
-    }catch(e){
-      console.error('[ai-brain] init failed:', e);
-      toast('Init ล้มเหลว: ' + e.message, 'error');
-      const wrap = document.getElementById('brn-tabs');
-      if(wrap) wrap.innerHTML = '<span style="padding:14px 28px;color:var(--jp-red);font-family:var(--jp-mono);font-size:13px">Init failed: ' + e.message + '</span>';
-    }
+function renderPatches(patches){
+  const el=document.getElementById('brn-patches');
+  const cnt=document.getElementById('brn-patch-count');
+  let active=0,paused=0;
+  patches.forEach(p=>p.is_active?active++:paused++);
+  cnt.textContent=active+' active · '+paused+' paused';
+  if(!patches.length){
+    el.innerHTML='<div class="brn-empty">ยังไม่มี patch — กด "+ เพิ่ม"</div>';
+    return;
   }
+  el.innerHTML=patches.map(p=>`
+    <div class="brn-patch${p.is_active?'':' paused'}" data-id="${esc(p.id)}">
+      <div class="brn-patch-head">
+        <span class="brn-patch-title">${esc(p.title)}</span>
+        <span class="brn-badge ${p.is_active?'brn-badge-active':'brn-badge-paused'}">${p.is_active?'active':'paused'}</span>
+      </div>
+      <div class="brn-patch-text">${esc(p.patch_text)}</div>
+      ${p.note?`<div class="brn-patch-meta">หมายเหตุ: ${esc(p.note)}</div>`:''}
+      <div class="brn-patch-meta">Priority ${p.priority} · ${fmtDate(p.created_at)}</div>
+      <div class="brn-patch-actions">
+        <button class="brn-btn brn-btn-ghost" data-act="edit" type="button" style="font-size:11px;padding:5px 10px">แก้ไข</button>
+        <button class="brn-btn brn-btn-ghost" data-act="toggle" type="button" style="font-size:11px;padding:5px 10px">${p.is_active?'หยุด':'เปิด'}</button>
+        <button class="brn-btn brn-btn-danger" data-act="delete" type="button">ลบ</button>
+      </div>
+    </div>`).join('');
+}
 
-  init();
+function renderVersions(versions){
+  const el=document.getElementById('brn-versions');
+  const cnt=document.getElementById('brn-version-count');
+  cnt.textContent=versions.length+' versions';
+  if(!versions.length){el.innerHTML='<div class="brn-empty">ยังไม่มีประวัติ</div>';return;}
+  el.innerHTML=versions.map(v=>`
+    <div class="brn-version">
+      <span class="brn-version-num">v.${v.version}</span>
+      <span class="brn-version-note">${esc(v.notes||'-')}</span>
+      <span class="brn-version-date">${fmtDate(v.saved_at)}</span>
+      <button class="brn-btn brn-btn-ghost" data-version="${v.version}" type="button" style="font-size:11px;padding:5px 10px">restore</button>
+    </div>`).join('');
+}
 
-  console.log('[ai-brain] C-3b loaded — events wired, init() triggered');
+async function loadGroup(group){
+  _group=group;
+  document.querySelectorAll('.brn-gtab').forEach(b=>b.classList.toggle('active',b.dataset.group===group));
+  try{
+    const d=await GET('/roles?group='+group);
+    const roles=d.roles||[];
+    _slots=roles.map(r=>r.slot);
+    _rolesMeta={};
+    roles.forEach(r=>{_rolesMeta[r.slot]={label:r.label,icon:r.icon,desc:r.desc};});
+    if(_slots.length){
+      _slot=_slots[0];
+      renderSlotTabs();
+      await loadSlot(_slots[0]);
+    }else{
+      _slot='';
+      renderSlotTabs();
+    }
+  }catch(e){
+    toast('โหลด group ไม่สำเร็จ: '+e.message,'error');
+  }
+}
+
+async function loadSlot(slot){
+  _slot=slot;
+  document.querySelectorAll('.brn-stab').forEach(b=>b.classList.toggle('active',b.dataset.slot===slot));
+  try{
+    _data=await GET('/'+slot);
+    renderData();
+    loadVersions();
+  }catch(e){
+    toast('โหลด slot ไม่สำเร็จ: '+e.message,'error');
+  }
+}
+
+async function loadVersions(){
+  try{
+    const d=await GET('/'+_slot+'/versions');
+    renderVersions(d.versions||[]);
+  }catch(_){document.getElementById('brn-versions').innerHTML='<div class="brn-empty">โหลด history ไม่ได้</div>';}
+}
+
+async function saveBase(){
+  const btn=document.getElementById('brn-base-save');
+  btn.disabled=true;
+  try{
+    await PUT('/'+_slot,{base_text:document.getElementById('brn-base-text').value,notes:'Edit base via UI'});
+    toast('บันทึก base เรียบร้อย','success');
+    await loadSlot(_slot);
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'error');}
+  finally{btn.disabled=false;}
+}
+
+async function saveCustom(){
+  const btn=document.getElementById('brn-custom-save');
+  btn.disabled=true;
+  try{
+    await PUT('/'+_slot,{custom_text:document.getElementById('brn-custom-text').value,notes:'Edit custom via UI'});
+    toast('บันทึก custom เรียบร้อย','success');
+    await loadSlot(_slot);
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'error');}
+  finally{btn.disabled=false;}
+}
+
+async function refreshPreview(){
+  try{
+    const r=await POST('/'+_slot+'/preview',{});
+    document.getElementById('brn-preview-text').value=r.final_prompt||'';
+    document.getElementById('brn-preview-meta').textContent=(r.char_count||0)+' chars · ~'+(r.estimated_tokens||0)+' tokens';
+  }catch(e){toast('Preview ไม่สำเร็จ: '+e.message,'error');}
+}
+
+async function runTest(){
+  const input=document.getElementById('brn-test-input').value.trim();
+  if(!input){toast('ใส่ข้อความก่อน','error');return;}
+  const shop=document.getElementById('brn-test-shop').value.trim();
+  const btn=document.getElementById('brn-test-run');
+  const result=document.getElementById('brn-test-result');
+  const meta=document.getElementById('brn-test-meta');
+  btn.disabled=true;
+  result.className='brn-sandbox-result empty';
+  result.innerHTML='<span class="brn-spinner"></span> กำลังถาม AI...';
+  meta.textContent='';
+  try{
+    const body={test_input:input};
+    if(shop)body.shop_id=shop;
+    const r=await POST('/'+_slot+'/test',body);
+    result.className='brn-sandbox-result';
+    result.textContent=r.reply||'(ไม่มีการตอบ)';
+    meta.textContent='in: '+(r.tokens_in||0)+' · out: '+(r.tokens_out||0)+' · cost: $'+(r.cost_usd||0).toFixed(6);
+  }catch(e){
+    result.className='brn-sandbox-result empty';
+    result.textContent='ไม่สำเร็จ: '+e.message;
+  }finally{btn.disabled=false;}
+}
+
+function openModal(patch){
+  _editingPatchId=patch?patch.id:null;
+  document.getElementById('brn-modal-title').textContent=patch?'แก้ไข Patch':'เพิ่ม Patch';
+  document.getElementById('brn-modal-title-input').value=patch?patch.title:'';
+  document.getElementById('brn-modal-text').value=patch?patch.patch_text:'';
+  document.getElementById('brn-modal-note').value=patch?(patch.note||''):'';
+  document.getElementById('brn-modal-priority').value=patch?patch.priority:100;
+  document.getElementById('brn-modal-bg').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('brn-modal-bg').classList.remove('show');
+  _editingPatchId=null;
+}
+async function savePatchModal(){
+  const title=document.getElementById('brn-modal-title-input').value.trim();
+  const text=document.getElementById('brn-modal-text').value.trim();
+  const note=document.getElementById('brn-modal-note').value.trim();
+  const priority=parseInt(document.getElementById('brn-modal-priority').value,10)||100;
+  if(!title||!text){toast('Title + Patch text จำเป็น','error');return;}
+  try{
+    if(_editingPatchId) await PUT('/patches/'+_editingPatchId,{title,patch_text:text,note,priority});
+    else await POST('/'+_slot+'/patches',{title,patch_text:text,note,priority,is_active:true});
+    toast(_editingPatchId?'แก้ไขแล้ว':'เพิ่ม patch แล้ว','success');
+    closeModal();
+    await loadSlot(_slot);
+  }catch(e){toast('บันทึกไม่ได้: '+e.message,'error');}
+}
+
+async function patchAction(id,act){
+  const patch=(_data.patches||[]).find(p=>p.id===id);
+  if(act==='edit'){openModal(patch);}
+  else if(act==='toggle'){
+    try{await PATCH('/patches/'+id+'/toggle');await loadSlot(_slot);}
+    catch(e){toast('Toggle ไม่ได้','error');}
+  }else if(act==='delete'){
+    if(!confirm('ลบ patch "'+((patch&&patch.title)||id)+'" ?'))return;
+    try{await DEL('/patches/'+id);toast('ลบแล้ว','success');await loadSlot(_slot);}
+    catch(e){toast('ลบไม่ได้','error');}
+  }
+}
+
+async function restoreVersion(version){
+  if(!confirm('Restore เป็น v.'+version+' ?'))return;
+  try{
+    await POST('/'+_slot+'/restore/'+version,{notes:'Restore via UI'});
+    toast('Restore สำเร็จ','success');
+    await loadSlot(_slot);
+  }catch(e){toast('Restore ไม่ได้: '+e.message,'error');}
+}
+
+document.querySelectorAll('.brn-gtab').forEach(btn=>{
+  btn.addEventListener('click',()=>loadGroup(btn.dataset.group));
+});
+document.getElementById('brn-base-text').addEventListener('input',updateCounters);
+document.getElementById('brn-custom-text').addEventListener('input',updateCounters);
+document.getElementById('brn-base-save').addEventListener('click',saveBase);
+document.getElementById('brn-base-revert').addEventListener('click',()=>{if(_data)document.getElementById('brn-base-text').value=_data.base_text||'';updateCounters();});
+document.getElementById('brn-custom-save').addEventListener('click',saveCustom);
+document.getElementById('brn-preview-refresh').addEventListener('click',refreshPreview);
+document.getElementById('brn-test-run').addEventListener('click',runTest);
+document.getElementById('brn-version-refresh').addEventListener('click',loadVersions);
+document.getElementById('brn-patch-add').addEventListener('click',()=>openModal(null));
+document.getElementById('brn-modal-cancel').addEventListener('click',closeModal);
+document.getElementById('brn-modal-save').addEventListener('click',savePatchModal);
+document.getElementById('brn-modal-bg').addEventListener('click',e=>{if(e.target.id==='brn-modal-bg')closeModal();});
+document.getElementById('brn-patches').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-act]');
+  const card=e.target.closest('.brn-patch');
+  if(btn&&card)patchAction(card.dataset.id,btn.dataset.act);
+});
+document.getElementById('brn-versions').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-version]');
+  if(btn)restoreVersion(parseInt(btn.dataset.version,10));
+});
+
+loadGroup('customer');
+console.log('[ai-brain] v3 loaded');
 })();
 </script>
-
 </body></html>
