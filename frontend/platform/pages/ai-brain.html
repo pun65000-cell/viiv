@@ -236,7 +236,175 @@
 <div class="brn-toast" id="brn-toast">—</div>
 
 <script>
-console.log("ai-brain loaded");
+(function(){
+  'use strict';
+
+  // ─── Constants ──────────────────────────────────────
+  const API = '/api/platform/ai/prompts';
+  const SLOTS = ['greet','funnel','rescue'];
+
+  // ─── State ─────────────────────────────────────────
+  let _slot = 'greet';
+  let _data = null;             // current slot data {base_text, custom_text, patches, ...}
+  let _editingPatchId = null;   // null = add mode, string = edit mode
+
+  // expose for Phase C-3b wire-up
+  window.__brn = {
+    state(){ return {slot:_slot, data:_data, editingPatchId:_editingPatchId}; },
+    setSlot(s){ _slot = s; },
+    setData(d){ _data = d; },
+    setEditing(id){ _editingPatchId = id; },
+    SLOTS, API,
+  };
+
+  // ─── Auth ───────────────────────────────────────────
+  function _token(){
+    return localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  }
+  function _h(extra){
+    const tok = _token();
+    return Object.assign(
+      {'Content-Type':'application/json'},
+      tok ? {'Authorization':'Bearer ' + tok} : {},
+      extra || {}
+    );
+  }
+
+  // ─── Toast ──────────────────────────────────────────
+  let _toastTimer = null;
+  function toast(msg, type){
+    const t = document.getElementById('brn-toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.className = 'brn-toast show ' + (type || '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ─── Helpers ────────────────────────────────────────
+  function estTokens(s){
+    return Math.max(0, Math.round((s||'').length / 3));
+  }
+  function fmtDate(iso){
+    if(!iso) return '-';
+    try{
+      const d = new Date(iso);
+      const pad = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return iso; }
+  }
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, c => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+    ));
+  }
+
+  // ─── API client ─────────────────────────────────────
+  async function apiGet(path){
+    const r = await fetch(API + path, {headers: _h(), cache:'no-store'});
+    if(!r.ok) throw new Error('GET ' + path + ' → ' + r.status);
+    return r.json();
+  }
+  async function apiPut(path, body){
+    const r = await fetch(API + path, {method:'PUT', headers:_h(), body: JSON.stringify(body)});
+    if(!r.ok) throw new Error('PUT ' + path + ' → ' + r.status);
+    return r.json();
+  }
+  async function apiPost(path, body){
+    const r = await fetch(API + path, {method:'POST', headers:_h(), body: JSON.stringify(body || {})});
+    if(!r.ok){
+      let txt = ''; try{ txt = await r.text(); }catch(_){}
+      throw new Error('POST ' + path + ' → ' + r.status + ' ' + txt.slice(0,200));
+    }
+    return r.json();
+  }
+  async function apiPatch(path){
+    const r = await fetch(API + path, {method:'PATCH', headers:_h()});
+    if(!r.ok) throw new Error('PATCH ' + path + ' → ' + r.status);
+    return r.json();
+  }
+  async function apiDelete(path){
+    const r = await fetch(API + path, {method:'DELETE', headers:_h()});
+    if(!r.ok) throw new Error('DELETE ' + path + ' → ' + r.status);
+    return r.json();
+  }
+
+  // ─── Renderers ──────────────────────────────────────
+  function updateCounters(){
+    const b = document.getElementById('brn-base-text').value;
+    const c = document.getElementById('brn-custom-text').value;
+    document.getElementById('brn-base-chars').textContent = b.length;
+    document.getElementById('brn-base-tokens').textContent = estTokens(b);
+    document.getElementById('brn-custom-chars').textContent = c.length;
+    document.getElementById('brn-custom-tokens').textContent = estTokens(c);
+  }
+  function renderSlot(){
+    if(!_data) return;
+    document.getElementById('brn-base-text').value = _data.base_text || '';
+    document.getElementById('brn-custom-text').value = _data.custom_text || '';
+    document.getElementById('brn-base-meta').textContent =
+      `v.${_data.current_version} · ${fmtDate(_data.updated_at)}` +
+      (_data.updated_by ? ` · ${_data.updated_by}` : '');
+    updateCounters();
+    renderPatches(_data.patches || []);
+  }
+  function renderPatches(patches){
+    const list = document.getElementById('brn-patches');
+    if(!list) return;
+    let active = 0, paused = 0;
+    patches.forEach(p => p.is_active ? active++ : paused++);
+    document.getElementById('brn-patch-count').textContent = `${active} active · ${paused} paused`;
+    if(!patches.length){
+      list.innerHTML = '<div class="brn-empty">ยังไม่มี patch — กด "+ เพิ่ม Patch"</div>';
+      return;
+    }
+    list.innerHTML = patches.map(p => `
+      <div class="brn-patch ${p.is_active?'':'paused'}" data-id="${escapeHtml(p.id)}">
+        <div class="brn-patch-head">
+          <span class="brn-patch-status">${p.is_active?'✅':'⏸️'}</span>
+          <span class="brn-patch-title">${escapeHtml(p.title)}</span>
+        </div>
+        <div class="brn-patch-text">${escapeHtml(p.patch_text)}</div>
+        ${p.note?`<div class="brn-patch-meta">📝 ${escapeHtml(p.note)}</div>`:''}
+        <div class="brn-patch-meta">
+          Priority: ${p.priority} · Created: ${fmtDate(p.created_at)}
+          ${p.paused_at?` · Paused: ${fmtDate(p.paused_at)}`:''}
+        </div>
+        <div class="brn-patch-actions">
+          <button class="brn-btn-ghost" data-act="edit">✏️ Edit</button>
+          <button class="brn-btn-ghost" data-act="toggle">${p.is_active?'⏸️ Pause':'▶️ Resume'}</button>
+          <button class="brn-btn-danger" data-act="delete">🗑️ Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  function renderVersions(versions){
+    const list = document.getElementById('brn-versions');
+    if(!list) return;
+    document.getElementById('brn-version-count').textContent = `${versions.length} versions`;
+    if(!versions.length){
+      list.innerHTML = '<div class="brn-empty">ยังไม่มี history</div>';
+      return;
+    }
+    list.innerHTML = versions.map(v => `
+      <div class="brn-version">
+        <span class="brn-version-num">v.${v.version}</span>
+        <span class="brn-version-date">${fmtDate(v.saved_at)}</span>
+        <span class="brn-version-by">${escapeHtml(v.saved_by||'-')}</span>
+        <span class="brn-version-notes">${escapeHtml(v.notes||'')}</span>
+        <button class="brn-btn-ghost" data-version="${v.version}">↩️ Restore</button>
+      </div>
+    `).join('');
+  }
+
+  // expose for Phase C-3b
+  window.__brn.toast = toast;
+  window.__brn.api = {get:apiGet, put:apiPut, post:apiPost, patch:apiPatch, del:apiDelete};
+  window.__brn.render = {slot:renderSlot, patches:renderPatches, versions:renderVersions, counters:updateCounters};
+  window.__brn.helpers = {fmtDate, escapeHtml, estTokens};
+
+  console.log('[ai-brain] C-3a loaded — helpers + api + renderers ready');
+})();
 </script>
 
 </body></html>
