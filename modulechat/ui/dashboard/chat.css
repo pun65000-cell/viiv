@@ -225,3 +225,17 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;font-size
 .platform-pill[data-platform="lazada"][data-state="online"] svg {
   filter: none; opacity: 1;
 }
+
+/* === Platform pill SVG fills (override grayscale ตอน online) === */
+/* Shopee circle bg */
+.platform-pill[data-platform="shopee"] .pill-bg-shopee { fill: #EE4D2D; }
+/* Offline ใช้ grayscale ทั้ง circle (สี + S) */
+.platform-pill[data-platform="shopee"][data-state="offline"] svg,
+.platform-pill[data-platform="lazada"][data-state="offline"] svg {
+  filter: grayscale(1) opacity(0.45);
+}
+/* Online — กลับสีจริง + glow (rule glow เดิมยังคงอยู่ด้านบน) */
+.platform-pill[data-platform="shopee"][data-state="online"] svg,
+.platform-pill[data-platform="lazada"][data-state="online"] svg {
+  filter: none; opacity: 1;
+}
