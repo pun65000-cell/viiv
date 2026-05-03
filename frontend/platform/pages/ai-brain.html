@@ -1,0 +1,242 @@
+<!doctype html><html><head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head><body>
+<style>
+:root{
+  --jp-bg:       #0a0a0c;
+  --jp-surface:  #0d0d10;
+  --jp-surface2: #13131a;
+  --jp-border:   #1e1e28;
+  --jp-border2:  #2a2a38;
+  --jp-text:     #e8e6e0;
+  --jp-muted:    #6a6a7a;
+  --jp-dim:      #3a3a4a;
+  --jp-gold:     #e8c56a;
+  --jp-gold-dim: #b89a42;
+  --jp-green:    #4caf7a;
+  --jp-red:      #e05a5a;
+  --jp-blue:     #5a8ade;
+  --jp-mono:     'Space Mono', ui-monospace, monospace;
+  --jp-sans:     'Noto Sans JP', system-ui, sans-serif;
+}
+
+.brn-wrap{margin-left:0;padding:24px;font-family:var(--jp-sans);font-size:14px;color:var(--jp-text);background:var(--jp-bg);min-height:100%;width:100%;max-width:none}
+.brn-wrap *{box-sizing:border-box}
+
+/* ─── Tabs ─────────────────────────────────────────────── */
+.brn-tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--jp-border2);padding-bottom:0}
+.brn-tab{padding:11px 22px;background:transparent;border:1px solid var(--jp-border2);border-bottom:none;border-radius:5px 5px 0 0;color:var(--jp-muted);font-family:var(--jp-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:color .15s,background .15s,border-color .15s;position:relative;top:1px}
+.brn-tab:hover{color:var(--jp-text);background:var(--jp-surface2)}
+.brn-tab.active{color:var(--jp-gold);background:var(--jp-surface);border-color:var(--jp-border2);border-bottom:1px solid var(--jp-surface)}
+
+/* ─── Cards ────────────────────────────────────────────── */
+.brn-card{background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:24px;margin-bottom:16px}
+.brn-card-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:13px;border-bottom:1px solid var(--jp-border)}
+.brn-card-title{font-size:13px;font-weight:700;color:var(--jp-text);letter-spacing:.08em;text-transform:uppercase;flex:1}
+.brn-card-sub{font-size:12px;color:var(--jp-muted);font-family:var(--jp-mono)}
+.brn-card-meta{font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.05em;display:flex;gap:14px;align-items:center}
+.brn-card-meta b{color:var(--jp-gold);font-weight:700}
+
+/* ─── Inputs ───────────────────────────────────────────── */
+.brn-textarea{width:100%;min-height:200px;padding:14px 16px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:5px;font-family:var(--jp-mono);font-size:13px;line-height:1.7;outline:none;resize:vertical}
+.brn-textarea:focus{border-color:var(--jp-gold)}
+.brn-textarea.preview{background:#08080a;color:#bcbcc9;cursor:default}
+.brn-textarea.preview:focus{border-color:var(--jp-border2)}
+
+.brn-input{padding:10px 14px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:4px;font-family:var(--jp-mono);font-size:13px;outline:none;min-height:40px;width:100%}
+.brn-input:focus{border-color:var(--jp-gold)}
+
+/* ─── Buttons ──────────────────────────────────────────── */
+.brn-actions{display:flex;gap:10px;margin-top:14px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.brn-btn-gold{padding:10px 22px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--jp-gold);color:#1a1a1a;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;min-height:40px}
+.brn-btn-gold:hover{background:#f0d077}
+.brn-btn-gold:disabled{opacity:.4;cursor:not-allowed}
+.brn-btn-ghost{padding:9px 18px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;border:1px solid var(--jp-border2);color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;min-height:38px}
+.brn-btn-ghost:hover{border-color:var(--jp-gold);color:var(--jp-gold)}
+.brn-btn-danger{padding:7px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;color:var(--jp-red);border:1px solid rgba(224,90,90,.35);font-family:var(--jp-mono);letter-spacing:.08em;text-transform:uppercase}
+.brn-btn-danger:hover{background:rgba(224,90,90,.1)}
+
+/* ─── Patches ──────────────────────────────────────────── */
+.brn-patch{background:var(--jp-surface2);border:1px solid var(--jp-border2);border-left:3px solid var(--jp-blue);border-radius:5px;padding:14px 16px;margin-bottom:10px;transition:opacity .15s}
+.brn-patch.paused{opacity:.55;border-left-color:var(--jp-dim)}
+.brn-patch-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.brn-patch-title{font-size:13px;font-weight:700;color:var(--jp-text);flex:1;font-family:var(--jp-sans)}
+.brn-patch-text{font-size:13px;color:var(--jp-text);font-family:var(--jp-mono);line-height:1.65;white-space:pre-wrap;margin-bottom:8px;background:#08080a;border:1px solid var(--jp-border);border-radius:4px;padding:10px 12px}
+.brn-patch-meta{font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.05em;display:flex;gap:12px;flex-wrap:wrap}
+.brn-patch-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+
+/* ─── Versions ─────────────────────────────────────────── */
+.brn-version-list{display:flex;flex-direction:column;gap:8px}
+.brn-version{background:var(--jp-surface2);border:1px solid var(--jp-border2);border-radius:5px;padding:12px 14px;display:grid;grid-template-columns:80px 1fr 130px;gap:14px;align-items:center}
+.brn-version-num{font-family:var(--jp-mono);font-size:14px;color:var(--jp-gold);font-weight:700;letter-spacing:.05em}
+.brn-version-date{font-family:var(--jp-mono);font-size:11px;color:var(--jp-muted);letter-spacing:.05em;text-align:right}
+.brn-version-by{font-family:var(--jp-mono);font-size:11px;color:#9090a8;text-align:right}
+.brn-version-notes{font-size:12px;color:var(--jp-text);font-family:var(--jp-sans);line-height:1.5}
+
+/* ─── Sandbox ──────────────────────────────────────────── */
+.brn-sandbox-result{background:#08080a;border:1px solid var(--jp-border);border-radius:5px;padding:14px 16px;font-family:var(--jp-mono);font-size:13px;line-height:1.7;color:var(--jp-text);white-space:pre-wrap;min-height:80px;margin-top:14px}
+.brn-sandbox-result.empty{color:var(--jp-dim);font-style:italic;text-align:center;padding:28px}
+.brn-sandbox-meta{font-family:var(--jp-mono);font-size:11px;color:var(--jp-muted);letter-spacing:.05em;margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.brn-sandbox-meta b{color:var(--jp-gold);font-weight:700}
+
+/* ─── Empty / spinner ──────────────────────────────────── */
+.brn-empty{text-align:center;color:var(--jp-muted);padding:24px;font-size:12px;font-style:italic;font-family:var(--jp-mono)}
+.brn-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--jp-border2);border-top-color:var(--jp-gold);border-radius:50%;animation:brn-spin 0.7s linear infinite;vertical-align:middle}
+@keyframes brn-spin{to{transform:rotate(360deg)}}
+
+/* ─── Toast ────────────────────────────────────────────── */
+.brn-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--jp-surface);color:var(--jp-text);border:1px solid var(--jp-border2);border-left:3px solid var(--jp-gold);border-radius:5px;padding:13px 22px;font-family:var(--jp-mono);font-size:13px;letter-spacing:.05em;box-shadow:0 8px 32px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10000}
+.brn-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.brn-toast.success{border-left-color:var(--jp-green);color:var(--jp-green)}
+.brn-toast.error{border-left-color:var(--jp-red);color:var(--jp-red)}
+
+/* ─── Modal ────────────────────────────────────────────── */
+.brn-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:9000;padding:20px}
+.brn-modal-bg.show{display:flex}
+.brn-modal{background:var(--jp-surface);border:1px solid var(--jp-border2);border-radius:6px;padding:26px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.brn-modal-head{font-size:13px;font-weight:700;color:var(--jp-gold);letter-spacing:.1em;text-transform:uppercase;font-family:var(--jp-mono);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--jp-border2)}
+.brn-modal-row{margin-bottom:14px}
+.brn-modal-label{display:block;font-size:11px;color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+
+@media (max-width:900px){
+  .brn-tabs{flex-wrap:wrap}
+  .brn-version{grid-template-columns:1fr;gap:6px}
+  .brn-version-date,.brn-version-by{text-align:left}
+}
+</style>
+
+<div class="brn-wrap">
+
+  <!-- TABS: slot picker -->
+  <div class="brn-tabs" id="brn-tabs">
+    <button type="button" class="brn-tab active" data-slot="greet">🌸 ทักทาย</button>
+    <button type="button" class="brn-tab" data-slot="funnel">🤖 Funnel</button>
+    <button type="button" class="brn-tab" data-slot="rescue">✨ ฉุกเฉิน</button>
+  </div>
+
+  <!-- 1. BASE PROMPT -->
+  <div class="brn-card">
+    <div class="brn-card-head">
+      <div class="brn-card-title">Base Prompt (ระบบ)</div>
+      <div class="brn-card-meta">
+        <span id="brn-base-meta">v—</span>
+        <span id="brn-base-chars">— chars</span>
+        <span id="brn-base-tokens">~— tokens</span>
+      </div>
+    </div>
+    <textarea class="brn-textarea" id="brn-base-text" placeholder="Base prompt…"></textarea>
+    <div class="brn-actions">
+      <button type="button" class="brn-btn-ghost" id="brn-base-revert">ย้อนกลับ</button>
+      <button type="button" class="brn-btn-gold" id="brn-base-save">บันทึก Base</button>
+    </div>
+  </div>
+
+  <!-- 2. CUSTOM (per-shop overlay) -->
+  <div class="brn-card">
+    <div class="brn-card-head">
+      <div class="brn-card-title">Custom Overlay (เฉพาะร้าน)</div>
+      <div class="brn-card-meta">
+        <span id="brn-custom-chars">— chars</span>
+        <span id="brn-custom-tokens">~— tokens</span>
+      </div>
+    </div>
+    <textarea class="brn-textarea" id="brn-custom-text" placeholder="คำสั่งเสริมเฉพาะร้าน…"></textarea>
+    <div class="brn-actions">
+      <button type="button" class="brn-btn-gold" id="brn-custom-save">บันทึก Custom</button>
+    </div>
+  </div>
+
+  <!-- 3. PATCHES -->
+  <div class="brn-card">
+    <div class="brn-card-head">
+      <div class="brn-card-title">Patches (เพิ่ม/ลบเฉพาะจุด)</div>
+      <div class="brn-card-meta">
+        <span id="brn-patch-count">0 patches</span>
+      </div>
+      <button type="button" class="brn-btn-gold" id="brn-patch-add">+ เพิ่ม Patch</button>
+    </div>
+    <div id="brn-patches">
+      <div class="brn-empty">ยังไม่มี patch</div>
+    </div>
+  </div>
+
+  <!-- 4. PREVIEW -->
+  <div class="brn-card">
+    <div class="brn-card-head">
+      <div class="brn-card-title">Preview (Base + Custom + Patches)</div>
+      <div class="brn-card-meta">
+        <span id="brn-preview-meta">— chars · ~— tokens</span>
+      </div>
+      <button type="button" class="brn-btn-ghost" id="brn-preview-refresh">รีเฟรช</button>
+    </div>
+    <textarea class="brn-textarea preview" id="brn-preview-text" readonly placeholder="Preview will render here…"></textarea>
+  </div>
+
+  <!-- 5. SANDBOX -->
+  <div class="brn-card">
+    <div class="brn-card-head">
+      <div class="brn-card-title">Sandbox (ทดสอบ Prompt)</div>
+      <div class="brn-card-sub">ทดลองข้อความก่อน publish</div>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr auto;gap:10px;align-items:center">
+      <input type="text" class="brn-input" id="brn-test-shop" placeholder="subdomain ร้าน">
+      <input type="text" class="brn-input" id="brn-test-input" placeholder="ข้อความลูกค้า…">
+      <button type="button" class="brn-btn-gold" id="brn-test-run">รัน</button>
+    </div>
+    <div class="brn-sandbox-result empty" id="brn-test-result">— ยังไม่ได้ทดสอบ —</div>
+    <div class="brn-sandbox-meta" id="brn-test-meta"></div>
+  </div>
+
+  <!-- 6. VERSION HISTORY -->
+  <div class="brn-card">
+    <div class="brn-card-head">
+      <div class="brn-card-title">Version History</div>
+      <div class="brn-card-meta">
+        <span id="brn-version-count">— versions</span>
+      </div>
+      <button type="button" class="brn-btn-ghost" id="brn-version-refresh">รีเฟรช</button>
+    </div>
+    <div class="brn-version-list" id="brn-versions">
+      <div class="brn-empty">loading…</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: add / edit patch -->
+<div class="brn-modal-bg" id="brn-modal-bg">
+  <div class="brn-modal">
+    <div class="brn-modal-head" id="brn-modal-title">เพิ่ม Patch</div>
+    <div class="brn-modal-row">
+      <label class="brn-modal-label">Title</label>
+      <input type="text" class="brn-input" id="brn-modal-title-input" placeholder="ชื่อ patch (ภายใน)">
+    </div>
+    <div class="brn-modal-row">
+      <label class="brn-modal-label">Patch text</label>
+      <textarea class="brn-textarea" id="brn-modal-text" style="min-height:140px" placeholder="คำสั่งเพิ่มเติม…"></textarea>
+    </div>
+    <div class="brn-modal-row">
+      <label class="brn-modal-label">Note</label>
+      <input type="text" class="brn-input" id="brn-modal-note" placeholder="เหตุผล / context (optional)">
+    </div>
+    <div class="brn-modal-row">
+      <label class="brn-modal-label">Priority (0–100)</label>
+      <input type="number" class="brn-input" id="brn-modal-priority" value="50" min="0" max="100">
+    </div>
+    <div class="brn-actions">
+      <button type="button" class="brn-btn-ghost" id="brn-modal-cancel">ยกเลิก</button>
+      <button type="button" class="brn-btn-gold" id="brn-modal-save">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="brn-toast" id="brn-toast">—</div>
+
+<script>
+console.log("ai-brain loaded");
+</script>
+
+</body></html>
