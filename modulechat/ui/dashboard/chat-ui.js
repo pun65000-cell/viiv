@@ -207,6 +207,16 @@ const UI = (() => {
       el.innerHTML = '<div class="loading-state">ยังไม่มีข้อความ</div>';
       return;
     }
+
+    // smart render — ถ้า message count เท่าเดิม และ scroll ไม่อยู่ท้าย ไม่ re-render
+    const prevCount = parseInt(el.dataset.msgCount || '0');
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+
+    if (msgs.length === prevCount && !atBottom) return;
+    if (msgs.length === prevCount) return;
+
+    el.dataset.msgCount = msgs.length;
+
     let html = '';
     let lastDate = '';
     msgs.forEach(m => {
