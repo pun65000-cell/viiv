@@ -13,7 +13,25 @@ JWT_SECRET = os.getenv(
     "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c"
 )
 
-VALID_SLOTS = ("greet", "funnel", "rescue")
+VALID_SLOTS = (
+    "chat_bot",
+    "complex_post",
+    "pos_help",
+    "autopost",
+    "analytics",
+    "internal_ops",
+    "fallback",
+)
+
+SLOT_META = {
+    "chat_bot":     {"label": "Chat/Bot",      "icon": "💬", "desc": "ตอบลูกค้า"},
+    "complex_post": {"label": "Complex/Post",  "icon": "📝", "desc": "งานยาว ซับซ้อน"},
+    "pos_help":     {"label": "POS Help",      "icon": "💡", "desc": "ช่วยใช้ POS"},
+    "autopost":     {"label": "AutoPost",      "icon": "🎨", "desc": "สร้างโพสต์ขาย"},
+    "analytics":    {"label": "Analytics",     "icon": "📊", "desc": "วิเคราะห์ data"},
+    "internal_ops": {"label": "Internal Ops",  "icon": "🏢", "desc": "VIIV office/support"},
+    "fallback":     {"label": "Fallback",      "icon": "🛟", "desc": "เมื่อ primary fail"},
+}
 
 
 # ============================================
@@ -102,6 +120,25 @@ def compose_final_prompt(slot: str, base_text: str, custom_text: str,
     if shop_id:
         final += f"\n\n[Context] ลูกค้าทักจากร้าน: {shop_id}"
     return final
+
+
+# ============================================
+# GET /roles — list available roles + meta
+# ============================================
+@router.get("/roles")
+def list_roles(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    return {
+        "roles": [
+            {
+                "slot": s,
+                "label": SLOT_META[s]["label"],
+                "icon": SLOT_META[s]["icon"],
+                "desc": SLOT_META[s]["desc"],
+            }
+            for s in VALID_SLOTS
+        ]
+    }
 
 
 # ============================================
