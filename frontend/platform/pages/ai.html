@@ -190,14 +190,11 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
         <div class="aim-card-sub">$/1M tokens</div>
         <div class="aim-card-sub" style="margin-left:auto;opacity:.6;font-size:13px">Updated: 03 May 2026</div>
       </div>
-      <div style="background:var(--color-background-warning,#fffbeb);border:0.5px solid var(--color-border-warning,#fcd34d);padding:10px 14px;border-radius:6px;margin-bottom:14px;color:var(--color-text-warning,#92400e);font-size:13px;">
-        gpt-5-nano · OpenAI · อัปเดต 03 May 2026
-      </div>
       <div id="aim-slots">
         <div class="aim-loading">loading...</div>
       </div>
       <div class="aim-models-actions">
-        <button type="button" class="aim-btn-gold" id="aim-save-models-btn" onclick="aimSaveModels()" disabled style="opacity:.5;cursor:not-allowed">บันทึก Model Config</button>
+        <button type="button" class="aim-btn-gold" id="aim-save-models-btn" onclick="aimSaveModels()">บันทึก Model Config</button>
       </div>
     </div>
   </div>
@@ -411,7 +408,18 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
       var d = await _get('/api/platform/ai/keys');
       var providers = ['anthropic','openai_customer','openai_internal','gemini_customer','gemini_internal','deepseek'];
       var existing = {};
-      (d.keys||[]).forEach(function(k){ existing[k.provider] = k; });
+      (d.keys||[]).forEach(function(k){
+        existing[k.provider] = k;
+        // map legacy provider names → new names
+        if(k.provider === 'openai') {
+          existing['openai_customer'] = k;
+          existing['openai_internal'] = k;
+        }
+        if(k.provider === 'google') {
+          existing['gemini_customer'] = k;
+          existing['gemini_internal'] = k;
+        }
+      });
       var html = providers.map(function(p){
         var k = existing[p];
         if (k) {
@@ -468,11 +476,16 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
           +_esc(id)+' ('+_esc(m.provider||'')+')</option>';
       }).join('');
       var m = MODEL_CATALOG[selVal]||{};
+      var apiLabel = s.id === 'internal' ? 'Internal API' : 'Customer API';
+      var apiColor = s.id === 'internal'
+        ? 'color:var(--color-text-warning,#92400e)'
+        : 'color:var(--color-text-info,#1a56db)';
       return '<div class="aim-slot-row" data-slot="'+_esc(s.id)+'">'
         +'<div class="aim-slot-label">'+_esc(s.label)+'</div>'
         +'<select class="aim-slot-select" data-slot="'+_esc(s.id)+'"'+(isLocked?' disabled':'')+'>'
           +rowOpts
         +'</select>'
+        +'<div style="flex-shrink:0;font-size:13px;font-family:var(--jp-mono);'+apiColor+';min-width:100px;text-align:center">'+apiLabel+'</div>'
         +'<div class="aim-slot-cost" id="aim-cost-'+_esc(s.id)+'">'
           +'in <b>$'+Number(m.cost_in||0).toFixed(2)+'</b>'
           +' · out <b>$'+Number(m.cost_out||0).toFixed(2)+'</b>'
