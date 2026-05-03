@@ -111,15 +111,15 @@ const UI = (() => {
     { id: 'youtube',  label: 'YT',    color: '#FF0000', svg: `<svg viewBox="0 0 24 24" fill="white"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>` },
   ];
 
-  function renderPlatformLogos() {
-    const row = document.getElementById('platform-row');
-    if (!row) return;
-    row.innerHTML = PLATFORMS.map(p => `
-      <div class="platform-item" id="plt-${p.id}" onclick="UI.togglePlatform('${p.id}')">
-        <div class="platform-logo" style="background:${p.color};display:flex;align-items:center;justify-content:center;padding:5px">${p.svg}</div>
-        <div class="platform-label">${p.label}</div>
-      </div>`).join('');
-  }
+  function renderPlatformLogos() { /* removed — now in Superboard topbar */ }
+
+  const PLAT = {
+    line:      { bg:'#06C755', label:'LINE' },
+    facebook:  { bg:'#1877F2', label:'FB' },
+    tiktok:    { bg:'#010101', label:'TK' },
+    instagram: { bg:'#e6683c', label:'IG' },
+    youtube:   { bg:'#FF0000', label:'YT' },
+  };
 
   function togglePlatform(id) {
     _platform = (_platform === id) ? null : id;
@@ -165,16 +165,16 @@ const UI = (() => {
     const avatarInner = c.picture_url
       ? `<img src="${_escAttr(c.picture_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
       : _escHtml(initials);
-    const dotClass = c.platform === 'facebook' ? 'dot-fb'
-                   : c.platform === 'tiktok'   ? 'dot-tiktok'
-                   : c.platform === 'instagram'? 'dot-ig'
-                   : 'dot-line';
+    const plat = PLAT[c.platform] || { bg:'#888', label:'?' };
+    const platBadge = `<span class="conv-platform" style="background:${plat.bg}">${plat.label}</span>`;
+    const typeBadge = c.conv_type === 'comment'
+      ? `<span class="conv-type-badge">💬 คอมเมนต์</span>`
+      : `<span class="conv-type-badge">✉️ DM</span>`;
     return `
     <div class="conv-item" data-id="${_escAttr(c.id)}">
       <div class="conv-avatar ${isLine ? '' : 'fb'}">${avatarInner}</div>
       <div class="conv-info">
-        <div class="conv-name">
-          <span class="platform-dot ${dotClass}"></span>${_escHtml(name)}
+        <div class="conv-name">${_escHtml(name)}${platBadge}${typeBadge}
           ${c.bot_enabled !== false ? '<span class="bot-tag">BOT</span>' : ''}
         </div>
         <div class="conv-preview">${_escHtml(preview)}</div>

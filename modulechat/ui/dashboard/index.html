@@ -21,9 +21,7 @@
       <button class="tab-btn" id="tab-stats" onclick="App.setTab('stats',this)">↗ Stats</button>
     </div>
     <input class="search-box" placeholder="ค้นหาชื่อ..." id="search-input" oninput="UI.filterConvs(this.value)">
-    <div class="platform-row" id="platform-row">
-      <!-- SVG logos สร้างใน JS -->
-    </div>
+    <!-- platform logos ย้ายขึ้น Superboard topbar (#sb-platforms) — ลบ block เดิมออก -->
     <div class="conv-list" id="conv-list">
       <div class="loading-state">กำลังโหลด...</div>
     </div>
