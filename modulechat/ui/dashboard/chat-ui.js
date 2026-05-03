@@ -55,7 +55,7 @@ const App = (() => {
       const r = await fetch('/api/platform/connections/status', { headers: _authH() });
       if (!r.ok) throw 0;
       const d = await r.json();
-      ['line','facebook','shopee','lazada'].forEach(p => {
+      ['shopee','lazada'].forEach(p => {
         _setPlat(p, !!(d[p] && d[p].connected));
       });
     } catch (_) { /* leave offline state */ }

@@ -209,22 +209,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;font-size
   filter: grayscale(1);
   opacity: 0.4;
 }
-.platform-pill[data-platform="line"][data-state="online"] {
-  border-color: #06C755;
-  background: rgba(6,199,85,0.12);
-  box-shadow: 0 0 8px rgba(6,199,85,0.5);
-}
-.platform-pill[data-platform="line"][data-state="online"] svg {
-  color: #06C755; filter: none; opacity: 1;
-}
-.platform-pill[data-platform="facebook"][data-state="online"] {
-  border-color: #1877F2;
-  background: rgba(24,119,242,0.12);
-  box-shadow: 0 0 8px rgba(24,119,242,0.5);
-}
-.platform-pill[data-platform="facebook"][data-state="online"] svg {
-  color: #1877F2; filter: none; opacity: 1;
-}
 .platform-pill[data-platform="shopee"][data-state="online"] {
   border-color: #ee4d2d;
   background: rgba(238,77,45,0.12);
