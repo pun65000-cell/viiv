@@ -30,10 +30,10 @@
 .aim-stat{position:relative;background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:24px 24px;overflow:hidden}
 .aim-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--jp-dim)}
 .aim-stat.gold::before{background:linear-gradient(90deg,var(--jp-gold-dim),var(--jp-gold))}
-.aim-stat-lbl{font-size:12px;color:#9090a8;margin-bottom:14px;text-transform:uppercase;letter-spacing:.1em;font-weight:500}
+.aim-stat-lbl{font-size:13px;color:#9090a8;margin-bottom:14px;text-transform:uppercase;letter-spacing:.1em;font-weight:500}
 .aim-stat-val{font-size:28px;font-weight:700;color:var(--jp-text);font-family:var(--jp-mono);line-height:1.1}
 .aim-stat.gold .aim-stat-val{color:var(--jp-gold)}
-.aim-stat-sub{font-size:12px;color:var(--jp-muted);margin-top:8px;letter-spacing:.05em}
+.aim-stat-sub{font-size:13px;color:var(--jp-muted);margin-top:8px;letter-spacing:.05em}
 
 /* ─── Cards ────────────────────────────────────────────── */
 .aim-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:stretch;width:100%}
@@ -43,7 +43,7 @@
 .aim-card{background:var(--jp-surface);border:1px solid var(--jp-border);border-radius:6px;padding:28px;margin-bottom:16px}
 .aim-card-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--jp-border)}
 .aim-card-title{font-size:14px;font-weight:700;color:var(--jp-text);flex:1;letter-spacing:.05em;text-transform:uppercase}
-.aim-card-sub{font-size:12px;color:var(--jp-muted);font-family:var(--jp-mono)}
+.aim-card-sub{font-size:13px;color:var(--jp-muted);font-family:var(--jp-mono)}
 
 /* ─── Keys ─────────────────────────────────────────────── */
 .aim-key-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--jp-border);font-size:14px;min-height:44px}
@@ -55,10 +55,10 @@
 .aim-eye-btn{flex-shrink:0;background:transparent;border:1px solid var(--jp-border2);cursor:pointer;color:var(--jp-muted);padding:7px 9px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s}
 .aim-eye-btn:hover{color:var(--jp-gold);border-color:var(--jp-gold)}
 .aim-eye-btn svg{display:block;width:16px;height:16px}
-.aim-key-badge{flex-shrink:0;font-size:12px;padding:4px 10px;border-radius:3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--jp-mono)}
+.aim-key-badge{flex-shrink:0;font-size:13px;padding:4px 10px;border-radius:3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--jp-mono)}
 .aim-key-badge.on{background:rgba(76,175,122,.15);color:var(--jp-green);border:1px solid rgba(76,175,122,.35)}
 .aim-key-badge.off{background:rgba(224,90,90,.12);color:var(--jp-red);border:1px solid rgba(224,90,90,.3)}
-.aim-key-del{flex-shrink:0;color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:5px 11px;border-radius:4px;font-size:12px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
+.aim-key-del{flex-shrink:0;color:var(--jp-red);background:transparent;border:1px solid rgba(224,90,90,.35);padding:5px 11px;border-radius:4px;font-size:13px;cursor:pointer;font-family:var(--jp-mono);letter-spacing:.05em;text-transform:uppercase}
 .aim-key-del:hover{background:rgba(224,90,90,.1)}
 .aim-key-form{display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px solid var(--jp-border2)}
 .aim-key-form select,.aim-key-form input{padding:10px 14px;border:1px solid var(--jp-border2);border-radius:4px;font-size:14px;background:var(--jp-surface2);color:var(--jp-text);outline:none;font-family:var(--jp-sans);min-height:40px}
@@ -68,7 +68,7 @@
 .aim-btn-gold{padding:10px 20px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:var(--jp-gold);color:#1a1a1a;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase;min-height:40px}
 .aim-btn-gold:hover{background:#f0d077}
 .aim-btn-gold:disabled{opacity:.4;cursor:not-allowed}
-.aim-btn-ghost{padding:6px 14px;border-radius:4px;font-size:11px;cursor:pointer;background:transparent;border:1px solid var(--jp-border2);color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
+.aim-btn-ghost{padding:6px 14px;border-radius:4px;font-size:13px;cursor:pointer;background:transparent;border:1px solid var(--jp-border2);color:var(--jp-muted);font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
 .aim-btn-ghost:hover{border-color:var(--jp-gold);color:var(--jp-gold)}
 
 /* ─── Models (dropdown slots) ─────────────────────────── */
@@ -78,19 +78,19 @@
 .aim-slot-select{flex:1;min-width:0;padding:10px 32px 10px 14px;background:var(--jp-surface2);color:var(--jp-text);border:1px solid var(--jp-border2);border-radius:4px;font-family:var(--jp-mono);font-size:14px;outline:none;cursor:pointer;min-height:40px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--jp-muted) 50%),linear-gradient(135deg,var(--jp-muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
 .aim-slot-select:focus{border-color:var(--jp-gold)}
 .aim-slot-select option{background:var(--jp-surface2);color:var(--jp-text)}
-.aim-slot-cost{flex-shrink:0;white-space:nowrap;font-family:var(--jp-mono);font-size:12px;color:var(--jp-muted);text-align:right;letter-spacing:.05em}
+.aim-slot-cost{flex-shrink:0;white-space:nowrap;font-family:var(--jp-mono);font-size:13px;color:var(--jp-muted);text-align:right;letter-spacing:.05em}
 .aim-slot-cost b{color:var(--jp-gold);font-weight:700}
 .aim-models-actions{margin-top:auto;padding-top:16px;border-top:1px solid var(--jp-border2);display:flex;justify-content:flex-end}
 
 /* ─── Tables ──────────────────────────────────────────── */
 .aim-tbl-wrap{overflow-x:auto;margin:0 -22px;padding:0 22px}
 table.aim-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
-table.aim-tbl th{padding:10px 12px;text-align:left;color:var(--jp-muted);font-weight:600;background:var(--jp-surface2);border-bottom:1px solid var(--jp-border2);font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-family:var(--jp-mono)}
-table.aim-tbl td{padding:11px 12px;border-bottom:1px solid var(--jp-border);color:var(--jp-text);vertical-align:middle;font-family:var(--jp-mono);font-size:12px}
+table.aim-tbl th{padding:10px 12px;text-align:left;color:var(--jp-muted);font-weight:600;background:var(--jp-surface2);border-bottom:1px solid var(--jp-border2);font-size:13px;text-transform:uppercase;letter-spacing:.12em;font-family:var(--jp-mono)}
+table.aim-tbl td{padding:11px 12px;border-bottom:1px solid var(--jp-border);color:var(--jp-text);vertical-align:middle;font-family:var(--jp-mono);font-size:13px}
 table.aim-tbl tr:last-child td{border:none}
 table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
 .aim-tbl .num{text-align:right}
-.aim-tbl .muted{color:var(--jp-muted);font-size:11px}
+.aim-tbl .muted{color:var(--jp-muted);font-size:13px}
 
 /* ─── Bars ────────────────────────────────────────────── */
 .aim-bar{width:100%;height:6px;background:var(--jp-border);border-radius:3px;overflow:hidden;min-width:100px}
@@ -99,20 +99,20 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
 .aim-bar-fill.green{background:linear-gradient(90deg,#2f7a52,var(--jp-green))}
 
 /* ─── Credit input ───────────────────────────────────── */
-.aim-credit-input{width:90px;padding:6px 9px;border:1px solid var(--jp-border2);border-radius:3px;font-size:12px;font-family:var(--jp-mono);text-align:right;outline:none;background:var(--jp-surface2);color:var(--jp-text)}
+.aim-credit-input{width:90px;padding:6px 9px;border:1px solid var(--jp-border2);border-radius:3px;font-size:13px;font-family:var(--jp-mono);text-align:right;outline:none;background:var(--jp-surface2);color:var(--jp-text)}
 .aim-credit-input:focus{border-color:var(--jp-gold)}
-.aim-credit-save{margin-left:6px;padding:6px 11px;background:var(--jp-gold);color:#1a1a1a;border:none;border-radius:3px;font-size:11px;cursor:pointer;font-family:var(--jp-mono);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.aim-credit-save{margin-left:6px;padding:6px 11px;background:var(--jp-gold);color:#1a1a1a;border:none;border-radius:3px;font-size:13px;cursor:pointer;font-family:var(--jp-mono);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 .aim-credit-save:hover{background:#f0d077}
 
 /* ─── Source badge ───────────────────────────────────── */
-.aim-source{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:var(--jp-mono)}
+.aim-source{display:inline-block;font-size:13px;padding:2px 7px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-family:var(--jp-mono)}
 .aim-source.chat{background:rgba(76,175,180,.15);color:#7ed1d6;border:1px solid rgba(76,175,180,.3)}
 .aim-source.autopost{background:rgba(200,90,140,.15);color:#e08bb0;border:1px solid rgba(200,90,140,.3)}
 .aim-source.pos_help{background:rgba(76,175,122,.15);color:var(--jp-green);border:1px solid rgba(76,175,122,.3)}
 .aim-source.unknown{background:var(--jp-surface2);color:var(--jp-muted);border:1px solid var(--jp-border2)}
 
 /* ─── Status pulse dot ────────────────────────────────── */
-.aim-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;font-family:var(--jp-mono);text-transform:lowercase;letter-spacing:.05em}
+.aim-status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;font-family:var(--jp-mono);text-transform:lowercase;letter-spacing:.05em}
 .aim-status::before{content:'';width:7px;height:7px;border-radius:50%;display:inline-block}
 .aim-status.online{color:var(--jp-green)}
 .aim-status.online::before{background:var(--jp-green);box-shadow:0 0 0 0 rgba(76,175,122,.7);animation:aim-pulse 2s infinite}
@@ -125,8 +125,8 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
   100%{box-shadow:0 0 0 0 rgba(76,175,122,0)}
 }
 
-.aim-loading{text-align:center;color:var(--jp-muted);padding:24px;font-size:12px;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
-.aim-empty{text-align:center;color:var(--jp-muted);padding:18px;font-size:12px;font-style:italic;font-family:var(--jp-mono)}
+.aim-loading{text-align:center;color:var(--jp-muted);padding:24px;font-size:13px;font-family:var(--jp-mono);letter-spacing:.1em;text-transform:uppercase}
+.aim-empty{text-align:center;color:var(--jp-muted);padding:18px;font-size:13px;font-style:italic;font-family:var(--jp-mono)}
 
 @media (max-width:900px){
   .aim-stats{grid-template-columns:repeat(2,1fr)}
@@ -188,14 +188,10 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
       <div class="aim-card-head">
         <div class="aim-card-title">Models ที่ใช้</div>
         <div class="aim-card-sub">$/1M tokens</div>
-        <div class="aim-card-sub" style="margin-left:auto;opacity:.6;font-size:11px">Updated: 03 May 2026</div>
+        <div class="aim-card-sub" style="margin-left:auto;opacity:.6;font-size:13px">Updated: 03 May 2026</div>
       </div>
-      <div style="background:#1a1a1c;border:1px solid #d4af37;
-                  padding:10px 14px;border-radius:6px;margin-bottom:14px;
-                  color:#d4af37;font-family:'Space Mono',monospace;
-                  font-size:13px;">
-        ⚠ TEST MODE — ทุก slot ใช้ gpt-5-nano
-        (Lock เพื่อทดสอบระบบแชท ปลดล็อกได้หลังทดสอบเสร็จ)
+      <div style="background:var(--color-background-warning,#fffbeb);border:0.5px solid var(--color-border-warning,#fcd34d);padding:10px 14px;border-radius:6px;margin-bottom:14px;color:var(--color-text-warning,#92400e);font-size:13px;">
+        gpt-5-nano · OpenAI · อัปเดต 03 May 2026
       </div>
       <div id="aim-slots">
         <div class="aim-loading">loading...</div>
@@ -462,7 +458,7 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
 
   // ─── 3 — Models (5 dropdown slots) ─────
   function _renderSlots(){
-    var isLocked = true;
+    var isLocked = false;
     var html = SLOTS.map(function(s){
       var selVal = isLocked ? 'gpt-5-nano' : s.defaultModel;
       var rowOpts = MODEL_ORDER.map(function(id){
