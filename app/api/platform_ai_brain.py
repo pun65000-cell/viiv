@@ -46,9 +46,18 @@ def _admin_auth(authorization: Optional[str]):
             tok, JWT_SECRET, algorithms=["HS256"],
             options={"leeway": 864000, "verify_exp": False}
         )
-        if payload.get("is_admin") or payload.get("role") in ("admin", "superadmin"):
+        sub = payload.get("sub", "") or ""
+        role = payload.get("role")
+        is_admin = payload.get("is_admin")
+
+        # ViiV platform admin: sub=pfu_ + (is_admin OR role in admin/owner roles)
+        is_platform_admin = (
+            sub.startswith("pfu_")
+            and (is_admin or role in ("admin", "superadmin", "owner"))
+        )
+        if is_platform_admin:
             return payload
-        raise HTTPException(403, "Admin only")
+        raise HTTPException(403, "Platform admin only")
     except jwt.PyJWTError:
         raise HTTPException(401, "Invalid token")
     except HTTPException:
