@@ -141,11 +141,14 @@ function landAt(key){
 
 // ── sprite factory ─────────────────────────────
 function makeSprite(cssClass,name){
+  // sprite name labels removed — CSS for .sprite/.sprite-* was dropped
+  // when AI team moved to static cards; stop appending the text node so
+  // raw "AI Support" / "AI POS" don't leak into the page body.
+  void name;
   const el=document.createElement('div');el.className=`sprite ${cssClass}`;
-  const nm=document.createElement('div');nm.className='sprite-name';nm.textContent=name;
   const hd=document.createElement('div');hd.className='sprite-head';
   const bd=document.createElement('div');bd.className='sprite-body';
-  el.appendChild(nm);el.appendChild(hd);el.appendChild(bd);
+  el.appendChild(hd);el.appendChild(bd);
   document.body.appendChild(el);
   return el;
 }
