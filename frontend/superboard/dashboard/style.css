@@ -292,3 +292,39 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 }
 
 /* PLATFORM STATUS WIDGET ลบออกแล้ว — ย้ายขึ้น Superboard topbar */
+
+/* ══ SPRITES (restored 2026-05-03) ══════════════ */
+.sprite{position:fixed;display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:50;}
+.sprite-name{font-family:'Chakra Petch',sans-serif;font-size:clamp(5px,.75vmin,8px);color:var(--txt);background:rgba(255,253,248,.93);border:1px solid var(--bdr);border-radius:3px;padding:0 3px;white-space:nowrap;line-height:1.5;margin-bottom:1px;box-shadow:0 1px 3px rgba(0,0,0,.10);}
+.sprite-head{width:var(--char);height:var(--char);border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;}
+.sprite-head::before{content:'◉◉';font-size:clamp(3px,.42vmin,5px);letter-spacing:clamp(1px,.13vmin,2px);position:absolute;top:28%;}
+.sprite-body{width:calc(var(--char)*.75);height:calc(var(--char)*.55);border-radius:2px;margin-top:1px;}
+.sprite{animation:bob 2s ease-in-out infinite;}
+.sprite.walking{animation:walk .5s ease-in-out infinite;}
+.sprite.idle{animation:idle-sway 3s ease-in-out infinite;}
+.sprite.busy{animation:busy-shake .35s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(calc(var(--char)*-.18))}}
+@keyframes walk{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(calc(var(--char)*-.14)) rotate(4deg)}}
+@keyframes idle-sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+@keyframes busy-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
+.sp-staff .sprite-head{background:linear-gradient(135deg,#d4a84c,#f0d070);border:2px solid #c09030;}
+.sp-staff .sprite-head::before{color:#231908;}
+.sp-staff .sprite-body{background:#3060c0;border:1px solid #2050a0;}
+.sp-ai-support .sprite-head{background:linear-gradient(135deg,#384878,#5070b0);border:2px solid #7090d0;}
+.sp-ai-support .sprite-head::before{color:#80d0ff;}
+.sp-ai-support .sprite-body{background:#304060;border:1px solid #506080;}
+.sp-ai-pos .sprite-head{background:linear-gradient(135deg,#2d5a3d,#4a9060);border:2px solid #70c080;}
+.sp-ai-pos .sprite-head::before{color:#a0ffc0;}
+.sp-ai-pos .sprite-body{background:#1e3d2a;border:1px solid #3a6045;}
+.sp-ai-chat .sprite-head{background:linear-gradient(135deg,#5a2d6e,#9050b0);border:2px solid #c080e0;}
+.sp-ai-chat .sprite-head::before{color:#e0b0ff;}
+.sp-ai-chat .sprite-body{background:#3d1e4d;border:1px solid #6a3a80;}
+.sp-ai-post .sprite-head{background:linear-gradient(135deg,#6e3a2d,#b06040);border:2px solid #e09070;}
+.sp-ai-post .sprite-head::before{color:#ffd0b0;}
+.sp-ai-post .sprite-body{background:#4d2a1e;border:1px solid #805040;}
+.sp-ai-aff .sprite-head{background:linear-gradient(135deg,#5a5a2d,#a0a040);border:2px solid #d0d060;}
+.sp-ai-aff .sprite-head::before{color:#f0f0a0;}
+.sp-ai-aff .sprite-body{background:#3d3d1e;border:1px solid #707030;}
+.sp-customer .sprite-head{background:linear-gradient(135deg,#c06080,#e090a0);border:2px solid #f0b0c0;}
+.sp-customer .sprite-head::before{color:#fff0f4;}
+.sp-customer .sprite-body{background:#804050;border:1px solid #a06070;}
