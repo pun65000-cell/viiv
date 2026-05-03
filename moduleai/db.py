@@ -67,5 +67,55 @@ def log_token_usage(
                     ),
                 )
                 conn.commit()
+        return cost
     except Exception as e:
         print(f"[moduleai.db] log_token_usage error: {e}")
+        return 0.0
+
+
+def get_brain_prompt(slot: str) -> str | None:
+    """
+    อ่าน base_text + custom_text + active patches จาก ai_prompts
+    compose เป็น final prompt แล้ว return
+    ถ้าไม่มีข้อมูล → return None (caller ใช้ persona fallback)
+    """
+    try:
+        with psycopg2.connect(DB_URL) as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT base_text, custom_text FROM ai_prompts WHERE slot=%s",
+                    (slot,)
+                )
+                row = cur.fetchone()
+                if not row:
+                    return None
+
+                base = (row["base_text"] or "").strip()
+                custom = (row["custom_text"] or "").strip()
+
+                if base.startswith("[TODO"):
+                    return None
+
+                cur.execute(
+                    """
+                    SELECT patch_text FROM ai_prompt_patches
+                    WHERE slot=%s AND is_active=true
+                    ORDER BY priority ASC, created_at ASC
+                    """,
+                    (slot,)
+                )
+                patches = [r["patch_text"] for r in cur.fetchall()]
+
+                parts = [base]
+                if custom:
+                    parts.append("\n=== บริบทเพิ่มเติม ===\n" + custom)
+                if patches:
+                    parts.append("\n=== ข้อกำหนด ===")
+                    for p in patches:
+                        parts.append("- " + p)
+
+                return "\n".join(parts)
+
+    except Exception as e:
+        print(f"[moduleai.db] get_brain_prompt({slot}) error: {e}")
+        return None

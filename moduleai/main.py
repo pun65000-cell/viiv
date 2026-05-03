@@ -9,11 +9,11 @@ from pydantic import BaseModel
 try:
     from moduleai.persona import PERSONAS, get_persona
     from moduleai.training import TrainingCollector
-    from moduleai.db import get_api_key, log_token_usage
+    from moduleai.db import get_api_key, log_token_usage, get_brain_prompt
 except ImportError:
     from persona import PERSONAS, get_persona
     from training import TrainingCollector
-    from db import get_api_key, log_token_usage
+    from db import get_api_key, log_token_usage, get_brain_prompt
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [ai] %(message)s")
 log = logging.getLogger("moduleai")
@@ -29,8 +29,10 @@ LOCKED_PROVIDER = "openai"
 class ChatIn(BaseModel):
     message: str
     persona: str | None = None
+    slot: str | None = "chat_bot"      # ← brain slot (Phase D-2)
     tenant_id: str | None = None
-    source: str | None = "chat"   # chat | autopost | pos_help
+    source: str | None = "chat"        # chat | autopost | pos_help
+    shop_id: str | None = None         # ← context injection (Phase D-2)
 
 
 @app.get("/health")
@@ -51,7 +53,17 @@ def chat(payload: ChatIn):
         raise HTTPException(400, "empty message")
 
     persona = get_persona(payload.persona)
-    system_prompt = persona["system_prompt"]
+
+    # Phase D-2: อ่าน prompt จาก Brain DB ก่อน
+    brain_prompt = get_brain_prompt(payload.slot or "chat_bot")
+    if brain_prompt:
+        if payload.shop_id:
+            brain_prompt += f"\n\n[Context] ร้าน: {payload.shop_id}"
+        system_prompt = brain_prompt
+        log.info("[brain] slot=%s prompt=%d chars", payload.slot, len(brain_prompt))
+    else:
+        system_prompt = persona["system_prompt"]
+        log.info("[brain] slot=%s → fallback persona=%s", payload.slot, persona["name"])
 
     api_key = get_api_key(LOCKED_PROVIDER)
     if not api_key:
@@ -85,15 +97,6 @@ def chat(payload: ChatIn):
         in_tok  = usage.get("prompt_tokens", 0)
         out_tok = usage.get("completion_tokens", 0)
 
-        log_token_usage(
-            tenant_id=payload.tenant_id,
-            provider=LOCKED_PROVIDER,
-            model=LOCKED_MODEL,
-            input_tokens=in_tok,
-            output_tokens=out_tok,
-            source=payload.source or "chat",
-        )
-
         log.info(
             "[%s] in=%d out=%d → %s",
             persona["name"], in_tok, out_tok, reply[:60]
@@ -104,11 +107,22 @@ def chat(payload: ChatIn):
         raise HTTPException(502, f"AI provider error: {e}")
 
     collector.collect(payload.message, reply, payload.tenant_id)
+    cost = log_token_usage(
+        tenant_id=payload.tenant_id,
+        provider=LOCKED_PROVIDER,
+        model=LOCKED_MODEL,
+        input_tokens=in_tok,
+        output_tokens=out_tok,
+        source=payload.source or "chat",
+    ) or 0
     return {
         "reply": reply,
         "persona": persona["name"],
         "model": LOCKED_MODEL,
         "provider": LOCKED_PROVIDER,
+        "tokens_in": in_tok,
+        "tokens_out": out_tok,
+        "cost_usd": cost,
     }
 
 
