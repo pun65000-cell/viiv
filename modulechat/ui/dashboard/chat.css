@@ -90,7 +90,9 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;font-size
 .msg-time.right{text-align:right}
 
 /* BOT BAR */
-.bot-bar{background:var(--surface2);border-top:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.bot-bar{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:10;}
+.bot-bar.ai-mode{background:linear-gradient(90deg,rgba(109,40,217,.08),rgba(109,40,217,.04));}
+.bot-bar.ai-mode .bot-status{color:#7C3AED;}
 .bot-status{font-size:11px;color:var(--muted);flex:1}
 .bot-toggle{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;color:var(--txt);transition:all .15s}
 .bot-toggle:hover{background:var(--gold-light);border-color:var(--gold-border)}
