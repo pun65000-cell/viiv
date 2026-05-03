@@ -93,7 +93,11 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;font-size
 .bot-bar{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:10;}
 .bot-bar.ai-mode{background:linear-gradient(90deg,rgba(109,40,217,.08),rgba(109,40,217,.04));}
 .bot-bar.ai-mode .bot-status{color:#7C3AED;}
-.bot-status{font-size:11px;color:var(--muted);flex:1}
+.bot-status{font-size:11px;color:var(--muted);flex:1;overflow:hidden;height:18px;position:relative;}
+.bot-status-inner{position:absolute;width:100%;transition:transform .4s ease,opacity .4s ease;}
+.bot-status-inner.slide-out{transform:translateY(-100%);opacity:0;}
+.bot-status-inner.slide-in{transform:translateY(100%);opacity:0;}
+.bot-status-inner.visible{transform:translateY(0);opacity:1;}
 .bot-toggle{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;color:var(--txt);transition:all .15s}
 .bot-toggle:hover{background:var(--gold-light);border-color:var(--gold-border)}
 
@@ -138,3 +142,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;font-size
   .panel-left.hidden{display:none}
   .panel-right{width:100%}
 }
+
+.bot-bar.ai-mode .bot-toggle{border-color:#7C3AED;color:#7C3AED;}
+.bot-bar.ai-mode .bot-toggle:hover{background:rgba(109,40,217,.08);}

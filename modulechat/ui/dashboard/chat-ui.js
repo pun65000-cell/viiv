@@ -109,6 +109,44 @@ const UI = (() => {
   let _search = '';
   let _platform = null;
   let _allConvs = [];
+  let _statusInterval = null;
+
+  function _setBotStatusText(text, isAi) {
+    const inner = document.getElementById('bot-status-inner');
+    const bar = document.getElementById('bot-bar');
+    const btn = document.getElementById('bot-toggle');
+    if (!inner) return;
+    inner.classList.remove('visible');
+    inner.classList.add('slide-out');
+    setTimeout(function() {
+      inner.textContent = text;
+      inner.classList.remove('slide-out');
+      inner.classList.add('slide-in');
+      inner.offsetHeight; // force reflow
+      inner.classList.remove('slide-in');
+      inner.classList.add('visible');
+      if (isAi) {
+        bar.classList.add('ai-mode');
+        btn.textContent = 'หยุด AI';
+      } else {
+        bar.classList.remove('ai-mode');
+        btn.textContent = 'หยุด Bot';
+      }
+    }, 400);
+  }
+
+  function startStatusCycle(botEnabled) {
+    if (_statusInterval) clearTimeout(_statusInterval);
+    if (!botEnabled) {
+      _setBotStatusText('✋ Bot หยุดชั่วคราว', false);
+      return;
+    }
+    function cycle(isAi) {
+      _setBotStatusText(isAi ? '✨ AI ทำงานอยู่' : '🤖 Bot ทำงานอยู่', isAi);
+      _statusInterval = setTimeout(function() { cycle(!isAi); }, isAi ? 8000 : 2000);
+    }
+    cycle(true);
+  }
 
   function renderPlatformLogos() { /* removed — now in Superboard topbar */ }
 
@@ -196,12 +234,9 @@ const UI = (() => {
     document.getElementById('head-platform').textContent = conv.platform === 'line' ? 'LINE OA' : (conv.platform || '-');
     document.getElementById('head-time').textContent     = conv.updated_at ? _relTime(conv.updated_at) : '';
     const botEnabled = conv.bot_enabled !== false;
-    const bar = document.getElementById('bot-bar');
     const botToggle = document.getElementById('bot-toggle');
-    const botStatusTxt = document.getElementById('bot-status-txt');
-    botToggle.textContent = botEnabled ? 'หยุด Bot' : 'เปิด Bot';
-    botStatusTxt.textContent = botEnabled ? '🤖 Bot ทำงานอยู่' : '✋ Bot หยุดชั่วคราว';
-    bar.classList.remove('ai-mode');
+    startStatusCycle(botEnabled);
+    if (!botEnabled) botToggle.textContent = 'เปิด Bot';
   }
 
   function renderMessages(msgs) {
@@ -285,16 +320,8 @@ const UI = (() => {
     const enable = btn.textContent.trim() === 'เปิด Bot';
     try {
       await API.toggleBotForConv(convId, enable);
-      const bar = document.getElementById('bot-bar');
-      if (enable) {
-        btn.textContent = 'หยุด Bot';
-        document.getElementById('bot-status-txt').textContent = '🤖 Bot ทำงานอยู่';
-        bar.classList.remove('ai-mode');
-      } else {
-        btn.textContent = 'เปิด Bot';
-        document.getElementById('bot-status-txt').textContent = '✋ Bot หยุดชั่วคราว';
-        bar.classList.remove('ai-mode');
-      }
+      startStatusCycle(enable);
+      if (!enable) document.getElementById('bot-toggle').textContent = 'เปิด Bot';
     } catch (e) { alert('toggle ไม่สำเร็จ: ' + (e.message || e)); }
   }
 

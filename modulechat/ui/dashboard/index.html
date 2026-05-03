@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <title>VIIV Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="chat.css?v=1105">
+  <link rel="stylesheet" href="chat.css?v=2232">
 </head>
 <body>
 <div class="layout">
@@ -49,7 +49,9 @@
       </div>
       <div class="chat-messages" id="chat-messages"></div>
       <div class="bot-bar" id="bot-bar">
-        <span class="bot-status" id="bot-status-txt">🤖 Bot ทำงานอยู่</span>
+        <span class="bot-status" id="bot-status-txt">
+          <span class="bot-status-inner visible" id="bot-status-inner">🤖 Bot ทำงานอยู่</span>
+        </span>
         <button class="bot-toggle" id="bot-toggle" onclick="UI.toggleBot()">หยุด Bot</button>
       </div>
       <div class="reply-box">
@@ -99,9 +101,9 @@
     </div>
   </div>
 </div>
-<script src="chat-api.js?v=1105"></script>
-<script src="chat-ui.js?v=1105"></script>
-<script src="chat-bot.js?v=1105"></script>
+<script src="chat-api.js?v=2232"></script>
+<script src="chat-ui.js?v=2232"></script>
+<script src="chat-bot.js?v=2232"></script>
 <script>
 (function(){
   var _initialized = false;
