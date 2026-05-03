@@ -14,23 +14,24 @@ JWT_SECRET = os.getenv(
 )
 
 VALID_SLOTS = (
-    "chat_bot",
-    "complex_post",
-    "pos_help",
-    "autopost",
-    "analytics",
-    "internal_ops",
-    "fallback",
+    "chat_bot","pos_help","autopost","analytics","fallback_customer",
+    "billing_renewal","billing_invoice","slip_verify","package_lifecycle","internal_ops",
+    "fallback_customer_backup","fallback_internal_backup",
 )
 
 SLOT_META = {
-    "chat_bot":     {"label": "Chat/Bot",      "icon": "💬", "desc": "ตอบลูกค้า"},
-    "complex_post": {"label": "Complex/Post",  "icon": "📝", "desc": "งานยาว ซับซ้อน"},
-    "pos_help":     {"label": "POS Help",      "icon": "💡", "desc": "ช่วยใช้ POS"},
-    "autopost":     {"label": "AutoPost",      "icon": "🎨", "desc": "สร้างโพสต์ขาย"},
-    "analytics":    {"label": "Analytics",     "icon": "📊", "desc": "วิเคราะห์ data"},
-    "internal_ops": {"label": "Internal Ops",  "icon": "🏢", "desc": "VIIV office/support"},
-    "fallback":     {"label": "Fallback",      "icon": "🛟", "desc": "เมื่อ primary fail"},
+    "chat_bot":                {"label":"Chat/Bot",          "icon":"💬","group":"customer","desc":"ผู้ช่วยตอบลูกค้า"},
+    "pos_help":                {"label":"POS Help",           "icon":"💡","group":"customer","desc":"ผู้ช่วยใช้งาน POS"},
+    "autopost":                {"label":"AutoPost",           "icon":"🎨","group":"customer","desc":"ผู้ช่วยสร้างเนื้อหา"},
+    "analytics":               {"label":"Analytics",          "icon":"📊","group":"customer","desc":"ผู้ช่วยวิเคราะห์ข้อมูล"},
+    "fallback_customer":       {"label":"Fallback ลูกค้า",    "icon":"🛟","group":"customer","desc":"สำรองฝั่งลูกค้า"},
+    "billing_renewal":         {"label":"Billing Renewal",    "icon":"🔄","group":"internal","desc":"ผู้ช่วยต่ออายุแพ็กเกจ"},
+    "billing_invoice":         {"label":"Billing Invoice",    "icon":"🧾","group":"internal","desc":"ผู้ช่วยออกบิล"},
+    "slip_verify":             {"label":"Slip Verify",        "icon":"✅","group":"internal","desc":"ตรวจสอบสลิปโอนเงิน"},
+    "package_lifecycle":       {"label":"Package Lifecycle",  "icon":"📦","group":"internal","desc":"จัดการวงจรแพ็กเกจ"},
+    "internal_ops":            {"label":"Internal Ops",       "icon":"🏢","group":"internal","desc":"งาน office ViiV"},
+    "fallback_customer_backup":{"label":"สำรอง Customer API", "icon":"🔀","group":"fallback","desc":"backup API ฝั่งลูกค้า"},
+    "fallback_internal_backup":{"label":"สำรอง Internal API", "icon":"🔀","group":"fallback","desc":"backup API หลังบ้าน"},
 }
 
 
@@ -135,19 +136,21 @@ def compose_final_prompt(slot: str, base_text: str, custom_text: str,
 # GET /roles — list available roles + meta
 # ============================================
 @router.get("/roles")
-def list_roles(authorization: str = Header(None)):
+def list_roles(group: str = None, authorization: str = Header(None)):
     _admin_auth(authorization)
-    return {
-        "roles": [
-            {
-                "slot": s,
-                "label": SLOT_META[s]["label"],
-                "icon": SLOT_META[s]["icon"],
-                "desc": SLOT_META[s]["desc"],
-            }
-            for s in VALID_SLOTS
-        ]
-    }
+    roles = []
+    for s in VALID_SLOTS:
+        m = SLOT_META[s]
+        if group and m.get("group") != group:
+            continue
+        roles.append({
+            "slot": s,
+            "label": m["label"],
+            "icon": m["icon"],
+            "group": m["group"],
+            "desc": m["desc"],
+        })
+    return {"roles": roles}
 
 
 # ============================================
