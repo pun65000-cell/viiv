@@ -3,3 +3,6 @@ uvicorn
 httpx
 litellm
 anthropic
+openai
+psycopg2-binary
+pydantic

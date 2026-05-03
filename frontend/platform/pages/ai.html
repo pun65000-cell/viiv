@@ -187,11 +187,18 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
         <div class="aim-card-title">Models ที่ใช้</div>
         <div class="aim-card-sub">$/1M tokens</div>
       </div>
+      <div style="background:#1a1a1c;border:1px solid #d4af37;
+                  padding:10px 14px;border-radius:6px;margin-bottom:14px;
+                  color:#d4af37;font-family:'Space Mono',monospace;
+                  font-size:13px;">
+        ⚠ TEST MODE — ทุก slot ใช้ gpt-5-nano
+        (Lock เพื่อทดสอบระบบแชท ปลดล็อกได้หลังทดสอบเสร็จ)
+      </div>
       <div id="aim-slots">
         <div class="aim-loading">loading...</div>
       </div>
       <div class="aim-models-actions">
-        <button type="button" class="aim-btn-gold" id="aim-save-models-btn" onclick="aimSaveModels()">บันทึก Model Config</button>
+        <button type="button" class="aim-btn-gold" id="aim-save-models-btn" onclick="aimSaveModels()" disabled style="opacity:.5;cursor:not-allowed">บันทึก Model Config</button>
       </div>
     </div>
   </div>
@@ -449,26 +456,17 @@ table.aim-tbl tr:hover td{background:rgba(232,197,106,.03)}
     }
   };
 
-  // ─── 3 — Models (6 dropdown slots) ─────────────────────
+  // ─── 3 — Models (6 dropdown slots) — TEST MODE: lock gpt-5-nano ─────
   function _renderSlots(){
+    var LOCKED = 'gpt-5-nano';
     var html = SLOTS.map(function(s){
-      var current = window.aimSlotConfig && window.aimSlotConfig[s.id]
-                    ? window.aimSlotConfig[s.id] : s.defaultModel;
-      var opts = MODEL_ORDER.map(function(mid){
-        var m = MODEL_CATALOG[mid] || {provider:'?', tag:''};
-        var sel = mid === current ? ' selected' : '';
-        return '<option value="' + _esc(mid) + '"' + sel + '>' +
-          _esc(mid) + ' (' + _esc(m.provider) + (m.tag ? ' · ' + _esc(m.tag) : '') + ')' +
-        '</option>';
-      }).join('');
-      var cm = MODEL_CATALOG[current] || {cost_in:0, cost_out:0};
-      return '<div class="aim-slot-row" data-slot="' + _esc(s.id) + '">' +
+      return '<div class="aim-slot-row" data-slot="' + _esc(s.id) + '" style="opacity:.6;">' +
         '<div class="aim-slot-label">' + _esc(s.label) + '</div>' +
-        '<select class="aim-slot-select" data-slot="' + _esc(s.id) + '" onchange="aimUpdateSlotPrice(this)">' +
-          opts +
+        '<select class="aim-slot-select" data-slot="' + _esc(s.id) + '" disabled>' +
+          '<option value="' + LOCKED + '" selected>' + LOCKED + ' (OpenAI · Test mode)</option>' +
         '</select>' +
         '<div class="aim-slot-cost" id="aim-cost-' + _esc(s.id) + '">' +
-          'in <b>' + _fmtPrice(cm.cost_in) + '</b> · out <b>' + _fmtPrice(cm.cost_out) + '</b>' +
+          'in <b>$0.05</b> · out <b>$0.40</b>' +
         '</div>' +
       '</div>';
     }).join('');

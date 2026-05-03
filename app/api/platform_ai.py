@@ -193,11 +193,13 @@ def set_credit(tenant_id: str, body: CreditBody, authorization: str = Header(Non
 @router.get("/models")
 def get_models(authorization: str = Header(None)):
     _admin_auth(authorization)
-    return {"models": [
-        {"id": "claude-haiku-4-5",  "provider": "anthropic", "use": "chat/bot",     "cost_in": 0.25,  "cost_out": 1.25},
-        {"id": "claude-sonnet-4-7", "provider": "anthropic", "use": "complex/post", "cost_in": 3.0,   "cost_out": 15.0},
-        {"id": "gpt-4o-mini",       "provider": "openai",    "use": "fallback",     "cost_in": 0.15,  "cost_out": 0.60},
-        {"id": "gemini-1.5-flash",  "provider": "google",    "use": "fallback",     "cost_in": 0.07,  "cost_out": 0.30},
-        {"id": "deepseek-chat",     "provider": "deepseek",  "use": "low-cost",     "cost_in": 0.14,  "cost_out": 0.28},
-        {"id": "deepseek-reasoner", "provider": "deepseek",  "use": "deep-reason",  "cost_in": 0.55,  "cost_out": 2.19},
-    ]}
+    return {
+        "models": [
+            {"id": "gpt-5-nano",     "provider": "openai",   "in": 0.05, "out": 0.40, "default": True,  "active": True},
+            {"id": "gpt-5.4-nano",   "provider": "openai",   "in": 0.20, "out": 1.25, "default": False, "active": False},
+            {"id": "gpt-4o-mini",    "provider": "openai",   "in": 0.15, "out": 0.60, "default": False, "active": False},
+            {"id": "deepseek-chat",  "provider": "deepseek", "in": 0.14, "out": 0.28, "default": False, "active": False},
+        ],
+        "locked": True,
+        "locked_reason": "test mode — single model",
+    }
