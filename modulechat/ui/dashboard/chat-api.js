@@ -24,19 +24,19 @@ const API = (() => {
     const params = new URLSearchParams();
     if (tenantId) params.set('tenant_id', tenantId);
     if (filter) params.set('filter', filter);
-    const r = await fetch(`${BASE}/api/chat/conversations?${params}`, { headers: authHeaders() });
+    const r = await fetch(`${BASE}/chat/conversations?${params}`, { headers: authHeaders() });
     if (!r.ok) throw new Error('load conversations failed: ' + r.status);
     return r.json();
   }
 
   async function getMessages(convId) {
-    const r = await fetch(`${BASE}/api/chat/conversations/${convId}/messages`, { headers: authHeaders() });
+    const r = await fetch(`${BASE}/chat/conversations/${convId}/messages`, { headers: authHeaders() });
     if (!r.ok) throw new Error('load messages failed: ' + r.status);
     return r.json();
   }
 
   async function sendReply(convId, text) {
-    const r = await fetch(`${BASE}/api/chat/conversations/${convId}/reply`, {
+    const r = await fetch(`${BASE}/chat/conversations/${convId}/reply`, {
       method: 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
@@ -46,13 +46,13 @@ const API = (() => {
   }
 
   async function getBotSettings(tenantId) {
-    const r = await fetch(`${BASE}/api/chat/bot/settings?tenant_id=${tenantId || ''}`, { headers: authHeaders() });
+    const r = await fetch(`${BASE}/chat/bot/settings?tenant_id=${tenantId || ''}`, { headers: authHeaders() });
     if (!r.ok) return { welcome_message: '', quick_replies: [], persona: 'friendly-female' };
     return r.json();
   }
 
   async function saveBotSettings(tenantId, data) {
-    const r = await fetch(`${BASE}/api/chat/bot/settings`, {
+    const r = await fetch(`${BASE}/chat/bot/settings`, {
       method: 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ tenant_id: tenantId, ...data })
@@ -61,13 +61,13 @@ const API = (() => {
   }
 
   async function getStats(tenantId) {
-    const r = await fetch(`${BASE}/api/chat/stats?tenant_id=${tenantId || ''}`, { headers: authHeaders() });
+    const r = await fetch(`${BASE}/chat/stats?tenant_id=${tenantId || ''}`, { headers: authHeaders() });
     if (!r.ok) return { today: 0, month: 0, bot_replies: 0, conversion: 0 };
     return r.json();
   }
 
   async function toggleBotForConv(convId, enabled) {
-    const r = await fetch(`${BASE}/api/chat/conversations/${convId}/bot`, {
+    const r = await fetch(`${BASE}/chat/conversations/${convId}/bot`, {
       method: 'PATCH',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ bot_enabled: enabled })
