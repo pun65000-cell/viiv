@@ -2,9 +2,9 @@ from app.api.pos_line_quote import render_quote_jpg, push_image_to_line
 # app/api/pos_line.py
 # LINE Integration v1.11
 
-import hmac, hashlib, base64, json, os, random, string, time
+import hmac, hashlib, base64, json, os, random, string, time, threading
 import jwt
-from fastapi import APIRouter, BackgroundTasks, Request, Header, HTTPException
+from fastapi import APIRouter, Request, Header, HTTPException
 from sqlalchemy import text
 from app.core.db import engine
 
@@ -237,7 +237,7 @@ def _ai_push_reply(
 
 
 @router.post("/webhook")
-async def line_webhook(request: Request, background_tasks: BackgroundTasks):
+async def line_webhook(request: Request):
     body = await request.body()
     sig_header = request.headers.get("X-Line-Signature", "")
     tenant_id = request.query_params.get("tenant", "")
@@ -357,15 +357,12 @@ async def line_webhook(request: Request, background_tasks: BackgroundTasks):
                                 continue
 
                             # AI push reply (background — ไม่บล็อก webhook response)
-                            background_tasks.add_task(
-                                _ai_push_reply,
-                                message_text,
-                                tenant_id,
-                                line_uid,
-                                channel_token,
-                                conv_id or "",
-                                reply_token,
+                            t = threading.Thread(
+                                target=_ai_push_reply,
+                                args=(message_text, tenant_id, line_uid, channel_token, conv_id or "", reply_token),
+                                daemon=True,
                             )
+                            t.start()
                 except Exception as e:
                     _log.warning("chat integration error tenant=%s: %s", tenant_id, e)
     return {"status": "ok"}
