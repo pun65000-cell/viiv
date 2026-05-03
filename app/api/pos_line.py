@@ -170,6 +170,7 @@ def _ai_push_reply(
     line_uid: str,
     channel_token: str,
     conv_id: str,
+    reply_token: str = "",
 ):
     """
     Background task:
@@ -225,7 +226,7 @@ def _ai_push_reply(
             """), {
                 "cid": conv_id,
                 "txt": ai_reply,
-                "raw": '{"sent_by":"ai_push"}',
+                "raw": json.dumps({"sent_by": "ai_push", "replyToken": reply_token}),
             })
 
         _log.info("[ai_push] tenant=%s uid=%s reply=%d chars",
@@ -363,6 +364,7 @@ async def line_webhook(request: Request, background_tasks: BackgroundTasks):
                                 line_uid,
                                 channel_token,
                                 conv_id or "",
+                                reply_token,
                             )
                 except Exception as e:
                     _log.warning("chat integration error tenant=%s: %s", tenant_id, e)

@@ -114,6 +114,7 @@ def get_brain_prompt(slot: str) -> str | None:
                     for p in patches:
                         parts.append("- " + p)
 
+                parts.append("\n[ระบบ] ตอบสั้นกระชับ ไม่เกิน 2 ประโยค ห้ามอธิบายยาว")
                 return "\n".join(parts)
 
     except Exception as e:

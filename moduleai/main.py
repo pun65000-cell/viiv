@@ -87,8 +87,8 @@ def chat(payload: ChatIn):
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": payload.message},
             ],
-            max_tokens=2000,
-            temperature=0.7,
+            max_tokens=300,
+            temperature=1,
         )
         reply = r["choices"][0]["message"]["content"]
 
