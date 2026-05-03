@@ -371,6 +371,12 @@ function navSub(el, parentId){
   // keep parent highlighted
   const parent = document.getElementById(parentId);
   if(parent){ parent.classList.add('active'); }
+  if(parent && !parent.classList.contains('expanded')){
+    parent.classList.add('expanded');
+    const subWrap = document.getElementById(parentId.replace('sb-','').replace('-parent','') + '-sub')
+      || el.closest('.sb-sub-wrap');
+    if(subWrap) subWrap.classList.add('open');
+  }
   // ensure sub-wrap open
   const wrap = el.closest('.sb-sub-wrap');
   if(wrap){ wrap.classList.add('open'); }
@@ -391,6 +397,15 @@ document.addEventListener('click', e => {
 // ─── Hash routing ────────────────────────────────────────────────────────────
 function routeHash(){
   const name = location.hash.replace('#','') || 'overview';
+  // ถ้า page เป็น sub-item ให้ expand parent ด้วย
+  const activeSubItem = document.querySelector('.sb-sub-item[data-page="'+name+'"]');
+  if(activeSubItem){
+    const parentId = activeSubItem.dataset.parent;
+    const parentEl = document.getElementById(parentId);
+    if(parentEl) parentEl.classList.add('expanded');
+    const wrap = activeSubItem.closest('.sb-sub-wrap');
+    if(wrap) wrap.classList.add('open');
+  }
   const sub = document.querySelector('.sb-sub-item[data-page="'+name+'"]');
   if(sub){ navSub(sub, sub.dataset.parent || 'sb-settings-parent'); return; }
   const el = document.querySelector('.sb-item[data-page="'+name+'"]');
