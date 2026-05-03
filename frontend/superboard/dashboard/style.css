@@ -206,45 +206,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .ai-hd{font-family:'Chakra Petch',sans-serif;font-size:var(--fs-xs);color:var(--gold-d);letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:4px;}
 .ai-hd::before{content:'●';color:var(--green);font-size:.8em;}
 .ai-units{font-family:'Chakra Petch',sans-serif;font-size:var(--fs-xs);color:var(--gold);font-weight:600;}
-#ai-row{display:none;}
-
-/* ══ SPRITES ══════════════════════════════════ */
-.sprite{position:fixed;display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:50;}
-.sprite-name{font-family:'Chakra Petch',sans-serif;font-size:clamp(5px,.75vmin,8px);color:var(--txt);background:rgba(255,253,248,.93);border:1px solid var(--bdr);border-radius:3px;padding:0 3px;white-space:nowrap;line-height:1.5;margin-bottom:1px;box-shadow:0 1px 3px rgba(0,0,0,.10);}
-.sprite-head{width:var(--char);height:var(--char);border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;}
-.sprite-head::before{content:'◉◉';font-size:clamp(3px,.42vmin,5px);letter-spacing:clamp(1px,.13vmin,2px);position:absolute;top:28%;}
-.sprite-body{width:calc(var(--char)*.75);height:calc(var(--char)*.55);border-radius:2px;margin-top:1px;}
-
-.sprite        {animation:bob 2s ease-in-out infinite;}
-.sprite.walking{animation:walk .5s ease-in-out infinite;}
-.sprite.idle   {animation:idle-sway 3s ease-in-out infinite;}
-.sprite.busy   {animation:busy-shake .35s ease-in-out infinite;}
-@keyframes bob       {0%,100%{transform:translateY(0)}50%{transform:translateY(calc(var(--char)*-.18))}}
-@keyframes walk      {0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(calc(var(--char)*-.14)) rotate(4deg)}}
-@keyframes idle-sway {0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
-@keyframes busy-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
-
-.sp-staff      .sprite-head{background:linear-gradient(135deg,#d4a84c,#f0d070);border:2px solid #c09030;}
-.sp-staff      .sprite-head::before{color:#231908;}
-.sp-staff      .sprite-body{background:#3060c0;border:1px solid #2050a0;}
-.sp-ai-support .sprite-head{background:linear-gradient(135deg,#384878,#5070b0);border:2px solid #7090d0;}
-.sp-ai-support .sprite-head::before{color:#80d0ff;}
-.sp-ai-support .sprite-body{background:#4060a0;border:1px solid #6080c0;}
-.sp-ai-pos     .sprite-head{background:linear-gradient(135deg,#285030,#3a8050);border:2px solid #50b070;}
-.sp-ai-pos     .sprite-head::before{color:#80ffb0;}
-.sp-ai-pos     .sprite-body{background:#306040;border:1px solid #40a060;}
-.sp-ai-chat    .sprite-head{background:linear-gradient(135deg,#503080,#7850b0);border:2px solid #9870d0;}
-.sp-ai-chat    .sprite-head::before{color:#d0b0ff;}
-.sp-ai-chat    .sprite-body{background:#6040a0;border:1px solid #8060c0;}
-.sp-ai-post    .sprite-head{background:linear-gradient(135deg,#704020,#b06030);border:2px solid #d08050;}
-.sp-ai-post    .sprite-head::before{color:#ffd0a0;}
-.sp-ai-post    .sprite-body{background:#904030;border:1px solid #c06040;}
-.sp-ai-aff     .sprite-head{background:linear-gradient(135deg,#606010,#909020);border:2px solid #c0c030;}
-.sp-ai-aff     .sprite-head::before{color:#ffffa0;}
-.sp-ai-aff     .sprite-body{background:#808010;border:1px solid #a0a020;}
-.sp-customer   .sprite-head{background:linear-gradient(135deg,#208050,#30c070);border:2px solid #50e090;}
-.sp-customer   .sprite-head::before{color:#e0fff0;}
-.sp-customer   .sprite-body{background:#286040;border:1px solid #40a060;}
+/* ══ AI TEAM ROW ═══════════════════════════════ */
+.ai-unit-card{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;position:relative;min-width:40px;}
+.ai-unit-icon{font-size:16px;line-height:1;}
+.ai-unit-name{font-family:'Chakra Petch',sans-serif;font-size:8px;color:var(--muted);letter-spacing:.3px;}
+.ai-unit-dot{width:6px;height:6px;border-radius:50%;background:#6b7280;position:absolute;top:3px;right:3px;}
+.ai-unit-dot.active{background:#22c55e;box-shadow:0 0 4px #22c55e;}
+.ai-unit-dot.busy{background:#f59e0b;box-shadow:0 0 4px #f59e0b;}
 
 /* ── POPUP ── */
 #popup{display:none;position:fixed;top:calc(var(--hh)+8px);right:calc(var(--mg)+4px);background:var(--card);border:1.5px solid var(--bdr);border-radius:var(--r);padding:clamp(10px,1.3vw,16px);width:clamp(185px,24vw,245px);box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:500;}
