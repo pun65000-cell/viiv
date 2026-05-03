@@ -340,6 +340,21 @@ async def line_webhook(request: Request, background_tasks: BackgroundTasks):
                         # 4. bot reply (message only)
                         if event_type == "message" and message_text:
                             reply_token = event.get("replyToken", "")
+                            if not reply_token:
+                                continue
+
+                            # Idempotency: ตรวจ replyToken ซ้ำ
+                            already_replied = c.execute(text("""
+                                SELECT 1 FROM chat_messages
+                                WHERE conversation_id = :cid
+                                  AND direction = 'outbound'
+                                  AND raw_event->>'replyToken' = :rt
+                                LIMIT 1
+                            """), {"cid": conv_id, "rt": reply_token}).fetchone()
+                            if already_replied:
+                                _log.info("skip duplicate replyToken %s", reply_token[:12])
+                                continue
+
                             # Phase E v2: Bot reply ก่อนทันที → AI push background
                             bot_reply_text = _tenant_bot_reply(message_text, tenant_id, c)
 
@@ -371,7 +386,7 @@ async def line_webhook(request: Request, background_tasks: BackgroundTasks):
                                             (conversation_id, direction, content, raw_event)
                                         VALUES (:cid, 'outbound', :txt, CAST(:raw AS jsonb))
                                     """), {"cid": conv_id, "txt": bot_reply_text,
-                                           "raw": json.dumps({"sent_by": "bot"})})
+                                           "raw": json.dumps({"sent_by": "bot", "replyToken": reply_token})})
                                 except Exception as e:
                                     _log.warning("tenant bot reply failed: %s", e)
                 except Exception as e:
