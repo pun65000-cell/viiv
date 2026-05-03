@@ -60,7 +60,7 @@ const App = (() => {
 
     // ===== Bot pill =====
     try {
-      const r = await fetch('/api/chat/bot/status', {
+      const r = await fetch('/chat/bot/status', {
         cache: 'no-store',
         signal: AbortSignal.timeout(2500),
       });
