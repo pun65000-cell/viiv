@@ -7,8 +7,11 @@
 </head>
 <body>
 <style>
-  body, table, td, th { font-size: 15px !important; }
-  .pg-subtitle { font-size: 13px !important; }
+  /* scoped: ทุก rule ที่กระทบ font/layout ทั่วไป ครอบด้วย .security-tokens-page เพื่อกัน leak ไปหน้าอื่น */
+  .security-tokens-page table,
+  .security-tokens-page td,
+  .security-tokens-page th { font-size: 17px !important; }
+  .security-tokens-page .pg-subtitle { font-size: 13px !important; }
   .pg-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
   .pg-title  { font-size:15px; font-weight:700; color:var(--text); }
   .pg-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
@@ -18,27 +21,27 @@
   .btn-sm:disabled { opacity:.4; cursor:not-allowed; }
   .btn-reload { background:var(--card-border); color:var(--text); }
 
-  .tk-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .tk-table { width:100%; border-collapse:collapse; font-size:15px; }
   .tk-table th {
-    text-align:left; font-size:11px; font-weight:700; color:var(--muted);
+    text-align:left; font-size:13px; font-weight:700; color:var(--muted);
     text-transform:uppercase; letter-spacing:.5px;
-    padding:8px 12px; border-bottom:2px solid var(--card-border);
+    padding:6px 12px; border-bottom:2px solid var(--card-border);
     background:var(--sidebar-bg);
     position:sticky; top:0; z-index:2;
   }
-  .tk-table td { padding:10px 12px; border-bottom:1px solid var(--card-border); vertical-align:top; }
+  .tk-table td { padding:6px 12px; border-bottom:1px solid var(--card-border); vertical-align:top; }
   .tk-table tr:last-child td { border-bottom:none; }
   .tk-table tr:hover td { background:rgba(232,185,62,.04); }
 
-  .tk-row-inactive { opacity:.38; }
+  .tk-row-inactive { opacity:.85; }
   .tk-row-flagged  td:first-child { border-left:3px solid var(--danger); }
 
   .cell-email { font-weight:600; color:var(--text); }
-  .cell-tenant { font-size:11px; color:var(--muted); margin-top:2px; font-family:monospace; }
-  .cell-ip    { font-family:monospace; font-size:12px; }
-  .cell-ua    { font-size:11px; color:var(--muted); max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .cell-action { font-size:11px; }
-  .cell-time  { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .cell-tenant { font-size:13px; color:var(--muted); margin-top:2px; font-family:monospace; }
+  .cell-ip    { font-family:monospace; font-size:14px; }
+  .cell-ua    { font-size:13px; color:var(--muted); max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cell-action { font-size:13px; }
+  .cell-time  { font-size:13px; color:var(--muted); white-space:nowrap; }
   .time-online  { color:var(--success-text); font-weight:700; }
   .time-recent  { color:var(--accent); }
 
@@ -61,6 +64,8 @@
   .stat-pill strong { font-weight:700; color:var(--text); }
   .stat-pill span   { color:var(--muted); }
 </style>
+
+<div class="security-tokens-page">
 
 <div class="pg-header">
   <div>
@@ -92,6 +97,8 @@
       </tbody>
     </table>
   </div>
+</div>
+
 </div>
 
 <script>
