@@ -453,6 +453,22 @@ window.sbNav = function(page){
       c.querySelectorAll('script').forEach(function(old){
         var s = document.createElement('script'); s.textContent = old.textContent; old.replaceWith(s);
       });
+      // re-bind dashFrame หลัง home inject
+      var fr2 = document.getElementById('dashFrame');
+      if (fr2) {
+        fr2.addEventListener('load', function(){
+          setTimeout(function(){
+            var tok = localStorage.getItem('viiv_token');
+            var sid = null;
+            try {
+              var p2 = JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+              sid = p2.sub || p2.user_id;
+            } catch(ex){}
+            fr2.contentWindow.postMessage({type:'request_staff'}, '*');
+            fr2.contentWindow.postMessage({type:'init_staff', token:tok, staff_id:sid}, '*');
+          }, 500);
+        });
+      }
     })
     .catch(function(){
       c.innerHTML='<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-loader-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ef4444" stroke-width="1.8"/><path d="M12 8v4M12 16h.01" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round"/></svg></div><div class="spa-loader-title" style="color:#ef4444">โหลดหน้าไม่ได้</div><div class="spa-loader-sub">ไม่พบหน้าที่ต้องการ</div></div></div>';
