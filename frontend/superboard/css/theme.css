@@ -223,7 +223,7 @@ body {
 }
 .sb-nav-item:hover .sb-nav-icon { opacity: 0.9; }
 .sb-nav-item.active .sb-nav-icon { opacity: 1; }
-.sb-nav-label { font-size: 17px; }
+.sb-nav-label { font-size: 15px; }
 .sb-sidebar-divider { height: 1px; background: #222; margin: 6px 12px; }
 .sb-sidebar-footer {
   margin-top: auto; padding: 10px 14px;
@@ -270,7 +270,7 @@ body {
 /* Superboard Patch */
 .sb-sidebar { width: 50px !important; }
 .sb-sidebar:hover { width: 220px !important; }
-.sb-nav-icon { font-size: 1.475rem !important; min-width: 1.35rem !important; line-height: 1 !important; }
+.sb-nav-icon { font-size: 1.275rem !important; min-width: 1.15rem !important; line-height: 1 !important; }
 .sb-nav-item.upgrade-item .sb-nav-icon,
 .sb-nav-item.upgrade-item .sb-nav-label { color: var(--accent, #C9A84C) !important; }
 .sb-nav-item.upgrade-item { font-weight: 600; }

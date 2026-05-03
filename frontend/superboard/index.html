@@ -706,6 +706,20 @@ function sbLoadPlatformStatus() {
   });
 }
 
+function sbLoadLogo() {
+  var savedIcon = localStorage.getItem('viiv_app_icon');
+  var img = document.getElementById('sbLogoImg');
+  var txt = document.getElementById('sbLogoText');
+  if (savedIcon && img) {
+    img.src = savedIcon;
+    img.style.display = 'block';
+    if (txt) txt.style.display = 'none';
+  } else {
+    if (img) img.style.display = 'none';
+    if (txt) txt.style.display = '';
+  }
+}
+
 // Dropdown: รายการร้านทั้งหมดที่ user มีสิทธิ์ — fetch ทุกครั้งที่เปิด
 async function loadShopList(){
   var token = getToken();
@@ -787,6 +801,7 @@ window.addEventListener('hashchange', function(){
 document.addEventListener('DOMContentLoaded', function(){
   if(!getToken()){ window.location.href='/superboard/login.html'; return; }
   loadShopBadge();   // topbar เท่านั้น — list โหลดเมื่อเปิด dropdown
+  sbLoadLogo();
   sbLoadPlatformStatus();
   setInterval(sbLoadPlatformStatus, 30000);
   var _initialHash = location.hash.replace('#','') || 'home';
