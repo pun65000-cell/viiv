@@ -145,3 +145,99 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;font-size
 
 .bot-bar.ai-mode .bot-toggle{border-color:#7C3AED;color:#7C3AED;}
 .bot-bar.ai-mode .bot-toggle:hover{background:rgba(109,40,217,.08);}
+
+/* === AI/Bot pills (Chat Dashboard panel-head only) === */
+.ch-title-row {
+  display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
+}
+.ch-title { white-space: nowrap; }
+.ch-ai-pills { display: inline-flex; gap: 6px; }
+.ai-pill {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.05);
+  border: 2px solid transparent;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+.ai-pill[data-state="online"] {
+  border-color: #10b981;
+  background: rgba(16,185,129,0.1);
+  box-shadow: 0 0 8px rgba(16,185,129,0.5);
+  animation: ai-pulse 2s ease-in-out infinite;
+}
+.ai-pill[data-state="stub"],
+.ai-pill[data-state="loading"] {
+  border-color: #f59e0b;
+  background: rgba(245,158,11,0.1);
+}
+.ai-pill[data-state="offline"],
+.ai-pill[data-state="error"] {
+  border-color: #ef4444;
+  opacity: 0.6;
+}
+@keyframes ai-pulse {
+  0%,100% { box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+  50%     { box-shadow: 0 0 14px rgba(16,185,129,0.85); }
+}
+
+/* === Platform pills (search bar, right side) === */
+.ch-search-row {
+  display: flex; align-items: center; gap: 10px;
+  margin: 8px 10px 0; padding: 0;
+}
+.ch-search-row .search-box {
+  margin: 0; flex: 1; width: auto;
+}
+.ch-platforms {
+  display: inline-flex; gap: 8px; align-items: center; flex-shrink: 0;
+}
+.platform-pill {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(128,128,128,0.08);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+.platform-pill svg {
+  width: 18px; height: 18px;
+  transition: filter 0.3s, opacity 0.3s, color 0.3s;
+}
+.platform-pill[data-state="offline"] svg {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+.platform-pill[data-platform="line"][data-state="online"] {
+  border-color: #06C755;
+  background: rgba(6,199,85,0.12);
+  box-shadow: 0 0 8px rgba(6,199,85,0.5);
+}
+.platform-pill[data-platform="line"][data-state="online"] svg {
+  color: #06C755; filter: none; opacity: 1;
+}
+.platform-pill[data-platform="facebook"][data-state="online"] {
+  border-color: #1877F2;
+  background: rgba(24,119,242,0.12);
+  box-shadow: 0 0 8px rgba(24,119,242,0.5);
+}
+.platform-pill[data-platform="facebook"][data-state="online"] svg {
+  color: #1877F2; filter: none; opacity: 1;
+}
+.platform-pill[data-platform="shopee"][data-state="online"] {
+  border-color: #ee4d2d;
+  background: rgba(238,77,45,0.12);
+  box-shadow: 0 0 8px rgba(238,77,45,0.5);
+}
+.platform-pill[data-platform="shopee"][data-state="online"] svg {
+  color: #ee4d2d; filter: none; opacity: 1;
+}
+.platform-pill[data-platform="lazada"][data-state="online"] {
+  border-color: #0f136d;
+  background: rgba(15,19,109,0.12);
+  box-shadow: 0 0 8px rgba(15,19,109,0.45);
+}
+.platform-pill[data-platform="lazada"][data-state="online"] svg {
+  filter: none; opacity: 1;
+}

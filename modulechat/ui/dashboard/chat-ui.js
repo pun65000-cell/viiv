@@ -12,6 +12,58 @@ const App = (() => {
     UI.renderPlatformLogos();
     await loadConversations();
     startPolling();
+    fetchStatus();
+    setInterval(fetchStatus, 30000);
+  }
+
+  // ── panel-head status indicators (AI / Bot / Platforms) ──────────────
+  function _setPill(id, state, title) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.dataset.state = state;
+    if (title) el.title = title;
+  }
+  function _setPlat(platform, online) {
+    const el = document.querySelector('.platform-pill[data-platform="' + platform + '"]');
+    if (!el) return;
+    el.dataset.state = online ? 'online' : 'offline';
+  }
+  function _authH() {
+    const t = localStorage.getItem('viiv_token');
+    return t ? { 'Authorization': 'Bearer ' + t } : {};
+  }
+  async function _fetchAI() {
+    try {
+      const r = await fetch('/ai/health-proxy', { headers: _authH() });
+      if (!r.ok) throw 0;
+      const d = await r.json();
+      const state = d.key_loaded ? 'online' : 'stub';
+      _setPill('ai-pill', state, 'AI: ' + (d.model || '?'));
+    } catch (_) { _setPill('ai-pill', 'error', 'AI: offline'); }
+  }
+  async function _fetchBot() {
+    try {
+      const r = await fetch('/chat/bot/status', { headers: _authH() });
+      if (!r.ok) throw 0;
+      const d = await r.json();
+      const state = d.enabled !== false ? 'online' : 'offline';
+      _setPill('bot-pill', state, 'Bot: ' + (state === 'online' ? 'ทำงาน' : 'ปิด'));
+    } catch (_) { _setPill('bot-pill', 'error', 'Bot: offline'); }
+  }
+  async function _fetchPlatforms() {
+    try {
+      const r = await fetch('/api/platform/connections/status', { headers: _authH() });
+      if (!r.ok) throw 0;
+      const d = await r.json();
+      ['line','facebook','shopee','lazada'].forEach(p => {
+        _setPlat(p, !!(d[p] && d[p].connected));
+      });
+    } catch (_) { /* leave offline state */ }
+  }
+  async function fetchStatus() {
+    _fetchAI();
+    _fetchBot();
+    _fetchPlatforms();
   }
 
   function setTab(tab, _btn) {
