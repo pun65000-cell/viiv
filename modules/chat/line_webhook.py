@@ -52,13 +52,14 @@ async def get_or_create_conversation(db, platform_uid: str, display_name: str, p
     await db.commit()
     return result.fetchone()[0]
 
-async def save_message(db, conv_id: str, direction: str, content: str, raw_event: dict):
+async def save_message(db, conv_id: str, direction: str, content: str, raw_event: dict, msg_type: str = "text"):
     await db.execute(
         text("""
-            INSERT INTO chat_messages (conversation_id, direction, content, raw_event)
-            VALUES (:conv_id, :dir, :content, :raw)
+            INSERT INTO chat_messages (conversation_id, direction, message_type, content, raw_event)
+            VALUES (:conv_id, :dir, :mtype, :content, :raw)
         """),
-        {"conv_id": conv_id, "dir": direction, "content": content, "raw": json.dumps(raw_event)}
+        {"conv_id": conv_id, "dir": direction, "mtype": msg_type,
+         "content": content, "raw": json.dumps(raw_event)}
     )
     await db.commit()
 
@@ -238,7 +239,8 @@ async def line_platform_webhook(request: Request):
                     pass
 
                 conv_id = await get_or_create_conversation(db, platform_uid, display_name, picture_url)
-                await save_message(db, conv_id, "inbound", "[follow]", event)
+                await save_message(db, conv_id, "inbound", "[follow]",
+                                   {"event": event, "message_id": ""}, "follow")
 
                 # Welcome message (apply persona + custom welcome from settings)
                 bot_settings = await get_bot_settings(db)
@@ -258,9 +260,37 @@ async def line_platform_webhook(request: Request):
 
             elif event_type == "message":
                 msg = event.get("message", {})
-                if msg.get("type") != "text":
-                    continue
-                user_text = msg.get("text", "")
+                msg_type = msg.get("type", "text")
+                msg_id   = msg.get("id", "")
+
+                if msg_type == "text":
+                    user_text = msg.get("text", "")
+                    content = user_text
+                elif msg_type == "image":
+                    content = "[รูปภาพ]"
+                    user_text = ""
+                elif msg_type == "sticker":
+                    pkg = msg.get("packageId", "")
+                    sid = msg.get("stickerId", "")
+                    content = f"[สติ๊กเกอร์ {pkg}/{sid}]"
+                    user_text = ""
+                elif msg_type == "video":
+                    content = "[วิดีโอ]"
+                    user_text = ""
+                elif msg_type == "audio":
+                    content = "[เสียง]"
+                    user_text = ""
+                elif msg_type == "file":
+                    fname = msg.get("fileName", "ไฟล์")
+                    content = f"[ไฟล์: {fname}]"
+                    user_text = ""
+                elif msg_type == "location":
+                    title = msg.get("title", "")
+                    content = f"[ตำแหน่ง: {title}]" if title else "[ตำแหน่ง]"
+                    user_text = ""
+                else:
+                    content = f"[{msg_type}]"
+                    user_text = ""
 
                 # Best-effort profile fetch
                 display_name, picture_url = "", ""
@@ -277,7 +307,26 @@ async def line_platform_webhook(request: Request):
                     pass
 
                 conv_id = await get_or_create_conversation(db, platform_uid, display_name, picture_url)
-                await save_message(db, conv_id, "inbound", user_text, event)
+                await save_message(
+                    db, conv_id, "inbound", content,
+                    {"event": event, "message_id": msg_id}, msg_type,
+                )
+
+                # Bump unread + updated_at on the conversation (every inbound)
+                await db.execute(
+                    text("""
+                        UPDATE chat_conversations
+                        SET unread_count = COALESCE(unread_count, 0) + 1,
+                            updated_at   = now()
+                        WHERE id = :cid
+                    """),
+                    {"cid": conv_id},
+                )
+                await db.commit()
+
+                # Bot reply gate: text only — non-text save metadata only, no reply
+                if msg_type != "text":
+                    continue
 
                 # Bot rule-based reply (no AI)
                 bot_settings = await get_bot_settings(db)
@@ -296,17 +345,5 @@ async def line_platform_webhook(request: Request):
                     db, conv_id, "outbound", reply_text,
                     {"sent_by": "bot", "fallback": is_fallback},
                 )
-
-                # Bump unread + updated_at on the conversation
-                await db.execute(
-                    text("""
-                        UPDATE chat_conversations
-                        SET unread_count = COALESCE(unread_count, 0) + 1,
-                            updated_at   = now()
-                        WHERE id = :cid
-                    """),
-                    {"cid": conv_id},
-                )
-                await db.commit()
 
         return {"status": "ok"}

@@ -264,10 +264,34 @@ async def line_webhook(request: Request):
             line_uid     = source.get("userId", "")
             group_id     = source.get("groupId", "")
             message_text = ""
+            msg_type     = ""
+            msg_id       = ""
+            content_for_chat = ""
             if event_type == "message":
                 msg = event.get("message", {})
-                if msg.get("type") == "text":
+                msg_type = msg.get("type", "text")
+                msg_id   = msg.get("id", "")
+                if msg_type == "text":
                     message_text = msg.get("text", "")
+                    content_for_chat = message_text
+                elif msg_type == "image":
+                    content_for_chat = "[รูปภาพ]"
+                elif msg_type == "sticker":
+                    pkg = msg.get("packageId", "")
+                    sid = msg.get("stickerId", "")
+                    content_for_chat = f"[สติ๊กเกอร์ {pkg}/{sid}]"
+                elif msg_type == "video":
+                    content_for_chat = "[วิดีโอ]"
+                elif msg_type == "audio":
+                    content_for_chat = "[เสียง]"
+                elif msg_type == "file":
+                    fname = msg.get("fileName", "ไฟล์")
+                    content_for_chat = f"[ไฟล์: {fname}]"
+                elif msg_type == "location":
+                    title = msg.get("title", "")
+                    content_for_chat = f"[ตำแหน่ง: {title}]" if title else "[ตำแหน่ง]"
+                else:
+                    content_for_chat = f"[{msg_type}]"
             c.execute(text("""
                 INSERT INTO line_webhook_log
                     (id, tenant_id, event_type, line_user_id, display_name,
@@ -323,13 +347,15 @@ async def line_webhook(request: Request):
                     if conv_id:
                         # 3. save inbound message
                         direction = "inbound"
-                        content   = message_text if event_type == "message" else "[follow]"
+                        content   = content_for_chat if event_type == "message" else "[follow]"
+                        mtype     = msg_type if event_type == "message" else "follow"
                         c.execute(text("""
                             INSERT INTO chat_messages
-                                (conversation_id, direction, content, raw_event)
-                            VALUES (:cid, :dir, :content, CAST(:raw AS jsonb))
-                        """), {"cid": conv_id, "dir": direction,
-                               "content": content, "raw": json.dumps(event)})
+                                (conversation_id, direction, message_type, content, raw_event)
+                            VALUES (:cid, :dir, :mtype, :content, CAST(:raw AS jsonb))
+                        """), {"cid": conv_id, "dir": direction, "mtype": mtype,
+                               "content": content,
+                               "raw": json.dumps({"event": event, "message_id": msg_id})})
 
                         # update unread + updated_at
                         c.execute(text("""
@@ -338,8 +364,8 @@ async def line_webhook(request: Request):
                             WHERE id = :cid
                         """), {"cid": conv_id})
 
-                        # 4. bot reply (message only)
-                        if event_type == "message" and message_text:
+                        # 4. bot reply (text messages only — non-text save metadata only)
+                        if event_type == "message" and msg_type == "text" and message_text:
                             reply_token = event.get("replyToken", "")
                             if not reply_token:
                                 continue
