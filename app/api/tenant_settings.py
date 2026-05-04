@@ -8,6 +8,9 @@ from app.core.db import engine
 router = APIRouter(prefix="/api/tenant", tags=["tenant-settings"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
 
+# roles ที่แก้ settings ได้ (สอดคล้อง pos_bills.py admin gate)
+ADMIN_ROLES = {"owner", "md", "shop_admin", "admin"}
+
 
 PERSONAS = [
     {"id": "friendly-female",     "label": "ผู้หญิง · เป็นมิตร"},
@@ -188,7 +191,7 @@ def get_settings(authorization: str = Header("")):
             "l3": m.get("biz_type_l3") or "",
             "custom": m.get("biz_custom") or None,
         },
-        "permissions": {"can_edit": role == "owner"},
+        "permissions": {"can_edit": role in ADMIN_ROLES},
     }
 
 
@@ -205,9 +208,9 @@ class SettingsIn(BaseModel):
 @router.put("/settings")
 def put_settings(payload: SettingsIn, authorization: str = Header("")):
     tid, role, _ = _get_ctx(authorization)
-    if role != "owner":
-        raise HTTPException(403, {"error": "only_owner",
-                                  "message": "เฉพาะเจ้าของร้านแก้ไขได้"})
+    if role not in ADMIN_ROLES:
+        raise HTTPException(403, {"error": "forbidden",
+                                  "message": "เฉพาะผู้ดูแลร้านแก้ไขได้"})
 
     if payload.ai_persona is not None and payload.ai_persona not in PERSONA_IDS:
         raise HTTPException(400, f"invalid persona: {payload.ai_persona}")

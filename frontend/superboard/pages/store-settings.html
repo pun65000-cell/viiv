@@ -36,9 +36,15 @@
             <label class="ss-label">ชื่อร้าน <span class="ss-req">*</span></label>
             <input class="ss-input" type="text" id="ssStoreName" oninput="ssMarkDirty()"/>
           </div>
-          <div class="ss-field" style="margin-top:12px;">
-            <label class="ss-label">Subdomain</label>
-            <input class="ss-input" type="text" id="ssSubdomain" readonly style="background:#f3f4f6;cursor:not-allowed;color:#666;"/>
+          <div class="ss-grid2" style="margin-top:12px;">
+            <div class="ss-field">
+              <label class="ss-label">Subdomain</label>
+              <input class="ss-input" type="text" id="ssSubdomain" readonly style="background:#f3f4f6;cursor:not-allowed;color:#666;"/>
+            </div>
+            <div class="ss-field">
+              <label class="ss-label">id-Shop</label>
+              <input class="ss-input" type="text" id="ssTenantId" readonly style="background:#f3f4f6;cursor:not-allowed;color:#666;"/>
+            </div>
           </div>
         </div>
       </div>
@@ -141,8 +147,9 @@
 .ss-input:focus{border-color:#C9A84C;}
 .ss-input:disabled{background:#f3f4f6;cursor:not-allowed;color:#666;}
 .ss-field{display:flex;flex-direction:column;}
+.ss-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .ss-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-@media (max-width:640px){.ss-grid3{grid-template-columns:1fr;}}
+@media (max-width:640px){.ss-grid2,.ss-grid3{grid-template-columns:1fr;}}
 .ss-info-grid{display:flex;flex-direction:column;gap:10px;}
 .ss-info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border,#e5e7eb);}
 .ss-info-row:last-child{border-bottom:none;}
@@ -288,6 +295,7 @@ window.ssOnBizL3 = function(){
 function populateFields(){
   document.getElementById('ssStoreName').value = _state.store_name || '';
   document.getElementById('ssSubdomain').value = _state.subdomain || '';
+  document.getElementById('ssTenantId').value = _state.tenant_id || '';
   document.getElementById('ssBio').value = _state.bio || '';
   document.getElementById('ssLogoImg').src = _state.logo_url || LOGO_PLACEHOLDER;
   document.getElementById('ssLogoImg').onerror = function(){ this.onerror=null; this.src=LOGO_PLACEHOLDER; };
