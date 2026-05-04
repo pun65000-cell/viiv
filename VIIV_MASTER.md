@@ -2429,7 +2429,7 @@ Version: v1.61 | Updated: 2026-05-01 (EOD)
 
 ---
 
-## [J] EOD 2026-05-04 — LINE webhook media handling (Phases 1-3)
+## [J] EOD 2026-05-04 — LINE webhook media handling (Phases 1+3 complete)
 
 SUMMARY
 - Phase 1: webhook (per-tenant + platform OA) เก็บ message_type + raw_event.message_id
@@ -2438,7 +2438,9 @@ SUMMARY
 - Phase 3: background download media (image/video/audio/file) จาก
   api-data.line.me/v2/bot/message/{id}/content → save under
   /uploads/line/{tenant}/{conv}/{message_id}.{ext} → patch chat_messages.raw_event
-  ด้วย media_url; chat-ui.js render <img>/<video>/<audio>/<a> ใน bubble
+  ด้วย media_url + media_size; chat-ui.js render <img>/<video>/<audio>/<a> ใน bubble
+- Bug fix (5db7fff): SQL `:url::text` ขัดกับ SQLAlchemy text() parameter parser
+  → เปลี่ยนเป็น `CAST(:url AS text)` (Rule 192). Back-fill 3 row (id 106-108) manual
 
 NEW FILES
 - app/api/line_content.py        — sync (requests + threading) สำหรับ pos_line.py
@@ -2457,18 +2459,72 @@ MODIFIED
                                    count-only (เพื่อให้ media ที่โหลดเสร็จหลัง
                                    webhook insert ขึ้นรูปทันทีไม่ต้องรอ msg ใหม่)
 
-RULES ADDED
-Rule 190 — chat_messages.message_type field is authoritative; values:
-           'text','image','sticker','video','audio','file','location','follow' (+
-           อื่นๆ ตาม msg.type ที่ LINE ส่งมา)
-Rule 191 — /uploads/* Cache-Control: public, max-age=86400 (Caddy default ใน
-           ทุก vhost block) → tech debt: ถ้าต้องเปลี่ยน/แก้ไฟล์ media เดิม
-           จะค้าง browser cache ได้ถึง 24 ชม. แก้โดย (a) ลด max-age, หรือ
-           (b) เพิ่ม cache-buster query (?v=updated_at), หรือ (c) immutable
-           file naming (ปัจจุบันใช้ {message_id}.{ext} ที่ unique อยู่แล้ว
-           — ถ้าโหลดใหม่จะไม่ทับกันกับของเดิม → เคสนี้ปลอดภัยตราบใดที่
-           ไม่ retry ทับ message_id เดิม)
-Rule 192 — _ai_push_reply / bot rule fallback fires only when msg_type=='text'
-           — non-text save metadata + media download อย่างเดียว ไม่ trigger AI
+RULES ADDED (177-193)
+Rule 177 — LINE webhook handle msg.type ครบ 7 ชนิด:
+           text/image/sticker/video/audio/file/location
+Rule 178 — Bot/AI reply trigger เฉพาะ msg_type='text' — type อื่นไม่ตอบ ประหยัด token
+Rule 179 — raw_event เก็บ message_id สำหรับ LINE Content API
+Rule 180 — chat-ui.js renderMessageContent() = source of truth render bubble
+Rule 181 — LINE limitation: webhook ไม่ส่ง outbound — admin reply จาก OA Manager
+           invisible (ไป Help/FAQ)
+Rule 182 — deploy.sh ครอบเฉพาะ ACTIVE port (8000/9000) — modules/chat:8003 restart แยก
+Rule 183 — หลังแก้ modules/chat/* → restart :8003 ด้วย:
+             pkill -f "modules.chat.main:app"
+             setsid nohup python -m uvicorn modules.chat.main:app --host 0.0.0.0 --port 8003 \
+               > logs/chat.log 2>&1 < /dev/null & disown
+Rule 184 — uploads path: /home/viivadmin/viiv/uploads/line/{tenant_id}/{conv_id}/{message_id}{ext}
+Rule 185 — LINE content download = thread spawn (pattern เดียวกับ _ai_push_reply)
+Rule 186 — Sticker ใช้ LINE CDN ตรง — ไม่ต้อง download
+           URL: https://stickershop.line-scdn.net/stickershop/v1/sticker/{stickerId}/android/sticker.png
+Rule 187 — Location ไม่ download — เก็บ lat/lng/maps_url ใน raw_event
+Rule 188 — raw_event jsonb_set: media_url, media_size, latitude, longitude, maps_url
+Rule 189 — Chat API GET messages ต้อง return media_url ใน response
+Rule 190 — msg-media max-width 220px — ป้องกัน bubble กว้างเกิน
+Rule 191 — /uploads/line/ Cache-Control max-age=86400 = tech debt
+           ถ้า download fail แล้ว retry รอบ 2 จะค้าง 24 ชม. ที่ browser
+           แก้ทีหลังเป็น immutable + versioned URL
+Rule 192 — SQL :: cast operator ขัดกับ SQLAlchemy text() / psycopg2 parameter parser
+           ใช้ CAST(:param AS type) แทนเสมอ — ไม่ใช่ :param::type
+           (ผูกกับ Rule 11 และ Section [J] commit fbcff7a เดิม)
+Rule 193 — restart chat:8003 หลัง pkill: ใช้ setsid + < /dev/null & disown
+           ห้าม nohup ตรงๆ — pkill อาจฆ่า parent shell ก่อน detach
 
-Version: v3.1 | Updated: 2026-05-04
+PROGRESS (Section [K] update)
+Current State:
+  Version: v3.2 | Updated: 2026-05-04
+  Git Latest: 5db7fff
+
+✅ Completed in this Phase:
+  - LINE Webhook 7 message types (text/image/sticker/video/audio/file/location)
+  - LINE Content Download (image/video/audio/file → /uploads/line/)
+  - Sticker render via LINE CDN
+  - Location render via Google Maps URL
+  - Chat Dashboard render media จริง (img/video/audio/file/location)
+  - AI/Bot reply gate — text only
+
+🟢 Removed from Next Up:
+  - Bot Phase 1 → ทำเสร็จแล้ว
+  - Chat Dashboard ทดสอบ conversation จริง → ทำเสร็จแล้ว
+
+🔴 Next Up เหลือ:
+  1. notify_tenant_line() — push แจ้งเจ้าของร้าน
+  2. Auto-inject tenant context (store_name, biz_type, products) เข้า AI prompt
+  3. Draft 7 base prompts กลุ่ม Internal (ยัง [TODO])
+  4. Bot Tool Library (Phase F) — search_products, create_bill, notify_owner
+  5. AI Function Calling (structured command → Bot execute)
+
+DECISIONS LOG (D53-D55) — Section [N]
+D53 — LINE Content Download = thread spawn pattern (เดียวกับ _ai_push_reply)
+      Sync ใน webhook = LINE timeout 1s + retry storm
+      Thread = webhook 200 ทันที, download เบื้องหลัง, UI polling 2s rerender
+D54 — Sticker render via CDN ตรง — ไม่ download server
+      ลด bandwidth + storage, LINE CDN cache ดีอยู่แล้ว
+D55 — AI reply gate text-only — non-text save metadata อย่างเดียว
+      ป้องกัน AI ตอบมั่ว + ประหยัด token
+
+TECH DEBT (carried forward)
+⚠️ Cache 1 วัน /uploads/line/ — Rule 191 (แก้ทีหลัง)
+⚠️ deploy.sh ไม่ครอบ chat:8003 (Rule 182) — Phase ถัดไปอาจ refactor
+⚠️ id=105 รูปเก่าก่อน Phase 3 deploy — ไม่ back-fill (ไฟล์ไม่มีบน disk)
+
+Version: v3.2 | Updated: 2026-05-04 | Git Latest: 5db7fff
