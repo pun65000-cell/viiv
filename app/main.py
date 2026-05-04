@@ -280,3 +280,5 @@ app.include_router(statements_router)
 app.include_router(pos_finance.router)
 app.include_router(platform_ai_router, prefix="/api/platform")
 app.include_router(platform_ai_brain_router, prefix="/api/platform")
+from app.api.tenant_settings import router as tenant_settings_router
+app.include_router(tenant_settings_router)
