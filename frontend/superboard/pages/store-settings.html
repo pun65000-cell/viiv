@@ -1,0 +1,451 @@
+<body>
+<div style="padding:24px;min-height:100%;box-sizing:border-box;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h2 style="font-size:1.15rem;font-weight:700;color:var(--text-main,#1a1a1a);margin:0 0 3px;">ตั้งค่าร้าน-AI</h2>
+      <p style="font-size:0.82rem;color:var(--text-sub,#888);margin:0;">ข้อมูลร้าน, แพ็คเกจ, เครดิต และบุคลิก AI</p>
+    </div>
+    <button class="ss-btn ss-btn-gold" id="ssSaveBtn" onclick="ssSave()" disabled>บันทึก</button>
+  </div>
+
+  <!-- Read-only banner -->
+  <div id="ssRoBanner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:11px 16px;margin-bottom:18px;font-size:0.83rem;color:#9a3412;">
+    🔒 เฉพาะเจ้าของร้านเท่านั้นแก้ไขได้ — คุณกำลังดูแบบอ่านอย่างเดียว
+  </div>
+
+  <!-- Loading -->
+  <div id="ssLoading" style="text-align:center;padding:48px 24px;color:#aaa;">กำลังโหลด...</div>
+
+  <!-- Body (hidden until loaded) -->
+  <div id="ssBody" style="display:none;">
+
+    <!-- Card 1: ข้อมูลร้าน -->
+    <div class="ss-card">
+      <h3 class="ss-card-title">📋 ข้อมูลร้าน</h3>
+
+      <div style="display:flex;align-items:flex-start;gap:18px;margin-bottom:20px;flex-wrap:wrap;">
+        <div style="flex-shrink:0;">
+          <img id="ssLogoImg" alt="logo" style="width:96px;height:96px;border-radius:14px;border:1.5px solid var(--border,#e0e0e0);background:#fafafa;object-fit:cover;display:block;"/>
+          <input type="file" id="ssLogoFile" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="ssUploadLogo()"/>
+          <button class="ss-btn-sm" id="ssLogoBtn" onclick="document.getElementById('ssLogoFile').click()" style="margin-top:8px;width:96px;">เปลี่ยนโลโก้</button>
+        </div>
+        <div style="flex:1;min-width:240px;">
+          <div class="ss-field">
+            <label class="ss-label">ชื่อร้าน <span class="ss-req">*</span></label>
+            <input class="ss-input" type="text" id="ssStoreName" oninput="ssMarkDirty()"/>
+          </div>
+          <div class="ss-field" style="margin-top:12px;">
+            <label class="ss-label">Subdomain</label>
+            <input class="ss-input" type="text" id="ssSubdomain" readonly style="background:#f3f4f6;cursor:not-allowed;color:#666;"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="ss-field" style="margin-top:6px;">
+        <label class="ss-label">รายละเอียดสั้นๆ ของร้าน (bio)</label>
+        <textarea class="ss-input" id="ssBio" rows="3" style="resize:vertical;" oninput="ssMarkDirty()" placeholder="เช่น ขายเสื้อผ้าแฟชั่นผู้หญิง ราคาดี ส่งไว"></textarea>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label class="ss-label">ประเภทธุรกิจ</label>
+        <div class="ss-grid3">
+          <select class="ss-input" id="ssBizL1" onchange="ssOnBizL1()"></select>
+          <select class="ss-input" id="ssBizL2" onchange="ssOnBizL2()"></select>
+          <select class="ss-input" id="ssBizL3" onchange="ssOnBizL3()"></select>
+        </div>
+        <input class="ss-input" type="text" id="ssBizCustom" placeholder="ระบุประเภทเอง" style="margin-top:10px;display:none;" oninput="ssMarkDirty()"/>
+      </div>
+    </div>
+
+    <!-- Card 2: แพ็คเกจ -->
+    <div class="ss-card">
+      <h3 class="ss-card-title">📦 แพ็คเกจ</h3>
+      <div class="ss-info-grid">
+        <div class="ss-info-row">
+          <span class="ss-info-key">แพ็คเกจปัจจุบัน</span>
+          <span class="ss-info-val" id="ssPkgName">—</span>
+        </div>
+        <div class="ss-info-row">
+          <span class="ss-info-key">สถานะ</span>
+          <span class="ss-info-val"><span id="ssPkgStatus" class="ss-badge">—</span></span>
+        </div>
+        <div class="ss-info-row" id="ssPkgTrialRow" style="display:none;">
+          <span class="ss-info-key">ทดลองสิ้นสุด</span>
+          <span class="ss-info-val" id="ssPkgTrial">—</span>
+        </div>
+        <div class="ss-info-row" id="ssPkgSubRow" style="display:none;">
+          <span class="ss-info-key">สมาชิกถึง</span>
+          <span class="ss-info-val" id="ssPkgSub">—</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <a href="#upgrade" class="ss-btn-sm" onclick="window.parent.sbNav&&window.parent.sbNav('upgrade');return false;">อัพเกรด/เปลี่ยนแพ็คเกจ →</a>
+      </div>
+    </div>
+
+    <!-- Card 3: เครดิต AI -->
+    <div class="ss-card">
+      <h3 class="ss-card-title">⚡ เครดิต AI</h3>
+      <div class="ss-info-grid">
+        <div class="ss-info-row">
+          <span class="ss-info-key">เครดิตทั้งหมด</span>
+          <span class="ss-info-val" id="ssCreditTotal">0</span>
+        </div>
+        <div class="ss-info-row">
+          <span class="ss-info-key">ใช้ไปแล้ว</span>
+          <span class="ss-info-val" id="ssCreditUsed">0</span>
+        </div>
+        <div class="ss-info-row">
+          <span class="ss-info-key">คงเหลือ</span>
+          <span class="ss-info-val" id="ssCreditRemain" style="color:#16a34a;font-weight:700;">0</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+        <div id="ssCreditBar" style="height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);width:0;transition:width .3s;"></div>
+      </div>
+      <div style="font-size:0.74rem;color:#888;margin-top:6px;" id="ssCreditPct">0% ใช้แล้ว</div>
+    </div>
+
+    <!-- Card 4: บุคลิก AI -->
+    <div class="ss-card">
+      <h3 class="ss-card-title">✦ บุคลิก AI</h3>
+      <div class="ss-field">
+        <label class="ss-label">บุคลิก</label>
+        <select class="ss-input" id="ssPersona" onchange="ssMarkDirty()"></select>
+      </div>
+      <div class="ss-field" style="margin-top:14px;">
+        <label class="ss-label">ข้อจำกัด/แนวทางการตอบ (ใส่เพื่อให้ AI ตอบในแนวที่ต้องการ)</label>
+        <textarea class="ss-input" id="ssConstraints" rows="5" style="resize:vertical;font-family:inherit;" oninput="ssMarkDirty()" placeholder="เช่น ห้ามรับประกันราคา / ไม่ยืนยันสต็อกถ้าไม่มีในระบบ / ใช้คำสุภาพ ไม่ทักทายซ้ำ"></textarea>
+        <div style="font-size:0.72rem;color:#888;margin-top:5px;">💡 ข้อความนี้จะถูกใส่ใน system prompt ของ AI ทุกครั้งที่ตอบ</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+.ss-btn{padding:8px 18px;background:#C9A84C;color:#1a1a1a;border:1.5px solid #C9A84C;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.ss-btn:hover:not(:disabled){opacity:.85;}
+.ss-btn:disabled{background:#d0d0d0 !important;color:#aaa !important;border-color:#d0d0d0 !important;cursor:not-allowed;}
+.ss-btn-gold{background:#C9A84C;color:#1a1a1a;border-color:#C9A84C;}
+.ss-btn-sm{display:inline-block;padding:6px 12px;background:transparent;border:1.5px solid var(--border,#e0e0e0);border-radius:7px;font-size:0.78rem;font-weight:600;cursor:pointer;color:var(--text-main,#1a1a1a);text-decoration:none;text-align:center;}
+.ss-btn-sm:hover{background:#fafafa;border-color:#C9A84C;color:#C9A84C;}
+.ss-card{background:var(--card-bg,#fff);border:1.5px solid var(--border,#e0e0e0);border-radius:14px;padding:22px 24px;margin-bottom:18px;}
+.ss-card-title{font-size:0.95rem;font-weight:700;color:var(--text-main,#1a1a1a);margin:0 0 16px;display:flex;align-items:center;gap:8px;}
+.ss-label{display:block;font-size:0.78rem;font-weight:600;color:var(--text-main,#1a1a1a);margin-bottom:5px;}
+.ss-req{color:#ef4444;}
+.ss-input{width:100%;padding:9px 11px;border:1.5px solid var(--border,#e0e0e0);border-radius:7px;font-size:0.85rem;color:var(--text-main,#1a1a1a);background:var(--input-bg,#fafafa);outline:none;transition:border-color .2s;font-family:inherit;box-sizing:border-box;}
+.ss-input:focus{border-color:#C9A84C;}
+.ss-input:disabled{background:#f3f4f6;cursor:not-allowed;color:#666;}
+.ss-field{display:flex;flex-direction:column;}
+.ss-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media (max-width:640px){.ss-grid3{grid-template-columns:1fr;}}
+.ss-info-grid{display:flex;flex-direction:column;gap:10px;}
+.ss-info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border,#e5e7eb);}
+.ss-info-row:last-child{border-bottom:none;}
+.ss-info-key{font-size:0.82rem;color:var(--text-sub,#666);}
+.ss-info-val{font-size:0.88rem;font-weight:600;color:var(--text-main,#1a1a1a);}
+.ss-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.74rem;font-weight:700;}
+.ss-badge.trial{background:#fef3c7;color:#92400e;}
+.ss-badge.active{background:#d1fae5;color:#065f46;}
+.ss-badge.suspended{background:#fee2e2;color:#991b1b;}
+.ss-badge.cancelled{background:#e5e7eb;color:#374151;}
+</style>
+
+<script>
+(function(){
+'use strict';
+// inline SVG placeholder logo (HALT 3)
+var LOGO_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" fill="#f3f4f6"/><path d="M20 38h56v34a4 4 0 0 1-4 4H24a4 4 0 0 1-4-4V38z" fill="#e5e7eb"/><path d="M20 38l6-14h44l6 14H20z" fill="#C9A84C" opacity=".6"/><circle cx="48" cy="56" r="8" fill="#C9A84C"/></svg>'
+);
+
+function TOKEN(){ return localStorage.getItem('viiv_token') || localStorage.getItem('platform_token') || ''; }
+
+var _state = {};       // tenant settings
+var _posState = null;  // POS store_settings (for merge)
+var _bizTypes = {};
+var _personas = [];
+var _canEdit = false;
+var _dirty = false;
+
+// ── api helper ───────────────────────────────────────────────────────────────
+async function api(path, opts){
+  opts = opts || {};
+  var hdr = { 'Authorization': 'Bearer ' + TOKEN() };
+  if (opts.body) hdr['Content-Type'] = 'application/json';
+  var r = await fetch(path, {
+    method: opts.method || 'GET',
+    headers: hdr,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (!r.ok) {
+    var err;
+    try { err = await r.json(); } catch(e){ err = {detail: r.status + ''}; }
+    var msg = err.detail || err.message || ('HTTP ' + r.status);
+    if (typeof msg === 'object') msg = msg.message || JSON.stringify(msg);
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+// ── load all ─────────────────────────────────────────────────────────────────
+async function loadAll(){
+  try {
+    var results = await Promise.all([
+      api('/api/tenant/settings'),
+      api('/api/tenant/personas'),
+      api('/api/tenant/biz-types'),
+      api('/api/pos/store/settings').catch(function(){ return null; })
+    ]);
+    _state = results[0];
+    _personas = results[1];
+    _bizTypes = results[2];
+    _posState = results[3];
+    _canEdit = !!(_state.permissions && _state.permissions.can_edit);
+
+    populatePersonas();
+    populateBizTypes();
+    populateFields();
+    applyPermissions();
+
+    document.getElementById('ssLoading').style.display = 'none';
+    document.getElementById('ssBody').style.display = 'block';
+  } catch(e) {
+    document.getElementById('ssLoading').innerHTML =
+      '<div style="color:#ef4444;font-size:.88rem;">❌ โหลดข้อมูลไม่สำเร็จ: ' + e.message + '</div>';
+  }
+}
+
+function populatePersonas(){
+  var sel = document.getElementById('ssPersona');
+  var current = (_state.ai && _state.ai.persona) || 'friendly-female';
+  sel.innerHTML = _personas.map(function(p){
+    return '<option value="'+p.id+'"'+(p.id===current?' selected':'')+'>'+p.label+'</option>';
+  }).join('');
+}
+
+function populateBizTypes(){
+  var l1 = document.getElementById('ssBizL1');
+  var l1keys = Object.keys(_bizTypes);
+  var bt = _state.biz_type || {};
+  l1.innerHTML = '<option value="">— เลือก —</option>' +
+    l1keys.map(function(k){ return '<option value="'+k+'"'+(k===bt.l1?' selected':'')+'>'+k+'</option>'; }).join('');
+  refreshL2(bt.l1, bt.l2);
+  refreshL3(bt.l1, bt.l2, bt.l3);
+  if (bt.l3 === 'อื่นๆ' && bt.custom) {
+    var c = document.getElementById('ssBizCustom');
+    c.style.display = 'block';
+    c.value = bt.custom;
+  }
+}
+
+function refreshL2(l1, selL2){
+  var l2 = document.getElementById('ssBizL2');
+  if (!l1 || !_bizTypes[l1]) {
+    l2.innerHTML = '<option value="">— เลือกหมวดก่อน —</option>';
+    return;
+  }
+  var keys = Object.keys(_bizTypes[l1]);
+  l2.innerHTML = '<option value="">— เลือก —</option>' +
+    keys.map(function(k){ return '<option value="'+k+'"'+(k===selL2?' selected':'')+'>'+k+'</option>'; }).join('');
+}
+
+function refreshL3(l1, l2, selL3){
+  var l3 = document.getElementById('ssBizL3');
+  if (!l1 || !l2 || !_bizTypes[l1] || !_bizTypes[l1][l2]) {
+    l3.innerHTML = '<option value="">— เลือกหมวดก่อน —</option>';
+    return;
+  }
+  var arr = _bizTypes[l1][l2];
+  l3.innerHTML = '<option value="">— เลือก —</option>' +
+    arr.map(function(k){ return '<option value="'+k+'"'+(k===selL3?' selected':'')+'>'+k+'</option>'; }).join('');
+}
+
+window.ssOnBizL1 = function(){
+  var l1 = document.getElementById('ssBizL1').value;
+  refreshL2(l1, '');
+  refreshL3(l1, '', '');
+  document.getElementById('ssBizCustom').style.display = 'none';
+  ssMarkDirty();
+};
+window.ssOnBizL2 = function(){
+  var l1 = document.getElementById('ssBizL1').value;
+  var l2 = document.getElementById('ssBizL2').value;
+  refreshL3(l1, l2, '');
+  document.getElementById('ssBizCustom').style.display = 'none';
+  ssMarkDirty();
+};
+window.ssOnBizL3 = function(){
+  var l3 = document.getElementById('ssBizL3').value;
+  document.getElementById('ssBizCustom').style.display = (l3 === 'อื่นๆ') ? 'block' : 'none';
+  ssMarkDirty();
+};
+
+function populateFields(){
+  document.getElementById('ssStoreName').value = _state.store_name || '';
+  document.getElementById('ssSubdomain').value = _state.subdomain || '';
+  document.getElementById('ssBio').value = _state.bio || '';
+  document.getElementById('ssLogoImg').src = _state.logo_url || LOGO_PLACEHOLDER;
+  document.getElementById('ssLogoImg').onerror = function(){ this.onerror=null; this.src=LOGO_PLACEHOLDER; };
+  document.getElementById('ssConstraints').value = (_state.ai && _state.ai.constraints) || '';
+
+  var pkg = _state.package || {};
+  document.getElementById('ssPkgName').textContent = pkg.name || pkg.id || 'ฟรี';
+  var bs = pkg.billing_status || '';
+  var badge = document.getElementById('ssPkgStatus');
+  badge.className = 'ss-badge ' + (bs || '');
+  var statusLabel = {trial:'ทดลองใช้',active:'ใช้งาน',suspended:'หยุดชั่วคราว',cancelled:'ยกเลิกแล้ว'}[bs] || bs || '—';
+  badge.textContent = statusLabel;
+
+  if (pkg.trial_ends_at) {
+    document.getElementById('ssPkgTrialRow').style.display = 'flex';
+    document.getElementById('ssPkgTrial').textContent = fmtDate(pkg.trial_ends_at);
+  }
+  if (pkg.subscription_ends_at) {
+    document.getElementById('ssPkgSubRow').style.display = 'flex';
+    document.getElementById('ssPkgSub').textContent = fmtDate(pkg.subscription_ends_at);
+  }
+
+  var cr = _state.credit || {total:0,used:0,remaining:0};
+  document.getElementById('ssCreditTotal').textContent = cr.total.toLocaleString();
+  document.getElementById('ssCreditUsed').textContent = cr.used.toLocaleString();
+  document.getElementById('ssCreditRemain').textContent = cr.remaining.toLocaleString();
+  var pct = cr.total > 0 ? Math.min(100, Math.round(cr.used / cr.total * 100)) : 0;
+  document.getElementById('ssCreditBar').style.width = pct + '%';
+  document.getElementById('ssCreditPct').textContent = pct + '% ใช้แล้ว';
+}
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  try {
+    var d = new Date(iso);
+    return d.toLocaleDateString('th-TH', {year:'numeric',month:'short',day:'numeric'});
+  } catch(e){ return iso; }
+}
+
+function applyPermissions(){
+  var ro = !_canEdit;
+  document.getElementById('ssRoBanner').style.display = ro ? 'block' : 'none';
+  ['ssStoreName','ssBio','ssBizL1','ssBizL2','ssBizL3','ssBizCustom','ssPersona','ssConstraints'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.disabled = ro;
+  });
+  document.getElementById('ssLogoBtn').disabled = ro;
+  if (ro) {
+    document.getElementById('ssLogoBtn').style.opacity = '.5';
+    document.getElementById('ssLogoBtn').style.cursor = 'not-allowed';
+  }
+  document.getElementById('ssSaveBtn').style.display = ro ? 'none' : 'inline-block';
+}
+
+window.ssMarkDirty = function(){
+  if (!_canEdit) return;
+  _dirty = true;
+  document.getElementById('ssSaveBtn').disabled = false;
+};
+
+// ── upload logo ──────────────────────────────────────────────────────────────
+window.ssUploadLogo = async function(){
+  var f = document.getElementById('ssLogoFile').files[0];
+  if (!f) return;
+  if (f.size > 5*1024*1024) { alert('❌ ไฟล์ใหญ่เกิน 5MB'); return; }
+
+  var btn = document.getElementById('ssLogoBtn');
+  var origText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'กำลังอัพโหลด...';
+
+  try {
+    var fd = new FormData();
+    fd.append('file', f);  // HALT 1: field name = "file"
+    var r = await fetch('/api/pos/store/upload-logo', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN() },
+      body: fd
+    });
+    if (!r.ok) {
+      var err;
+      try { err = await r.json(); } catch(e){ err = {detail: 'HTTP ' + r.status}; }
+      throw new Error(err.detail || ('HTTP ' + r.status));
+    }
+    var data = await r.json();
+    var url = data.url;  // HALT 1: return {url} ไม่ใช่ {logo_url}
+    document.getElementById('ssLogoImg').src = url;
+    // upload-logo endpoint already persisted to store_settings (server-side) — just refresh state
+    alert('✅ อัพโหลดโลโก้แล้ว');
+    await loadAll();
+  } catch(e) {
+    alert('❌ ' + e.message);
+  } finally {
+    btn.disabled = !_canEdit; btn.textContent = origText;
+    document.getElementById('ssLogoFile').value = '';
+  }
+};
+
+// ── save ─────────────────────────────────────────────────────────────────────
+window.ssSave = async function(){
+  if (!_canEdit) return;
+  var btn = document.getElementById('ssSaveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  var warning = '';
+
+  try {
+    // 1. Save AI/biz/bio fields ผ่าน /api/tenant/settings (เสมอ)
+    var l3 = document.getElementById('ssBizL3').value || null;
+    var aiBody = {
+      ai_persona: document.getElementById('ssPersona').value,
+      ai_constraints: document.getElementById('ssConstraints').value,
+      bio: document.getElementById('ssBio').value,
+      biz_type_l1: document.getElementById('ssBizL1').value || null,
+      biz_type_l2: document.getElementById('ssBizL2').value || null,
+      biz_type_l3: l3,
+      biz_custom: (l3 === 'อื่นๆ') ? (document.getElementById('ssBizCustom').value || null) : null
+    };
+    await api('/api/tenant/settings', { method: 'PUT', body: aiBody });
+
+    // 2. Save store_name (ถ้าเปลี่ยน) ผ่าน POS endpoint — graceful fallback
+    var newName = document.getElementById('ssStoreName').value.trim();
+    if (newName && newName !== (_state.store_name || '')) {
+      var required = ['phone','address','province'];
+      var missing = required.filter(function(f){
+        return !((_posState && _posState[f]) || '').toString().trim();
+      });
+
+      if (missing.length > 0) {
+        var miss_th = {phone:'เบอร์โทร', address:'ที่อยู่', province:'จังหวัด'};
+        var missLabels = missing.map(function(m){ return miss_th[m] || m; }).join(', ');
+        warning = '⚠️ ชื่อร้านยังไม่ถูกบันทึก — กรุณาไปที่ POS > จัดการร้านค้า เพื่อกรอกข้อมูล (ขาด: ' + missLabels + ')';
+      } else {
+        var fullPayload = Object.assign({}, _posState, { store_name: newName });
+        await api('/api/pos/store/settings', { method: 'POST', body: fullPayload });
+      }
+    }
+
+    if (warning) {
+      alert('✅ บันทึก AI settings แล้ว\n\n' + warning);
+    } else {
+      alert('✅ บันทึกแล้ว');
+    }
+    _dirty = false;
+    await loadAll();
+  } catch(e) {
+    var msg = e.message || 'unknown error';
+    if (msg.indexOf('only_owner') >= 0 || msg.indexOf('เฉพาะเจ้าของ') >= 0) {
+      msg = 'เฉพาะเจ้าของร้านเท่านั้นแก้ไขได้';
+    }
+    alert('❌ ' + msg);
+  } finally {
+    btn.disabled = !_dirty;
+    btn.textContent = 'บันทึก';
+  }
+};
+
+// ── init ────────────────────────────────────────────────────────────────────
+loadAll();
+
+})();
+</script>
+</body>
