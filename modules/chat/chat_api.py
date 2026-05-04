@@ -70,6 +70,7 @@ async def get_messages(conv_id: str):
                 "direction": r["direction"],
                 "message_type": r["message_type"],
                 "content": r["content"],
+                "media_url": raw.get("media_url"),
                 "sent_by": raw.get("sent_by", "bot" if r["direction"] == "outbound" else "user"),
                 "created_at": r["created_at"].isoformat() if r["created_at"] else None,
             })

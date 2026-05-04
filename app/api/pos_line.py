@@ -357,6 +357,15 @@ async def line_webhook(request: Request):
                                "content": content,
                                "raw": json.dumps({"event": event, "message_id": msg_id})})
 
+                        # 3b. media download (image/video/audio/file) — fire-and-forget
+                        if event_type == "message" and mtype in ("image","video","audio","file") and msg_id:
+                            try:
+                                from app.api.line_content import spawn_download
+                                fname = msg.get("fileName", "") if mtype == "file" else ""
+                                spawn_download(channel_token, msg_id, mtype, tenant_id, conv_id, fname)
+                            except Exception as e:
+                                _log.warning("media download spawn failed: %s", e)
+
                         # update unread + updated_at
                         c.execute(text("""
                             UPDATE chat_conversations

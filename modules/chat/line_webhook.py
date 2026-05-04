@@ -312,6 +312,15 @@ async def line_platform_webhook(request: Request):
                     {"event": event, "message_id": msg_id}, msg_type,
                 )
 
+                # Media download (image/video/audio/file) — fire-and-forget asyncio task
+                if msg_type in ("image", "video", "audio", "file") and msg_id:
+                    try:
+                        from .line_content import spawn_download
+                        fname = msg.get("fileName", "") if msg_type == "file" else ""
+                        spawn_download(channel_token, msg_id, msg_type, "platform", conv_id, fname)
+                    except Exception:
+                        pass
+
                 # Bump unread + updated_at on the conversation (every inbound)
                 await db.execute(
                     text("""

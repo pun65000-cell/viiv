@@ -330,14 +330,15 @@ const UI = (() => {
       return;
     }
 
-    // smart render — ถ้า message count เท่าเดิม และ scroll ไม่อยู่ท้าย ไม่ re-render
+    // smart render — re-render เมื่อ count เปลี่ยน หรือ media_url ถูก patch หลัง
+    // background download จบ (msg เดิมแต่ field เปลี่ยน — ถ้าไม่ track จะไม่ขึ้นรูป)
     const prevCount = parseInt(el.dataset.msgCount || '0');
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
-
-    if (msgs.length === prevCount && !atBottom) return;
-    if (msgs.length === prevCount) return;
+    const fp = msgs.map(m => (m.id || '') + ':' + (m.media_url || '')).join('|');
+    const prevFp = el.dataset.msgFp || '';
+    if (msgs.length === prevCount && fp === prevFp) return;
 
     el.dataset.msgCount = msgs.length;
+    el.dataset.msgFp = fp;
 
     let html = '';
     let lastDate = '';
@@ -351,12 +352,13 @@ const UI = (() => {
       const isOut = m.direction === 'outbound';
       const isBot = isOut && m.sent_by === 'bot';
       const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      const bubbleInner = _renderMsgInner(m);
       html += `
       <div class="msg-row ${isOut ? 'out' : ''}">
         ${!isOut ? '<div class="msg-avatar">👤</div>' : ''}
         ${isBot  ? '<div class="msg-avatar bot">🤖</div>' : ''}
         <div>
-          <div class="msg-bubble ${isOut ? 'out' : ''} ${isBot ? 'bot' : ''}">${_escHtml((m.content || '').trim())}</div>
+          <div class="msg-bubble ${isOut ? 'out' : ''} ${isBot ? 'bot' : ''}">${bubbleInner}</div>
           <div class="msg-time ${isOut ? 'right' : ''}">${_escHtml(time)}</div>
         </div>
       </div>`;
@@ -425,6 +427,36 @@ const UI = (() => {
     if (diff < 3600000)  return Math.floor(diff /   60000) + ' นาที';
     if (diff < 86400000) return Math.floor(diff / 3600000) + ' ชม.';
     return Math.floor(diff / 86400000) + ' วัน';
+  }
+
+  function _renderMsgInner(m) {
+    const mt  = m.message_type || 'text';
+    const url = m.media_url || '';
+    const txt = (m.content || '').trim();
+    if (url && mt === 'image') {
+      return `<a href="${_escAttr(url)}" target="_blank" rel="noopener">`
+           + `<img src="${_escAttr(url)}" loading="lazy" alt="image"`
+           + ` style="max-width:240px;max-height:320px;border-radius:8px;display:block"></a>`;
+    }
+    if (url && mt === 'video') {
+      return `<video controls preload="metadata"`
+           + ` style="max-width:240px;border-radius:8px;display:block">`
+           + `<source src="${_escAttr(url)}"></video>`;
+    }
+    if (url && mt === 'audio') {
+      return `<audio controls preload="metadata" style="max-width:240px;display:block">`
+           + `<source src="${_escAttr(url)}"></audio>`;
+    }
+    if (url && mt === 'file') {
+      return `<a href="${_escAttr(url)}" target="_blank" rel="noopener"`
+           + ` style="display:inline-block;padding:6px 10px;background:#f0f0f0;`
+           + `border-radius:6px;text-decoration:none">📎 ${_escHtml(txt || 'ดาวน์โหลดไฟล์')}</a>`;
+    }
+    // pending download for non-text → show placeholder content + spinner hint
+    if (!url && mt !== 'text' && mt !== 'follow') {
+      return `${_escHtml(txt)} <span style="opacity:.55;font-size:11px">⏳</span>`;
+    }
+    return _escHtml(txt);
   }
 
   function _escHtml(s) {

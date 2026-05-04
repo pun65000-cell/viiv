@@ -2426,3 +2426,49 @@ SHARED LIB DEPS ADDED 2026-05-01
 - requests 2.32.5 (already installed; used in LINE push)
 
 Version: v1.61 | Updated: 2026-05-01 (EOD)
+
+---
+
+## [J] EOD 2026-05-04 — LINE webhook media handling (Phases 1-3)
+
+SUMMARY
+- Phase 1: webhook (per-tenant + platform OA) เก็บ message_type + raw_event.message_id
+  ครบ 7 ชนิด (text/image/sticker/video/audio/file/location); AI/bot reply gate
+  เฉพาะ msg_type=='text' กัน AI ตอบมั่วบน non-text + ประหยัด token
+- Phase 3: background download media (image/video/audio/file) จาก
+  api-data.line.me/v2/bot/message/{id}/content → save under
+  /uploads/line/{tenant}/{conv}/{message_id}.{ext} → patch chat_messages.raw_event
+  ด้วย media_url; chat-ui.js render <img>/<video>/<audio>/<a> ใน bubble
+
+NEW FILES
+- app/api/line_content.py        — sync (requests + threading) สำหรับ pos_line.py
+- modules/chat/line_content.py   — async (httpx + asyncio.create_task) สำหรับ
+                                   modules/chat/line_webhook.py (คนละ Python package
+                                   จาก app/ → ใช้ `from .db import AsyncSessionLocal`)
+
+MODIFIED
+- app/api/pos_line.py            — msg type dispatch + spawn_download
+- modules/chat/line_webhook.py   — msg type dispatch + spawn_download +
+                                   save_message extended (msg_type param)
+- modules/chat/chat_api.py       — GET /chat/conversations/{id}/messages เพิ่ม
+                                   media_url field ใน response
+- modulechat/ui/dashboard/chat-ui.js — _renderMsgInner() helper render media;
+                                   smart-render fingerprint (id+media_url) แทน
+                                   count-only (เพื่อให้ media ที่โหลดเสร็จหลัง
+                                   webhook insert ขึ้นรูปทันทีไม่ต้องรอ msg ใหม่)
+
+RULES ADDED
+Rule 190 — chat_messages.message_type field is authoritative; values:
+           'text','image','sticker','video','audio','file','location','follow' (+
+           อื่นๆ ตาม msg.type ที่ LINE ส่งมา)
+Rule 191 — /uploads/* Cache-Control: public, max-age=86400 (Caddy default ใน
+           ทุก vhost block) → tech debt: ถ้าต้องเปลี่ยน/แก้ไฟล์ media เดิม
+           จะค้าง browser cache ได้ถึง 24 ชม. แก้โดย (a) ลด max-age, หรือ
+           (b) เพิ่ม cache-buster query (?v=updated_at), หรือ (c) immutable
+           file naming (ปัจจุบันใช้ {message_id}.{ext} ที่ unique อยู่แล้ว
+           — ถ้าโหลดใหม่จะไม่ทับกันกับของเดิม → เคสนี้ปลอดภัยตราบใดที่
+           ไม่ retry ทับ message_id เดิม)
+Rule 192 — _ai_push_reply / bot rule fallback fires only when msg_type=='text'
+           — non-text save metadata + media download อย่างเดียว ไม่ trigger AI
+
+Version: v3.1 | Updated: 2026-05-04
