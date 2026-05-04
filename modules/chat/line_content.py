@@ -52,19 +52,27 @@ async def _download_and_save(channel_token, message_id, msg_type, tenant_id, con
                 return
             with open(target_path, "wb") as f:
                 f.write(r.content)
+        file_size = os.path.getsize(target_path)
 
+        # Use CAST(... AS type) instead of `::type` — `::` collides with SQLAlchemy
+        # text() parameter parser (`:url::text` is misread as `:url` followed by an
+        # unfinished cast, raising psycopg2 SyntaxError).
         async with AsyncSessionLocal() as db:
             await db.execute(
                 text("""
                     UPDATE chat_messages
                        SET raw_event = jsonb_set(
-                               COALESCE(raw_event, '{}'::jsonb),
-                               '{media_url}',
-                               to_jsonb(:url::text)
+                               jsonb_set(
+                                   COALESCE(raw_event, '{}'::jsonb),
+                                   '{media_url}',
+                                   to_jsonb(CAST(:url AS text))
+                               ),
+                               '{media_size}',
+                               to_jsonb(CAST(:size AS bigint))
                            )
                      WHERE raw_event->>'message_id' = :mid
                 """),
-                {"url": media_url, "mid": mid},
+                {"url": media_url, "size": file_size, "mid": mid},
             )
             await db.commit()
 
