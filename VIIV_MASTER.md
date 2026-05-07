@@ -2836,4 +2836,71 @@ Version: v3.5 | Updated: 2026-05-07 (EOD)
 
 ---
 
+## [J] EOD 2026-05-07 (v3.6 — Phase 1 API Gateway Foundation)
+
+PHASES COMPLETE — เพิ่ม
+✅ Phase 1 — API Gateway Foundation (2026-05-07)
+   - Schema 7 tables: api_endpoints, api_health_log, credit_pricing,
+     credit_ledger, credit_topups, topup_packages, api_gateway_settings
+   - ALTER ai_tenant_credits: 3-pool (credit_subscription/rollover/topup)
+   - UNIQUE(method, path, port) on api_endpoints
+   - Seed: 52 endpoints, 8 credit actions, 5 topup tiers, 7 gateway settings
+   - Migration: credit เก่า → credit_topup pool (0 entries — ยังไม่มี tenant credit)
+   - Sidebar: API Gateway ▼ (5 sub-menus) แทนที่ API Keys standalone
+   - Placeholder pages 4 หน้า (Phase 2 implement จริง)
+   git: 01cd0c0
+
+NEXT UP PRIORITY — เพิ่ม
+Phase 2 — API Gateway UI (เรียงลำดับ)
+  B. Credit Pricing page — CRUD หน้า edit credit_pricing table
+  C. Top-up Packages page — CRUD หน้า edit topup_packages table
+  D. Top-up Approvals page — ดูสลิป + approve/reject credit_topups
+  A. Health Monitor page — ping api_endpoints แสดง healthy/failed
+  E. Enforcement decorator — @gateway_check หัก credit + quota gate
+
+KNOWN ISSUES — เพิ่ม
+⚠️  Phase 2 API Gateway UI ยังไม่มี logic (placeholder เท่านั้น)
+⚠️  credit enforcement ยังไม่ implement (Phase 2E)
+⚠️  Health Monitor cron ยังไม่มี (Phase 2A)
+
+DECISIONS ADDED (Section [N]) — เลขถัดจาก D64
+D65  API Gateway = unified control plane
+     Health/Pricing/Topup/Keys อยู่ใต้ menu เดียวใน SYSTEM section
+     5 sub-menus: Health Monitor / Credit Pricing /
+     Top-up Packages / Top-up Approvals / API Keys
+D66  3-pool credit system: credit_subscription / credit_rollover / credit_topup
+     Consumption order (Phase 2): Sub → Rollover → Topup (atomic)
+     credit_subscription = รีเซ็ตทุกเดือน
+     credit_rollover = subscription เหลือ ทบเดือนถัดไป (1 รอบ)
+     credit_topup = สะสมตลอดชีพ (lifetime ไม่หมดอายุ)
+D67  Migration credit เก่า → credit_topup pool
+     เหตุผล: ลูกค้าไม่เสียเปรียบจาก migration
+     credit ที่มีก่อนหน้าจะไม่ถูก reset ตามรอบเดือน
+D68  Refund (action fail) → credit_topup pool
+     เหตุผล: simple + เป็นมิตรกับลูกค้า
+     ไม่ต้อง track pool ที่หักล่าสุด
+
+RULES ADDED (Section [J]) — เลขถัดจาก 220
+221  ai_tenant_credits 3-pool: credit_subscription/rollover/topup
+     remaining = sum ทั้ง 3 pool
+     credit_used = ใช้ไปทั้งหมดในรอบเดือน
+222  Consumption order (Phase 2 implement): Sub → Rollover → Topup (atomic)
+     เหตุผล: ลูกค้าจ่ายเงินจริง (Topup) ควรอยู่ทนสุด
+223  ทุก credit movement → log credit_ledger เสมอ
+     txn_type: consume/topup/subscription/refund/adjust/reset/migrate
+     amount: + เพิ่ม | - ลด | balance_after = snapshot หลัง transaction
+224  api_gateway_settings = config table สำหรับ API Gateway
+     health_check_interval_min default 60
+     แก้ผ่าน Platform UI ได้ (Phase 2A) ไม่ต้อง deploy
+225  topup_packages = scale tier (จ่ายเยอะ ได้เยอะกว่าสัดส่วน)
+     credits field = จำนวนจริงที่ได้ (รวม bonus แล้ว) ไม่คูณซ้ำ
+226  credit migrate flow: txn_type='migrate' source='migration_v1'
+     idempotent: WHERE NOT EXISTS migrate ledger
+     รันซ้ำได้ปลอดภัย
+
+Version: v3.6 | Updated: 2026-05-07
+Git Latest: fa7af4a (Phase 1 frontend + bump committed)
+
+---
+
 Version: v3.2 | Updated: 2026-05-04 | Git Latest: 5db7fff
