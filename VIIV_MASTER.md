@@ -2711,4 +2711,129 @@ KNOWN ISSUES / TECH DEBT (Section [K] update)
 Version: v3.4 | Updated: 2026-05-07
 Git Latest: d0729a6
 
+---
+
+## [J] EOD 2026-05-07 (v3.5 — Full day) — Standardize + ai-brain persona + cutover atomic
+
+SUMMARY (24 hours, 10 commits)
+- ❶ True Blue/Green deploy refactor + cutover.sh + Caddyfile fixed mapping (commit 44bc2e3)
+- ❷ TD-CADDY-DUPE log + cleanup (4dac07e + 4c376f3)
+- ❸ Superboard connections LINE form Fix A+B+C+D (280ce88)
+- ❹ store-settings: Copy Shop ID (84ef0d1) + วันเริ่มใช้งาน + เรียนรู้ popup + ปุ่มบันทึกล่าง (baa6bc8)
+- ❺ join-shop: subdomain → tenant_id ทั้ง Superboard + PWA + Backend (d0729a6)
+- ❻ Superboard scroll fix #sbContent overflow:auto (3796e0a)
+- ❼ ai-brain persona tab + ai_personas DB + tenant DB read (0ac583e)
+- ❽ Caddyfile cleanup duplicate /chat/* + cutover.sh covers concore + deploy.sh auto-detect DEV (4c376f3)
+- ❾ Caddyfile standardize ทุก non-DEV block → :8000 + cutover.sh atomic 7 blocks (0752be6)
+- ❿ VIIV_MASTER v3.4 + v3.5 docs (dba54b3 + this)
+
+RULES (current state — Rules 204-220)
+204  deploy.sh = deploy ลง DEV port เท่านั้น — auto-detect จาก Caddyfile dev7 block
+205  cutover.sh = swap ทุก LIVE blocks atomic (7 blocks: test7/concore/auth/viiv/merchant/api/*.viiv.me)
+     ทำเมื่อ feature ใหญ่เสร็จ — ไม่ใช่ทุก deploy
+206  Caddyfile fixed mapping: LIVE blocks → :8000 | DEV (dev7) → :9000
+     mapping เปลี่ยนเฉพาะตอน cutover.sh เท่านั้น
+207  Cutover frequency: เดือนละครั้ง หรือเมื่อ feature ใหญ่เสร็จ
+208  TD-CADDY-DUPE: RESOLVED — duplicate /chat/* ลบแล้วใน test7+dev7 blocks
+209  Backend success response = {"ok": true, "message": "success"}
+     frontend check: if(d.ok || d.message==='success') — standard เดียวกัน
+210  join-shop รับ tenant_id ตรงๆ → backend lookup subdomain
+     Rule 80 superseded — ไม่ใช้ strip https:// + .viiv.me อีกต่อไป
+211  store-settings มีปุ่ม Copy Shop ID + ปุ่มบันทึกด้านล่าง
+212  test_dev = internal dev tenant (subdomain='dev7') อยู่ใน prod DB
+     ยอมรับเป็น known limitation ระยะแรก
+213  ai_personas table = source of truth สำหรับ persona label + description
+     PERSONA_MAP ใน pos_line.py = behavioral only (suffix/greeting/sign) ไม่เปลี่ยน
+214  /api/platform/ai/personas = admin CRUD (GET+PATCH) — platform_token required
+     /api/tenant/personas = tenant read-only — อ่านจาก ai_personas DB (fallback hardcode)
+215  persona tab ใน ai-brain = Platform admin เท่านั้น
+     Superboard = read-only dropdown (label จาก DB)
+216  Caddyfile LIVE blocks = test7, concore, auth, viiv, merchant, api, *.viiv.me
+     DEV block = dev7 เท่านั้น — ห้าม swap dev7 ใน cutover.sh
+217  cutover.sh atomic: swap ทุก LIVE block ใน reload เดียว — ไม่มี drift
+218  merchant.viiv.me ใช้ pattern localhost: (normalized จาก 127.0.0.1:)
+219  Superboard #sbContent: overflow:auto (ไม่ใช่ hidden) — inline pages scroll ได้
+220  store-settings วันเริ่มใช้งาน = tenants.created_at (format th-TH พ.ศ.)
+
+RULE SUPERSEDED
+- Rule 80 → Rule 210 (join-shop: tenant_id แทน subdomain)
+
+DELTA from v3.4 (สิ่งที่เปลี่ยน wording จาก v3.4 → v3.5)
+- Rule 204: ":8000 (DEV) เท่านั้น" → "DEV port เท่านั้น — auto-detect"
+- Rule 205: "Caddy test7 → port ใหม่" → "ทุก LIVE blocks atomic (7 blocks)"
+- Rule 208: "ก่อน cutover.sh ครั้งแรก: ลบ duplicate" → "TD-CADDY-DUPE: RESOLVED"
+- Rule 209: เพิ่ม "ok: true" ใน response standard + frontend "if(d.ok || d.message==='success')"
+- Rule 211: เพิ่ม "+ ปุ่มบันทึกด้านล่าง"
+
+DECISIONS ADDED (Section [N], beyond D59-D61 ที่ v3.4 มีแล้ว)
+D62  ai_personas DUAL SOURCE → ระยะสั้นยอมรับ 2 ที่
+     pos_line.py PERSONA_MAP = behavioral
+     ai_personas DB = display (label + description)
+     ระยะยาว: ย้าย behavioral ไป DB ด้วย (Phase 3)
+D63  cutover.sh atomic 7 blocks — ป้องกัน drift ระหว่าง subdomain
+D64  Caddyfile standardize: ทุก non-DEV block → LIVE port
+     merchant normalized: 127.0.0.1 → localhost
+
+PHASE DONE (10 รายการเพิ่ม / cumulative)
+✅ True Blue/Green + Full standardize (7 blocks atomic)
+✅ test_dev tenant + dev environment แยก production
+✅ connections.html Fix A+B+C+D (LINE form ครบ)
+✅ store-settings: Copy Shop ID + วันเริ่มใช้งาน + เรียนรู้ popup + ปุ่มบันทึกล่าง
+✅ join-shop: tenant_id input (Superboard + PWA + Backend)
+✅ Superboard scroll fix (#sbContent overflow:auto)
+✅ ai-brain: tab บุคลิก AI (6 cards + CRUD + ai_personas DB)
+✅ /api/tenant/personas อ่านจาก DB
+✅ Chat + LINE end-to-end บน test_dev
+✅ cutover.sh atomic (7 blocks) + Caddyfile standardize
+
+GIT RESTORE POINTS (today, newest first)
+0752be6  feat: Caddyfile standardize + cutover atomic 7 blocks
+4c376f3  fix(caddy): cleanup duplicate /chat/* + extend cutover.sh for concore
+0ac583e  feat(ai-brain): persona tab B1+B2+B3
+3796e0a  fix(superboard): #sbContent overflow hidden → auto
+baa6bc8  feat(store-settings): A1+A2+A3
+dba54b3  docs: VIIV_MASTER v3.4
+d0729a6  feat(join-shop): tenant_id (Superboard + PWA + Backend)
+84ef0d1  feat(store-settings): Copy Shop ID button
+280ce88  fix(superboard/connections): LINE form Fix A+B+C+D
+44bc2e3  feat: True Blue/Green deploy
+
+CURRENT STATE
+Version: v3.5 | Updated: 2026-05-07
+Git Latest: 0752be6
+LIVE (:8000): test7, concore, auth, viiv, merchant, api, *.viiv.me
+DEV  (:9000): dev7 เท่านั้น
+modulechat:   :8003
+moduleai:     :8002
+
+KNOWN ISSUES / TECH DEBT (cumulative)
+⚠️  Fix E ยังค้าง: saveFeatures() + quote-config ใน connections.html
+    (save จริงผ่าน แต่ UI แสดง error — เหมือน Fix D ที่แก้แล้ว)
+⚠️  Phase 4 verify ยังไม่ครบ (logo upload + POS sync)
+⚠️  Auto-inject tenant context เข้า AI prompt ยังไม่ทำ
+⚠️  7 base prompts กลุ่ม Internal ยังเป็น [TODO]
+⚠️  4+ commits เก่ายังไม่ push remote (12ca6d8, 7e0541f, f1beec3, a416008)
+⚠️  DUAL SOURCE persona: pos_line.py PERSONA_MAP + ai_personas DB
+⚠️  stripSubdomain() ใน superboard/index.html = unused tech debt
+⚠️  JWT decode duplicate 4-5 จุด:
+    superboard/index.html:725, 457, 1028  ✅ padding fix
+    connections.html (cnGetTid)            ✅ padding fix
+    merchant/store.html:586                ❌ ไม่มี padding fix
+    superboard/dashboard/app.js:376        ❌ ขาด padding
+⚠️  ai-bot.html CRUD ยังไม่ทดสอบจริง
+⚠️  BILLING_GUARD_MODE=report (ยังไม่ enforce)
+⚠️  BILLING_SCHEDULER_DRY_RUN=1 (ยังไม่เปิด LINE จริง)
+⚠️  BIZ_TYPES ใน tenant_settings.py = temporary list
+
+NEXT UP (Priority)
+🔴 Fix E: saveFeatures() + quote-config response handler ใน connections.html
+🟡 Phase 4 verify ครบ (logo upload + POS sync)
+🟡 Auto-inject tenant context (store_name, biz_type, products) เข้า AI prompt
+🟡 Draft 7 base prompts กลุ่ม Internal
+🟡 Push 4+ commits ค้าง
+
+Version: v3.5 | Updated: 2026-05-07 (EOD)
+
+---
+
 Version: v3.2 | Updated: 2026-05-04 | Git Latest: 5db7fff
