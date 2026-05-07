@@ -2608,13 +2608,20 @@ RULES ADDED
 206  Caddyfile fixed mapping: test7→:9000 (LIVE) | dev7→:8000 (DEV)
      mapping เปลี่ยนเฉพาะตอน cutover.sh เท่านั้น
 207  Cutover frequency: เดือนละครั้ง หรือเมื่อ feature ใหญ่เสร็จ — ไม่ใช่ทุก deploy
-208  หลัง cutover: dev7 = port เก่า (LIVE เก่า), test7 = port ใหม่ (LIVE ใหม่)
-     CGO เริ่มพัฒนาบน port ที่กลายเป็น DEV ใหม่
-209  cutover.sh ใช้ครั้งแรก: ต้องลบ duplicate `handle /chat/*` block ที่เป็น dead code ก่อน
-     ไม่งั้น sed swap จะทำให้ Caddyfile messy + เป็น landmine ในอนาคต
+208  ก่อน cutover.sh ครั้งแรก: ลบ duplicate `handle /chat/*` ใน test7+dev7 block
      (ดู TD-CADDY-DUPE ใน Section [K])
+209  Backend success response = {"ok":true, "message":"success"}
+     frontend check: if(d.ok) — standard เดียวกันทุกหน้า (ยังไม่ enforce ทุก endpoint)
+210  join-shop รับ tenant_id ตรงๆ → backend lookup subdomain
+     ไม่ใช้ strip https:// + .viiv.me อีกต่อไป (Rule 80 superseded)
+211  store-settings มีปุ่ม Copy Shop ID — ใช้ navigator.clipboard.writeText()
+     fallback: document.execCommand('copy')
+212  test_dev = internal dev tenant (subdomain='dev7') อยู่ใน prod DB
+     ยอมรับเป็น known limitation ระยะแรก
 
 RULES SUPERSEDED
+- Rule 80 (เดิม "join-shop input: strip https:// + .viiv.me + path")
+  → ถูกแทนที่ด้วย Rule 210 (รับ tenant_id ตรงๆ → backend lookup subdomain)
 - Rule 114 (เดิม "deploy.sh = restart Blue :8000 + health×3 + auto git revert HEAD")
   → ถูกแทนที่ด้วย Rule 204
 - Rule 182 (เดิม "deploy.sh ครอบเฉพาะ ACTIVE port (8000/9000)")
@@ -2635,5 +2642,73 @@ VERIFICATION (2026-05-07 04:43 UTC)
 - systemctl reload caddy → ok ✓
 
 Version: v3.3 | Updated: 2026-05-07
+
+---
+
+## [J] EOD 2026-05-07 (Part 2) — Connections LINE Form + Copy Shop ID + join-shop tenant_id
+
+SUMMARY
+- ❶ Superboard connections LINE form: Fix A-D
+  Fix A: field name line_oa_id → oa_id (frontend ส่งผิด → backend reject 400)
+  Fix B: webhook URL /webhook/platform → /webhook?tenant={tid} per-tenant
+  Fix C: cnLoadSettings() display อ่าน d.line_oa_id → d.oa_id
+  Fix D: response handler — accept d.message==='success' จาก backend
+  helper ใหม่: cnGetTid() inline (Pattern 1 — JWT decode + padding fix)
+- ❷ store-settings: ปุ่ม Copy Shop ID ติดข้าง field id-Shop
+  ใช้ navigator.clipboard.writeText() + execCommand fallback
+  feedback "✓ คัดลอกแล้ว" 1.5s แล้ว revert
+- ❸ join-shop: subdomain → tenant_id (Superboard + PWA + Backend)
+  Frontend: label/placeholder/help text + body field + caller call site
+  Backend: query WHERE id=:tid + validation len>=4
+  stripSubdomain() helper เก็บไว้ unused (compat) — ลบในรอบถัดไป
+
+COMMITS (4 commits, ทั้งหมด push origin/main แล้ว)
+  280ce88  fix(superboard/connections): LINE form save + webhook URL + response handler
+  84ef0d1  feat(store-settings): add Copy Shop ID button
+  d0729a6  feat(join-shop): accept tenant_id instead of subdomain (Superboard + PWA)
+  (รวม VIIV_MASTER docs commit ตามรอบนี้)
+
+FILES CHANGED
+  app/api/platform_connections.py            (join-shop tenant_id lookup)
+  frontend/superboard/index.html             (popup HTML + saveShopAdd + switchShop)
+  frontend/superboard/pages/connections.html (Fix A-D)
+  frontend/superboard/pages/store-settings.html (Copy Shop ID button)
+  frontend/pwa/index.html                    (popup HTML + bump v=6881)
+  frontend/pwa/js/app.js                     (select + saveAdd)
+  modulechat/ui/dashboard/index.html         (bump v=6881)
+
+DECISIONS ADDED (Section [C])
+D59  test_dev = internal dev tenant อยู่ใน prod DB
+     เมื่อมีลูกค้าจริง → พิจารณา Supabase dev project แยก
+D60  Multi-branch: คง 1 tenant per branch (Option A)
+     จนมีลูกค้า chain จริงๆ มาขอ
+D61  join-shop: รับ tenant_id แทน subdomain
+     Platform Board = backlog (ลำดับยังไม่ถึง)
+
+PHASE DONE (เพิ่มในรายการเสร็จ)
+  ✅ True Blue/Green deploy (fixed mapping)
+  ✅ test_dev tenant + dev7 environment แยก
+  ✅ Superboard connections LINE form (Fix A-D)
+  ✅ store-settings Copy Shop ID
+  ✅ join-shop: tenant_id input (Superboard + PWA + Backend)
+
+KNOWN ISSUES / TECH DEBT (Section [K] update)
+⚠️  Fix E ยังค้าง: saveFeatures() + quote-config ใน connections.html
+    ใช้ if(d.ok||d.status==='ok') แต่ backend return {message:'success'}
+    → save จริงผ่านแต่ UI แสดง error (เหมือน Fix D ที่แก้แล้ว)
+    Action: เพิ่ม `d.message==='success'` ใน success check 2 จุด
+⚠️  stripSubdomain() ใน superboard/index.html = unused (tech debt)
+    ลบได้ในรอบถัดไป
+⚠️  TD-CADDY-DUPE: dev7+test7 block มี handle /chat/* ซ้ำ 2 ครั้ง
+    ต้องลบก่อน cutover.sh ใช้จริงครั้งแรก (Rule 208)
+⚠️  JWT decode duplicate 4-5 จุดทั่วระบบ
+    superboard/index.html:725, 457, 1028  ✅ มี padding fix
+    connections.html (cnGetTid)            ✅ มี padding fix (Pattern 1, ใหม่)
+    merchant/store.html:586                ❌ ไม่มี padding fix
+    superboard/dashboard/app.js:376        ❌ ขาด padding
+    TODO: cleanup เป็น sbGetTenantId() ใน auth.js (Pattern 2)
+
+Version: v3.4 | Updated: 2026-05-07
+Git Latest: d0729a6
 
 Version: v3.2 | Updated: 2026-05-04 | Git Latest: 5db7fff
