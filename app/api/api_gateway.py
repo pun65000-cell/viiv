@@ -378,3 +378,149 @@ def reorder_topup_package(pkg_id: str, body: TopupOrder, authorization: str = He
         if r.rowcount == 0:
             raise HTTPException(404, "ไม่พบ package id นี้")
     return {"ok": True}
+
+
+# ════════════════════════════════════════════════════════════════════
+#  Top-up Approvals — admin approve/reject lookup credit_topups
+# ════════════════════════════════════════════════════════════════════
+
+# ─── GET /api/platform/gateway/topup-approvals ───────────────────────
+@router.get("/topup-approvals")
+def list_topup_approvals(status: str = "pending", authorization: str = Header(None)):
+    _admin_auth(authorization)
+    if status not in ("pending", "approved", "rejected", "cancelled", "all"):
+        raise HTTPException(400, "status ไม่ถูกต้อง")
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT ct.id, ct.tenant_id, ct.amount_thb, ct.credits_added,
+                   ct.conversion_rate, ct.topup_package_id, ct.payment_method,
+                   ct.slip_url, ct.status, ct.approved_by, ct.approved_at,
+                   ct.rejected_reason, ct.ledger_id, ct.created_at,
+                   t.store_name, t.subdomain
+            FROM credit_topups ct
+            JOIN tenants t ON ct.tenant_id = t.id
+            WHERE (:status = 'all' OR ct.status = :status)
+            ORDER BY ct.created_at DESC
+            LIMIT 100
+        """), {"status": status}).mappings().all()
+    return {"topups": [dict(r) for r in rows]}
+
+
+# ─── POST /api/platform/gateway/topup-approvals/{id}/approve ─────────
+@router.post("/topup-approvals/{topup_id}/approve")
+def approve_topup(topup_id: str, authorization: str = Header(None)):
+    payload = _admin_auth(authorization)
+    admin_id = payload.get("email") or payload.get("sub") or "platform_admin"
+
+    with engine.begin() as c:
+        # 1. lock + verify topup status = 'pending'
+        topup = c.execute(text("""
+            SELECT id, tenant_id, amount_thb, credits_added, status
+            FROM credit_topups WHERE id = :id FOR UPDATE
+        """), {"id": topup_id}).mappings().first()
+        if not topup:
+            raise HTTPException(404, "ไม่พบ top-up นี้")
+        if topup["status"] != "pending":
+            raise HTTPException(400, f"top-up นี้สถานะ {topup['status']} แล้ว ไม่ใช่ pending")
+
+        tid = topup["tenant_id"]
+        credits_added = int(topup["credits_added"])
+
+        # 2. ensure ai_tenant_credits row + read current balance
+        c.execute(text("""
+            INSERT INTO ai_tenant_credits (tenant_id, credit_topup, updated_at)
+            VALUES (:tid, 0, NOW())
+            ON CONFLICT (tenant_id) DO NOTHING
+        """), {"tid": tid})
+        old_topup = c.execute(text("""
+            SELECT credit_topup FROM ai_tenant_credits WHERE tenant_id = :tid
+        """), {"tid": tid}).scalar() or 0
+        new_topup = int(old_topup) + credits_added
+
+        # 3. INSERT credit_ledger
+        ledger_id = c.execute(text("""
+            INSERT INTO credit_ledger (
+                tenant_id, txn_type, amount, balance_after,
+                source, reference_id, topup_amount_thb,
+                metadata, created_at, created_by
+            ) VALUES (
+                :tid, 'topup', :amount, :balance_after,
+                'topup', :reference_id, :amount_thb,
+                '{}'::jsonb, NOW(), :created_by
+            )
+            RETURNING id
+        """), {
+            "tid": tid,
+            "amount": credits_added,
+            "balance_after": new_topup,
+            "reference_id": topup_id,
+            "amount_thb": topup["amount_thb"],
+            "created_by": admin_id,
+        }).scalar()
+
+        # 4. UPDATE ai_tenant_credits.credit_topup
+        c.execute(text("""
+            UPDATE ai_tenant_credits
+            SET credit_topup = :new_topup, updated_at = NOW()
+            WHERE tenant_id = :tid
+        """), {"tid": tid, "new_topup": new_topup})
+
+        # 5. UPDATE credit_topups status + ledger_id
+        c.execute(text("""
+            UPDATE credit_topups
+            SET status = 'approved',
+                approved_by = :approved_by,
+                approved_at = NOW(),
+                ledger_id = :ledger_id
+            WHERE id = :id
+        """), {"id": topup_id, "approved_by": admin_id, "ledger_id": ledger_id})
+
+    return {"ok": True, "new_balance": new_topup}
+
+
+# ─── POST /api/platform/gateway/topup-approvals/{id}/reject ──────────
+class RejectBody(BaseModel):
+    reason: str
+
+
+@router.post("/topup-approvals/{topup_id}/reject")
+def reject_topup(topup_id: str, body: RejectBody, authorization: str = Header(None)):
+    payload = _admin_auth(authorization)
+    admin_id = payload.get("email") or payload.get("sub") or "platform_admin"
+
+    reason = (body.reason or "").strip()
+    if not reason:
+        raise HTTPException(400, "reason ห้ามว่าง")
+
+    with engine.begin() as c:
+        topup = c.execute(text("""
+            SELECT status FROM credit_topups WHERE id = :id FOR UPDATE
+        """), {"id": topup_id}).mappings().first()
+        if not topup:
+            raise HTTPException(404, "ไม่พบ top-up นี้")
+        if topup["status"] != "pending":
+            raise HTTPException(400, f"top-up นี้สถานะ {topup['status']} แล้ว ไม่ใช่ pending")
+
+        c.execute(text("""
+            UPDATE credit_topups
+            SET status = 'rejected',
+                approved_by = :approved_by,
+                rejected_reason = :reason,
+                approved_at = NOW()
+            WHERE id = :id
+        """), {"id": topup_id, "approved_by": admin_id, "reason": reason})
+
+    return {"ok": True}
+
+
+# ─── GET /api/platform/gateway/topup-approvals/{id}/slip ─────────────
+@router.get("/topup-approvals/{topup_id}/slip")
+def get_topup_slip(topup_id: str, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        row = c.execute(text("""
+            SELECT slip_url FROM credit_topups WHERE id = :id
+        """), {"id": topup_id}).mappings().first()
+        if not row:
+            raise HTTPException(404, "ไม่พบ top-up นี้")
+    return {"slip_url": row["slip_url"]}

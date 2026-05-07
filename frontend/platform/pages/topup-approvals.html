@@ -1,22 +1,491 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"></head>
 <body>
 <style>
-.ph-wrap{padding:30px 20px;text-align:center}
-.ph-icon{font-size:48px;margin-bottom:14px}
-.ph-title{font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px}
-.ph-desc{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6}
-.ph-badge{display:inline-block;padding:5px 14px;background:#fef9ec;
-  border:1px solid rgba(232,185,62,.4);border-radius:20px;
-  font-size:11px;color:#92400e;font-weight:600}
+*{box-sizing:border-box;margin:0;padding:0}
+
+.ta-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
+}
+
+.ta-top{margin-bottom:18px}
+.ta-title{font-size:15px;font-weight:600;margin:0 0 3px;color:#111}
+.ta-subtitle{font-size:12px;color:#666;margin:0}
+
+/* Stats */
+.ta-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:760px){.ta-stats{grid-template-columns:repeat(2,1fr)}}
+.ta-stat{
+  background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:13px 15px;
+}
+.ta-stat-key{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:500;margin-bottom:4px;font-family:var(--font-mono,monospace)}
+.ta-stat-val{font-size:1.35rem;font-weight:600;color:#111;line-height:1.1}
+.ta-stat-sub{font-size:10px;color:#999;margin-top:2px;font-family:var(--font-mono,monospace)}
+
+/* Tabs */
+.ta-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.ta-tab{
+  padding:8px 18px;border-radius:8px;
+  border:0.5px solid #ddd;background:#fff;
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;
+  color:#666;transition:all .12s;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.ta-tab:hover{border-color:#bbb;color:#111}
+.ta-tab.active{
+  background:#e8b93e;border-color:#c9a84c;color:#1a1200;font-weight:600;
+}
+.ta-tab-badge{
+  display:inline-block;
+  background:#dc2626;color:#fff;
+  font-size:10px;font-weight:700;
+  padding:1px 7px;border-radius:9px;min-width:18px;text-align:center;
+}
+.ta-tab.active .ta-tab-badge{background:#1a1200;color:#e8b93e}
+
+/* Section */
+.ta-card{
+  background:#fff;border:0.5px solid #ddd;border-left:3px solid #e8b93e;
+  border-radius:10px;margin-bottom:12px;overflow:hidden;
+}
+.ta-card-head{
+  padding:11px 16px;border-bottom:0.5px solid #eee;
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;font-weight:600;color:#111;
+}
+.ta-card-count{
+  margin-left:auto;background:#e8b93e;color:#1a1200;
+  font-size:11px;font-weight:700;
+  padding:2px 9px;border-radius:10px;
+}
+
+/* Table */
+.ta-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.ta-tbl th{
+  text-align:left;font-weight:500;
+  font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  color:#999;padding:9px 14px;
+  background:#fafafa;border-bottom:0.5px solid #eee;
+  font-family:var(--font-mono,monospace);
+}
+.ta-tbl td{
+  padding:10px 14px;border-bottom:0.5px solid #f3f4f6;
+  vertical-align:middle;color:#111;
+}
+.ta-tbl tr:last-child td{border-bottom:none}
+.ta-tbl tr:hover td{background:#fafafa}
+
+.ta-shop-name{font-weight:600;color:#111}
+.ta-shop-sub{font-size:11px;color:#999;font-family:var(--font-mono,monospace);margin-top:1px}
+.ta-amount{font-weight:600;color:#111;font-family:var(--font-mono,monospace)}
+.ta-credits{font-weight:600;color:#1a56db;font-family:var(--font-mono,monospace)}
+.ta-time{font-size:11.5px;color:#666;font-family:var(--font-mono,monospace)}
+.ta-by{font-size:11px;color:#666;font-family:var(--font-mono,monospace)}
+
+.ta-status{
+  display:inline-block;
+  font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:11px;
+  font-family:var(--font-mono,monospace);
+}
+.ta-status.pending  {background:#fef3c7;color:#92400e}
+.ta-status.approved {background:#dcfce7;color:#166534}
+.ta-status.rejected {background:#fee2e2;color:#991b1b}
+.ta-status.cancelled{background:#f3f4f6;color:#666}
+
+.ta-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.ta-iconbtn{
+  background:transparent;border:0.5px solid #ddd;border-radius:6px;
+  padding:5px 10px;cursor:pointer;
+  font-size:12px;color:#666;font-family:inherit;
+  display:inline-flex;align-items:center;gap:4px;transition:all .12s;
+}
+.ta-iconbtn:hover{border-color:#e8b93e;color:#92400e;background:#fff}
+.ta-btn-approve{
+  background:#16a34a;border:1px solid #15803d;color:#fff;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.ta-btn-approve:hover{opacity:.85}
+.ta-btn-reject{
+  background:transparent;border:1px solid #fecaca;color:#b91c1c;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.ta-btn-reject:hover{background:#fef2f2}
+
+/* Empty state */
+.ta-empty{padding:40px 20px;text-align:center;color:#999}
+.ta-empty-icon{font-size:36px;margin-bottom:10px;opacity:.6}
+.ta-empty-title{font-size:14px;font-weight:600;color:#666;margin-bottom:4px}
+.ta-empty-sub{font-size:12px;color:#999}
+
+/* Modal */
+.ta-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.ta-mask.open{display:flex}
+.ta-modal{
+  background:#fff;border-radius:12px;
+  max-width:520px;width:100%;padding:22px 24px;
+  box-shadow:0 16px 40px rgba(0,0,0,.2);max-height:90vh;overflow:auto;
+}
+.ta-modal h3{margin:0 0 14px;font-size:15px;font-weight:600;color:#111}
+.ta-modal-info{
+  background:#fafafa;border:0.5px solid #eee;border-radius:8px;
+  padding:11px 14px;margin-bottom:12px;font-size:13px;
+}
+.ta-modal-info-row{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.ta-modal-info-row .k{color:#666;font-family:var(--font-mono,monospace);font-size:11.5px}
+.ta-modal-info-row .v{color:#111;font-weight:500}
+.ta-field{margin-bottom:11px}
+.ta-field label{display:block;font-size:11.5px;font-weight:500;color:#666;margin-bottom:4px}
+.ta-field textarea{
+  width:100%;padding:9px 11px;
+  border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;color:#111;
+  background:#f9f9f9;outline:none;box-sizing:border-box;resize:vertical;min-height:70px;
+}
+.ta-field textarea:focus{border-color:#e8b93e;background:#fff}
+.ta-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.ta-cancelbtn{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:6px;padding:7px 14px;
+  font-size:13px;cursor:pointer;font-family:inherit;
+}
+.ta-err{font-size:12px;color:#b91c1c;min-height:18px;margin-top:4px}
+
+/* Slip modal */
+.ta-slip-img{max-width:100%;max-height:60vh;border-radius:8px;border:0.5px solid #eee;display:block;margin:8px auto}
+.ta-slip-empty{padding:30px;text-align:center;color:#999;font-style:italic;font-size:13px}
+
+/* Toast */
+.ta-toast{
+  position:fixed;top:20px;right:20px;
+  background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);
+  z-index:2000;opacity:0;transform:translateY(-8px);
+  transition:all .25s;pointer-events:none;
+}
+.ta-toast.show{opacity:1;transform:translateY(0)}
+.ta-toast.error{background:#991b1b}
+.ta-toast.ok{background:#166534}
 </style>
-<div class="ph-wrap">
-  <div class="ph-icon">✅</div>
-  <div class="ph-title">Top-up Approvals</div>
-  <div class="ph-desc">
-    อนุมัติการเติมเงินจากลูกค้า<br>
-    ดูสลิป + กดอนุมัติ → credit เข้าทันที<br>
-    หรือ reject พร้อมเหตุผล
+
+<div class="ta-wrap">
+  <div class="ta-top">
+    <h2 class="ta-title">✅ Top-up Approvals</h2>
+    <p class="ta-subtitle">อนุมัติการเติมเครดิตจากลูกค้า — ดูสลิป + กดอนุมัติ → credit เข้า credit_topup pool ทันที</p>
   </div>
-  <div class="ph-badge">⏳ Coming in Phase 2</div>
+
+  <div class="ta-stats">
+    <div class="ta-stat"><div class="ta-stat-key">รออนุมัติ</div><div class="ta-stat-val" id="taStPending">—</div></div>
+    <div class="ta-stat"><div class="ta-stat-key">อนุมัติแล้ว</div><div class="ta-stat-val" id="taStApproved">—</div></div>
+    <div class="ta-stat"><div class="ta-stat-key">ปฏิเสธ</div><div class="ta-stat-val" id="taStRejected">—</div></div>
+    <div class="ta-stat"><div class="ta-stat-key">เครดิตที่เติมรวม</div><div class="ta-stat-val" id="taStCredits">—</div><div class="ta-stat-sub">credits (approved)</div></div>
+  </div>
+
+  <div class="ta-tabs">
+    <button class="ta-tab active" id="taTabPending" onclick="taSwitchTab('pending')">
+      🕐 รออนุมัติ <span class="ta-tab-badge" id="taTabPendingBadge" style="display:none">0</span>
+    </button>
+    <button class="ta-tab" id="taTabHistory" onclick="taSwitchTab('history')">
+      📋 ประวัติ
+    </button>
+  </div>
+
+  <div id="taBody"><div class="ta-empty"><div class="ta-empty-icon">⏳</div><div class="ta-empty-title">กำลังโหลด...</div></div></div>
 </div>
+
+<!-- Reject modal -->
+<div class="ta-mask" id="taRejectMask" onclick="taCloseReject(event)">
+  <div class="ta-modal" onclick="event.stopPropagation()">
+    <h3>ปฏิเสธคำขอเติมเครดิต</h3>
+    <div class="ta-modal-info" id="taRejectInfo">
+      <!-- populated by JS -->
+    </div>
+    <div class="ta-field">
+      <label>เหตุผล (จำเป็น) — ลูกค้าจะเห็นข้อความนี้</label>
+      <textarea id="taRejectReason" placeholder="เช่น สลิปไม่ชัด / ยอดไม่ตรง / โอนผิดบัญชี"></textarea>
+    </div>
+    <div class="ta-err" id="taRejectErr"></div>
+    <div class="ta-modal-actions">
+      <button class="ta-cancelbtn" type="button" onclick="taCloseReject()">ยกเลิก</button>
+      <button class="ta-btn-reject" type="button" onclick="taDoReject()">ยืนยันปฏิเสธ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Slip modal -->
+<div class="ta-mask" id="taSlipMask" onclick="taCloseSlip(event)">
+  <div class="ta-modal" onclick="event.stopPropagation()">
+    <h3>📎 สลิปการโอนเงิน</h3>
+    <div id="taSlipBody"></div>
+    <div class="ta-modal-actions">
+      <button class="ta-cancelbtn" type="button" onclick="taCloseSlip()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<div class="ta-toast" id="taToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  const API = window.location.origin + '/api/platform/gateway/topup-approvals';
+  let _all = { pending: [], approved: [], rejected: [], cancelled: [] };
+  let _currentTab = 'pending';
+  let _rejectingId = null;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtBaht(n){ return n == null ? '—' : '฿' + Number(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2}); }
+  function fmtCr(n){ return n == null ? '—' : Number(n).toLocaleString(); }
+  function fmtDt(s){
+    if(!s) return '—';
+    try {
+      const d = new Date(s);
+      return d.toLocaleString('th-TH', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    } catch(_) { return s; }
+  }
+
+  function toast(msg, kind){
+    const el = document.getElementById('taToast');
+    el.className = 'ta-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'ta-toast', 2800);
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers || {}, {
+      'Authorization': 'Bearer ' + TOK()
+    });
+    const r = await fetch(path, opts);
+    let j = null; try { j = await r.json(); } catch(_) {}
+    if(!r.ok) throw new Error((j && j.detail) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  async function loadAll(){
+    try {
+      const d = await api(API + '?status=all');
+      const list = d.topups || [];
+      _all = {pending:[], approved:[], rejected:[], cancelled:[]};
+      list.forEach(t => { (_all[t.status] = _all[t.status] || []).push(t); });
+      renderStats();
+      renderTabs();
+      renderBody();
+    } catch(e){
+      document.getElementById('taBody').innerHTML =
+        '<div class="ta-empty"><div class="ta-empty-icon">⚠️</div>'
+        + '<div class="ta-empty-title">โหลดไม่สำเร็จ</div>'
+        + '<div class="ta-empty-sub">'+esc(e.message)+'</div></div>';
+    }
+  }
+
+  function renderStats(){
+    document.getElementById('taStPending').textContent = _all.pending.length;
+    document.getElementById('taStApproved').textContent = _all.approved.length;
+    document.getElementById('taStRejected').textContent = _all.rejected.length;
+    const totalCr = _all.approved.reduce((s,t) => s + (Number(t.credits_added)||0), 0);
+    document.getElementById('taStCredits').textContent = fmtCr(totalCr);
+  }
+
+  function renderTabs(){
+    const pendingCount = _all.pending.length;
+    const badge = document.getElementById('taTabPendingBadge');
+    if(pendingCount > 0){
+      badge.style.display = 'inline-block';
+      badge.textContent = pendingCount;
+    } else {
+      badge.style.display = 'none';
+    }
+    document.getElementById('taTabPending').classList.toggle('active', _currentTab === 'pending');
+    document.getElementById('taTabHistory').classList.toggle('active', _currentTab === 'history');
+  }
+
+  function renderBody(){
+    if(_currentTab === 'pending') renderPending();
+    else renderHistory();
+  }
+
+  function renderPending(){
+    const rows = _all.pending;
+    if(!rows.length){
+      document.getElementById('taBody').innerHTML =
+        '<div class="ta-card"><div class="ta-empty">'
+        + '<div class="ta-empty-icon">📭</div>'
+        + '<div class="ta-empty-title">ยังไม่มีคำขอเติมเครดิต</div>'
+        + '<div class="ta-empty-sub">ลูกค้าจะเติมได้จาก Superboard (Phase 2E)</div>'
+        + '</div></div>';
+      return;
+    }
+
+    const tbody = rows.map(t => {
+      const id = esc(t.id);
+      return ''
+        + '<tr data-id="'+id+'">'
+        +   '<td>'
+        +     '<div class="ta-shop-name">'+esc(t.store_name||'(ไม่ระบุ)')+'</div>'
+        +     '<div class="ta-shop-sub">'+esc(t.subdomain||t.tenant_id||'')+'</div>'
+        +   '</td>'
+        +   '<td><span class="ta-by">'+esc(t.topup_package_id || '—')+'</span></td>'
+        +   '<td><span class="ta-amount">'+fmtBaht(t.amount_thb)+'</span></td>'
+        +   '<td><span class="ta-credits">'+fmtCr(t.credits_added)+'</span></td>'
+        +   '<td><span class="ta-time">'+fmtDt(t.created_at)+'</span></td>'
+        +   '<td>'
+        +     (t.slip_url
+                ? '<button class="ta-iconbtn" onclick="window.taViewSlip(\''+id+'\')">📎 ดู</button>'
+                : '<span class="ta-by">ไม่มีสลิป</span>')
+        +   '</td>'
+        +   '<td><div class="ta-actions">'
+        +     '<button class="ta-btn-approve" onclick="window.taAskApprove(\''+id+'\')">✅ อนุมัติ</button>'
+        +     '<button class="ta-btn-reject" onclick="window.taOpenReject(\''+id+'\')">✕ ปฏิเสธ</button>'
+        +   '</div></td>'
+        + '</tr>';
+    }).join('');
+
+    document.getElementById('taBody').innerHTML = ''
+      + '<div class="ta-card">'
+      +   '<div class="ta-card-head">🕐 รออนุมัติ<span class="ta-card-count">'+rows.length+'</span></div>'
+      +   '<table class="ta-tbl"><thead><tr>'
+      +     '<th>ร้านค้า</th><th>แพ็กเกจ</th><th>จำนวน ฿</th><th>Credits</th>'
+      +     '<th>วันที่ขอ</th><th>สลิป</th><th></th>'
+      +   '</tr></thead><tbody>'+tbody+'</tbody></table>'
+      + '</div>';
+  }
+
+  function renderHistory(){
+    const rows = []
+      .concat(_all.approved.map(t => ({...t, _st: 'approved'})))
+      .concat(_all.rejected.map(t => ({...t, _st: 'rejected'})))
+      .concat(_all.cancelled.map(t => ({...t, _st: 'cancelled'})))
+      .sort((a,b) => new Date(b.approved_at || b.created_at) - new Date(a.approved_at || a.created_at));
+
+    if(!rows.length){
+      document.getElementById('taBody').innerHTML =
+        '<div class="ta-card"><div class="ta-empty">'
+        + '<div class="ta-empty-icon">📋</div>'
+        + '<div class="ta-empty-title">ยังไม่มีประวัติ</div>'
+        + '<div class="ta-empty-sub">การอนุมัติ/ปฏิเสธจะปรากฏที่นี่</div>'
+        + '</div></div>';
+      return;
+    }
+
+    const STATUS_LABEL = {
+      approved: 'อนุมัติแล้ว',
+      rejected: 'ปฏิเสธ',
+      cancelled: 'ยกเลิก'
+    };
+
+    const tbody = rows.map(t => {
+      return ''
+        + '<tr>'
+        +   '<td>'
+        +     '<div class="ta-shop-name">'+esc(t.store_name||'(ไม่ระบุ)')+'</div>'
+        +     '<div class="ta-shop-sub">'+esc(t.subdomain||t.tenant_id||'')+'</div>'
+        +   '</td>'
+        +   '<td><span class="ta-amount">'+fmtBaht(t.amount_thb)+'</span></td>'
+        +   '<td><span class="ta-credits">'+fmtCr(t.credits_added)+'</span></td>'
+        +   '<td><span class="ta-status '+t._st+'">'+(STATUS_LABEL[t._st]||t._st)+'</span></td>'
+        +   '<td><span class="ta-time">'+fmtDt(t.approved_at || t.created_at)+'</span></td>'
+        +   '<td><span class="ta-by">'+esc(t.approved_by || '—')+'</span></td>'
+        + '</tr>';
+    }).join('');
+
+    document.getElementById('taBody').innerHTML = ''
+      + '<div class="ta-card">'
+      +   '<div class="ta-card-head">📋 ประวัติ<span class="ta-card-count">'+rows.length+'</span></div>'
+      +   '<table class="ta-tbl"><thead><tr>'
+      +     '<th>ร้านค้า</th><th>จำนวน ฿</th><th>Credits</th>'
+      +     '<th>สถานะ</th><th>วันที่</th><th>ดำเนินการโดย</th>'
+      +   '</tr></thead><tbody>'+tbody+'</tbody></table>'
+      + '</div>';
+  }
+
+  // ── tab switch ──
+  window.taSwitchTab = function(tab){
+    _currentTab = tab;
+    renderTabs();
+    renderBody();
+  };
+
+  // ── slip preview ──
+  window.taViewSlip = async function(id){
+    const body = document.getElementById('taSlipBody');
+    body.innerHTML = '<div class="ta-slip-empty">กำลังโหลด...</div>';
+    document.getElementById('taSlipMask').classList.add('open');
+    try {
+      const d = await api(API + '/' + encodeURIComponent(id) + '/slip');
+      if(d.slip_url){
+        body.innerHTML = '<img class="ta-slip-img" src="'+esc(d.slip_url)+'" alt="slip"'
+          + ' onerror="this.parentNode.innerHTML=\'<div class=ta-slip-empty>โหลดรูปไม่ได้</div>\'"/>';
+      } else {
+        body.innerHTML = '<div class="ta-slip-empty">ไม่มีสลิปแนบ</div>';
+      }
+    } catch(e){
+      body.innerHTML = '<div class="ta-slip-empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  };
+  window.taCloseSlip = function(e){
+    if(e && e.target && e.target.id !== 'taSlipMask') return;
+    document.getElementById('taSlipMask').classList.remove('open');
+  };
+
+  // ── approve ──
+  window.taAskApprove = async function(id){
+    const t = _all.pending.find(x => x.id === id);
+    const name = t ? (t.store_name || t.subdomain || id) : id;
+    const cr = t ? fmtCr(t.credits_added) : '?';
+    if(!confirm('อนุมัติเติมเครดิต ' + cr + ' credits ให้ "' + name + '" ?')) return;
+    try {
+      const d = await api(API + '/' + encodeURIComponent(id) + '/approve', {method: 'POST'});
+      toast('อนุมัติแล้ว — balance ใหม่: ' + fmtCr(d.new_balance), 'ok');
+      loadAll();
+    } catch(e){ toast('อนุมัติไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+
+  // ── reject ──
+  window.taOpenReject = function(id){
+    _rejectingId = id;
+    const t = _all.pending.find(x => x.id === id);
+    const info = t
+      ? '<div class="ta-modal-info-row"><span class="k">ร้าน</span><span class="v">'+esc(t.store_name||'')+'</span></div>'
+      + '<div class="ta-modal-info-row"><span class="k">ยอด</span><span class="v">'+fmtBaht(t.amount_thb)+' = '+fmtCr(t.credits_added)+' credits</span></div>'
+      + '<div class="ta-modal-info-row"><span class="k">วันที่</span><span class="v">'+fmtDt(t.created_at)+'</span></div>'
+      : '<div class="ta-modal-info-row"><span class="k">id</span><span class="v">'+esc(id)+'</span></div>';
+    document.getElementById('taRejectInfo').innerHTML = info;
+    document.getElementById('taRejectReason').value = '';
+    document.getElementById('taRejectErr').textContent = '';
+    document.getElementById('taRejectMask').classList.add('open');
+  };
+  window.taCloseReject = function(e){
+    if(e && e.target && e.target.id !== 'taRejectMask') return;
+    document.getElementById('taRejectMask').classList.remove('open');
+    _rejectingId = null;
+  };
+  window.taDoReject = async function(){
+    const reason = document.getElementById('taRejectReason').value.trim();
+    const err = document.getElementById('taRejectErr');
+    err.textContent = '';
+    if(!reason){ err.textContent = 'กรุณากรอกเหตุผล'; return; }
+    if(!_rejectingId){ err.textContent = 'ไม่พบ id'; return; }
+    try {
+      await api(API + '/' + encodeURIComponent(_rejectingId) + '/reject', {
+        method: 'POST', body: JSON.stringify({reason})
+      });
+      document.getElementById('taRejectMask').classList.remove('open');
+      _rejectingId = null;
+      toast('ปฏิเสธแล้ว', 'ok');
+      loadAll();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  loadAll();
+})();
+</script>
 </body></html>
