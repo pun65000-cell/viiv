@@ -449,17 +449,17 @@ function cnLoadSettings(){
     .then(function(d){
       _origData=d;
       // credentials
-      document.getElementById('cnLineOaId').value=d.line_oa_id||'';
+      document.getElementById('cnLineOaId').value=d.oa_id||'';
       document.getElementById('cnLineToken').value=d.channel_token||'';
       document.getElementById('cnLineSecret').value=d.channel_secret||'';
       // status banner
-      var connected=!!(d.line_oa_id && d.channel_token);
+      var connected=!!(d.oa_id && d.channel_token);
       var banner=document.getElementById('cnLineStatusBanner');
       var badge=document.getElementById('cnLineStatusBadge');
       if(connected){
         banner.className='cn-status-banner connected';
         document.getElementById('cnLineStatusTitle').textContent='เชื่อมต่อ LINE OA สำเร็จ';
-        document.getElementById('cnLineStatusSub').textContent='@'+(d.line_oa_id||'');
+        document.getElementById('cnLineStatusSub').textContent='@'+(d.oa_id||'');
         badge.style.display='block';
       } else {
         banner.className='cn-status-banner disconnected';
@@ -510,7 +510,7 @@ function cnSaveCred(){
   if(!_tok) return;
   var h={'Authorization':'Bearer '+_tok,'Content-Type':'application/json'};
   var body=JSON.stringify({
-    line_oa_id: document.getElementById('cnLineOaId').value.trim(),
+    oa_id:      document.getElementById('cnLineOaId').value.trim(),
     channel_token: document.getElementById('cnLineToken').value.trim(),
     channel_secret: document.getElementById('cnLineSecret').value.trim()
   });
@@ -519,7 +519,7 @@ function cnSaveCred(){
     .then(function(r){return r.json();})
     .then(function(d){
       msg.style.display='block';
-      if(d.ok||d.status==='ok'){
+      if(d.message==='success'||d.ok||d.status==='ok'){
         msg.style.background='#f0fdf4'; msg.style.color='#16a34a';
         msg.textContent='✅ บันทึก credentials เรียบร้อย';
         cnLoadSettings();
@@ -607,7 +607,26 @@ function cnFetchPendingUid(){
 }
 
 // ── Webhook URL (per-shop subdomain) ──
-function cnWebhookUrl(){ return window.location.origin + '/api/line/webhook/platform'; }
+function cnGetTid(){
+  try{
+    var tok = _tok || localStorage.getItem('viiv_token');
+    if(!tok) return '';
+    var b64 = tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    while(b64.length % 4) b64 += '=';
+    return JSON.parse(atob(b64)).tenant_id || '';
+  }catch(e){
+    console.warn('[connections] JWT decode failed', e);
+    return '';
+  }
+}
+function cnWebhookUrl(){
+  var tid = cnGetTid();
+  if(!tid){
+    console.warn('[connections] tenant_id missing — webhook URL incomplete');
+    return window.location.origin + '/api/line/webhook';
+  }
+  return window.location.origin + '/api/line/webhook?tenant=' + encodeURIComponent(tid);
+}
 (function(){
   var el = document.getElementById('cnWebhookUrl');
   if(el) el.textContent = cnWebhookUrl();
