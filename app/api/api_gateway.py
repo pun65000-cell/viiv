@@ -708,3 +708,76 @@ def update_health_settings(body: HealthSettingsBody, authorization: str = Header
             "by": payload.get("email") or payload.get("sub") or "platform_admin",
         })
     return {"ok": True}
+
+
+# ─── GET /api/platform/gateway/quota-status ──────────────────────────
+# Tenant-facing: returns current/limit for member + product quotas.
+# Uses tenant JWT (viiv_token) — NOT platform admin token.
+def _tenant_auth(authorization: str | None) -> str:
+    """Decode tenant JWT and resolve tenant_id (mirrors tenant_settings._resolve_tenant)."""
+    if not authorization:
+        raise HTTPException(401, "missing token")
+    try:
+        tok = authorization.replace("Bearer ", "").strip()
+        if not tok:
+            raise HTTPException(401, "missing token")
+        payload = jwt.decode(tok, JWT_SECRET, algorithms=["HS256"],
+                             options={"leeway": 864000, "verify_exp": False})
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(401, "invalid token")
+    tid = payload.get("tenant_id")
+    if tid:
+        return tid
+    sub = payload.get("sub")
+    if sub:
+        with engine.connect() as c:
+            r = c.execute(text(
+                "SELECT tenant_id FROM tenant_staff WHERE id=:id LIMIT 1"
+            ), {"id": sub}).fetchone()
+            if r and r[0]:
+                return r[0]
+            email = payload.get("email")
+            if email:
+                r = c.execute(text(
+                    "SELECT id FROM tenants WHERE email=:e LIMIT 1"
+                ), {"e": email}).fetchone()
+                if r:
+                    return r[0]
+    raise HTTPException(401, "no tenant for token")
+
+
+@router.get("/quota-status")
+def quota_status(authorization: str = Header(None)):
+    tid = _tenant_auth(authorization)
+    with engine.connect() as c:
+        r = c.execute(text("""
+            SELECT p.name, p.max_members, p.max_products
+              FROM tenants t
+              JOIN packages p ON p.id = t.package_id
+             WHERE t.id = :tid
+             LIMIT 1
+        """), {"tid": tid}).fetchone()
+        if not r:
+            raise HTTPException(404, "tenant or package not found")
+        pkg_name, max_m, max_p = r[0], r[1], r[2]
+        member_count = c.execute(text(
+            "SELECT COUNT(*) FROM members WHERE tenant_id=:tid AND deleted_at IS NULL"
+        ), {"tid": tid}).scalar() or 0
+        product_count = c.execute(text(
+            "SELECT COUNT(*) FROM products WHERE tenant_id=:tid AND status='active'"
+        ), {"tid": tid}).scalar() or 0
+
+    def _block(current: int, limit):
+        cur = int(current or 0)
+        lim = int(limit) if limit is not None else -1
+        if lim < 0:
+            return {"current": cur, "limit": -1, "remaining": None}
+        return {"current": cur, "limit": lim, "remaining": max(0, lim - cur)}
+
+    return {
+        "package_name": pkg_name,
+        "members": _block(member_count, max_m),
+        "products": _block(product_count, max_p),
+    }

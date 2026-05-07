@@ -1046,3 +1046,17 @@ input, textarea { font-family: inherit; }
   50%      { opacity:.3; transform:scale(.5); }
 }
 #tb-ai-label.show { max-width:60px !important; opacity:1 !important; }
+
+/* Quota indicator (Phase 2E) */
+.quota-wrap { padding:10px 0 14px; }
+.quota-header { display:flex; justify-content:space-between; margin-bottom:6px; }
+.quota-label { font-size:12px; color:#6b7280; font-weight:500; }
+.quota-numbers { font-size:12px; font-weight:600; color:#1f2937; }
+.quota-track { height:6px; background:#f3f4f6; border-radius:3px; overflow:hidden; margin-bottom:4px; }
+.quota-fill { height:100%; border-radius:3px; transition:width .3s; }
+.quota-footer { display:flex; justify-content:space-between; }
+.quota-remaining { font-size:11px; color:#6b7280; }
+.quota-remaining.warning { color:#f97316; font-weight:600; }
+.quota-remaining.danger { color:#ef4444; font-weight:600; }
+.quota-pct { font-size:11px; color:#9ca3af; }
+.quota-unlimited { font-size:12px; color:#6b7280; }

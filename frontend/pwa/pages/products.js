@@ -464,6 +464,7 @@
         <div style="font-size:var(--fs-lg);font-weight:700">${isEdit?'แก้ไขสินค้า':'สร้างสินค้าใหม่'}</div>
         <button onclick="closeSheet()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--muted);padding:0">✕</button>
       </div>
+      ${!isEdit ? `<div id="quota-bar-products"></div>` : ''}
 
       <div class="pm-field" style="margin-bottom:12px">
         <label>รูปภาพสินค้า</label>
@@ -641,7 +642,7 @@
     },
 
     // ─ Products ─
-    openCreate() { openSheet(_prodFormHtml({})); },
+    openCreate() { openSheet(_prodFormHtml({})); try { loadQuotaBar('products'); } catch(e) {} },
     edit(id) { const p = _products.find(x => x.id===id); if (p) openSheet(_prodFormHtml(p)); },
 
     toggleTrackStock() {

@@ -193,6 +193,7 @@
         <div style="font-size:var(--fs-lg);font-weight:700">${isEdit ? 'แก้ไขสมาชิกร้านค้า' : 'สร้างสมาชิกใหม่'}</div>
         <button onclick="closeSheet()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--muted);padding:0">✕</button>
       </div>
+      ${!isEdit ? `<div id="quota-bar-members"></div>` : ''}
       ${isEdit ? `<div style="background:var(--bg);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:var(--fs-xs);color:var(--muted)">
         รหัส: <strong style="color:var(--txt)">${_esc(m.code||'—')}</strong>&nbsp;·&nbsp;
         สมาชิกตั้งแต่: <strong style="color:var(--txt)">${App.fmtDate(m.created_at)}</strong>
@@ -281,6 +282,7 @@
         <div style="font-size:var(--fs-lg);font-weight:700">${isEdit ? 'แก้ไขสมาชิกคู่ค้า' : 'สร้างคู่ค้าใหม่'}</div>
         <button onclick="closeSheet()" style="background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--muted);padding:0">✕</button>
       </div>
+      ${!isEdit ? `<div id="quota-bar-members"></div>` : ''}
       <div style="margin-bottom:14px">
         <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">ประเภทคู่ค้า</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">${_ptTypeBtns(curType)}</div>
@@ -373,6 +375,7 @@
     switchTab(tab) { _tab = tab; _q = ''; history.replaceState(null,'','#members?tab='+tab); _reload(); },
     openCreate() {
       openSheet(_tab === 'store' ? _storeFormHtml({}) : _partnerFormHtml({}));
+      try { loadQuotaBar('members'); } catch(e) {}
     },
     editStore(id) {
       const m = _all.find(x => x.id === id);

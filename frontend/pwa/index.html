@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=8708"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=0230"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -178,29 +178,29 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/auth.js?v=8708"></script>
-<script src="/pwa/js/router.js?v=8708"></script>
-<script src="/pwa/js/app.js?v=8708"></script>
-<script src="/pwa/pages/home.js?v=8708"></script>
-<script src="/pwa/pages/pos.js?v=8708"></script>
-<script src="/pwa/pages/billing.js?v=8708"></script>
-<script src="/pwa/pages/statement.js?v=8708"></script>
-<script src="/pwa/pages/orders-upload.js?v=8708"></script>
-<script src="/pwa/pages/orders.js?v=8708"></script>
-<script src="/pwa/pages/orders-detail.js?v=8708"></script>
-<script src="/pwa/pages/bill-history.js?v=8708"></script>
-<script src="/pwa/pages/products.js?v=8708"></script>
-<script src="/pwa/pages/members.js?v=8708"></script>
-    <script src="/pwa/pages/bill.js?v=8708"></script>
-    <script src="/pwa/pages/sales.js?v=8708"></script>
-<script src="/pwa/pages/chat.js?v=8708"></script>
-<script src="/pwa/pages/autopost.js?v=8708"></script>
-<script src="/pwa/pages/affiliate.js?v=8708"></script>
-<script src="/pwa/pages/partners.js?v=8708"></script>
-<script src="/pwa/pages/store.js?v=8708"></script>
-<script src="/pwa/pages/line.js?v=8708"></script>
-<script src="/pwa/pages/comingsoon.js?v=8708"></script>
-  <script src="/pwa/pages/more.js?v=8708"></script>
+<script src="/pwa/js/auth.js?v=0230"></script>
+<script src="/pwa/js/router.js?v=0230"></script>
+<script src="/pwa/js/app.js?v=0230"></script>
+<script src="/pwa/pages/home.js?v=0230"></script>
+<script src="/pwa/pages/pos.js?v=0230"></script>
+<script src="/pwa/pages/billing.js?v=0230"></script>
+<script src="/pwa/pages/statement.js?v=0230"></script>
+<script src="/pwa/pages/orders-upload.js?v=0230"></script>
+<script src="/pwa/pages/orders.js?v=0230"></script>
+<script src="/pwa/pages/orders-detail.js?v=0230"></script>
+<script src="/pwa/pages/bill-history.js?v=0230"></script>
+<script src="/pwa/pages/products.js?v=0230"></script>
+<script src="/pwa/pages/members.js?v=0230"></script>
+    <script src="/pwa/pages/bill.js?v=0230"></script>
+    <script src="/pwa/pages/sales.js?v=0230"></script>
+<script src="/pwa/pages/chat.js?v=0230"></script>
+<script src="/pwa/pages/autopost.js?v=0230"></script>
+<script src="/pwa/pages/affiliate.js?v=0230"></script>
+<script src="/pwa/pages/partners.js?v=0230"></script>
+<script src="/pwa/pages/store.js?v=0230"></script>
+<script src="/pwa/pages/line.js?v=0230"></script>
+<script src="/pwa/pages/comingsoon.js?v=0230"></script>
+  <script src="/pwa/pages/more.js?v=0230"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -297,6 +297,54 @@ function openSheet(content) {
   document.getElementById('sheet-overlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
 }
+
+// Quota indicator (Phase 2E) — used by member/product create flows
+async function loadQuotaBar(type) {
+  try {
+    const token = localStorage.getItem('viiv_token');
+    if (!token) return;
+    const res = await fetch(window.location.origin + '/api/platform/gateway/quota-status', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const q = data[type];
+    if (q) renderQuotaBar(type, q);
+  } catch(e) {}
+}
+function renderQuotaBar(type, q) {
+  const el = document.getElementById('quota-bar-' + type);
+  if (!el) return;
+  const labelText = type === 'members' ? 'สมาชิก + คู่ค้า' : 'สินค้า + Affiliate';
+  const unitText  = type === 'members' ? 'ที่นั่ง' : 'ชิ้น';
+  if (q.limit === -1 || q.limit === null) {
+    el.innerHTML =
+      '<div class="quota-wrap"><div class="quota-header">' +
+      '<span class="quota-label">' + labelText + '</span>' +
+      '<span class="quota-unlimited">ไม่จำกัด (' + (q.current||0).toLocaleString() + ' รายการ)</span>' +
+      '</div></div>';
+    return;
+  }
+  const cur = q.current || 0;
+  const lim = q.limit;
+  const pct = lim > 0 ? Math.min(100, Math.round(cur / lim * 100)) : 0;
+  const remaining = Math.max(0, lim - cur);
+  const barColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f97316' : '#e8b93e';
+  const remCls = pct >= 90 ? 'danger' : pct >= 70 ? 'warning' : '';
+  el.innerHTML =
+    '<div class="quota-wrap">' +
+      '<div class="quota-header">' +
+        '<span class="quota-label">' + labelText + '</span>' +
+        '<span class="quota-numbers">' + cur.toLocaleString() + ' / ' + lim.toLocaleString() + '</span>' +
+      '</div>' +
+      '<div class="quota-track"><div class="quota-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
+      '<div class="quota-footer">' +
+        '<span class="quota-remaining ' + remCls + '">เหลือ ' + remaining.toLocaleString() + ' ' + unitText + '</span>' +
+        '<span class="quota-pct">' + pct + '%</span>' +
+      '</div>' +
+    '</div>';
+}
+
 function closeSheet() {
   document.getElementById('sheet-overlay').classList.remove('show');
   document.getElementById('sheet').classList.remove('show');
@@ -306,10 +354,10 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/pwa/sw.js', { scope: '/pwa/' }).catch(() => {});
 }
 </script>
-  <script src="/pwa/pages/finance.js?v=8708"></script>
-  <script src="/pwa/pages/reserve.js?v=8708"></script>
-  <script src="/pwa/pages/staff.js?v=8708"></script>
-  <script src="/pwa/pages/bank.js?v=8708"></script>
-  <script src="/pwa/pages/receive.js?v=8708"></script>
+  <script src="/pwa/pages/finance.js?v=0230"></script>
+  <script src="/pwa/pages/reserve.js?v=0230"></script>
+  <script src="/pwa/pages/staff.js?v=0230"></script>
+  <script src="/pwa/pages/bank.js?v=0230"></script>
+  <script src="/pwa/pages/receive.js?v=0230"></script>
 </body>
 </html>
