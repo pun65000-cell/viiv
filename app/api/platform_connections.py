@@ -550,15 +550,15 @@ def _decode_user(authorization: str):
 @router.post("/join-shop")
 def join_shop(payload: dict, authorization: str = Header(None)):
     sub, me = _decode_user(authorization)
-    subdomain = (payload.get("subdomain") or "").strip().lower()
-    if not subdomain:
-        raise HTTPException(400, "กรุณาระบุ Shop ID")
+    tenant_id = (payload.get("tenant_id") or "").strip()
+    if not tenant_id or len(tenant_id) < 4:
+        raise HTTPException(400, "Shop ID ไม่ถูกต้อง")
 
     with engine.begin() as c:
         tenant = c.execute(text("""
             SELECT id, store_name, subdomain
-            FROM tenants WHERE LOWER(subdomain)=:s
-        """), {"s": subdomain}).fetchone()
+            FROM tenants WHERE id=:tid
+        """), {"tid": tenant_id}).fetchone()
         if not tenant:
             raise HTTPException(404, "ไม่พบร้านนี้ในระบบ")
 

@@ -558,9 +558,9 @@ document.addEventListener('click', function(e){
 
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-window.switchShop = async function(subdomain){
-  console.log('[switchShop]', subdomain);
-  if(!subdomain){ alert('Shop ID ว่าง'); return; }
+window.switchShop = async function(tenant_id){
+  console.log('[switchShop]', tenant_id);
+  if(!tenant_id){ alert('Shop ID ว่าง'); return; }
   var token = getToken();
   if(!token){
     console.warn('[switchShop] no token in localStorage — redirect login');
@@ -571,7 +571,7 @@ window.switchShop = async function(subdomain){
     var res = await fetch('/api/platform/join-shop',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({subdomain: subdomain})
+      body: JSON.stringify({tenant_id: tenant_id})
     });
     var data = await res.json();
     if(res.ok && data.access_token && data.subdomain){
@@ -600,7 +600,7 @@ window.saveShopAdd = async function(){
   var btn = document.getElementById('shopAddSaveBtn');
   var err = document.getElementById('shopAddErr');
   try {
-    var sd = stripSubdomain(document.getElementById('shopAddInput').value);
+    var sd = (document.getElementById('shopAddInput').value || '').trim();
     if(err) err.textContent = '';
     if(!sd){ if(err) err.textContent = 'กรุณาใส่ Shop ID'; return; }
     if(btn){ btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
@@ -608,7 +608,7 @@ window.saveShopAdd = async function(){
     var res = await fetch('/api/platform/join-shop',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({subdomain: sd})
+      body: JSON.stringify({tenant_id: sd})
     });
     var data = {};
     try { data = await res.json(); } catch(_) {}
@@ -755,7 +755,7 @@ async function loadShopList(){
         iconWrap = '<div style="width:28px;height:28px;flex-shrink:0;position:relative">'
           + '<span style="'+avStyle+';display:flex">'+initial+'</span></div>';
       }
-      return '<div class="sb-shop-dd-item'+active+'" onclick="switchShop(\''+escHtml(sd)+'\')" style="padding:8px 12px;gap:8px">'+
+      return '<div class="sb-shop-dd-item'+active+'" onclick="switchShop(\''+escHtml(s.id)+'\')" style="padding:8px 12px;gap:8px">'+
         iconWrap+
         '<div style="flex:1;min-width:0">'+
           '<div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(n)+'</div>'+
@@ -849,10 +849,9 @@ document.addEventListener('DOMContentLoaded', function(){
   <div id="shopAddBox"
        style="background:#fff;border-radius:14px;width:100%;max-width:360px;padding:22px;box-shadow:0 12px 32px rgba(0,0,0,.25);font-family:'Sarabun',sans-serif;">
     <div style="font-size:1rem;font-weight:700;margin:0 0 12px;">เพิ่มสาขา</div>
-    <label style="display:block;font-size:12px;color:#888;margin-bottom:5px;">Shop ID (subdomain)</label>
-    <input id="shopAddInput" type="text" placeholder="เช่น test8 (ไม่ต้องใส่ .viiv.me)" autocomplete="off"
+    <label style="display:block;font-size:12px;color:#888;margin-bottom:5px;">Shop ID</label>
+    <input id="shopAddInput" type="text" placeholder="เช่น ten_7f3a9b..." autocomplete="off"
            style="width:100%;padding:10px 12px;border:1px solid rgba(0,0,0,.12);border-radius:9px;font-size:14px;outline:none;box-sizing:border-box;background:#faf9f7;">
-    <div style="font-size:11px;color:#888;margin-top:6px;">ระบบจะตัด https:// และ .viiv.me ออกให้อัตโนมัติ</div>
     <div id="shopAddErr" style="font-size:12px;color:#d03030;margin-top:8px;min-height:16px;"></div>
     <div style="display:flex;gap:8px;margin-top:14px;">
       <button id="shopAddSaveBtn" type="button"

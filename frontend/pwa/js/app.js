@@ -280,7 +280,7 @@ window.ShopSwitcher = {
       const active = s.id === this._curTid ? ' active' : '';
       const initial = (s.store_name || s.subdomain || '?').charAt(0).toUpperCase();
       const sub = (s.subdomain || '');
-      return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+esc(sub)+'\')">'
+      return '<div class="tb-shop-item'+active+'" onclick="ShopSwitcher.select(\''+esc(s.id)+'\')">'
         + renderIcon(s.logo_url || '', initial)
         + '<div class="tb-shop-info">'
         +   '<div class="tb-shop-name">'+esc(s.store_name || sub || 'Shop')+'</div>'
@@ -289,16 +289,16 @@ window.ShopSwitcher = {
     }).join('');
   },
 
-  async select(subdomain) {
-    console.log('[ShopSwitcher.select]', subdomain);
-    if (!subdomain) {
-      console.warn('[ShopSwitcher.select] empty subdomain — abort');
+  async select(tenant_id) {
+    console.log('[ShopSwitcher.select]', tenant_id);
+    if (!tenant_id) {
+      console.warn('[ShopSwitcher.select] empty tenant_id — abort');
       App.toast('Shop ID ว่าง');
       return;
     }
     try {
       const data = await App.api('/api/platform/join-shop', {
-        method:'POST', body: JSON.stringify({ subdomain })
+        method:'POST', body: JSON.stringify({ tenant_id })
       });
       if (data && data.access_token && data.subdomain) {
         window.location.href = 'https://' + data.subdomain + '.viiv.me/pwa/?token=' + encodeURIComponent(data.access_token);
@@ -335,17 +335,12 @@ window.ShopSwitcher = {
     const err = document.getElementById('shop-add-err');
     try {
       const raw = (document.getElementById('shop-add-input') || {}).value || '';
-      const sd = raw
-        .trim()
-        .replace(/^https?:\/\//i, '')
-        .replace(/\.viiv\.me.*$/i, '')
-        .replace(/\/.*$/, '')
-        .toLowerCase();
+      const sd = raw.trim();
       if (err) err.textContent = '';
       if (!sd) { if (err) err.textContent = 'กรุณาใส่ Shop ID'; return; }
       if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
       await App.api('/api/platform/join-shop', {
-        method:'POST', body: JSON.stringify({ subdomain: sd })
+        method:'POST', body: JSON.stringify({ tenant_id: sd })
       });
       this.closeAddForce();
       App.toast('✅ เพิ่มร้านสำเร็จ');
