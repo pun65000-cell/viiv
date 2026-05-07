@@ -1,22 +1,412 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"></head>
 <body>
 <style>
-.ph-wrap{padding:30px 20px;text-align:center}
-.ph-icon{font-size:48px;margin-bottom:14px}
-.ph-title{font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px}
-.ph-desc{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6}
-.ph-badge{display:inline-block;padding:5px 14px;background:#fef9ec;
-  border:1px solid rgba(232,185,62,.4);border-radius:20px;
-  font-size:11px;color:#92400e;font-weight:600}
+*{box-sizing:border-box;margin:0;padding:0}
+
+.hm-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
+}
+
+.hm-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.hm-title{font-size:15px;font-weight:600;margin:0 0 3px;color:#111}
+.hm-subtitle{font-size:12px;color:#666;margin:0}
+.hm-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hm-int-wrap{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border:0.5px solid #ddd;border-radius:8px;
+  padding:4px 10px;
+}
+.hm-int-label{font-size:12px;color:#666}
+.hm-int-input{
+  width:54px;padding:4px 8px;
+  border:0.5px solid #ddd;border-radius:6px;
+  font-size:13px;font-family:inherit;text-align:right;
+  background:#f9f9f9;outline:none;
+}
+.hm-int-input:focus{border-color:#e8b93e;background:#fff}
+.hm-int-suffix{font-size:11px;color:#999}
+.hm-int-save{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:6px;padding:4px 9px;
+  font-size:11.5px;cursor:pointer;font-family:inherit;
+}
+.hm-int-save:hover{border-color:#e8b93e;color:#92400e}
+.hm-run-btn{
+  padding:8px 16px;border-radius:8px;
+  background:#e8b93e;color:#1a1200;
+  border:1px solid #c9a84c;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;min-height:36px;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.hm-run-btn:hover{opacity:.85}
+.hm-run-btn:disabled{opacity:.55;cursor:not-allowed}
+.hm-spinner{
+  display:inline-block;width:12px;height:12px;
+  border:2px solid #1a1200;border-top-color:transparent;
+  border-radius:50%;animation:hm-spin .7s linear infinite;
+}
+@keyframes hm-spin{to{transform:rotate(360deg)}}
+
+.hm-last{
+  font-size:11.5px;color:#666;
+  font-family:var(--font-mono,monospace);
+  margin-bottom:14px;
+}
+
+.hm-banner{
+  background:#fef9ec;border:0.5px solid #fde68a;border-radius:9px;
+  padding:11px 14px;margin-bottom:14px;
+  font-size:13px;color:#92400e;
+}
+
+/* Stats */
+.hm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:760px){.hm-stats{grid-template-columns:repeat(2,1fr)}}
+.hm-stat{
+  background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:13px 15px;
+}
+.hm-stat-key{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:500;margin-bottom:4px;font-family:var(--font-mono,monospace)}
+.hm-stat-val{font-size:1.45rem;font-weight:600;color:#111;line-height:1.1}
+.hm-stat-val.healthy{color:#16a34a}
+.hm-stat-val.failed {color:#dc2626}
+.hm-stat-val.never  {color:#999}
+
+/* Section */
+.hm-card{
+  background:#fff;border:0.5px solid #ddd;border-left:3px solid #e8b93e;
+  border-radius:10px;margin-bottom:12px;overflow:hidden;
+}
+.hm-card-head{
+  padding:11px 16px;border-bottom:0.5px solid #eee;
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;font-weight:600;color:#111;
+}
+.hm-card-count{
+  margin-left:auto;background:#e8b93e;color:#1a1200;
+  font-size:11px;font-weight:700;
+  padding:2px 9px;border-radius:10px;
+}
+
+/* Table */
+.hm-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.hm-tbl th{
+  text-align:left;font-weight:500;
+  font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  color:#999;padding:8px 12px;
+  background:#fafafa;border-bottom:0.5px solid #eee;
+  font-family:var(--font-mono,monospace);
+}
+.hm-tbl td{
+  padding:9px 12px;border-bottom:0.5px solid #f3f4f6;
+  vertical-align:middle;color:#111;
+}
+.hm-tbl tr:last-child td{border-bottom:none}
+.hm-tbl tr:hover td{background:#fafafa}
+
+/* Method badge */
+.hm-mthd{
+  display:inline-block;
+  font-family:var(--font-mono,monospace);font-size:10.5px;font-weight:700;
+  padding:2px 8px;border-radius:9px;min-width:48px;text-align:center;
+}
+.hm-mthd.GET   {background:#dbeafe;color:#1e40af}
+.hm-mthd.POST  {background:#dcfce7;color:#166534}
+.hm-mthd.PUT   {background:#fef3c7;color:#92400e}
+.hm-mthd.PATCH {background:#ffedd5;color:#9a3412}
+.hm-mthd.DELETE{background:#fee2e2;color:#991b1b}
+
+.hm-path{font-family:var(--font-mono,monospace);font-size:12px;color:#374151}
+
+/* Port badge */
+.hm-port{
+  display:inline-block;
+  font-family:var(--font-mono,monospace);font-size:11px;
+  padding:2px 8px;border-radius:9px;
+}
+.hm-port.p8000{background:#f3f4f6;color:#666}
+.hm-port.p8002{background:#ede9fe;color:#6d28d9}
+.hm-port.p8003{background:#ccfbf1;color:#0f766e}
+.hm-port.other{background:#fef3c7;color:#92400e}
+
+/* Status badge */
+.hm-stat-badge{
+  display:inline-block;
+  font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:11px;
+  font-family:var(--font-mono,monospace);
+  white-space:nowrap;
+}
+.hm-stat-badge.healthy {background:#dcfce7;color:#166534}
+.hm-stat-badge.failed  {background:#fee2e2;color:#991b1b}
+.hm-stat-badge.slow    {background:#fef3c7;color:#92400e}
+.hm-stat-badge.skip    {background:#f3f4f6;color:#999}
+.hm-stat-badge.never   {background:#f3f4f6;color:#bbb;font-style:italic}
+
+.hm-resp{font-family:var(--font-mono,monospace);font-size:11.5px;color:#666}
+.hm-time{font-family:var(--font-mono,monospace);font-size:11px;color:#999}
+.hm-err{
+  font-family:var(--font-mono,monospace);font-size:11px;color:#991b1b;
+  max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.hm-notes{font-size:11.5px;color:#666;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.hm-empty{padding:40px 20px;text-align:center;color:#999}
+.hm-empty-icon{font-size:36px;margin-bottom:10px;opacity:.6}
+.hm-empty-title{font-size:14px;font-weight:600;color:#666;margin-bottom:4px}
+
+/* Toast */
+.hm-toast{
+  position:fixed;top:20px;right:20px;
+  background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);
+  z-index:2000;opacity:0;transform:translateY(-8px);
+  transition:all .25s;pointer-events:none;
+}
+.hm-toast.show{opacity:1;transform:translateY(0)}
+.hm-toast.error{background:#991b1b}
+.hm-toast.ok{background:#166534}
 </style>
-<div class="ph-wrap">
-  <div class="ph-icon">📊</div>
-  <div class="ph-title">Health Monitor</div>
-  <div class="ph-desc">
-    หน้าตรวจสอบสุขภาพ API ทั้งระบบ<br>
-    ping ทุก endpoint ตาม interval ที่ตั้งไว้ (default 60 นาที)<br>
-    แสดงสถานะ healthy / failed / slow per endpoint
+
+<div class="hm-wrap">
+  <div class="hm-top">
+    <div>
+      <h2 class="hm-title">📊 Health Monitor</h2>
+      <p class="hm-subtitle">ตรวจสอบสถานะ API ทั้งระบบ</p>
+    </div>
+    <div class="hm-controls">
+      <span class="hm-int-wrap">
+        <span class="hm-int-label">Interval</span>
+        <input class="hm-int-input" id="hmInterval" type="number" min="1" max="1440" value="60"/>
+        <span class="hm-int-suffix">นาที</span>
+        <button class="hm-int-save" type="button" onclick="hmSaveInterval()">บันทึก</button>
+      </span>
+      <button class="hm-run-btn" id="hmRunBtn" onclick="hmRun()">▶ Run Check</button>
+    </div>
   </div>
-  <div class="ph-badge">⏳ Coming in Phase 2</div>
+
+  <div class="hm-last" id="hmLast">—</div>
+
+  <div id="hmBanner"></div>
+
+  <div class="hm-stats">
+    <div class="hm-stat"><div class="hm-stat-key">ทั้งหมด</div><div class="hm-stat-val" id="hmStTotal">—</div></div>
+    <div class="hm-stat"><div class="hm-stat-key">🟢 Healthy</div><div class="hm-stat-val healthy" id="hmStHealthy">—</div></div>
+    <div class="hm-stat"><div class="hm-stat-key">🔴 Failed</div><div class="hm-stat-val failed" id="hmStFailed">—</div></div>
+    <div class="hm-stat"><div class="hm-stat-key">⚠️ ยังไม่เคยตรวจ</div><div class="hm-stat-val never" id="hmStNever">—</div></div>
+  </div>
+
+  <div id="hmBody"><div class="hm-empty"><div class="hm-empty-icon">⏳</div><div class="hm-empty-title">กำลังโหลด...</div></div></div>
 </div>
+
+<div class="hm-toast" id="hmToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  const BASE = window.location.origin + '/api/platform/gateway';
+
+  const CAT_LABEL = {
+    auth:     '🔑 Auth',
+    platform: '⚙️ Platform',
+    tenant:   '🏪 Tenant',
+    pos:      '🛒 POS',
+    chat:     '💬 Chat',
+    ai:       '✨ AI',
+    billing:  '💰 Billing',
+    line:     '📱 LINE',
+    staff:    '👥 Staff',
+    other:    '📦 Other'
+  };
+  const CAT_ORDER = ['auth','platform','tenant','pos','chat','ai','billing','line','staff','other'];
+
+  let _data = { endpoints: [], summary: {}, last_run: null };
+  let _running = false;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtDt(s){
+    if(!s) return '—';
+    try {
+      const d = new Date(s);
+      return d.toLocaleString('th-TH', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    } catch(_) { return s; }
+  }
+  function ago(s){
+    if(!s) return 'ยังไม่เคย';
+    try {
+      const d = new Date(s);
+      const sec = Math.max(0, Math.floor((Date.now() - d.getTime())/1000));
+      if(sec < 60) return sec + ' วินาทีที่แล้ว';
+      const min = Math.floor(sec / 60);
+      if(min < 60) return min + ' นาทีที่แล้ว';
+      const h = Math.floor(min / 60);
+      if(h < 24) return h + ' ชั่วโมงที่แล้ว';
+      return Math.floor(h/24) + ' วันที่แล้ว';
+    } catch(_) { return s; }
+  }
+
+  function toast(msg, kind){
+    const el = document.getElementById('hmToast');
+    el.className = 'hm-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'hm-toast', 3000);
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers || {}, {
+      'Authorization': 'Bearer ' + TOK()
+    });
+    const r = await fetch(path, opts);
+    let j = null; try { j = await r.json(); } catch(_) {}
+    if(!r.ok) throw new Error((j && j.detail) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  async function loadStatus(){
+    try {
+      _data = await api(BASE + '/health-status');
+      render();
+    } catch(e){
+      document.getElementById('hmBody').innerHTML =
+        '<div class="hm-empty"><div class="hm-empty-icon">⚠️</div>'
+        + '<div class="hm-empty-title">โหลดไม่สำเร็จ</div>'
+        + '<div style="font-size:12px;color:#999">'+esc(e.message)+'</div></div>';
+    }
+  }
+
+  async function loadInterval(){
+    try {
+      const d = await api(BASE + '/health-settings');
+      document.getElementById('hmInterval').value = d.interval_min || 60;
+    } catch(_) {}
+  }
+
+  function render(){
+    const s = _data.summary || {};
+    document.getElementById('hmStTotal').textContent   = s.total ?? '—';
+    document.getElementById('hmStHealthy').textContent = s.healthy ?? '—';
+    document.getElementById('hmStFailed').textContent  = s.failed ?? '—';
+    document.getElementById('hmStNever').textContent   = s.never_checked ?? '—';
+
+    document.getElementById('hmLast').textContent =
+      _data.last_run ? ('ตรวจล่าสุด: ' + ago(_data.last_run) + ' (' + fmtDt(_data.last_run) + ')')
+                     : 'ยังไม่เคยรัน';
+
+    const banner = document.getElementById('hmBanner');
+    const neverChecked = (s.never_checked || 0);
+    if(!_data.last_run || neverChecked === (s.total || 0)){
+      banner.innerHTML = '<div class="hm-banner">💡 ยังไม่มีข้อมูล — กด <strong>Run Check</strong> เพื่อเริ่มตรวจสอบ</div>';
+    } else {
+      banner.innerHTML = '';
+    }
+
+    const eps = _data.endpoints || [];
+    if(!eps.length){
+      document.getElementById('hmBody').innerHTML =
+        '<div class="hm-empty"><div class="hm-empty-icon">📭</div>'
+        + '<div class="hm-empty-title">ยังไม่มี endpoint ในทะเบียน</div></div>';
+      return;
+    }
+
+    const grouped = {};
+    eps.forEach(e => { (grouped[e.category] = grouped[e.category] || []).push(e); });
+
+    const out = CAT_ORDER
+      .filter(c => grouped[c] && grouped[c].length)
+      .map(cat => {
+        const tbody = grouped[cat].map(rowHtml).join('');
+        return ''
+          + '<div class="hm-card">'
+          +   '<div class="hm-card-head">'+esc(CAT_LABEL[cat]||cat)
+          +     '<span class="hm-card-count">'+grouped[cat].length+'</span>'
+          +   '</div>'
+          +   '<table class="hm-tbl"><thead><tr>'
+          +     '<th>Method</th><th>Path</th><th>Port</th><th>สถานะ</th>'
+          +     '<th>Response</th><th>ตรวจล่าสุด</th><th>หมายเหตุ</th>'
+          +   '</tr></thead><tbody>'+tbody+'</tbody></table>'
+          + '</div>';
+      }).join('');
+    document.getElementById('hmBody').innerHTML = out;
+  }
+
+  function rowHtml(e){
+    const m = e.method || 'GET';
+    const port = e.port || 8000;
+    const portCls = (port===8000?'p8000':port===8002?'p8002':port===8003?'p8003':'other');
+
+    let statusHtml = '<span class="hm-stat-badge never">—</span>';
+    let respHtml = '<span class="hm-resp">—</span>';
+    let errHtml = '';
+
+    if(!e.health_check_enabled){
+      statusHtml = '<span class="hm-stat-badge skip">ข้าม</span>';
+    } else if(e.checked_at == null){
+      statusHtml = '<span class="hm-stat-badge never">—</span>';
+    } else if(e.is_healthy === true){
+      const slow = (e.response_ms || 0) > 2000;
+      statusHtml = slow
+        ? '<span class="hm-stat-badge slow">Slow</span>'
+        : '<span class="hm-stat-badge healthy">Healthy</span>';
+      respHtml = '<span class="hm-resp">'+(e.response_ms||0)+' ms</span>';
+    } else if(e.is_healthy === false){
+      statusHtml = '<span class="hm-stat-badge failed">Failed</span>';
+      respHtml = '<span class="hm-resp">'+(e.response_ms||0)+' ms</span>';
+      const msg = (e.error_msg || '').slice(0, 40);
+      if(msg) errHtml = ' <span class="hm-err" title="'+esc(e.error_msg||'')+'">'+esc(msg)+'</span>';
+    }
+
+    return ''
+      + '<tr>'
+      +   '<td><span class="hm-mthd '+esc(m)+'">'+esc(m)+'</span></td>'
+      +   '<td><span class="hm-path">'+esc(e.path||'')+'</span></td>'
+      +   '<td><span class="hm-port '+portCls+'">:'+port+'</span></td>'
+      +   '<td>'+statusHtml+errHtml+'</td>'
+      +   '<td>'+respHtml+'</td>'
+      +   '<td><span class="hm-time">'+(e.checked_at?ago(e.checked_at):'—')+'</span></td>'
+      +   '<td><span class="hm-notes" title="'+esc(e.notes||'')+'">'+esc(e.notes||'')+'</span></td>'
+      + '</tr>';
+  }
+
+  // ── public ──
+  window.hmRun = async function(){
+    if(_running) return;
+    _running = true;
+    const btn = document.getElementById('hmRunBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="hm-spinner"></span> กำลังตรวจสอบ...';
+    try {
+      const d = await api(BASE + '/health-check/run', {method: 'POST'});
+      const s = d.summary || {};
+      toast('ตรวจสอบเสร็จ — ' + (s.healthy||0) + ' healthy / ' + (s.failed||0) + ' failed (' + (d.duration_ms||0) + 'ms)', 'ok');
+      await loadStatus();
+    } catch(e){
+      toast('Run Check ไม่สำเร็จ: ' + e.message, 'error');
+    } finally {
+      _running = false;
+      btn.disabled = false;
+      btn.innerHTML = '▶ Run Check';
+    }
+  };
+
+  window.hmSaveInterval = async function(){
+    const v = parseInt(document.getElementById('hmInterval').value, 10);
+    if(isNaN(v) || v < 1 || v > 1440){ toast('interval ต้อง 1-1440', 'error'); return; }
+    try {
+      await api(BASE + '/health-settings', {method: 'PUT', body: JSON.stringify({interval_min: v})});
+      toast('บันทึกแล้ว', 'ok');
+    } catch(e){ toast('บันทึกไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+
+  loadStatus();
+  loadInterval();
+})();
+</script>
 </body></html>

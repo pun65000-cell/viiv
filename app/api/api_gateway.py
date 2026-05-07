@@ -1,11 +1,12 @@
 # api_gateway.py — Platform API Gateway control plane (Phase 2)
 # Pattern: sync SQLAlchemy + JWT header auth (mirrors platform_ai.py)
 
-import os, jwt
+import os, jwt, asyncio, time
 from typing import Optional
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
+import httpx
 
 from app.core.db import engine
 
@@ -524,3 +525,186 @@ def get_topup_slip(topup_id: str, authorization: str = Header(None)):
         if not row:
             raise HTTPException(404, "ไม่พบ top-up นี้")
     return {"slip_url": row["slip_url"]}
+
+
+# ════════════════════════════════════════════════════════════════════
+#  Health Monitor — ping endpoints + log to api_health_log
+# ════════════════════════════════════════════════════════════════════
+
+# ─── GET /api/platform/gateway/health-status ─────────────────────────
+@router.get("/health-status")
+def health_status(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT e.id, e.name, e.path, e.method, e.category, e.port,
+                   e.health_check_enabled, e.notes,
+                   l.status_code, l.response_ms, l.is_healthy,
+                   l.error_msg, l.checked_at
+            FROM api_endpoints e
+            LEFT JOIN LATERAL (
+                SELECT status_code, response_ms, is_healthy, error_msg, checked_at
+                FROM api_health_log
+                WHERE endpoint_id = e.id
+                ORDER BY checked_at DESC
+                LIMIT 1
+            ) l ON true
+            WHERE e.is_active = true
+            ORDER BY e.category ASC, e.port ASC, e.name ASC
+        """)).mappings().all()
+
+        last_run = c.execute(text("""
+            SELECT value FROM api_gateway_settings WHERE key = 'last_health_check'
+        """)).scalar()
+
+    endpoints = [dict(r) for r in rows]
+    summary = {
+        "total": len(endpoints),
+        "healthy": sum(1 for e in endpoints if e.get("is_healthy") is True),
+        "failed": sum(1 for e in endpoints if e.get("is_healthy") is False),
+        "never_checked": sum(1 for e in endpoints if e.get("checked_at") is None),
+    }
+
+    last_run_iso = None
+    if last_run:
+        try:
+            import json
+            v = json.loads(last_run) if isinstance(last_run, str) else last_run
+            last_run_iso = v if isinstance(v, str) else None
+        except Exception:
+            last_run_iso = None
+
+    return {"endpoints": endpoints, "summary": summary, "last_run": last_run_iso}
+
+
+# ─── POST /api/platform/gateway/health-check/run ─────────────────────
+async def _ping_one(client: httpx.AsyncClient, ep: dict) -> dict:
+    method = (ep.get("health_check_method") or "GET").upper()
+    timeout = ep.get("health_check_timeout") or 5
+    expected = ep.get("expected_status") or 200
+    port = ep.get("port") or 8000
+    url = ep.get("health_check_url") or f"http://localhost:{port}{ep.get('path','')}"
+
+    t0 = time.perf_counter()
+    status_code = None
+    error_msg = None
+    is_healthy = False
+
+    try:
+        r = await client.request(method, url, timeout=timeout)
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        status_code = r.status_code
+        is_healthy = (status_code == expected)
+        if not is_healthy:
+            error_msg = f"status {status_code} != expected {expected}"
+    except httpx.TimeoutException:
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        error_msg = "timeout"
+    except (httpx.ConnectError, httpx.RequestError) as e:
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        error_msg = f"{type(e).__name__}: {str(e)[:120]}"
+    except Exception as e:
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        error_msg = f"{type(e).__name__}: {str(e)[:120]}"
+
+    return {
+        "endpoint_id": ep["id"],
+        "status_code": status_code,
+        "response_ms": elapsed_ms,
+        "is_healthy": bool(is_healthy),
+        "error_msg": error_msg,
+    }
+
+
+@router.post("/health-check/run")
+async def run_health_check(authorization: str = Header(None)):
+    _admin_auth(authorization)
+
+    t_start = time.perf_counter()
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT id, path, method, port,
+                   health_check_url, health_check_method,
+                   health_check_timeout, expected_status
+            FROM api_endpoints
+            WHERE is_active = true AND health_check_enabled = true
+        """)).mappings().all()
+    endpoints = [dict(r) for r in rows]
+
+    if not endpoints:
+        return {"ok": True, "summary": {"total": 0, "healthy": 0, "failed": 0}, "duration_ms": 0}
+
+    async with httpx.AsyncClient(verify=False, follow_redirects=False) as client:
+        results = await asyncio.gather(*(_ping_one(client, ep) for ep in endpoints))
+
+    healthy = sum(1 for r in results if r["is_healthy"])
+    failed = len(results) - healthy
+
+    with engine.begin() as c:
+        for r in results:
+            c.execute(text("""
+                INSERT INTO api_health_log (
+                    endpoint_id, status_code, response_ms,
+                    is_healthy, error_msg, checked_at
+                ) VALUES (
+                    :endpoint_id, :status_code, :response_ms,
+                    :is_healthy, :error_msg, NOW()
+                )
+            """), r)
+
+        c.execute(text("""
+            INSERT INTO api_gateway_settings (key, value, updated_at)
+            VALUES ('last_health_check', to_jsonb(NOW()::text), NOW())
+            ON CONFLICT (key) DO UPDATE
+                SET value = EXCLUDED.value, updated_at = NOW()
+        """))
+
+    duration_ms = int((time.perf_counter() - t_start) * 1000)
+    return {
+        "ok": True,
+        "summary": {"total": len(results), "healthy": healthy, "failed": failed},
+        "duration_ms": duration_ms,
+    }
+
+
+# ─── GET / PUT /api/platform/gateway/health-settings ─────────────────
+@router.get("/health-settings")
+def get_health_settings(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        v = c.execute(text("""
+            SELECT value FROM api_gateway_settings WHERE key = 'health_check_interval_min'
+        """)).scalar()
+    interval = 60
+    if v is not None:
+        try:
+            import json
+            parsed = json.loads(v) if isinstance(v, str) else v
+            interval = int(parsed) if parsed is not None else 60
+        except Exception:
+            interval = 60
+    return {"interval_min": interval}
+
+
+class HealthSettingsBody(BaseModel):
+    interval_min: int
+
+
+@router.put("/health-settings")
+def update_health_settings(body: HealthSettingsBody, authorization: str = Header(None)):
+    payload = _admin_auth(authorization)
+    if body.interval_min < 1 or body.interval_min > 1440:
+        raise HTTPException(400, "interval_min ต้องอยู่ระหว่าง 1 ถึง 1440")
+    with engine.begin() as c:
+        c.execute(text("""
+            INSERT INTO api_gateway_settings (key, value, updated_at, updated_by)
+            VALUES ('health_check_interval_min', to_jsonb(:val::int), NOW(), :by)
+            ON CONFLICT (key) DO UPDATE
+                SET value = EXCLUDED.value,
+                    updated_at = NOW(),
+                    updated_by = EXCLUDED.updated_by
+        """), {
+            "val": body.interval_min,
+            "by": payload.get("email") or payload.get("sub") or "platform_admin",
+        })
+    return {"ok": True}

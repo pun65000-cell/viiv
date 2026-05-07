@@ -11,3 +11,4 @@ email-validator
 itsdangerous
 python-multipart
 Pillow
+httpx>=0.27.0
