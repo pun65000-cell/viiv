@@ -21,6 +21,7 @@ from modules.legacy.customer_admin.api.customers import router as customers_rout
 from app.api.register_shop import router as register_shop_router
 from app.api.platform_ai import router as platform_ai_router
 from app.api.platform_ai_brain import router as platform_ai_brain_router
+from app.api.api_gateway import router as api_gateway_router
 from modules.pos.pos_router import router as pos_router
 from app.api.cart.cart_router import router as cart_router
 from app.api.cart.cart_router import order_router
@@ -280,5 +281,6 @@ app.include_router(statements_router)
 app.include_router(pos_finance.router)
 app.include_router(platform_ai_router, prefix="/api/platform")
 app.include_router(platform_ai_brain_router, prefix="/api/platform")
+app.include_router(api_gateway_router, prefix="/api/platform")
 from app.api.tenant_settings import router as tenant_settings_router
 app.include_router(tenant_settings_router)

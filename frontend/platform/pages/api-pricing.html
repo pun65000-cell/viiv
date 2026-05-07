@@ -1,22 +1,470 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"></head>
 <body>
 <style>
-.ph-wrap{padding:30px 20px;text-align:center}
-.ph-icon{font-size:48px;margin-bottom:14px}
-.ph-title{font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px}
-.ph-desc{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6}
-.ph-badge{display:inline-block;padding:5px 14px;background:#fef9ec;
-  border:1px solid rgba(232,185,62,.4);border-radius:20px;
-  font-size:11px;color:#92400e;font-weight:600}
+*{box-sizing:border-box;margin:0;padding:0}
+
+.cp-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
+}
+
+/* ── Topbar ── */
+.cp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.cp-title{font-size:15px;font-weight:600;margin:0 0 3px;color:#111}
+.cp-subtitle{font-size:12px;color:#666;margin:0}
+.cp-add-btn{
+  padding:8px 16px;border-radius:8px;
+  background:#e8b93e;color:#1a1200;
+  border:1px solid #c9a84c;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;min-height:36px;
+}
+.cp-add-btn:hover{opacity:.85}
+
+/* ── Stats ── */
+.cp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:760px){.cp-stats{grid-template-columns:repeat(2,1fr)}}
+.cp-stat{
+  background:#fff;
+  border:0.5px solid #ddd;
+  border-radius:10px;
+  padding:13px 15px;
+}
+.cp-stat-key{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:500;margin-bottom:4px;font-family:var(--font-mono,monospace)}
+.cp-stat-val{font-size:1.35rem;font-weight:600;color:#111;line-height:1.1}
+.cp-stat-sub{font-size:10px;color:#999;margin-top:2px;font-family:var(--font-mono,monospace)}
+
+/* ── Category Section ── */
+.cp-cat{
+  background:#fff;
+  border:0.5px solid #ddd;
+  border-left:3px solid #e8b93e;
+  border-radius:10px;
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.cp-cat-head{
+  padding:11px 16px;
+  border-bottom:0.5px solid #eee;
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;font-weight:600;color:#111;
+}
+.cp-cat-count{
+  margin-left:auto;
+  background:#e8b93e;color:#1a1200;
+  font-size:11px;font-weight:700;
+  padding:2px 9px;border-radius:10px;
+}
+
+/* ── Table ── */
+.cp-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.cp-tbl th{
+  text-align:left;font-weight:500;
+  font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  color:#999;padding:9px 14px;
+  background:#fafafa;border-bottom:0.5px solid #eee;
+  font-family:var(--font-mono,monospace);
+}
+.cp-tbl td{
+  padding:10px 14px;border-bottom:0.5px solid #f3f4f6;
+  vertical-align:middle;color:#111;
+}
+.cp-tbl tr:last-child td{border-bottom:none}
+.cp-tbl tr:hover td{background:#fafafa}
+
+.cp-key{
+  display:inline-block;
+  font-family:var(--font-mono,monospace);
+  font-size:11.5px;
+  background:#f3f4f6;color:#555;
+  padding:3px 8px;border-radius:5px;
+}
+.cp-cost{font-weight:600;color:#111}
+.cp-cost-input{
+  width:72px;padding:5px 8px;
+  border:0.5px solid #ddd;border-radius:6px;
+  font-size:13px;font-family:inherit;text-align:right;
+  background:#f9f9f9;outline:none;
+}
+.cp-cost-input:focus{border-color:#e8b93e;background:#fff}
+
+.cp-margin{
+  display:inline-block;
+  padding:3px 9px;border-radius:11px;
+  font-size:11px;font-weight:600;
+  font-family:var(--font-mono,monospace);
+}
+.cp-margin.high{background:#e8f0fe;color:#1a56db}
+.cp-margin.mid {background:#fef3c7;color:#92400e}
+.cp-margin.none{background:#f3f4f6;color:#999}
+
+/* Toggle */
+.cp-toggle{position:relative;display:inline-block;width:36px;height:20px;cursor:pointer}
+.cp-toggle input{opacity:0;width:0;height:0}
+.cp-tslider{
+  position:absolute;inset:0;background:#d1d5db;border-radius:20px;
+  transition:.18s;
+}
+.cp-tslider:before{
+  content:"";position:absolute;width:14px;height:14px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.18s;
+}
+.cp-toggle input:checked + .cp-tslider{background:#e8b93e}
+.cp-toggle input:checked + .cp-tslider:before{transform:translateX(16px)}
+
+/* Action icons */
+.cp-actions{display:flex;gap:5px;align-items:center}
+.cp-iconbtn{
+  background:transparent;border:0.5px solid #ddd;border-radius:6px;
+  width:28px;height:28px;cursor:pointer;
+  font-size:13px;color:#666;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.cp-iconbtn:hover{border-color:#e8b93e;color:#92400e;background:#fff}
+.cp-iconbtn.danger:hover{border-color:#fecaca;color:#b91c1c;background:#fff}
+.cp-savebtn{
+  background:#e8b93e;border:1px solid #c9a84c;color:#1a1200;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.cp-cancelbtn{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;cursor:pointer;font-family:inherit;
+}
+
+/* Empty */
+.cp-empty{padding:30px;text-align:center;color:#999;font-size:13px;font-style:italic}
+
+/* Modal */
+.cp-mask{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:1000;
+  align-items:center;justify-content:center;padding:14px;
+}
+.cp-mask.open{display:flex}
+.cp-modal{
+  background:#fff;border-radius:12px;
+  max-width:480px;width:100%;padding:22px 24px;
+  box-shadow:0 16px 40px rgba(0,0,0,.2);
+}
+.cp-modal h3{margin:0 0 14px;font-size:15px;font-weight:600;color:#111}
+.cp-field{margin-bottom:11px}
+.cp-field label{
+  display:block;font-size:11.5px;font-weight:500;color:#666;
+  margin-bottom:4px;
+}
+.cp-field input,.cp-field select,.cp-field textarea{
+  width:100%;padding:8px 11px;
+  border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;color:#111;
+  background:#f9f9f9;outline:none;box-sizing:border-box;min-height:36px;
+}
+.cp-field input:focus,.cp-field select:focus,.cp-field textarea:focus{border-color:#e8b93e;background:#fff}
+.cp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cp-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.cp-err{font-size:12px;color:#b91c1c;min-height:18px;margin-top:4px}
+
+/* Toast */
+.cp-toast{
+  position:fixed;top:20px;right:20px;
+  background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);
+  z-index:2000;opacity:0;transform:translateY(-8px);
+  transition:all .25s;pointer-events:none;
+}
+.cp-toast.show{opacity:1;transform:translateY(0)}
+.cp-toast.error{background:#991b1b}
+.cp-toast.ok{background:#166534}
 </style>
-<div class="ph-wrap">
-  <div class="ph-icon">💳</div>
-  <div class="ph-title">Credit Pricing</div>
-  <div class="ph-desc">
-    ตั้งราคาเครดิตต่อ action<br>
-    เช่น chat_text = 1 credit, autopost_video = 50 credits<br>
-    แก้ราคาได้ตลอดผ่าน UI โดยไม่ต้อง deploy
+
+<div class="cp-wrap">
+  <div class="cp-top">
+    <div>
+      <h2 class="cp-title">💳 Credit Pricing</h2>
+      <p class="cp-subtitle">ตั้งราคาเครดิตต่อ action — แก้ได้ทันทีไม่ต้อง deploy</p>
+    </div>
+    <button class="cp-add-btn" onclick="cpOpenAdd()">+ เพิ่ม action</button>
   </div>
-  <div class="ph-badge">⏳ Coming in Phase 2</div>
+
+  <div class="cp-stats">
+    <div class="cp-stat"><div class="cp-stat-key">Actions ทั้งหมด</div><div class="cp-stat-val" id="cpStTotal">—</div></div>
+    <div class="cp-stat"><div class="cp-stat-key">Active</div><div class="cp-stat-val" id="cpStActive">—</div></div>
+    <div class="cp-stat"><div class="cp-stat-key">ราคาถูกสุด</div><div class="cp-stat-val" id="cpStMin">—</div><div class="cp-stat-sub" id="cpStMinKey">—</div></div>
+    <div class="cp-stat"><div class="cp-stat-key">ราคาแพงสุด</div><div class="cp-stat-val" id="cpStMax">—</div><div class="cp-stat-sub" id="cpStMaxKey">—</div></div>
+  </div>
+
+  <div id="cpBody">
+    <div class="cp-empty">กำลังโหลด...</div>
+  </div>
 </div>
+
+<!-- Add modal -->
+<div class="cp-mask" id="cpAddMask" onclick="cpCloseAdd(event)">
+  <div class="cp-modal" onclick="event.stopPropagation()">
+    <h3>+ เพิ่ม Action ใหม่</h3>
+    <div class="cp-field"><label>Action Key (ห้ามซ้ำ)</label>
+      <input id="cpAddKey" placeholder="เช่น autopost_carousel" autocomplete="off"/></div>
+    <div class="cp-field"><label>ชื่อ (ภาษาไทย)</label>
+      <input id="cpAddName" placeholder="เช่น สร้างโพสต์รูปสไลด์" autocomplete="off"/></div>
+    <div class="cp-grid2">
+      <div class="cp-field"><label>หมวดหมู่</label>
+        <select id="cpAddCat">
+          <option value="chat">chat</option>
+          <option value="autopost">autopost</option>
+          <option value="ai">ai</option>
+          <option value="pos">pos</option>
+          <option value="other">other</option>
+        </select></div>
+      <div class="cp-field"><label>Cost (credits)</label>
+        <input id="cpAddCost" type="number" min="0" placeholder="0"/></div>
+    </div>
+    <div class="cp-grid2">
+      <div class="cp-field"><label>Cost basis</label>
+        <select id="cpAddBasis">
+          <option value="per_request">per_request</option>
+          <option value="per_token">per_token</option>
+          <option value="per_image">per_image</option>
+          <option value="per_minute">per_minute</option>
+        </select></div>
+      <div class="cp-field"><label>Margin %</label>
+        <input id="cpAddMargin" type="number" step="0.1" placeholder="80.0"/></div>
+    </div>
+    <div class="cp-field"><label>คำอธิบาย</label>
+      <textarea id="cpAddDesc" rows="2" placeholder="คำอธิบายสั้นๆ"></textarea></div>
+    <div class="cp-err" id="cpAddErr"></div>
+    <div class="cp-modal-actions">
+      <button class="cp-cancelbtn" type="button" onclick="cpCloseAdd()">ยกเลิก</button>
+      <button class="cp-savebtn" type="button" onclick="cpDoAdd()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="cp-toast" id="cpToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  const API = window.location.origin + '/api/platform/gateway/pricing';
+  const CAT_LABEL = {
+    chat: '💬 Chat',
+    autopost: '📝 Autopost',
+    ai: '✨ AI',
+    pos: '🛒 POS',
+    other: '📦 Other'
+  };
+  let _data = [];
+  let _editingKey = null;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function num(n){ return n == null ? '—' : Number(n).toLocaleString(); }
+  function fmtUsd(n){ if(n == null) return '—'; return '$' + Number(n).toFixed(6); }
+  function fmtMargin(p){
+    if(p == null) return '<span class="cp-margin none">—</span>';
+    const v = Number(p);
+    const cls = v >= 70 ? 'high' : 'mid';
+    return '<span class="cp-margin '+cls+'">'+v.toFixed(0)+'%</span>';
+  }
+
+  function toast(msg, kind){
+    const el = document.getElementById('cpToast');
+    el.className = 'cp-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'cp-toast', 2500);
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers || {}, {
+      'Authorization': 'Bearer ' + TOK()
+    });
+    const r = await fetch(path, opts);
+    let j = null; try { j = await r.json(); } catch(_) {}
+    if(!r.ok) throw new Error((j && j.detail) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  async function load(){
+    try {
+      const d = await api(API);
+      _data = d.pricing || [];
+      render();
+    } catch(e){
+      document.getElementById('cpBody').innerHTML = '<div class="cp-empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  }
+
+  function render(){
+    const total = _data.length;
+    const active = _data.filter(p => p.is_active).length;
+    const activeRows = _data.filter(p => p.is_active);
+    document.getElementById('cpStTotal').textContent = total;
+    document.getElementById('cpStActive').textContent = active;
+    if(activeRows.length){
+      const minR = activeRows.reduce((m,p) => p.cost < m.cost ? p : m);
+      const maxR = activeRows.reduce((m,p) => p.cost > m.cost ? p : m);
+      document.getElementById('cpStMin').textContent = minR.cost;
+      document.getElementById('cpStMinKey').textContent = minR.action_key;
+      document.getElementById('cpStMax').textContent = maxR.cost;
+      document.getElementById('cpStMaxKey').textContent = maxR.action_key;
+    } else {
+      document.getElementById('cpStMin').textContent = '—';
+      document.getElementById('cpStMax').textContent = '—';
+      document.getElementById('cpStMinKey').textContent = '—';
+      document.getElementById('cpStMaxKey').textContent = '—';
+    }
+
+    const order = ['chat','autopost','ai','pos','other'];
+    const grouped = {};
+    _data.forEach(p => { (grouped[p.category] = grouped[p.category] || []).push(p); });
+
+    const out = order
+      .filter(c => grouped[c] && grouped[c].length)
+      .map(cat => {
+        const rows = grouped[cat].map(rowHtml).join('');
+        return ''
+          + '<div class="cp-cat">'
+          +   '<div class="cp-cat-head">'
+          +     esc(CAT_LABEL[cat] || cat)
+          +     '<span class="cp-cat-count">'+grouped[cat].length+'</span>'
+          +   '</div>'
+          +   '<table class="cp-tbl"><thead><tr>'
+          +     '<th>Action Key</th><th>ชื่อ</th><th>ราคา</th>'
+          +     '<th>ต้นทุน USD</th><th>Margin</th><th>Active</th><th></th>'
+          +   '</tr></thead><tbody>'+rows+'</tbody></table>'
+          + '</div>';
+      }).join('') || '<div class="cp-empty">ยังไม่มี action</div>';
+    document.getElementById('cpBody').innerHTML = out;
+  }
+
+  function rowHtml(p){
+    const editing = _editingKey === p.action_key;
+    const k = esc(p.action_key);
+    if(editing){
+      return ''
+        + '<tr data-key="'+k+'">'
+        +   '<td><span class="cp-key">'+k+'</span></td>'
+        +   '<td>'+esc(p.display_name||'')+'</td>'
+        +   '<td><input class="cp-cost-input" id="cpEdit-'+k+'" type="number" min="0" value="'+(p.cost||0)+'"/></td>'
+        +   '<td>'+fmtUsd(p.estimated_cost_usd)+'</td>'
+        +   '<td>'+fmtMargin(p.margin_pct)+'</td>'
+        +   '<td>'+toggleHtml(p, true)+'</td>'
+        +   '<td><div class="cp-actions">'
+        +     '<button class="cp-savebtn" onclick="window.cpDoSave(\''+k+'\')">บันทึก</button>'
+        +     '<button class="cp-cancelbtn" onclick="window.cpCancelEdit()">ยกเลิก</button>'
+        +   '</div></td>'
+        + '</tr>';
+    }
+    return ''
+      + '<tr data-key="'+k+'">'
+      +   '<td><span class="cp-key">'+k+'</span></td>'
+      +   '<td>'+esc(p.display_name||'')+'</td>'
+      +   '<td><span class="cp-cost">'+num(p.cost)+'</span></td>'
+      +   '<td>'+fmtUsd(p.estimated_cost_usd)+'</td>'
+      +   '<td>'+fmtMargin(p.margin_pct)+'</td>'
+      +   '<td>'+toggleHtml(p, false)+'</td>'
+      +   '<td><div class="cp-actions">'
+      +     '<button class="cp-iconbtn" title="แก้ไข" onclick="window.cpEdit(\''+k+'\')">✏️</button>'
+      +     '<button class="cp-iconbtn danger" title="ปิดใช้งาน" onclick="window.cpAskDelete(\''+k+'\')">🗑️</button>'
+      +   '</div></td>'
+      + '</tr>';
+  }
+
+  function toggleHtml(p, disabled){
+    const k = esc(p.action_key);
+    return '<label class="cp-toggle">'
+      + '<input type="checkbox" '+(p.is_active?'checked':'')+' '+(disabled?'disabled':'')
+      +   ' onchange="window.cpToggle(\''+k+'\', this.checked)"/>'
+      + '<span class="cp-tslider"></span></label>';
+  }
+
+  window.cpEdit = function(key){ _editingKey = key; render(); };
+  window.cpCancelEdit = function(){ _editingKey = null; render(); };
+
+  window.cpDoSave = async function(key){
+    const inp = document.getElementById('cpEdit-' + key);
+    const cost = parseInt(inp.value, 10);
+    if(isNaN(cost) || cost < 0){ toast('cost ต้อง >= 0', 'error'); return; }
+    try {
+      await api(API + '/' + encodeURIComponent(key), {
+        method: 'PUT', body: JSON.stringify({cost})
+      });
+      _editingKey = null;
+      toast('บันทึกแล้ว', 'ok');
+      load();
+    } catch(e){ toast('บันทึกไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+
+  window.cpToggle = async function(key, active){
+    try {
+      await api(API + '/' + encodeURIComponent(key), {
+        method: 'PUT', body: JSON.stringify({is_active: !!active})
+      });
+      const row = _data.find(p => p.action_key === key);
+      if(row) row.is_active = !!active;
+      render();
+    } catch(e){ toast('Toggle ไม่สำเร็จ: ' + e.message, 'error'); load(); }
+  };
+
+  window.cpAskDelete = async function(key){
+    if(!confirm('ปิดใช้งาน action "' + key + '" ?\n(จะถูก soft-delete — ดูได้ใน history)')) return;
+    try {
+      await api(API + '/' + encodeURIComponent(key), {method: 'DELETE'});
+      toast('ปิดใช้งานแล้ว', 'ok');
+      load();
+    } catch(e){ toast('ลบไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+
+  window.cpOpenAdd = function(){
+    document.getElementById('cpAddKey').value = '';
+    document.getElementById('cpAddName').value = '';
+    document.getElementById('cpAddCat').value = 'chat';
+    document.getElementById('cpAddCost').value = '';
+    document.getElementById('cpAddBasis').value = 'per_request';
+    document.getElementById('cpAddMargin').value = '';
+    document.getElementById('cpAddDesc').value = '';
+    document.getElementById('cpAddErr').textContent = '';
+    document.getElementById('cpAddMask').classList.add('open');
+  };
+  window.cpCloseAdd = function(e){
+    if(e && e.target && e.target.id !== 'cpAddMask') return;
+    document.getElementById('cpAddMask').classList.remove('open');
+  };
+
+  window.cpDoAdd = async function(){
+    const err = document.getElementById('cpAddErr');
+    err.textContent = '';
+    const body = {
+      action_key: document.getElementById('cpAddKey').value.trim(),
+      display_name: document.getElementById('cpAddName').value.trim(),
+      category: document.getElementById('cpAddCat').value,
+      cost: parseInt(document.getElementById('cpAddCost').value, 10),
+      cost_basis: document.getElementById('cpAddBasis').value,
+      description: document.getElementById('cpAddDesc').value.trim()
+    };
+    const margin = document.getElementById('cpAddMargin').value;
+    if(margin !== '') body.margin_pct = parseFloat(margin);
+
+    if(!body.action_key){ err.textContent = 'action_key ห้ามว่าง'; return; }
+    if(!body.display_name){ err.textContent = 'ชื่อห้ามว่าง'; return; }
+    if(isNaN(body.cost) || body.cost < 0){ err.textContent = 'cost ต้อง >= 0'; return; }
+
+    try {
+      await api(API, {method: 'POST', body: JSON.stringify(body)});
+      document.getElementById('cpAddMask').classList.remove('open');
+      toast('เพิ่มสำเร็จ', 'ok');
+      load();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  load();
+})();
+</script>
 </body></html>
