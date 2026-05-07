@@ -188,8 +188,26 @@
     <div class="sb-item" data-page="notify" onclick="nav(this)">
       <span class="sb-item-icon">🔔</span> การแจ้งเตือน
     </div>
-    <div class="sb-item" data-page="apikeys" onclick="nav(this)">
-      <span class="sb-item-icon">🔌</span> API Keys
+    <div class="sb-item" data-page="api-gateway" id="sb-apigw-parent" onclick="navParent(this,'apigw-sub')">
+      <span class="sb-item-icon">🔌</span> API Gateway
+      <span class="sb-item-arrow">▶</span>
+    </div>
+    <div class="sb-sub-wrap" id="apigw-sub">
+      <div class="sb-sub-item" data-page="api-gateway" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
+        <span class="sb-sub-item-icon">📊</span> Health Monitor
+      </div>
+      <div class="sb-sub-item" data-page="api-pricing" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
+        <span class="sb-sub-item-icon">💳</span> Credit Pricing
+      </div>
+      <div class="sb-sub-item" data-page="topup-packages" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
+        <span class="sb-sub-item-icon">📦</span> Top-up Packages
+      </div>
+      <div class="sb-sub-item" data-page="topup-approvals" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
+        <span class="sb-sub-item-icon">✅</span> Top-up Approvals
+      </div>
+      <div class="sb-sub-item" data-page="apikeys" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
+        <span class="sb-sub-item-icon">🔑</span> API Keys
+      </div>
     </div>
     <div class="sb-item" data-page="security" id="sb-security-parent" onclick="navParent(this,'security-sub')">
       <span class="sb-item-icon">🔐</span> Security
@@ -333,6 +351,10 @@ const PAGE_META = {
   'ai-brain':{ title:'สมอง AI',     badge:'System'   },
   notify:   { title:'การแจ้งเตือน', badge:'Admin'    },
   apikeys:  { title:'API Keys',     badge:'System'   },
+  'api-gateway':     { title:'Health Monitor',    badge:'System'   },
+  'api-pricing':     { title:'Credit Pricing',    badge:'System'   },
+  'topup-packages':  { title:'Top-up Packages',   badge:'System'   },
+  'topup-approvals': { title:'Top-up Approvals',  badge:'System'   },
   security:          { title:'Security',     badge:'Security' },
   logs:              { title:'System Logs',  badge:'Security' },
   'security-tokens': { title:'Token Users',  badge:'Security' },
