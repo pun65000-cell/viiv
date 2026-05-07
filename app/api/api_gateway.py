@@ -196,3 +196,185 @@ def soft_delete_pricing(action_key: str, authorization: str = Header(None)):
         if r.rowcount == 0:
             raise HTTPException(404, "ไม่พบ action_key นี้")
     return {"ok": True}
+
+
+# ════════════════════════════════════════════════════════════════════
+#  Top-up Packages — scale tier (จ่ายเยอะ ได้เครดิตเยอะกว่าสัดส่วน)
+# ════════════════════════════════════════════════════════════════════
+
+# ─── GET /api/platform/gateway/topup-packages ────────────────────────
+@router.get("/topup-packages")
+def list_topup_packages(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT id, display_name, amount_thb, credits, bonus_pct,
+                   badge, description, sort_order, is_active,
+                   created_at, updated_at
+            FROM topup_packages
+            ORDER BY sort_order ASC, created_at ASC
+        """)).mappings().all()
+    return {"packages": [dict(r) for r in rows]}
+
+
+# ─── PUT /api/platform/gateway/topup-packages/{id} ───────────────────
+class TopupUpdate(BaseModel):
+    display_name: Optional[str] = None
+    amount_thb: Optional[float] = None
+    credits: Optional[int] = None
+    bonus_pct: Optional[float] = None
+    badge: Optional[str] = None
+    description: Optional[str] = None
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+@router.put("/topup-packages/{pkg_id}")
+def update_topup_package(pkg_id: str, body: TopupUpdate, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    sets = []
+    params = {"id": pkg_id}
+
+    if body.display_name is not None:
+        sets.append("display_name = :display_name")
+        params["display_name"] = body.display_name.strip()
+    if body.amount_thb is not None:
+        if body.amount_thb <= 0:
+            raise HTTPException(400, "amount_thb ต้อง > 0")
+        sets.append("amount_thb = :amount_thb")
+        params["amount_thb"] = body.amount_thb
+    if body.credits is not None:
+        if body.credits <= 0:
+            raise HTTPException(400, "credits ต้อง > 0")
+        sets.append("credits = :credits")
+        params["credits"] = body.credits
+    if body.bonus_pct is not None:
+        if body.bonus_pct < 0:
+            raise HTTPException(400, "bonus_pct ต้อง >= 0")
+        sets.append("bonus_pct = :bonus_pct")
+        params["bonus_pct"] = body.bonus_pct
+    if body.badge is not None:
+        sets.append("badge = :badge")
+        params["badge"] = body.badge.strip() or None
+    if body.description is not None:
+        sets.append("description = :description")
+        params["description"] = body.description.strip() or None
+    if body.sort_order is not None:
+        sets.append("sort_order = :sort_order")
+        params["sort_order"] = body.sort_order
+    if body.is_active is not None:
+        sets.append("is_active = :is_active")
+        params["is_active"] = body.is_active
+
+    if not sets:
+        raise HTTPException(400, "ไม่มี field ให้ update")
+
+    sets.append("updated_at = NOW()")
+
+    with engine.begin() as c:
+        r = c.execute(text(
+            "UPDATE topup_packages SET " + ", ".join(sets) + " WHERE id = :id"
+        ), params)
+        if r.rowcount == 0:
+            raise HTTPException(404, "ไม่พบ package id นี้")
+        row = c.execute(text("""
+            SELECT id, display_name, amount_thb, credits, bonus_pct,
+                   badge, description, sort_order, is_active,
+                   created_at, updated_at
+            FROM topup_packages WHERE id = :id
+        """), {"id": pkg_id}).mappings().first()
+
+    return {"ok": True, "package": dict(row) if row else None}
+
+
+# ─── POST /api/platform/gateway/topup-packages ───────────────────────
+class TopupCreate(BaseModel):
+    display_name: str
+    amount_thb: float
+    credits: int
+    bonus_pct: Optional[float] = 0
+    badge: Optional[str] = None
+    description: Optional[str] = None
+    sort_order: Optional[int] = 0
+
+
+@router.post("/topup-packages")
+def create_topup_package(body: TopupCreate, authorization: str = Header(None)):
+    _admin_auth(authorization)
+
+    name = (body.display_name or "").strip()
+    if not name:
+        raise HTTPException(400, "display_name ต้องไม่ว่าง")
+    if body.amount_thb <= 0:
+        raise HTTPException(400, "amount_thb ต้อง > 0")
+    if body.credits <= 0:
+        raise HTTPException(400, "credits ต้อง > 0")
+    bonus = body.bonus_pct if body.bonus_pct is not None else 0
+    if bonus < 0:
+        raise HTTPException(400, "bonus_pct ต้อง >= 0")
+
+    with engine.begin() as c:
+        new_id = c.execute(text("""
+            INSERT INTO topup_packages (
+                display_name, amount_thb, credits, bonus_pct,
+                badge, description, sort_order, is_active,
+                created_at, updated_at
+            ) VALUES (
+                :display_name, :amount_thb, :credits, :bonus_pct,
+                :badge, :description, :sort_order, true,
+                NOW(), NOW()
+            )
+            RETURNING id
+        """), {
+            "display_name": name,
+            "amount_thb": body.amount_thb,
+            "credits": body.credits,
+            "bonus_pct": bonus,
+            "badge": (body.badge or "").strip() or None,
+            "description": (body.description or "").strip() or None,
+            "sort_order": body.sort_order or 0,
+        }).scalar()
+
+        row = c.execute(text("""
+            SELECT id, display_name, amount_thb, credits, bonus_pct,
+                   badge, description, sort_order, is_active,
+                   created_at, updated_at
+            FROM topup_packages WHERE id = :id
+        """), {"id": new_id}).mappings().first()
+
+    return {"ok": True, "package": dict(row) if row else None}
+
+
+# ─── DELETE /api/platform/gateway/topup-packages/{id} ────────────────
+# Soft delete (credit_topups อาจ FK ในอนาคต — ปลอดภัยกว่า)
+@router.delete("/topup-packages/{pkg_id}")
+def soft_delete_topup_package(pkg_id: str, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        r = c.execute(text("""
+            UPDATE topup_packages
+            SET is_active = false, updated_at = NOW()
+            WHERE id = :id
+        """), {"id": pkg_id})
+        if r.rowcount == 0:
+            raise HTTPException(404, "ไม่พบ package id นี้")
+    return {"ok": True}
+
+
+# ─── PATCH /api/platform/gateway/topup-packages/{id}/order ───────────
+class TopupOrder(BaseModel):
+    sort_order: int
+
+
+@router.patch("/topup-packages/{pkg_id}/order")
+def reorder_topup_package(pkg_id: str, body: TopupOrder, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.begin() as c:
+        r = c.execute(text("""
+            UPDATE topup_packages
+            SET sort_order = :sort_order, updated_at = NOW()
+            WHERE id = :id
+        """), {"id": pkg_id, "sort_order": body.sort_order})
+        if r.rowcount == 0:
+            raise HTTPException(404, "ไม่พบ package id นี้")
+    return {"ok": True}

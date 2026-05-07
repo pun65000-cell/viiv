@@ -1,22 +1,464 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"></head>
 <body>
 <style>
-.ph-wrap{padding:30px 20px;text-align:center}
-.ph-icon{font-size:48px;margin-bottom:14px}
-.ph-title{font-size:18px;font-weight:700;color:#1f2937;margin-bottom:8px}
-.ph-desc{font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6}
-.ph-badge{display:inline-block;padding:5px 14px;background:#fef9ec;
-  border:1px solid rgba(232,185,62,.4);border-radius:20px;
-  font-size:11px;color:#92400e;font-weight:600}
+*{box-sizing:border-box;margin:0;padding:0}
+
+.tp-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
+}
+
+.tp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.tp-title{font-size:15px;font-weight:600;margin:0 0 3px;color:#111}
+.tp-subtitle{font-size:12px;color:#666;margin:0}
+.tp-add-btn{
+  padding:8px 16px;border-radius:8px;
+  background:#e8b93e;color:#1a1200;
+  border:1px solid #c9a84c;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;min-height:36px;
+}
+.tp-add-btn:hover{opacity:.85}
+
+/* Stats */
+.tp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+@media(max-width:760px){.tp-stats{grid-template-columns:repeat(2,1fr)}}
+.tp-stat{
+  background:#fff;
+  border:0.5px solid #ddd;
+  border-radius:10px;
+  padding:13px 15px;
+}
+.tp-stat-key{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:500;margin-bottom:4px;font-family:var(--font-mono,monospace)}
+.tp-stat-val{font-size:1.35rem;font-weight:600;color:#111;line-height:1.1}
+.tp-stat-sub{font-size:10px;color:#999;margin-top:2px;font-family:var(--font-mono,monospace)}
+
+/* Section */
+.tp-card{
+  background:#fff;
+  border:0.5px solid #ddd;
+  border-left:3px solid #e8b93e;
+  border-radius:10px;
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.tp-card-head{
+  padding:11px 16px;
+  border-bottom:0.5px solid #eee;
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;font-weight:600;color:#111;
+}
+.tp-card-count{
+  margin-left:auto;
+  background:#e8b93e;color:#1a1200;
+  font-size:11px;font-weight:700;
+  padding:2px 9px;border-radius:10px;
+}
+
+/* Table */
+.tp-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tp-tbl th{
+  text-align:left;font-weight:500;
+  font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  color:#999;padding:9px 14px;
+  background:#fafafa;border-bottom:0.5px solid #eee;
+  font-family:var(--font-mono,monospace);
+}
+.tp-tbl td{
+  padding:10px 14px;border-bottom:0.5px solid #f3f4f6;
+  vertical-align:middle;color:#111;
+}
+.tp-tbl tr:last-child td{border-bottom:none}
+.tp-tbl tr:hover td{background:#fafafa}
+
+.tp-order{
+  display:inline-block;
+  font-family:var(--font-mono,monospace);
+  font-size:12px;color:#666;
+  background:#f3f4f6;
+  padding:3px 9px;border-radius:11px;
+  min-width:26px;text-align:center;
+}
+.tp-amount{font-weight:600;color:#111;font-family:var(--font-mono,monospace)}
+.tp-credits{font-weight:600;color:#111}
+.tp-rate{
+  display:inline-block;
+  font-family:var(--font-mono,monospace);font-size:11.5px;
+  color:#1a56db;background:#e8f0fe;
+  padding:3px 9px;border-radius:11px;font-weight:600;
+}
+.tp-bonus{
+  display:inline-block;
+  font-family:var(--font-mono,monospace);font-size:11.5px;
+  font-weight:600;
+  padding:3px 9px;border-radius:11px;
+}
+.tp-bonus.zero{color:#999;background:#f3f4f6}
+.tp-bonus.has{color:#166534;background:#dcfce7}
+.tp-badge-pill{
+  display:inline-block;
+  font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:11px;
+  background:#fef3c7;color:#92400e;
+  border:0.5px solid #fde68a;
+}
+.tp-badge-empty{color:#999;font-style:italic;font-size:12px}
+.tp-input{
+  width:90px;padding:5px 8px;
+  border:0.5px solid #ddd;border-radius:6px;
+  font-size:13px;font-family:inherit;text-align:right;
+  background:#f9f9f9;outline:none;
+}
+.tp-input.wide{width:140px;text-align:left}
+.tp-input:focus{border-color:#e8b93e;background:#fff}
+
+/* Toggle */
+.tp-toggle{position:relative;display:inline-block;width:36px;height:20px;cursor:pointer}
+.tp-toggle input{opacity:0;width:0;height:0}
+.tp-tslider{position:absolute;inset:0;background:#d1d5db;border-radius:20px;transition:.18s}
+.tp-tslider:before{content:"";position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.18s}
+.tp-toggle input:checked + .tp-tslider{background:#e8b93e}
+.tp-toggle input:checked + .tp-tslider:before{transform:translateX(16px)}
+
+/* Action icons */
+.tp-actions{display:flex;gap:5px;align-items:center}
+.tp-iconbtn{
+  background:transparent;border:0.5px solid #ddd;border-radius:6px;
+  width:28px;height:28px;cursor:pointer;
+  font-size:13px;color:#666;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.tp-iconbtn:hover{border-color:#e8b93e;color:#92400e;background:#fff}
+.tp-iconbtn.danger:hover{border-color:#fecaca;color:#b91c1c;background:#fff}
+.tp-savebtn{
+  background:#e8b93e;border:1px solid #c9a84c;color:#1a1200;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.tp-cancelbtn{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;cursor:pointer;font-family:inherit;
+}
+
+/* Empty */
+.tp-empty{padding:30px;text-align:center;color:#999;font-size:13px;font-style:italic}
+
+/* Modal */
+.tp-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.tp-mask.open{display:flex}
+.tp-modal{background:#fff;border-radius:12px;max-width:520px;width:100%;padding:22px 24px;box-shadow:0 16px 40px rgba(0,0,0,.2)}
+.tp-modal h3{margin:0 0 14px;font-size:15px;font-weight:600;color:#111}
+.tp-field{margin-bottom:11px}
+.tp-field label{display:block;font-size:11.5px;font-weight:500;color:#666;margin-bottom:4px}
+.tp-field input,.tp-field textarea{
+  width:100%;padding:8px 11px;
+  border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;color:#111;
+  background:#f9f9f9;outline:none;box-sizing:border-box;min-height:36px;
+}
+.tp-field input:focus,.tp-field textarea:focus{border-color:#e8b93e;background:#fff}
+.tp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tp-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.tp-err{font-size:12px;color:#b91c1c;min-height:18px;margin-top:4px}
+
+/* Toast */
+.tp-toast{
+  position:fixed;top:20px;right:20px;
+  background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);
+  z-index:2000;opacity:0;transform:translateY(-8px);
+  transition:all .25s;pointer-events:none;
+}
+.tp-toast.show{opacity:1;transform:translateY(0)}
+.tp-toast.error{background:#991b1b}
+.tp-toast.ok{background:#166534}
 </style>
-<div class="ph-wrap">
-  <div class="ph-icon">📦</div>
-  <div class="ph-title">Top-up Packages</div>
-  <div class="ph-desc">
-    จัดการ tier เติมเงิน (scale pricing)<br>
-    ลูกค้าจ่ายเยอะ ได้เครดิตเยอะกว่าสัดส่วน<br>
-    เช่น 99฿ = 1500 cr, 1999฿ = 50,000 cr (โบนัส 30%)
+
+<div class="tp-wrap">
+  <div class="tp-top">
+    <div>
+      <h2 class="tp-title">📦 Top-up Packages</h2>
+      <p class="tp-subtitle">จัดการ tier เติมเงิน — จ่ายเยอะ ได้เครดิตเยอะกว่าสัดส่วน (scale pricing)</p>
+    </div>
+    <button class="tp-add-btn" onclick="tpOpenAdd()">+ เพิ่ม tier</button>
   </div>
-  <div class="ph-badge">⏳ Coming in Phase 2</div>
+
+  <div class="tp-stats">
+    <div class="tp-stat"><div class="tp-stat-key">Tiers ทั้งหมด</div><div class="tp-stat-val" id="tpStTotal">—</div></div>
+    <div class="tp-stat"><div class="tp-stat-key">Active</div><div class="tp-stat-val" id="tpStActive">—</div></div>
+    <div class="tp-stat"><div class="tp-stat-key">ราคาถูกสุด</div><div class="tp-stat-val" id="tpStMin">—</div><div class="tp-stat-sub" id="tpStMinName">—</div></div>
+    <div class="tp-stat"><div class="tp-stat-key">ราคาแพงสุด</div><div class="tp-stat-val" id="tpStMax">—</div><div class="tp-stat-sub" id="tpStMaxName">—</div></div>
+  </div>
+
+  <div id="tpBody"><div class="tp-empty">กำลังโหลด...</div></div>
 </div>
+
+<!-- Add modal -->
+<div class="tp-mask" id="tpAddMask" onclick="tpCloseAdd(event)">
+  <div class="tp-modal" onclick="event.stopPropagation()">
+    <h3>+ เพิ่ม Tier ใหม่</h3>
+    <div class="tp-field"><label>ชื่อ Tier</label>
+      <input id="tpAddName" placeholder="เช่น เติมพื้นฐาน" autocomplete="off"/></div>
+    <div class="tp-grid2">
+      <div class="tp-field"><label>ราคา (฿)</label>
+        <input id="tpAddAmt" type="number" min="1" step="0.01" placeholder="99"/></div>
+      <div class="tp-field"><label>Credits ที่ได้</label>
+        <input id="tpAddCr" type="number" min="1" placeholder="1500"/></div>
+    </div>
+    <div class="tp-grid2">
+      <div class="tp-field"><label>Bonus %</label>
+        <input id="tpAddBonus" type="number" min="0" step="0.1" placeholder="0.0"/></div>
+      <div class="tp-field"><label>Badge (ไม่บังคับ)</label>
+        <input id="tpAddBadge" placeholder="เช่น คุ้มสุด / แนะนำ" autocomplete="off"/></div>
+    </div>
+    <div class="tp-field"><label>คำอธิบาย</label>
+      <textarea id="tpAddDesc" rows="2" placeholder="เช่น 15 credits/บาท"></textarea></div>
+    <div class="tp-err" id="tpAddErr"></div>
+    <div class="tp-modal-actions">
+      <button class="tp-cancelbtn" type="button" onclick="tpCloseAdd()">ยกเลิก</button>
+      <button class="tp-savebtn" type="button" onclick="tpDoAdd()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="tp-toast" id="tpToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  const API = window.location.origin + '/api/platform/gateway/topup-packages';
+  let _data = [];
+  let _editingId = null;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtBaht(n){ return n == null ? '—' : '฿' + Number(n).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2}); }
+  function fmtCr(n){ return n == null ? '—' : Number(n).toLocaleString(); }
+  function rate(p){
+    if(!p || !p.amount_thb || !p.credits) return '—';
+    return (Number(p.credits) / Number(p.amount_thb)).toFixed(1) + ' cr/฿';
+  }
+  function fmtBonus(b){
+    if(b == null) return '<span class="tp-bonus zero">0%</span>';
+    const v = Number(b);
+    const cls = v > 0 ? 'has' : 'zero';
+    return '<span class="tp-bonus '+cls+'">+' + v.toFixed(0) + '%</span>';
+  }
+  function fmtBadge(s){
+    if(!s) return '<span class="tp-badge-empty">—</span>';
+    return '<span class="tp-badge-pill">' + esc(s) + '</span>';
+  }
+
+  function toast(msg, kind){
+    const el = document.getElementById('tpToast');
+    el.className = 'tp-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'tp-toast', 2500);
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers || {}, {
+      'Authorization': 'Bearer ' + TOK()
+    });
+    const r = await fetch(path, opts);
+    let j = null; try { j = await r.json(); } catch(_) {}
+    if(!r.ok) throw new Error((j && j.detail) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  async function load(){
+    try {
+      const d = await api(API);
+      _data = d.packages || [];
+      render();
+    } catch(e){
+      document.getElementById('tpBody').innerHTML = '<div class="tp-empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  }
+
+  function render(){
+    const total = _data.length;
+    const activeRows = _data.filter(p => p.is_active);
+    document.getElementById('tpStTotal').textContent = total;
+    document.getElementById('tpStActive').textContent = activeRows.length;
+    if(activeRows.length){
+      const minR = activeRows.reduce((m,p) => Number(p.amount_thb) < Number(m.amount_thb) ? p : m);
+      const maxR = activeRows.reduce((m,p) => Number(p.amount_thb) > Number(m.amount_thb) ? p : m);
+      document.getElementById('tpStMin').textContent = fmtBaht(minR.amount_thb);
+      document.getElementById('tpStMinName').textContent = minR.display_name;
+      document.getElementById('tpStMax').textContent = fmtBaht(maxR.amount_thb);
+      document.getElementById('tpStMaxName').textContent = maxR.display_name;
+    } else {
+      document.getElementById('tpStMin').textContent = '—';
+      document.getElementById('tpStMax').textContent = '—';
+      document.getElementById('tpStMinName').textContent = '—';
+      document.getElementById('tpStMaxName').textContent = '—';
+    }
+
+    if(!_data.length){
+      document.getElementById('tpBody').innerHTML = '<div class="tp-empty">ยังไม่มี tier</div>';
+      return;
+    }
+
+    const rows = _data.map(rowHtml).join('');
+    document.getElementById('tpBody').innerHTML = ''
+      + '<div class="tp-card">'
+      +   '<div class="tp-card-head">📦 ทั้งหมด<span class="tp-card-count">'+total+'</span></div>'
+      +   '<table class="tp-tbl"><thead><tr>'
+      +     '<th>ลำดับ</th><th>ชื่อ Tier</th><th>ราคา (฿)</th><th>Credits</th>'
+      +     '<th>Bonus%</th><th>Rate</th><th>Badge</th><th>Active</th><th></th>'
+      +   '</tr></thead><tbody>'+rows+'</tbody></table>'
+      + '</div>';
+  }
+
+  function rowHtml(p){
+    const editing = _editingId === p.id;
+    const id = esc(p.id);
+    if(editing){
+      return ''
+        + '<tr data-id="'+id+'">'
+        +   '<td><span class="tp-order">'+(p.sort_order||0)+'</span></td>'
+        +   '<td><input class="tp-input wide" id="tpEdit-name-'+id+'" value="'+esc(p.display_name||'')+'"/></td>'
+        +   '<td><input class="tp-input" id="tpEdit-amt-'+id+'" type="number" min="1" step="0.01" value="'+(p.amount_thb||0)+'"/></td>'
+        +   '<td><input class="tp-input" id="tpEdit-cr-'+id+'" type="number" min="1" value="'+(p.credits||0)+'"/></td>'
+        +   '<td><input class="tp-input" id="tpEdit-bonus-'+id+'" type="number" min="0" step="0.1" value="'+(p.bonus_pct||0)+'"/></td>'
+        +   '<td>'+rate(p)+'</td>'
+        +   '<td><input class="tp-input wide" id="tpEdit-badge-'+id+'" value="'+esc(p.badge||'')+'" placeholder="(ไม่มี)"/></td>'
+        +   '<td>'+toggleHtml(p, true)+'</td>'
+        +   '<td><div class="tp-actions">'
+        +     '<button class="tp-savebtn" onclick="window.tpDoSave(\''+id+'\')">บันทึก</button>'
+        +     '<button class="tp-cancelbtn" onclick="window.tpCancelEdit()">ยกเลิก</button>'
+        +   '</div></td>'
+        + '</tr>';
+    }
+    return ''
+      + '<tr data-id="'+id+'">'
+      +   '<td><span class="tp-order">'+(p.sort_order||0)+'</span></td>'
+      +   '<td>'+esc(p.display_name||'')+'</td>'
+      +   '<td><span class="tp-amount">'+fmtBaht(p.amount_thb)+'</span></td>'
+      +   '<td><span class="tp-credits">'+fmtCr(p.credits)+'</span></td>'
+      +   '<td>'+fmtBonus(p.bonus_pct)+'</td>'
+      +   '<td><span class="tp-rate">'+rate(p)+'</span></td>'
+      +   '<td>'+fmtBadge(p.badge)+'</td>'
+      +   '<td>'+toggleHtml(p, false)+'</td>'
+      +   '<td><div class="tp-actions">'
+      +     '<button class="tp-iconbtn" title="แก้ไข" onclick="window.tpEdit(\''+id+'\')">✏️</button>'
+      +     '<button class="tp-iconbtn danger" title="ปิดใช้งาน" onclick="window.tpAskDelete(\''+id+'\')">🗑️</button>'
+      +   '</div></td>'
+      + '</tr>';
+  }
+
+  function toggleHtml(p, disabled){
+    const id = esc(p.id);
+    return '<label class="tp-toggle">'
+      + '<input type="checkbox" '+(p.is_active?'checked':'')+' '+(disabled?'disabled':'')
+      +   ' onchange="window.tpToggle(\''+id+'\', this.checked)"/>'
+      + '<span class="tp-tslider"></span></label>';
+  }
+
+  window.tpEdit = function(id){ _editingId = id; render(); };
+  window.tpCancelEdit = function(){ _editingId = null; render(); };
+
+  window.tpDoSave = async function(id){
+    const name = document.getElementById('tpEdit-name-'+id).value.trim();
+    const amt  = parseFloat(document.getElementById('tpEdit-amt-'+id).value);
+    const cr   = parseInt(document.getElementById('tpEdit-cr-'+id).value, 10);
+    const bonus= parseFloat(document.getElementById('tpEdit-bonus-'+id).value);
+    const badge= document.getElementById('tpEdit-badge-'+id).value.trim();
+
+    if(!name){ toast('ชื่อ tier ห้ามว่าง', 'error'); return; }
+    if(isNaN(amt) || amt <= 0){ toast('amount_thb ต้อง > 0', 'error'); return; }
+    if(isNaN(cr) || cr <= 0){ toast('credits ต้อง > 0', 'error'); return; }
+    if(isNaN(bonus) || bonus < 0){ toast('bonus_pct ต้อง >= 0', 'error'); return; }
+
+    try {
+      await api(API + '/' + encodeURIComponent(id), {
+        method: 'PUT',
+        body: JSON.stringify({
+          display_name: name,
+          amount_thb: amt,
+          credits: cr,
+          bonus_pct: bonus,
+          badge: badge
+        })
+      });
+      _editingId = null;
+      toast('บันทึกแล้ว', 'ok');
+      load();
+    } catch(e){ toast('บันทึกไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+
+  window.tpToggle = async function(id, active){
+    try {
+      await api(API + '/' + encodeURIComponent(id), {
+        method: 'PUT', body: JSON.stringify({is_active: !!active})
+      });
+      const row = _data.find(p => p.id === id);
+      if(row) row.is_active = !!active;
+      render();
+    } catch(e){ toast('Toggle ไม่สำเร็จ: ' + e.message, 'error'); load(); }
+  };
+
+  window.tpAskDelete = async function(id){
+    const row = _data.find(p => p.id === id);
+    const name = row ? row.display_name : id;
+    if(!confirm('ปิดใช้งาน tier "' + name + '" ?\n(soft-delete — กู้คืนภายหลังได้)')) return;
+    try {
+      await api(API + '/' + encodeURIComponent(id), {method: 'DELETE'});
+      toast('ปิดใช้งานแล้ว', 'ok');
+      load();
+    } catch(e){ toast('ลบไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+
+  window.tpOpenAdd = function(){
+    document.getElementById('tpAddName').value = '';
+    document.getElementById('tpAddAmt').value = '';
+    document.getElementById('tpAddCr').value = '';
+    document.getElementById('tpAddBonus').value = '';
+    document.getElementById('tpAddBadge').value = '';
+    document.getElementById('tpAddDesc').value = '';
+    document.getElementById('tpAddErr').textContent = '';
+    document.getElementById('tpAddMask').classList.add('open');
+  };
+  window.tpCloseAdd = function(e){
+    if(e && e.target && e.target.id !== 'tpAddMask') return;
+    document.getElementById('tpAddMask').classList.remove('open');
+  };
+
+  window.tpDoAdd = async function(){
+    const err = document.getElementById('tpAddErr');
+    err.textContent = '';
+    const body = {
+      display_name: document.getElementById('tpAddName').value.trim(),
+      amount_thb: parseFloat(document.getElementById('tpAddAmt').value),
+      credits: parseInt(document.getElementById('tpAddCr').value, 10),
+      badge: document.getElementById('tpAddBadge').value.trim(),
+      description: document.getElementById('tpAddDesc').value.trim()
+    };
+    const bonus = document.getElementById('tpAddBonus').value;
+    if(bonus !== '') body.bonus_pct = parseFloat(bonus);
+
+    if(!body.display_name){ err.textContent = 'ชื่อ tier ห้ามว่าง'; return; }
+    if(isNaN(body.amount_thb) || body.amount_thb <= 0){ err.textContent = 'amount_thb ต้อง > 0'; return; }
+    if(isNaN(body.credits) || body.credits <= 0){ err.textContent = 'credits ต้อง > 0'; return; }
+
+    try {
+      await api(API, {method: 'POST', body: JSON.stringify(body)});
+      document.getElementById('tpAddMask').classList.remove('open');
+      toast('เพิ่มสำเร็จ', 'ok');
+      load();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  load();
+})();
+</script>
 </body></html>
