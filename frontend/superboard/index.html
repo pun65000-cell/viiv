@@ -202,6 +202,58 @@
 })();
 </script>
 
+<!-- Low credit warning banner — Phase 2E -->
+<div id="sb-credit-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99998;background:linear-gradient(90deg,#fb923c,#f97316);color:#fff;padding:10px 16px;font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.18);align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;">
+  <span>⚠️ เครดิตคงเหลือต่ำ <b id="sb-credit-remaining">0</b> credits — กรุณาเติมเครดิตเพื่อใช้งานต่อเนื่อง</span>
+  <a href="/superboard/pages/topup.html" style="background:#fff;color:#c2410c;padding:5px 14px;border-radius:6px;text-decoration:none;font-weight:700;">เติมเครดิต</a>
+  <button id="sb-credit-banner-close" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">&times;</button>
+</div>
+<script>
+(function(){
+  if (window.__sbCreditWarnInstalled) return;
+  window.__sbCreditWarnInstalled = true;
+  var SESSION_KEY = '__sbCreditDismissed';
+  function dismissed(){
+    try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch(e){ return false; }
+  }
+  function setDismissed(){
+    try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e){}
+  }
+  window.SbCreditWarn = {
+    show: function(remaining, threshold){
+      if (dismissed()) return;
+      var el = document.getElementById('sb-credit-banner');
+      if (!el) return;
+      var rem = document.getElementById('sb-credit-remaining');
+      if (rem) rem.textContent = remaining || '0';
+      el.style.display = 'flex';
+    },
+    hide: function(){
+      var el = document.getElementById('sb-credit-banner');
+      if (el) el.style.display = 'none';
+    }
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('sb-credit-banner-close');
+    if (btn) btn.onclick = function(){ setDismissed(); window.SbCreditWarn.hide(); };
+  });
+  // Fetch interceptor — read X-Credit-Warning header from any API response.
+  // Stacks on top of the billing-block interceptor (both call _origFetch).
+  var _origFetch = window.fetch.bind(window);
+  window.fetch = async function(){
+    var res = await _origFetch.apply(null, arguments);
+    try {
+      if (res && res.headers && res.headers.get('X-Credit-Warning') === 'low') {
+        var rem = res.headers.get('X-Credit-Remaining') || '0';
+        var thr = res.headers.get('X-Credit-Threshold') || '0';
+        window.SbCreditWarn.show(rem, thr);
+      }
+    } catch(e){}
+    return res;
+  };
+})();
+</script>
+
 <header class="sb-topbar" style="height:50px!important;min-height:50px!important;max-height:50px!important;overflow:hidden!important;display:flex!important;align-items:center!important;position:relative!important;">
   <a href="/superboard/" class="sb-logo" id="sbLogo">
     <img id="sbLogoImg" src="" alt="VIIV"

@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import text
 from app.core.db import engine
 from app.core.id_generator import generate_id
+from app.middleware.gateway import require_quota
 import jwt, os, base64, uuid, string
 
 router = APIRouter(prefix="/api/pos/products", tags=["pos-products"])
@@ -52,6 +53,7 @@ def list_categories(authorization: str = Header("")):
     return [r[0] for r in rows]
 
 @router.post("/create")
+@require_quota("max_products")
 def create_product(payload: dict, authorization: str = Header("")):
     tid = get_tenant(authorization)
     req = ["name","price","sku"]

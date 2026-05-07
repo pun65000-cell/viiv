@@ -2,6 +2,7 @@ from fastapi import APIRouter, Header, HTTPException, Query
 from sqlalchemy import text
 from app.core.db import engine
 from app.core.id_generator import generate_id
+from app.middleware.gateway import require_quota
 import jwt, os, json
 from datetime import datetime
 
@@ -92,6 +93,7 @@ def list_members(
         return {"total":total,"page":page,"limit":limit,"pages":(total+limit-1)//limit,"members":members}
 
 @router.post("/create")
+@require_quota("max_members")
 def create_member(payload: dict, authorization: str = Header("")):
     tid, uid = get_tenant_user(authorization)
     name = (payload.get("name") or "").strip()

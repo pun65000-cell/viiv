@@ -176,7 +176,20 @@ def _ai_push_reply(
     Background task:
     เรียก moduleai → ได้ reply → push ไปลูกค้าผ่าน LINE push API
     ไม่มี replyToken timeout
+
+    Credit gate (Phase 2E): หัก credit `chat_text` ก่อนเรียก AI;
+    ถ้า credit ไม่พอ → ไม่ reply (ลูกค้าเงียบไป — ดีกว่าตอบมั่วฟรี).
+    Refund อัตโนมัติถ้า AI fail หรือ LINE push fail.
     """
+    # Credit gate
+    from app.middleware.gateway import try_consume_credit, refund_credit
+    _ok, _ledger_id, _cost = try_consume_credit(tenant_id, "chat_text")
+    if not _ok:
+        _log.info("[ai_push] credit insufficient tenant=%s — skip reply", tenant_id)
+        return
+
+    _refund_on_fail = (_ledger_id is not None)
+
     try:
         import httpx as _httpx
 
@@ -194,10 +207,14 @@ def _ai_push_reply(
             )
             if r.status_code != 200:
                 _log.warning("moduleai %d tenant=%s", r.status_code, tenant_id)
+                if _refund_on_fail:
+                    refund_credit(tenant_id, _ledger_id, _cost, "chat_text")
                 return
             ai_reply = r.json().get("reply", "")
 
         if not ai_reply:
+            if _refund_on_fail:
+                refund_credit(tenant_id, _ledger_id, _cost, "chat_text")
             return
 
         # 2. push ไปลูกค้า (ไม่ใช่ reply — ไม่หมดอายุ)
@@ -215,6 +232,8 @@ def _ai_push_reply(
             )
             if resp.status_code != 200:
                 _log.warning("LINE push failed %d: %s", resp.status_code, resp.text[:100])
+                if _refund_on_fail:
+                    refund_credit(tenant_id, _ledger_id, _cost, "chat_text")
                 return
 
         # 3. save outbound message
@@ -234,6 +253,11 @@ def _ai_push_reply(
 
     except Exception as e:
         _log.warning("[ai_push] failed tenant=%s: %s", tenant_id, e)
+        if _refund_on_fail:
+            try:
+                refund_credit(tenant_id, _ledger_id, _cost, "chat_text")
+            except Exception:
+                pass
 
 
 @router.post("/webhook")
