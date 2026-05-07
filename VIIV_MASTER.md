@@ -2903,4 +2903,85 @@ Git Latest: fa7af4a (Phase 1 frontend + bump committed)
 
 ---
 
+## [J] EOD 2026-05-07 (v3.7 — Phase 2A-2D API Gateway UI complete)
+
+PHASES COMPLETE — เพิ่ม
+✅ Phase 2A — Health Monitor (2026-05-07)
+   - GET /health-status: DISTINCT ON latest log per endpoint + summary
+   - POST /health-check/run: async concurrent ping (httpx + asyncio.gather)
+   - GET/PUT /health-settings: interval_min config
+   - Frontend: 52 endpoints grouped by category, Run Check button
+   - requirements.txt: +httpx>=0.27.0
+   git: e89f448
+
+✅ Phase 2B — Credit Pricing (2026-05-07)
+   - CRUD /pricing: GET/PUT/POST/DELETE (soft delete)
+   - Frontend: grouped by category, inline edit, active toggle
+   git: 1fdc392
+
+✅ Phase 2C — Top-up Packages (2026-05-07)
+   - CRUD /topup-packages: GET/PUT/POST/DELETE/PATCH order
+   - Frontend: 5 tiers, Rate calc client-side (cr/฿)
+   git: a7dc6e9
+
+✅ Phase 2D — Top-up Approvals (2026-05-07)
+   - GET/POST approve/reject/slip: transactional approve
+     INSERT credit_ledger + UPDATE ai_tenant_credits + UPDATE credit_topups
+   - Frontend: 2 tabs (รออนุมัติ/ประวัติ), empty state รอ Phase 2E
+   git: 464437b
+
+🔴 NEXT UP — แก้
+Phase 2E — Enforcement decorator (@gateway_check)
+  - หัก credit จริงทุก API call ที่มี credit_action
+  - Quota gate: max_members / max_products
+  - Atomic deduct: Sub → Rollover → Topup pool order
+  - Refund ถ้า action fail → credit_topup pool (D68)
+
+Superboard — หน้าเครดิตลูกค้า
+  - แสดงยอดคงเหลือแยก 3 pool
+  - Burn rate 30 วัน
+  - ปุ่มเติมเครดิต → upload slip → pending approval
+
+Monthly reset cron
+  - 1st of month 00:00
+  - Rollover logic: Sub เหลือ → credit_rollover
+
+Health Monitor cron
+  - APScheduler อ่านจาก api_gateway_settings.health_check_interval_min
+  - LINE notify ทีม VIIV เมื่อ API fail
+
+KNOWN ISSUES — DELTA
+- ลบ: "Phase 2 API Gateway UI ยังไม่มี logic (placeholder เท่านั้น)"
+       → resolved by Phase 2A-2D
+- เพิ่ม: ⚠️ /api/check-subdomain ต้อง fix expected_status → 422
+        หรือแก้ endpoint ให้ return 200 (Health Monitor flag failed อยู่)
+
+API GATEWAY ENDPOINTS (Section [F] equivalent)
+### API Gateway (:8000 — /api/platform/gateway/*)
+GET    /pricing                       ✅ list credit_pricing
+PUT    /pricing/{key}                 ✅ update (cost/is_active/display_name)
+POST   /pricing                       ✅ create (validate unique + category)
+DELETE /pricing/{key}                 ✅ soft delete (is_active=false)
+GET    /topup-packages                ✅ list ORDER BY sort_order
+PUT    /topup-packages/{id}           ✅ update
+POST   /topup-packages                ✅ create
+DELETE /topup-packages/{id}           ✅ soft delete
+PATCH  /topup-packages/{id}/order     ✅ reorder
+GET    /topup-approvals               ✅ filter by status
+POST   /topup-approvals/{id}/approve  ✅ transactional (ledger+credits+status)
+POST   /topup-approvals/{id}/reject   ✅ with reason
+GET    /topup-approvals/{id}/slip     ✅ slip_url preview
+GET    /health-status                 ✅ latest log per endpoint + summary
+POST   /health-check/run              ✅ async concurrent ping (httpx)
+GET    /health-settings               ✅ interval_min
+PUT    /health-settings               ✅ validate 1-1440
+
+FILE STRUCTURE (Section [G] equivalent)
+app/api/api_gateway.py                ✅ API Gateway router (16 endpoints)
+
+Version: v3.7 | Updated: 2026-05-07
+Git Latest: 13933ee
+
+---
+
 Version: v3.2 | Updated: 2026-05-04 | Git Latest: 5db7fff
