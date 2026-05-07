@@ -43,7 +43,10 @@
             </div>
             <div class="ss-field">
               <label class="ss-label">id-Shop</label>
-              <input class="ss-input" type="text" id="ssTenantId" readonly style="background:#f3f4f6;cursor:not-allowed;color:#666;"/>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input class="ss-input" type="text" id="ssTenantId" readonly style="background:#f3f4f6;cursor:not-allowed;color:#666;flex:1;"/>
+                <button type="button" class="ss-btn-sm" id="ssCopyShopIdBtn" onclick="ssCopyShopId(this)">📋 Copy</button>
+              </div>
             </div>
           </div>
         </div>
@@ -448,6 +451,29 @@ window.ssSave = async function(){
   } finally {
     btn.disabled = !_dirty;
     btn.textContent = 'บันทึก';
+  }
+};
+
+window.ssCopyShopId = function(btn){
+  var val = document.getElementById('ssTenantId').value || '';
+  if(!val) return;
+  var done = function(){
+    var orig = btn.textContent;
+    btn.textContent = '✓ คัดลอกแล้ว';
+    setTimeout(function(){ btn.textContent = orig; }, 1500);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(val).then(done).catch(function(){
+      var ta = document.createElement('textarea');
+      ta.value = val; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch(_){}
+      document.body.removeChild(ta);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = val; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch(_){}
+    document.body.removeChild(ta);
   }
 };
 
