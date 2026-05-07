@@ -1,6 +1,6 @@
 # VIIV MASTER — Project Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
-> Version: v3.8 | Updated: 2026-05-07 | Git Latest: a030cb0  
+> Version: v3.9 | Updated: 2026-05-07 | Git Latest: 1c067e4  
 > Claude Code อัปเดต Section [J] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -3058,6 +3058,60 @@ COMMITS (3 commits, branch main)
 
 Version: v3.8 | Updated: 2026-05-07
 Git Latest: a030cb0
+
+---
+
+## [J] EOD 2026-05-07 (v3.9 — Quota Indicator + packages limits update)
+
+PHASES COMPLETE — เพิ่ม
+✅ Quota Indicator — PWA สร้างสมาชิก + สร้างสินค้า (2026-05-07)
+   - GET /api/platform/gateway/quota-status (tenant JWT auth)
+     current vs limit per tenant, -1=unlimited
+   - members.js: quota-bar ใต้ header สร้างสมาชิก/คู่ค้า (create only)
+   - products.js: quota-bar ใต้ header สร้างสินค้า (create only)
+   - progress bar: yellow <70% / orange 70-89% / red >=90%
+   - unlimited → "ไม่จำกัด (X รายการ)"
+   git: 5b91abe
+
+✅ packages limits อัปเดต (via Supabase Studio, 2026-05-07)
+   pkg_free: max 100/100 | pkg_basic: max 2000/1000
+   pkg_standard: max 5000/3000 | pkg_pro: -1/-1 | pkg_privacy: -1/-1
+
+🔴 NEXT UP (Priority)
+1. Superboard quota indicator — modal สร้างสมาชิก + สร้างสินค้า
+   (เหมือน PWA แต่ใน Superboard modal)
+2. Superboard หน้าเครดิตลูกค้า (Phase 3)
+   - ยอดคงเหลือ 3 pool + burn rate + ปุ่มเติมเครดิต
+3. Monthly reset cron
+4. Health Monitor cron (APScheduler + LINE notify)
+
+KNOWN ISSUES — เพิ่ม
+⚠️  Superboard สร้างสมาชิก modal ไม่มี quota bar
+    (Superboard ใช้ UI คนละตัวกับ PWA — Phase ถัดไป)
+
+API GATEWAY ENDPOINTS — เพิ่ม
+GET    /quota-status                  ✅ tenant JWT — current vs limit (members + products)
+
+CADDYFILE PATCH (dev7 block, 2026-05-07)
+- เพิ่ม `redir /pwa /pwa/ 308` (ก่อน handle /pwa/*)
+  → กัน /pwa (ไม่มี slash) ตก catch-all → ได้ Superboard แทน PWA
+- เพิ่ม `handle /merchant/* { ... }` (mirror wildcard block)
+  → POS iframe assets เสิร์ฟได้บน dev7
+- Backup: /etc/caddy/Caddyfile.bak.20260507_133829
+- Verify: /pwa → 308 ✓, /pwa/ → 200 ✓, /merchant/global.css → 200 ✓
+
+RULES ADDED (Section [J]) — เลขถัดจาก 230
+231  quota-status endpoint ใช้ tenant JWT (viiv_token) ไม่ใช่ platform token
+232  Quota bar แสดงเฉพาะ create mode — ห้ามแสดงตอน edit/view
+233  limit=-1 = unlimited → remaining=null → แสดง "ไม่จำกัด (X รายการ)"
+234  packages.max_members/max_products = top-level columns (ไม่ใช่ feature_flags.quota)
+
+COMMITS (2 commits, branch main)
+  5b91abe  feat(quota): Quota indicator + backend quota-status endpoint
+  1c067e4  chore: bump asset version v=0230
+
+Version: v3.9 | Updated: 2026-05-07
+Git Latest: 1c067e4
 
 ---
 
