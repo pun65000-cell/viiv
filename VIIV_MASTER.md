@@ -2425,6 +2425,35 @@ SHARED LIB DEPS ADDED 2026-05-01
 - apscheduler 3.11.2 (BackgroundScheduler, CronTrigger, Asia/Bangkok)
 - requests 2.32.5 (already installed; used in LINE push)
 
+KNOWN ISSUES / TECH DEBT
+
+TD-CADDY-DUPE (logged 2026-05-07): dev7 + test7 blocks มี `handle /chat/*` ซ้ำ 2 ครั้ง
+
+สถานะปัจจุบัน:
+  test7 block:
+    handle /chat/* { reverse_proxy localhost:8003 }  ← ใช้งาน (first match)
+    handle /chat/* { reverse_proxy localhost:9000 }  ← dead code
+
+  dev7 block:
+    handle /chat/* { reverse_proxy localhost:8003 }  ← ใช้งาน (first match)
+    handle /chat/* { reverse_proxy localhost:8000 }  ← dead code
+
+ผลกระทบปัจจุบัน: ไม่มี (first-match wins)
+
+ผลกระทบในอนาคต — Landmine ที่ต้องระวัง:
+1. ถ้ารัน cutover.sh ครั้งแรก → sed regex จะ swap port ใน duplicate ที่ 2 ด้วย
+   → Caddyfile messy ขึ้น แต่ functional ยังถูก
+2. ถ้าวันหนึ่งใครลบ duplicate ที่ 1 (โดยไม่รู้ context) → ตัวที่ 2 จะ active ทันที
+   → /chat/* บน dev7/test7 จะชี้ผิด port → chat module พังเงียบๆ
+
+Action ที่ต้องทำก่อน cutover.sh ใช้จริงครั้งแรก:
+- ลบ `handle /chat/* { reverse_proxy localhost:9000 }` ออกจาก test7 block
+- ลบ `handle /chat/* { reverse_proxy localhost:8000 }` ออกจาก dev7 block
+- validate + reload Caddy
+- backup Caddyfile ก่อน
+
+Priority: ก่อน cutover ครั้งแรก (ยังไม่ต้องรีบเดี๋ยวนี้)
+
 Version: v1.61 | Updated: 2026-05-01 (EOD)
 
 ---
@@ -2581,6 +2610,9 @@ RULES ADDED
 207  Cutover frequency: เดือนละครั้ง หรือเมื่อ feature ใหญ่เสร็จ — ไม่ใช่ทุก deploy
 208  หลัง cutover: dev7 = port เก่า (LIVE เก่า), test7 = port ใหม่ (LIVE ใหม่)
      CGO เริ่มพัฒนาบน port ที่กลายเป็น DEV ใหม่
+209  cutover.sh ใช้ครั้งแรก: ต้องลบ duplicate `handle /chat/*` block ที่เป็น dead code ก่อน
+     ไม่งั้น sed swap จะทำให้ Caddyfile messy + เป็น landmine ในอนาคต
+     (ดู TD-CADDY-DUPE ใน Section [K])
 
 RULES SUPERSEDED
 - Rule 114 (เดิม "deploy.sh = restart Blue :8000 + health×3 + auto git revert HEAD")
