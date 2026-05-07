@@ -2527,4 +2527,81 @@ TECH DEBT (carried forward)
 ⚠️ deploy.sh ไม่ครอบ chat:8003 (Rule 182) — Phase ถัดไปอาจ refactor
 ⚠️ id=105 รูปเก่าก่อน Phase 3 deploy — ไม่ back-fill (ไฟล์ไม่มีบน disk)
 
+---
+
+## [J] EOD 2026-05-07 — True Blue/Green Deploy Refactor
+
+SUMMARY
+- ระบบ deploy เดิมใช้ "rolling deployment with port swap" (detect ACTIVE → start
+  STAGING → swap Caddy → kill old) → ทุก deploy สลับ test7 ↔ port → CGO สับสน
+  ว่าวันนี้ test7 ชี้ port ไหน, dev environment ไม่ถาวร
+- เปลี่ยนเป็น True Blue/Green: 1 port = LIVE (ลูกค้า, ถาวรเป็นเดือน),
+  1 port = DEV (เราพัฒนา, ถาวรเป็นเดือน), swap แค่ตอน "cutover"
+- Fixed mapping ใน Caddyfile: test7→:9000 (LIVE), dev7→:8000 (DEV)
+- deploy.sh ลด blast radius: deploy ลง :8000 อย่างเดียว, ไม่แตะ Caddyfile,
+  ไม่กระทบลูกค้า
+- cutover.sh แยกออก: สลับ test7↔dev7 ใน Caddyfile + ยืนยัน "yes" + auto backup
+- rollback.sh เปลี่ยนเป็น git checkout + redeploy DEV (ไม่ใช่ port swap)
+
+CADDYFILE PATCH (/etc/caddy/Caddyfile)
+- เพิ่ม block test7.viiv.me { ... reverse_proxy localhost:9000 ... }
+  (เดิม fall through *.viiv.me — sed ใน cutover.sh จะ no-op)
+- แก้ block dev7.viiv.me: localhost:9000 → localhost:8000
+- /chat/* → :8003 (modulechat) คงเดิม
+- *.viiv.me wildcard fallback → :9000 ไม่ต้องแก้
+- Backup: /etc/caddy/Caddyfile.bak.20260507_044336
+
+NEW DEPLOY ARCHITECTURE
+```
+test7.viiv.me  →  :9000 (LIVE)        — ลูกค้าจริง — ถาวร
+dev7.viiv.me   →  :8000 (DEV)         — พัฒนา — ถาวร
+*.viiv.me      →  :9000 (fallback)    — shop subdomain ทั่วไป
+/chat/*        →  :8003 (modulechat)  — ทุก subdomain
+```
+
+CUTOVER FLOW (เดือนละครั้ง / feature ใหญ่เสร็จ)
+1. dev7 (ใน :8000) ผ่าน QA แล้ว
+2. รัน ~/viiv/cutover.sh → ยืนยัน "yes"
+3. cutover.sh: detect current PROD port → swap test7↔dev7 ใน Caddyfile
+   → caddy validate → systemctl reload → backup เดิมใน .bak.YYYYMMDD_HHMMSS
+4. หลัง cutover: test7→:8000 (LIVE ใหม่), dev7→:9000 (DEV ใหม่)
+5. CGO เริ่มพัฒนา round ถัดไปบน :9000 (port ที่กลายเป็น DEV)
+
+FILES CHANGED
+- ~/viiv/deploy.sh    (rewrite — DEV-only, no port swap)
+- ~/viiv/cutover.sh   [NEW] — สลับ Caddy + verify health + backup
+- ~/viiv/rollback.sh  (rewrite — git checkout + redeploy DEV)
+- /etc/caddy/Caddyfile (test7 block + dev7 → :8000)
+
+RULES ADDED
+204  deploy.sh = deploy ลง :8000 (DEV) เท่านั้น — ไม่กระทบ production
+205  cutover.sh = สลับ Caddy test7 → port ใหม่ — ใช้เมื่อ feature เสร็จและพร้อม release
+206  Caddyfile fixed mapping: test7→:9000 (LIVE) | dev7→:8000 (DEV)
+     mapping เปลี่ยนเฉพาะตอน cutover.sh เท่านั้น
+207  Cutover frequency: เดือนละครั้ง หรือเมื่อ feature ใหญ่เสร็จ — ไม่ใช่ทุก deploy
+208  หลัง cutover: dev7 = port เก่า (LIVE เก่า), test7 = port ใหม่ (LIVE ใหม่)
+     CGO เริ่มพัฒนาบน port ที่กลายเป็น DEV ใหม่
+
+RULES SUPERSEDED
+- Rule 114 (เดิม "deploy.sh = restart Blue :8000 + health×3 + auto git revert HEAD")
+  → ถูกแทนที่ด้วย Rule 204
+- Rule 182 (เดิม "deploy.sh ครอบเฉพาะ ACTIVE port (8000/9000)")
+  → ไม่เกี่ยวข้องอีก เพราะ deploy.sh ผูกกับ :8000 เสมอ ไม่ detect ACTIVE
+  → tech debt "deploy.sh ไม่ครอบ chat:8003" ยังอยู่
+
+NOTE
+- CGO spec ระบุ "ลบ Rule 119, 120, 121, 122 + เปลี่ยน Rule 102" — Rules
+  หมายเลขเหล่านี้ไม่มีอยู่ใน VIIV_MASTER.md (rules ปัจจุบันไปถึง 114
+  แล้วกระโดด 177-193) — บันทึก superseded สำหรับ Rule 114 + 182 แทน
+
+VERIFICATION (2026-05-07 04:43 UTC)
+- :8000 process up (uvicorn app.main:app --port 8000) ✓
+- :9000 process up (uvicorn app.main:app --port 9000, since 2026-05-04) ✓
+- curl https://test7.viiv.me/api/platform/health → 200 (via :9000) ✓
+- curl https://dev7.viiv.me/api/platform/health → 200 (via :8000) ✓
+- caddy validate /etc/caddy/Caddyfile → "Valid configuration" ✓
+- systemctl reload caddy → ok ✓
+
+Version: v3.3 | Updated: 2026-05-07
+
 Version: v3.2 | Updated: 2026-05-04 | Git Latest: 5db7fff
