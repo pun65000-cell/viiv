@@ -1,6 +1,6 @@
 # VIIV MASTER — Project Reference
 > **copy ไฟล์นี้ทั้งหมดเพื่อเปิดแชทใหม่ทุกครั้ง**  
-> Version: v3.0 | Updated: 2026-05-01 | Git Latest: 774b755  
+> Version: v3.8 | Updated: 2026-05-07 | Git Latest: a030cb0  
 > Claude Code อัปเดต Section [J] ทุกสิ้นวัน
 ---
 [A] ROLE & WORKFLOW
@@ -2981,6 +2981,83 @@ app/api/api_gateway.py                ✅ API Gateway router (16 endpoints)
 
 Version: v3.7 | Updated: 2026-05-07
 Git Latest: 13933ee
+
+---
+
+## [J] EOD 2026-05-07 (v3.8 — Phase 2E Enforcement decorator + Low credit alert)
+
+PHASES COMPLETE — เพิ่ม
+✅ Phase 2E — Enforcement decorator + Low credit alert (2026-05-07)
+   - app/middleware/gateway.py (new):
+     require_credit(action_key): atomic deduct Sub→Rollover→Topup
+       Hard block 402 ถ้าไม่พอ, refund → credit_topup pool (D68)
+       X-Credit-Warning header ถ้า balance < threshold (default 20%)
+     require_quota(quota_field): read packages.max_members/max_products
+       Hard block 402 + message ถ้าเกิน, -1=unlimited bypass
+     try_consume_credit() + refund_credit(): helpers สำหรับ background workers
+   - pos_members.py: @require_quota('max_members') on POST create
+   - pos_products.py: @require_quota('max_products') on POST create
+   - pos_line.py: try_consume_credit('chat_text') ใน _ai_push_reply thread
+     auto-refund 4 จุด ถ้า AI/LINE fail
+   - superboard/index.html: orange banner trigger จาก X-Credit-Warning header
+   git: c9e4c08
+
+🔴 NEXT UP (Priority)
+1. Superboard — หน้าเครดิตลูกค้า (Phase 3)
+   - แสดงยอดคงเหลือแยก 3 pool (Sub/Rollover/Topup)
+   - Burn rate กราฟ 30 วัน (จาก credit_ledger)
+   - ปุ่มเติมเครดิต → upload slip → pending (credit_topups)
+   - Banner warning เชื่อมกับ X-Credit-Warning header
+
+2. Monthly reset cron
+   - 1st of month 00:00 (APScheduler หรือ cron)
+   - Sub เหลือ → credit_rollover (ทบ 1 รอบ)
+   - credit_subscription = packages.credit_monthly ใหม่
+   - log credit_ledger txn_type='reset'
+
+3. Health Monitor cron
+   - อ่าน health_check_interval_min จาก api_gateway_settings
+   - LINE notify ทีม VIIV เมื่อ API fail
+   - เก็บ api_health_log ไว้ 30 วัน (auto-prune)
+
+4. /api/check-subdomain expected_status fix
+   - ปัจจุบัน return 422 แต่ seed ตั้ง expected 200
+   - แก้ api_endpoints หรือแก้ endpoint ให้ return 200
+
+KNOWN ISSUES — เพิ่ม
+⚠️  X-Credit-Warning banner ยังไม่ trigger ใน production
+    (ต้องรอ autopost/analytics endpoints wire @require_credit)
+⚠️  credit_subscription + credit_rollover ยังเป็น 0 ทุก tenant
+    (monthly reset cron ยังไม่มี — ทุกคนใช้ credit_topup pool)
+⚠️  feature_flags.quota ไม่มี nested object
+    quota gate อ่านจาก packages.max_members/max_products top-level แทน
+
+FILE STRUCTURE (Section [G] equivalent) — เพิ่ม
+app/middleware/gateway.py             ✅ Enforcement decorators (require_credit/require_quota)
+
+RULES ADDED (Section [J]) — เลขถัดจาก 226
+227  require_credit(action_key): Hard block 402 ถ้า total credit < cost
+     atomic deduct Sub→Rollover→Topup, refund → credit_topup ถ้า fail
+228  require_quota(quota_field): อ่านจาก packages.max_members/max_products
+     -1 = unlimited bypass, Hard block 402 ถ้าเกิน
+229  LINE webhook ไม่ใช้ decorator (ไม่มี JWT + ต้องตอบ <1s)
+     ใช้ try_consume_credit() ใน _ai_push_reply background thread แทน
+230  X-Credit-Warning header: ส่งเมื่อ remaining < threshold (default 20%)
+     Superboard อ่าน header แสดง banner เตือน (session-only dismiss)
+
+CUTOVER (2026-05-07 v3.8 release)
+- Pre-cutover:  LIVE :9000 / DEV :8000
+- Post-cutover: LIVE :8000 / DEV :9000
+- All 7 LIVE blocks swapped atomic via cutover.sh
+- Verify: concore/test7/dev7/auth/merchant/viiv/api → all GET /api/platform/health 200
+
+COMMITS (3 commits, branch main)
+  c9e4c08  feat(api-gateway): Phase 2E — Enforcement decorator + Low credit alert
+  c88c967  chore: bump asset version v=8403
+  a030cb0  chore: bump asset version v=8708
+
+Version: v3.8 | Updated: 2026-05-07
+Git Latest: a030cb0
 
 ---
 
