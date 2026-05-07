@@ -128,7 +128,8 @@ def get_settings(authorization: str = Header("")):
             SELECT id, subdomain, store_name, logo_url, bio,
                    ai_persona, ai_context,
                    biz_type_l1, biz_type_l2, biz_type_l3, biz_custom,
-                   package_id, trial_ends_at, subscription_ends_at, billing_status
+                   package_id, trial_ends_at, subscription_ends_at, billing_status,
+                   created_at
             FROM tenants WHERE id=:tid LIMIT 1
         """), {"tid": tid}).fetchone()
         if not t:
@@ -172,6 +173,7 @@ def get_settings(authorization: str = Header("")):
         "package": {
             "id": (pkg or {}).get("id", m.get("package_id") or ""),
             "name": (pkg or {}).get("name", ""),
+            "created_at": m.get("created_at").isoformat() if m.get("created_at") else None,
             "trial_ends_at": m.get("trial_ends_at").isoformat() if m.get("trial_ends_at") else None,
             "subscription_ends_at": m.get("subscription_ends_at").isoformat() if m.get("subscription_ends_at") else None,
             "billing_status": m.get("billing_status") or "",
