@@ -228,3 +228,43 @@ def get_ai_health(authorization: str = Header(None)):
         return {"status": "offline", "reason": "moduleai_down"}
     except Exception as e:
         return {"status": "offline", "reason": f"error:{type(e).__name__}"}
+
+
+# ─── Personas (Platform admin CRUD) ──────────────────────────────────
+class PersonaBody(BaseModel):
+    label: Optional[str] = None
+    description: Optional[str] = None
+
+
+@router.get("/personas")
+def list_personas_admin(authorization: str = Header(None)):
+    _admin_auth(authorization)
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT id, label, description, is_active, sort_order
+            FROM ai_personas
+            ORDER BY sort_order, id
+        """)).mappings().all()
+    return [dict(r) for r in rows]
+
+
+@router.patch("/personas/{persona_id}")
+def update_persona(persona_id: str, body: PersonaBody, authorization: str = Header(None)):
+    _admin_auth(authorization)
+    sets = []
+    params = {"id": persona_id}
+    if body.label is not None:
+        sets.append("label = :label")
+        params["label"] = body.label.strip()
+    if body.description is not None:
+        sets.append("description = :description")
+        params["description"] = body.description.strip()
+    if not sets:
+        raise HTTPException(400, "no fields to update")
+    with engine.begin() as c:
+        r = c.execute(text(
+            "UPDATE ai_personas SET " + ", ".join(sets) + " WHERE id = :id"
+        ), params)
+        if r.rowcount == 0:
+            raise HTTPException(404, "persona not found")
+    return {"ok": True, "message": "success"}

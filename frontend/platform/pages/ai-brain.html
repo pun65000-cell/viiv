@@ -245,6 +245,24 @@
 @keyframes brn-spin{to{transform:rotate(360deg)}}
 .brn-label{font-size:12px;color:var(--color-text-secondary,#666);font-weight:500;margin-bottom:6px}
 .brn-section-gap{margin-top:4px}
+
+/* ─── Persona cards ─────────────────────────────── */
+.brn-persona-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:760px){.brn-persona-grid{grid-template-columns:1fr}}
+.brn-persona-card{
+  background:var(--color-background-primary,#fff);
+  border:0.5px solid var(--color-border-tertiary,#ddd);
+  border-radius:var(--border-radius-lg,12px);
+  padding:16px 18px;
+}
+.brn-persona-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.brn-persona-icon{font-size:22px;line-height:1}
+.brn-persona-label{font-size:14px;font-weight:600;color:var(--color-text-primary,#111);line-height:1.25}
+.brn-persona-id{font-size:11px;color:var(--color-text-tertiary,#999);font-family:var(--font-mono,monospace);margin-top:2px}
+.brn-persona-edit{margin-left:auto;font-size:12px;padding:5px 10px;border:0.5px solid var(--color-border-tertiary,#ddd);border-radius:8px;background:transparent;color:var(--color-text-secondary,#666);cursor:pointer;transition:all .15s}
+.brn-persona-edit:hover{border-color:var(--color-border-secondary,#bbb);color:var(--color-text-primary,#111)}
+.brn-persona-desc{color:var(--color-text-secondary,#666);font-size:13px;line-height:1.5}
+.brn-persona-edit-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
 </style>
 
 <div class="brn-wrap">
@@ -254,7 +272,18 @@
     <button class="brn-gtab active" data-group="customer" type="button">🛍️ ลูกค้า</button>
     <button class="brn-gtab" data-group="internal" type="button">🏢 หลังบ้าน ViiV</button>
     <button class="brn-gtab" data-group="fallback" type="button">🛟 สำรอง</button>
+    <button class="brn-gtab" data-group="persona" type="button">🎭 บุคลิก AI</button>
   </div>
+
+  <!-- Persona container (group=persona) -->
+  <div id="brn-persona-container" style="display:none;">
+    <div class="brn-persona-grid" id="brn-persona-grid">
+      <div class="brn-empty">กำลังโหลด...</div>
+    </div>
+  </div>
+
+  <!-- Prompt section (groups=customer/internal/fallback) -->
+  <div id="brn-prompt-section">
 
   <!-- Slot Tabs -->
   <div class="brn-slot-tabs" id="brn-slot-tabs">
@@ -333,6 +362,8 @@
     </div>
     <div id="brn-versions"><div class="brn-empty">ยังไม่มีประวัติ</div></div>
   </div>
+
+  </div><!-- /#brn-prompt-section -->
 
 </div>
 
@@ -506,7 +537,95 @@ function renderVersions(versions){
     </div>`).join('');
 }
 
+function _setPersonaMode(on){
+  const slotTabs=document.getElementById('brn-slot-tabs');
+  const promptSec=document.getElementById('brn-prompt-section');
+  const personaCt=document.getElementById('brn-persona-container');
+  if(slotTabs)  slotTabs.style.display  = on ? 'none' : '';
+  if(promptSec) promptSec.style.display = on ? 'none' : '';
+  if(personaCt) personaCt.style.display = on ? '' : 'none';
+}
+
+async function loadPersonas(){
+  document.querySelectorAll('.brn-gtab').forEach(b=>b.classList.toggle('active',b.dataset.group==='persona'));
+  _setPersonaMode(true);
+  const grid=document.getElementById('brn-persona-grid');
+  grid.innerHTML='<div class="brn-empty">กำลังโหลด...</div>';
+  try{
+    const tok=_token();
+    const r=await fetch('/api/platform/ai/personas',{headers:{'Authorization':'Bearer '+tok},cache:'no-store'});
+    if(!r.ok) throw new Error('GET /personas → '+r.status);
+    const list=await r.json();
+    if(!Array.isArray(list)||!list.length){
+      grid.innerHTML='<div class="brn-empty">ไม่มี persona</div>';
+      return;
+    }
+    grid.innerHTML=list.map(p=>_personaCardHtml(p)).join('');
+  }catch(e){
+    grid.innerHTML='<div class="brn-empty">โหลดไม่ได้: '+esc(e.message)+'</div>';
+  }
+}
+
+function _personaCardHtml(p){
+  const id=p.id||'';
+  return `<div class="brn-persona-card" data-id="${esc(id)}" id="persona-card-${esc(id)}">
+    <div class="brn-persona-head">
+      <span class="brn-persona-icon">🎭</span>
+      <div style="flex:1;min-width:0">
+        <div class="brn-persona-label">${esc(p.label||'')}</div>
+        <div class="brn-persona-id">${esc(id)}</div>
+      </div>
+      <button class="brn-persona-edit" type="button" onclick="editPersona('${esc(id)}')">✏️ แก้ไข</button>
+    </div>
+    <div class="brn-persona-desc">${esc(p.description||'')}</div>
+  </div>`;
+}
+
+window.editPersona=function(id){
+  const card=document.getElementById('persona-card-'+id);
+  if(!card) return;
+  const label=card.querySelector('.brn-persona-label').textContent||'';
+  const desc=card.querySelector('.brn-persona-desc').textContent||'';
+  card.innerHTML=`
+    <div class="brn-persona-head">
+      <span class="brn-persona-icon">🎭</span>
+      <div style="flex:1;min-width:0">
+        <input class="brn-input" id="pp-label-${esc(id)}" value="${esc(label)}" placeholder="label">
+        <div class="brn-persona-id" style="margin-top:4px">${esc(id)}</div>
+      </div>
+    </div>
+    <textarea class="brn-textarea" id="pp-desc-${esc(id)}" style="min-height:80px" placeholder="description">${esc(desc)}</textarea>
+    <div class="brn-persona-edit-actions">
+      <button class="brn-btn brn-btn-ghost" type="button" onclick="loadPersonas()">ยกเลิก</button>
+      <button class="brn-btn brn-btn-primary" type="button" onclick="savePersona('${esc(id)}')">💾 บันทึก</button>
+    </div>
+  `;
+};
+
+window.savePersona=async function(id){
+  const labelEl=document.getElementById('pp-label-'+id);
+  const descEl=document.getElementById('pp-desc-'+id);
+  const body={label:labelEl?labelEl.value:'',description:descEl?descEl.value:''};
+  try{
+    const tok=_token();
+    const r=await fetch('/api/platform/ai/personas/'+encodeURIComponent(id),{
+      method:'PATCH',
+      headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(!r.ok){let t='';try{t=await r.text();}catch(_){}throw new Error('PATCH → '+r.status+' '+t.slice(0,120));}
+    toast('บันทึกแล้ว','success');
+    await loadPersonas();
+  }catch(e){
+    toast('บันทึกไม่สำเร็จ: '+e.message,'error');
+  }
+};
+
+window.loadPersonas=loadPersonas;
+
 async function loadGroup(group){
+  if(group==='persona'){ _group=group; return loadPersonas(); }
+  _setPersonaMode(false);
   _group=group;
   document.querySelectorAll('.brn-gtab').forEach(b=>b.classList.toggle('active',b.dataset.group===group));
   try{

@@ -112,6 +112,17 @@ def _get_ctx(authorization: str):
 
 @router.get("/personas")
 def list_personas():
+    try:
+        with engine.connect() as c:
+            rows = c.execute(text("""
+                SELECT id, label FROM ai_personas
+                WHERE is_active = true
+                ORDER BY sort_order, id
+            """)).fetchall()
+        if rows:
+            return [{"id": r[0], "label": r[1]} for r in rows]
+    except Exception:
+        pass
     return PERSONAS
 
 
