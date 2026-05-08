@@ -3,7 +3,7 @@
 <script>
 (function(){
 'use strict';
-var API=(location.hostname==='merchant.viiv.me')?'':'https://concore.viiv.me';
+var API='';
 var TOKEN=window.VIIV_TOKEN||localStorage.getItem('viiv_token')||'';
 var _products=[];
 var _editId=null;
@@ -83,6 +83,11 @@ function renderAll(){
       );
     stats.appendChild(incCard);
     el.appendChild(stats);
+    var qbDiv = document.createElement('div');
+    qbDiv.id = 'quota-bar-products-list';
+    qbDiv.style.cssText = 'margin-bottom:12px;';
+    el.appendChild(qbDiv);
+    try { if (window.loadQuotaBar) window.loadQuotaBar('products-list'); } catch(e) {}
     var toolbar=document.createElement('div');
     toolbar.style.cssText='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;';
     var searchIn=document.createElement('input');
