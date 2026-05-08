@@ -772,6 +772,10 @@ def quota_status(authorization: str = Header(None)):
         product_count = c.execute(text(
             "SELECT COUNT(*) FROM products WHERE tenant_id=:tid AND status='active'"
         ), {"tid": tid}).scalar() or 0
+        affiliate_count = c.execute(text(
+            "SELECT COUNT(*) FROM affiliate_products WHERE tenant_id=:tid AND status='active'"
+        ), {"tid": tid}).scalar() or 0
+        products_total = product_count + affiliate_count
 
     def _block(current: int, limit):
         cur = int(current or 0)
@@ -783,5 +787,5 @@ def quota_status(authorization: str = Header(None)):
     return {
         "package_name": pkg_name,
         "members": _block(members_total, max_m),
-        "products": _block(product_count, max_p),
+        "products": _block(products_total, max_p),
     }
