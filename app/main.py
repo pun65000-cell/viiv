@@ -284,3 +284,5 @@ app.include_router(platform_ai_brain_router, prefix="/api/platform")
 app.include_router(api_gateway_router, prefix="/api/platform")
 from app.api.tenant_settings import router as tenant_settings_router
 app.include_router(tenant_settings_router)
+from app.api.tenant_credits import router as tenant_credits_router
+app.include_router(tenant_credits_router, prefix="/api/tenant/credits", tags=["tenant-credits"])
