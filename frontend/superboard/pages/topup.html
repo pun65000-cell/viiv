@@ -1,0 +1,348 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"></head>
+<body>
+<style>
+*{box-sizing:border-box}
+.tu-wrap{font-family:var(--font-sans,-apple-system,sans-serif);padding:20px 24px;background:#f5f5f5;min-height:100%;color:#111}
+.tu-top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.tu-back{
+  background:transparent;border:0.5px solid #ddd;border-radius:8px;
+  padding:7px 14px;font-size:13px;color:#444;cursor:pointer;font-family:inherit;
+}
+.tu-back:hover{background:#fff}
+.tu-title{font-size:16px;font-weight:700;margin:0;color:#111}
+.tu-subtitle{font-size:12px;color:#666;margin:2px 0 0}
+
+.tu-section{margin-bottom:18px}
+.tu-section-head{font-size:13px;font-weight:700;color:#111;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.tu-section-head .num{
+  display:inline-flex;width:22px;height:22px;border-radius:50%;
+  background:#e8b93e;color:#1a1200;font-weight:800;font-size:12px;
+  align-items:center;justify-content:center;
+}
+
+/* Tier cards */
+.tu-tiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.tu-tier{
+  background:#fff;border:1px solid #ddd;border-radius:12px;
+  padding:14px 14px 12px;cursor:pointer;transition:all .15s;
+  display:flex;flex-direction:column;gap:4px;position:relative;
+}
+.tu-tier:hover{border-color:#e8b93e;box-shadow:0 2px 8px rgba(232,185,62,.14)}
+.tu-tier.selected{border-color:#e8b93e;background:#fffbeb;box-shadow:0 0 0 2px rgba(232,185,62,.35)}
+.tu-tier-name{font-size:13px;font-weight:600;color:#444}
+.tu-tier-amt{font-size:22px;font-weight:800;color:#111;line-height:1.1;margin-top:2px}
+.tu-tier-cr{font-size:13px;color:#16a34a;font-weight:600;margin-top:2px}
+.tu-tier-rate{
+  display:inline-block;font-size:11px;font-family:var(--font-mono,monospace);color:#1a56db;
+  background:#e8f0fe;padding:2px 7px;border-radius:8px;margin-top:6px;width:fit-content;
+}
+.tu-tier-bonus{font-size:11px;color:#92400e;background:#fef3c7;padding:2px 7px;border-radius:8px;width:fit-content;margin-top:4px}
+.tu-tier-badge{
+  position:absolute;top:-7px;right:8px;font-size:10px;font-weight:700;
+  background:#dc2626;color:#fff;padding:2px 8px;border-radius:99px;letter-spacing:.3px;
+}
+.tu-tier-desc{font-size:11px;color:#888;margin-top:4px;line-height:1.35}
+
+/* Bank list */
+.tu-banks{display:flex;flex-direction:column;gap:8px}
+.tu-bank{
+  background:#fff;border:1px solid #ddd;border-radius:10px;
+  padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s;
+}
+.tu-bank:hover{border-color:#e8b93e}
+.tu-bank.selected{border-color:#e8b93e;background:#fffbeb;box-shadow:0 0 0 2px rgba(232,185,62,.3)}
+.tu-bank-radio{width:18px;height:18px;border-radius:50%;border:2px solid #d0d0d0;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.tu-bank.selected .tu-bank-radio{border-color:#e8b93e}
+.tu-bank.selected .tu-bank-radio:after{content:'';width:9px;height:9px;border-radius:50%;background:#e8b93e}
+.tu-bank-info{flex:1;min-width:0}
+.tu-bank-name{font-size:13.5px;font-weight:700;color:#111}
+.tu-bank-detail{font-size:12px;color:#555;font-family:var(--font-mono,monospace);margin-top:1px}
+.tu-bank-meta{font-size:11px;color:#888;margin-top:2px}
+.tu-bank-qr{width:54px;height:54px;border:0.5px solid #eee;border-radius:6px;background:#fafafa;object-fit:contain;cursor:zoom-in}
+
+.tu-empty{padding:20px;text-align:center;color:#999;font-size:13px;font-style:italic;background:#fff;border:0.5px dashed #ddd;border-radius:10px}
+.tu-loading{padding:20px;text-align:center;color:#888;font-size:13px}
+
+/* Slip */
+.tu-slip-box{background:#fff;border:1px solid #ddd;border-radius:10px;padding:14px 16px}
+.tu-slip-input{
+  display:block;padding:8px 11px;border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;background:#f9f9f9;width:100%;cursor:pointer;
+}
+.tu-slip-prev{
+  width:160px;max-height:240px;border:0.5px dashed #ddd;border-radius:8px;
+  background:#fafafa;object-fit:contain;display:block;margin:10px 0;padding:6px;
+}
+.tu-slip-hint{font-size:11.5px;color:#888;margin-top:4px}
+
+/* Summary */
+.tu-summary{
+  background:#fff;border:1px solid #e8b93e;border-radius:12px;padding:14px 18px;
+  margin-bottom:14px;display:flex;flex-direction:column;gap:6px;
+}
+.tu-summary-row{display:flex;justify-content:space-between;font-size:13px;color:#333}
+.tu-summary-row.total{font-size:15px;font-weight:700;color:#111;padding-top:8px;border-top:1px dashed #ddd;margin-top:4px}
+
+/* Submit */
+.tu-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
+.tu-cancel{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit;
+}
+.tu-submit{
+  background:#e8b93e;border:1px solid #c9a84c;color:#1a1200;
+  border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  min-height:42px;min-width:160px;
+}
+.tu-submit:disabled{opacity:.5;cursor:not-allowed}
+.tu-submit:hover:not(:disabled){opacity:.85}
+
+/* Toast */
+.tu-toast{position:fixed;top:20px;right:20px;background:#111;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);z-index:2000;opacity:0;transform:translateY(-8px);transition:all .25s;pointer-events:none}
+.tu-toast.show{opacity:1;transform:translateY(0)}
+.tu-toast.error{background:#991b1b}
+.tu-toast.ok{background:#166534}
+</style>
+
+<div class="tu-wrap">
+  <div class="tu-top">
+    <div>
+      <h2 class="tu-title">💰 เติมเครดิต</h2>
+      <p class="tu-subtitle">เลือก tier → เลือกบัญชีรับเงิน → upload สลิป → รอ admin อนุมัติภายใน 1 ชม.</p>
+    </div>
+    <button class="tu-back" type="button" onclick="window.tuBack()">← กลับ</button>
+  </div>
+
+  <!-- Section 1 — Tier -->
+  <div class="tu-section">
+    <h3 class="tu-section-head"><span class="num">1</span> เลือกแพ็กเกจเติมเครดิต</h3>
+    <div id="tuTiers"><div class="tu-loading">กำลังโหลด tier...</div></div>
+  </div>
+
+  <!-- Section 2 — Bank -->
+  <div class="tu-section">
+    <h3 class="tu-section-head"><span class="num">2</span> โอนเงินเข้าบัญชีต่อไปนี้</h3>
+    <div id="tuBanks"><div class="tu-loading">กำลังโหลดบัญชี...</div></div>
+  </div>
+
+  <!-- Section 3 — Slip + Submit -->
+  <div class="tu-section">
+    <h3 class="tu-section-head"><span class="num">3</span> อัปโหลดสลิป + ยืนยัน</h3>
+    <div class="tu-slip-box">
+      <label style="font-size:12px;color:#666;font-weight:500;display:block;margin-bottom:6px">รูปสลิปการโอน (jpg/png/webp ≤ 5MB)</label>
+      <input id="tuSlip" type="file" accept="image/*" class="tu-slip-input" onchange="window.tuSlipPreview(event)"/>
+      <img id="tuSlipPrev" class="tu-slip-prev" style="display:none" alt="slip preview"/>
+      <div class="tu-slip-hint">ระบบจะตรวจสอบสลิปและเปลี่ยนเป็นเครดิตให้ภายใน 1 ชั่วโมง</div>
+    </div>
+  </div>
+
+  <div id="tuSummary"></div>
+
+  <div class="tu-actions">
+    <button class="tu-cancel" type="button" onclick="window.tuBack()">ยกเลิก</button>
+    <button class="tu-submit" id="tuSubmit" type="button" onclick="window.tuDoSubmit()" disabled>ส่งคำขอเติมเครดิต</button>
+  </div>
+</div>
+
+<div class="tu-toast" id="tuToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('viiv_token') || '';
+  const ORIGIN = window.location.origin;
+
+  let _tiers = [], _banks = [];
+  let _selectedTier = null, _selectedBank = null;
+  let _slipFile = null;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtNum(n){ return Number(n||0).toLocaleString('en-US'); }
+  function fmtBaht(n){ return '฿' + fmtNum(n); }
+
+  function toast(msg, kind){
+    const el = document.getElementById('tuToast');
+    if(!el) return;
+    el.className = 'tu-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'tu-toast', 2500);
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    const isForm = opts.body instanceof FormData;
+    opts.headers = Object.assign(
+      isForm ? {} : {'Content-Type':'application/json'},
+      opts.headers || {},
+      {'Authorization': 'Bearer ' + TOK()}
+    );
+    const r = await fetch(ORIGIN + path, opts);
+    let j = null; try { j = await r.json(); } catch(_){}
+    if(!r.ok) throw new Error((j && (j.detail || j.message)) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  window.tuBack = function(){
+    if(typeof window.sbNav === 'function') window.sbNav('credits');
+    else window.location.hash = '#credits';
+  };
+
+  function renderTiers(){
+    const el = document.getElementById('tuTiers');
+    if(!_tiers.length){
+      el.innerHTML = '<div class="tu-empty">ยังไม่มีแพ็กเกจเติม</div>';
+      return;
+    }
+    el.innerHTML = '<div class="tu-tiers">' + _tiers.map(tierCard).join('') + '</div>';
+  }
+
+  function tierCard(p){
+    const sel = (_selectedTier && _selectedTier.id === p.id) ? 'selected' : '';
+    const id = esc(p.id);
+    const badge = p.badge ? '<div class="tu-tier-badge">'+esc(p.badge)+'</div>' : '';
+    const bonus = (p.bonus_pct && Number(p.bonus_pct) > 0)
+      ? '<div class="tu-tier-bonus">+'+Number(p.bonus_pct).toFixed(0)+'% bonus</div>' : '';
+    const rate = p.rate ? '<div class="tu-tier-rate">'+Number(p.rate).toFixed(1)+' cr/฿</div>' : '';
+    const desc = p.description ? '<div class="tu-tier-desc">'+esc(p.description)+'</div>' : '';
+    return ''
+      + '<div class="tu-tier '+sel+'" onclick="window.tuPickTier(\''+id+'\')">'
+      +   badge
+      +   '<div class="tu-tier-name">'+esc(p.display_name||'')+'</div>'
+      +   '<div class="tu-tier-amt">'+fmtBaht(p.amount_thb)+'</div>'
+      +   '<div class="tu-tier-cr">+ '+fmtNum(p.credits)+' credits</div>'
+      +   rate + bonus + desc
+      + '</div>';
+  }
+
+  function bankDisplay(b){
+    const map = {
+      'kbank':'🏦 กสิกรไทย', 'bbl':'🏦 กรุงเทพ', 'ktb':'🏦 กรุงไทย',
+      'scb':'🏦 ไทยพาณิชย์', 'bay':'🏦 กรุงศรี', 'ttb':'🏦 ทหารไทยธนชาต',
+      'gsb':'🏦 ออมสิน', 'isbt':'🏦 อิสลาม', 'baac':'🏦 ธ.ก.ส.',
+      'promptpay':'💸 PromptPay'
+    };
+    return map[b.bank_code] || ('🏦 ' + esc(b.bank_name || b.bank_code));
+  }
+
+  function renderBanks(){
+    const el = document.getElementById('tuBanks');
+    if(!_banks.length){
+      el.innerHTML = '<div class="tu-empty">ยังไม่มีบัญชีรับเงิน — ติดต่อแอดมิน</div>';
+      return;
+    }
+    el.innerHTML = '<div class="tu-banks">' + _banks.map(bankCard).join('') + '</div>';
+  }
+
+  function bankCard(b){
+    const sel = (_selectedBank && _selectedBank.id === b.id) ? 'selected' : '';
+    const id = esc(b.id);
+    const branch = b.branch ? '<div class="tu-bank-meta">สาขา: '+esc(b.branch)+'</div>' : '';
+    const qr = b.qr_url
+      ? '<img class="tu-bank-qr" src="'+esc(b.qr_url)+'" onclick="event.stopPropagation();window.open(this.src,\'_blank\')" alt="QR"/>'
+      : '';
+    return ''
+      + '<div class="tu-bank '+sel+'" onclick="window.tuPickBank(\''+id+'\')">'
+      +   '<div class="tu-bank-radio"></div>'
+      +   '<div class="tu-bank-info">'
+      +     '<div class="tu-bank-name">'+bankDisplay(b)+(b.is_default?' <span style="font-size:10px;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px;margin-left:4px">⭐ Default</span>':'')+'</div>'
+      +     '<div class="tu-bank-detail">เลข: '+esc(b.account_no)+' · ชื่อ: '+esc(b.account_name)+'</div>'
+      +     branch
+      +   '</div>'
+      +   qr
+      + '</div>';
+  }
+
+  function renderSummary(){
+    const el = document.getElementById('tuSummary');
+    if(!_selectedTier){ el.innerHTML = ''; return; }
+    el.innerHTML = ''
+      + '<div class="tu-summary">'
+      +   '<div class="tu-summary-row"><span>แพ็กเกจ</span><span>'+esc(_selectedTier.display_name||'')+'</span></div>'
+      +   '<div class="tu-summary-row"><span>ยอดโอน</span><span style="font-family:var(--font-mono,monospace);font-weight:600">'+fmtBaht(_selectedTier.amount_thb)+'</span></div>'
+      +   '<div class="tu-summary-row total"><span>ได้รับเครดิต</span><span style="color:#16a34a">+ '+fmtNum(_selectedTier.credits)+'</span></div>'
+      + '</div>';
+  }
+
+  function refreshSubmitState(){
+    const ok = !!(_selectedTier && _selectedBank && _slipFile);
+    document.getElementById('tuSubmit').disabled = !ok;
+  }
+
+  window.tuPickTier = function(id){
+    _selectedTier = _tiers.find(p => p.id === id) || null;
+    renderTiers();
+    renderSummary();
+    refreshSubmitState();
+  };
+
+  window.tuPickBank = function(id){
+    _selectedBank = _banks.find(b => b.id === id) || null;
+    renderBanks();
+    refreshSubmitState();
+  };
+
+  window.tuSlipPreview = function(e){
+    const f = e.target.files && e.target.files[0];
+    const img = document.getElementById('tuSlipPrev');
+    if(!f){ img.style.display='none'; _slipFile = null; refreshSubmitState(); return; }
+    if(f.size > 5*1024*1024){ toast('สลิปใหญ่เกิน 5MB', 'error'); e.target.value=''; img.style.display='none'; _slipFile=null; refreshSubmitState(); return; }
+    if(!/^image\//.test(f.type)){ toast('ต้องเป็นไฟล์รูป', 'error'); e.target.value=''; _slipFile=null; refreshSubmitState(); return; }
+    _slipFile = f;
+    const r = new FileReader();
+    r.onload = ev => { img.src = ev.target.result; img.style.display='block'; };
+    r.readAsDataURL(f);
+    refreshSubmitState();
+  };
+
+  window.tuDoSubmit = async function(){
+    if(!_selectedTier){ toast('เลือก tier ก่อน', 'error'); return; }
+    if(!_selectedBank){ toast('เลือกบัญชีรับเงิน', 'error'); return; }
+    if(!_slipFile){ toast('แนบสลิปก่อน', 'error'); return; }
+
+    const btn = document.getElementById('tuSubmit');
+    btn.disabled = true;
+    btn.textContent = 'กำลังส่ง...';
+
+    try {
+      const fd = new FormData();
+      fd.append('topup_package_id', _selectedTier.id);
+      fd.append('payment_method', _selectedBank.bank_code === 'promptpay' ? 'promptpay' : 'bank_transfer');
+      fd.append('slip', _slipFile);
+      const r = await api('/api/tenant/credits/topup', {method:'POST', body: fd});
+      toast('ส่งคำขอแล้ว — รอแอดมินอนุมัติ', 'ok');
+      setTimeout(window.tuBack, 1100);
+    } catch(e){
+      toast('ส่งไม่สำเร็จ: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'ส่งคำขอเติมเครดิต';
+    }
+  };
+
+  async function load(){
+    try {
+      const t = await api('/api/tenant/credits/topup-packages');
+      _tiers = (t.packages || []).slice().sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
+      renderTiers();
+    } catch(e){
+      document.getElementById('tuTiers').innerHTML = '<div class="tu-empty">โหลด tier ไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+    try {
+      const p = await api('/api/tenant/credits/payment-info');
+      _banks = p.accounts || [];
+      // เลือก default ให้อัตโนมัติ
+      if(_banks.length){
+        const def = _banks.find(b => b.is_default) || _banks[0];
+        _selectedBank = def;
+      }
+      renderBanks();
+      refreshSubmitState();
+    } catch(e){
+      document.getElementById('tuBanks').innerHTML = '<div class="tu-empty">โหลดบัญชีไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  }
+
+  load();
+})();
+</script>
+</body></html>
