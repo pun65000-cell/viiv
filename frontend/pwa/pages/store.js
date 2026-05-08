@@ -201,6 +201,7 @@ textarea.form-input{resize:vertical}
         </div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${list.length} รายการ</div>
       </div>
+      <div id="quota-bar-products-list" style="padding:8px 12px 0"></div>
       <div id="wh-list" style="padding:0 12px">
         ${list.length === 0
           ? `<div class="s-empty">ยังไม่มีสินค้า<br><span style="font-size:11px">กด "สร้างสินค้า" เพื่อเพิ่ม</span></div>`
@@ -217,6 +218,7 @@ textarea.form-input{resize:vertical}
         if (p) _openEditSheet(p);
       });
     });
+    try { if (typeof loadQuotaBar === 'function') loadQuotaBar('products-list'); } catch(e) {}
   }
 
   function _productCardHTML(p) {
@@ -245,7 +247,8 @@ textarea.form-input{resize:vertical}
 
   /* ── TAB 2: สร้างสินค้า ─────────────────────────────────────── */
   function _renderCreate(body) {
-    body.innerHTML = `<div style="padding:12px">${_productFormHTML(null, 'new')}<button class="btn-gold" id="create-save" style="margin-top:16px">สร้างสินค้า</button></div>`;
+    body.innerHTML = `<div style="padding:12px"><div id="quota-bar-products"></div>${_productFormHTML(null, 'new')}<button class="btn-gold" id="create-save" style="margin-top:16px">สร้างสินค้า</button></div>`;
+    try { if (typeof loadQuotaBar === 'function') loadQuotaBar('products'); } catch(e) {}
     _bindProductForm(body, null, 'new', async data => {
       try {
         await App.api('/api/pos/products/create', { method: 'POST', body: JSON.stringify(data) });
