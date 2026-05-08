@@ -765,6 +765,10 @@ def quota_status(authorization: str = Header(None)):
         member_count = c.execute(text(
             "SELECT COUNT(*) FROM members WHERE tenant_id=:tid AND deleted_at IS NULL"
         ), {"tid": tid}).scalar() or 0
+        partner_count = c.execute(text(
+            "SELECT COUNT(*) FROM partners WHERE tenant_id=:tid"
+        ), {"tid": tid}).scalar() or 0
+        members_total = member_count + partner_count
         product_count = c.execute(text(
             "SELECT COUNT(*) FROM products WHERE tenant_id=:tid AND status='active'"
         ), {"tid": tid}).scalar() or 0
@@ -778,6 +782,6 @@ def quota_status(authorization: str = Header(None)):
 
     return {
         "package_name": pkg_name,
-        "members": _block(member_count, max_m),
+        "members": _block(members_total, max_m),
         "products": _block(product_count, max_p),
     }

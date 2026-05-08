@@ -3,6 +3,7 @@ import jwt
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File
 from sqlalchemy import text
 from app.core.db import engine
+from app.middleware.gateway import require_quota
 
 router = APIRouter(prefix="/api/pos/partners", tags=["pos-partners"])
 JWT_SECRET = os.getenv("JWT_SECRET", "")
@@ -57,6 +58,7 @@ def list_partners(authorization: str = Header("")):
         return [dict(r._mapping) for r in rows]
 
 @router.post("/create")
+@require_quota("max_members")
 def create_partner(payload: dict, authorization: str = Header("")):
     tid, _ = get_tenant_user(authorization)
     pid = gen_id()
