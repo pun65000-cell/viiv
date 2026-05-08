@@ -373,3 +373,37 @@ def get_topup_status(
             "created_at": r[11].isoformat() if r[11] else None,
         })
     return {"topups": topups}
+
+
+# ─────────────────────── ENDPOINT 6: GET /api/tenant/credits/payment-info ───────────────────────
+# Public bank account list สำหรับ Top-up modal (tenant role ใดก็เห็นได้)
+# Filter: is_active=true AND feature_visible=true
+# Sort: is_default DESC, sort_order ASC, created_at DESC
+# Hide internal: short_name, sort_order, timestamps
+
+@router.get("/payment-info")
+def get_payment_info(authorization: str = Header(None)):
+    _get_ctx(authorization)  # tenant JWT (any role) — แค่ verify ผ่าน
+    with engine.connect() as c:
+        rows = c.execute(text("""
+            SELECT id, bank_code, bank_name, account_no, account_name,
+                   branch, qr_url, is_default
+              FROM platform_bank_accounts
+             WHERE is_active = true
+               AND feature_visible = true
+             ORDER BY is_default DESC, sort_order ASC, created_at DESC
+        """)).mappings().all()
+
+    accounts = []
+    for r in rows:
+        accounts.append({
+            "id":           r["id"],
+            "bank_code":    r["bank_code"],
+            "bank_name":    r["bank_name"],
+            "account_no":   r["account_no"],
+            "account_name": r["account_name"],
+            "branch":       r["branch"],
+            "qr_url":       r["qr_url"],
+            "is_default":   bool(r["is_default"]),
+        })
+    return {"accounts": accounts}

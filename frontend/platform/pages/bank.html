@@ -1,0 +1,857 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"></head>
+<body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+.bk-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
+}
+
+.bk-section{margin-bottom:24px}
+.bk-section-head{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:14px;margin-bottom:12px;flex-wrap:wrap;
+}
+.bk-title{font-size:15px;font-weight:600;margin:0 0 3px;color:#111}
+.bk-subtitle{font-size:12px;color:#666;margin:0}
+.bk-note{
+  font-size:11.5px;color:#666;background:#fff7e6;
+  border-left:3px solid #e8b93e;
+  padding:7px 11px;border-radius:6px;margin:0 0 10px;
+}
+.bk-add-btn{
+  padding:8px 16px;border-radius:8px;
+  background:#e8b93e;color:#1a1200;
+  border:1px solid #c9a84c;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;min-height:36px;
+}
+.bk-add-btn:hover{opacity:.85}
+
+/* Account card grid */
+.bk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:760px){.bk-grid{grid-template-columns:1fr}}
+
+.bk-card{
+  background:#fff;border:0.5px solid #ddd;border-left:3px solid #e8b93e;
+  border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;
+}
+.bk-card.inactive{opacity:.55;border-left-color:#aaa;background:#fafafa}
+.bk-card-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bk-card-bank{font-size:14px;font-weight:600;color:#111}
+.bk-card-num{font-family:var(--font-mono,monospace);font-size:13px;color:#333}
+.bk-card-name{font-size:13px;color:#444}
+.bk-card-meta{font-size:11.5px;color:#888;font-family:var(--font-mono,monospace)}
+.bk-card-actions{display:flex;gap:6px;margin-top:6px}
+.bk-card-qr{
+  width:64px;height:64px;border:0.5px solid #eee;border-radius:6px;
+  background:#fafafa;object-fit:contain;cursor:zoom-in;
+}
+.bk-card-qr-empty{
+  width:64px;height:64px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#bbb;background:#fafafa;border:0.5px dashed #ddd;border-radius:6px;
+}
+
+.bk-pill{
+  display:inline-block;font-size:10.5px;font-weight:600;
+  padding:2px 8px;border-radius:10px;letter-spacing:.2px;
+  font-family:var(--font-mono,monospace);
+}
+.bk-pill.gold{background:#fef3c7;color:#92400e;border:0.5px solid #fde68a}
+.bk-pill.green{background:#dcfce7;color:#166534;border:0.5px solid #bbf7d0}
+.bk-pill.gray{background:#f3f4f6;color:#666;border:0.5px solid #e5e7eb}
+.bk-pill.red{background:#fee2e2;color:#b91c1c;border:0.5px solid #fecaca}
+.bk-pill.blue{background:#e8f0fe;color:#1a56db;border:0.5px solid #c7dafd}
+
+.bk-iconbtn{
+  background:transparent;border:0.5px solid #ddd;border-radius:6px;
+  width:28px;height:28px;cursor:pointer;font-size:13px;color:#666;
+  display:inline-flex;align-items:center;justify-content:center;transition:all .12s;
+}
+.bk-iconbtn:hover{border-color:#e8b93e;color:#92400e;background:#fff}
+.bk-iconbtn.danger:hover{border-color:#fecaca;color:#b91c1c;background:#fff}
+.bk-iconbtn.test:hover{border-color:#c7dafd;color:#1a56db;background:#fff}
+
+/* Generic list (gateways + bank apis) */
+.bk-list{display:flex;flex-direction:column;gap:10px}
+.bk-list-card{
+  background:#fff;border:0.5px solid #ddd;border-left:3px solid #1a56db;
+  border-radius:10px;padding:13px 16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.bk-list-card.api{border-left-color:#16a34a}
+.bk-list-card.inactive{opacity:.55;border-left-color:#aaa;background:#fafafa}
+.bk-list-name{font-size:13.5px;font-weight:600;color:#111}
+.bk-list-detail{font-size:11.5px;color:#666;font-family:var(--font-mono,monospace)}
+.bk-list-actions{margin-left:auto;display:flex;gap:6px}
+
+.bk-empty{
+  padding:24px;text-align:center;color:#999;font-size:13px;font-style:italic;
+  background:#fff;border:0.5px dashed #ddd;border-radius:10px;
+}
+
+/* Modal */
+.bk-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.bk-mask.open{display:flex}
+.bk-modal{background:#fff;border-radius:12px;max-width:560px;width:100%;padding:22px 24px;box-shadow:0 16px 40px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+.bk-modal h3{margin:0 0 14px;font-size:15px;font-weight:600;color:#111}
+.bk-field{margin-bottom:11px}
+.bk-field label{display:block;font-size:11.5px;font-weight:500;color:#666;margin-bottom:4px}
+.bk-field input,.bk-field select,.bk-field textarea{
+  width:100%;padding:8px 11px;
+  border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;color:#111;
+  background:#f9f9f9;outline:none;box-sizing:border-box;min-height:36px;
+}
+.bk-field textarea{font-family:var(--font-mono,monospace);font-size:12px;min-height:80px;resize:vertical}
+.bk-field input:focus,.bk-field select:focus,.bk-field textarea:focus{border-color:#e8b93e;background:#fff}
+.bk-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bk-modal-actions{display:flex;justify-content:space-between;gap:8px;margin-top:16px;flex-wrap:wrap}
+.bk-modal-actions .left{display:flex;gap:8px}
+.bk-modal-actions .right{display:flex;gap:8px;margin-left:auto}
+.bk-savebtn{
+  background:#e8b93e;border:1px solid #c9a84c;color:#1a1200;
+  border-radius:7px;padding:7px 16px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.bk-cancelbtn{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:7px;padding:7px 14px;
+  font-size:13px;cursor:pointer;font-family:inherit;
+}
+.bk-testbtn{
+  background:#e8f0fe;border:1px solid #c7dafd;color:#1a56db;
+  border-radius:7px;padding:7px 14px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.bk-err{font-size:12px;color:#b91c1c;min-height:18px;margin-top:4px}
+
+.bk-checkrow{display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer}
+.bk-checkrow input{width:16px;height:16px;cursor:pointer}
+.bk-checkgroup{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0 4px}
+
+.bk-qr-preview{
+  width:120px;height:120px;border:0.5px dashed #ddd;border-radius:8px;
+  background:#fafafa;object-fit:contain;display:block;margin:6px 0;
+}
+
+/* Toast */
+.bk-toast{
+  position:fixed;top:20px;right:20px;
+  background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);
+  z-index:2000;opacity:0;transform:translateY(-8px);
+  transition:all .25s;pointer-events:none;
+}
+.bk-toast.show{opacity:1;transform:translateY(0)}
+.bk-toast.error{background:#991b1b}
+.bk-toast.ok{background:#166534}
+
+/* QR overlay */
+.bk-qr-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1500;
+  align-items:center;justify-content:center;padding:20px;cursor:zoom-out;
+}
+.bk-qr-overlay.open{display:flex}
+.bk-qr-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;background:#fff;padding:8px}
+</style>
+
+<div class="bk-wrap">
+
+  <!-- ═══ Section 1: Bank Accounts ═══ -->
+  <div class="bk-section">
+    <div class="bk-section-head">
+      <div>
+        <h2 class="bk-title">🏦 บัญชีธนาคาร (Phase 1 — Active)</h2>
+        <p class="bk-subtitle">บัญชีรับเงินเติม credit ของลูกค้า — แสดงในหน้าเติมเครดิต</p>
+      </div>
+      <button class="bk-add-btn" onclick="bkOpenAcct()">+ เพิ่มบัญชี</button>
+    </div>
+    <div id="bkAcctBody"><div class="bk-empty">กำลังโหลด...</div></div>
+  </div>
+
+  <!-- ═══ Section 2: Payment Gateways ═══ -->
+  <div class="bk-section">
+    <div class="bk-section-head">
+      <div>
+        <h2 class="bk-title">💳 Payment Gateway (Phase 2)</h2>
+        <p class="bk-subtitle">สำหรับ admin จัดการ provider ลูกค้ายังไม่เห็น (feature_visible flag)</p>
+      </div>
+      <button class="bk-add-btn" onclick="bkOpenGw()">+ เพิ่ม Payment Gateway</button>
+    </div>
+    <div class="bk-note">ℹ️ ระยะแรก feature_visible=false — เปิดให้ลูกค้าใช้เมื่อ provider พร้อม</div>
+    <div id="bkGwBody"><div class="bk-empty">กำลังโหลด...</div></div>
+  </div>
+
+  <!-- ═══ Section 3: Bank APIs ═══ -->
+  <div class="bk-section">
+    <div class="bk-section-head">
+      <div>
+        <h2 class="bk-title">🔌 Bank API (Phase 3)</h2>
+        <p class="bk-subtitle">สำหรับเชื่อม API ตรงกับธนาคาร — ตรวจยอด/แจ้งเตือนอัตโนมัติ</p>
+      </div>
+      <button class="bk-add-btn" onclick="bkOpenApi()">+ เพิ่ม Bank API</button>
+    </div>
+    <div class="bk-note">ℹ️ ระยะแรกใช้ทดสอบ test connection — production ต้องผ่าน security review ก่อนเปิด</div>
+    <div id="bkApiBody"><div class="bk-empty">กำลังโหลด...</div></div>
+  </div>
+
+</div>
+
+<!-- ─── Modal 1: Bank Account ─── -->
+<div class="bk-mask" id="bkAcctMask" onclick="bkCloseAcct(event)">
+  <div class="bk-modal" onclick="event.stopPropagation()">
+    <h3 id="bkAcctTitle">+ เพิ่มบัญชีธนาคาร</h3>
+    <div class="bk-grid2">
+      <div class="bk-field"><label>ธนาคาร</label>
+        <select id="bkAcctCode" onchange="bkAutoFillName()">
+          <option value="">— เลือก —</option>
+          <option value="kbank">🏦 กสิกรไทย (kbank)</option>
+          <option value="bbl">🏦 กรุงเทพ (bbl)</option>
+          <option value="ktb">🏦 กรุงไทย (ktb)</option>
+          <option value="scb">🏦 ไทยพาณิชย์ (scb)</option>
+          <option value="bay">🏦 กรุงศรี (bay)</option>
+          <option value="ttb">🏦 ทหารไทยธนชาต (ttb)</option>
+          <option value="gsb">🏦 ออมสิน (gsb)</option>
+          <option value="isbt">🏦 อิสลาม (isbt)</option>
+          <option value="baac">🏦 ธ.ก.ส. (baac)</option>
+          <option value="promptpay">💸 PromptPay (promptpay)</option>
+        </select>
+      </div>
+      <div class="bk-field"><label>ชื่อธนาคาร (auto-fill)</label>
+        <input id="bkAcctName" placeholder="กสิกรไทย" autocomplete="off"/></div>
+    </div>
+    <div class="bk-grid2">
+      <div class="bk-field"><label>เลขบัญชี *</label>
+        <input id="bkAcctNo" placeholder="123-4-56789-0" autocomplete="off"/></div>
+      <div class="bk-field"><label>ชื่อบัญชี *</label>
+        <input id="bkAcctOwner" placeholder="บจก. วี ไอ ไอ วี" autocomplete="off"/></div>
+    </div>
+    <div class="bk-grid2">
+      <div class="bk-field"><label>สาขา (ไม่บังคับ)</label>
+        <input id="bkAcctBranch" placeholder="สำนักพระราม 9" autocomplete="off"/></div>
+      <div class="bk-field"><label>Short Name (ไม่บังคับ)</label>
+        <input id="bkAcctShort" placeholder="VIIV-MAIN" autocomplete="off"/></div>
+    </div>
+    <div class="bk-field">
+      <label>QR Code</label>
+      <input id="bkAcctQrFile" type="file" accept="image/*" onchange="bkAcctPreview(event)"/>
+      <img id="bkAcctQrPrev" class="bk-qr-preview" style="display:none" alt="QR preview"/>
+    </div>
+    <div class="bk-checkgroup">
+      <label class="bk-checkrow"><input type="checkbox" id="bkAcctActive" checked/> Active</label>
+      <label class="bk-checkrow"><input type="checkbox" id="bkAcctDefault"/> Default</label>
+      <label class="bk-checkrow"><input type="checkbox" id="bkAcctVisible" checked/> Visible to tenant</label>
+    </div>
+    <div class="bk-field"><label>ลำดับ (sort_order)</label>
+      <input id="bkAcctOrder" type="number" min="0" value="0"/></div>
+    <div class="bk-err" id="bkAcctErr"></div>
+    <div class="bk-modal-actions">
+      <div class="left"></div>
+      <div class="right">
+        <button class="bk-cancelbtn" type="button" onclick="bkCloseAcct()">ยกเลิก</button>
+        <button class="bk-savebtn" type="button" onclick="bkSaveAcct()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal 2: Payment Gateway ─── -->
+<div class="bk-mask" id="bkGwMask" onclick="bkCloseGw(event)">
+  <div class="bk-modal" onclick="event.stopPropagation()">
+    <h3 id="bkGwTitle">+ เพิ่ม Payment Gateway</h3>
+    <div class="bk-grid2">
+      <div class="bk-field"><label>Provider Code *</label>
+        <input id="bkGwCode" placeholder="omise / 2c2p / stripe" autocomplete="off"/></div>
+      <div class="bk-field"><label>Provider Name *</label>
+        <input id="bkGwName" placeholder="Omise" autocomplete="off"/></div>
+    </div>
+    <div class="bk-field"><label>API Endpoint</label>
+      <input id="bkGwEnd" placeholder="https://api.omise.co" autocomplete="off"/></div>
+    <div class="bk-grid2">
+      <div class="bk-field"><label>API Key Public</label>
+        <input id="bkGwPub" placeholder="pkey_xxx" autocomplete="off"/></div>
+      <div class="bk-field"><label>API Key Secret</label>
+        <input id="bkGwSec" type="password" placeholder="skey_xxx" autocomplete="off"/></div>
+    </div>
+    <div class="bk-field"><label>Webhook URL</label>
+      <input id="bkGwHook" placeholder="https://api.viiv.me/api/.../webhook" autocomplete="off"/></div>
+    <div class="bk-field"><label>Config (JSON)</label>
+      <textarea id="bkGwCfg" placeholder='{"currency":"THB"}'></textarea></div>
+    <div class="bk-checkgroup">
+      <label class="bk-checkrow"><input type="checkbox" id="bkGwActive"/> Active</label>
+      <label class="bk-checkrow"><input type="checkbox" id="bkGwVisible"/> Visible to tenant</label>
+    </div>
+    <div class="bk-err" id="bkGwErr"></div>
+    <div class="bk-modal-actions">
+      <div class="left"></div>
+      <div class="right">
+        <button class="bk-cancelbtn" type="button" onclick="bkCloseGw()">ยกเลิก</button>
+        <button class="bk-savebtn" type="button" onclick="bkSaveGw()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal 3: Bank API ─── -->
+<div class="bk-mask" id="bkApiMask" onclick="bkCloseApi(event)">
+  <div class="bk-modal" onclick="event.stopPropagation()">
+    <h3 id="bkApiTitle">+ เพิ่ม Bank API</h3>
+    <div class="bk-field"><label>ธนาคาร *</label>
+      <select id="bkApiCode">
+        <option value="">— เลือก —</option>
+        <option value="kbank">🏦 กสิกรไทย (kbank)</option>
+        <option value="bbl">🏦 กรุงเทพ (bbl)</option>
+        <option value="ktb">🏦 กรุงไทย (ktb)</option>
+        <option value="scb">🏦 ไทยพาณิชย์ (scb)</option>
+        <option value="bay">🏦 กรุงศรี (bay)</option>
+        <option value="ttb">🏦 ทหารไทยธนชาต (ttb)</option>
+        <option value="gsb">🏦 ออมสิน (gsb)</option>
+        <option value="isbt">🏦 อิสลาม (isbt)</option>
+        <option value="baac">🏦 ธ.ก.ส. (baac)</option>
+        <option value="promptpay">💸 PromptPay (promptpay)</option>
+      </select>
+    </div>
+    <div class="bk-field"><label>API Endpoint</label>
+      <input id="bkApiEnd" placeholder="https://openapi.kasikornbank.com" autocomplete="off"/></div>
+    <div class="bk-grid2">
+      <div class="bk-field"><label>Client ID</label>
+        <input id="bkApiCid" autocomplete="off"/></div>
+      <div class="bk-field"><label>Client Secret</label>
+        <input id="bkApiCsec" type="password" autocomplete="off"/></div>
+    </div>
+    <div class="bk-field"><label>Config (JSON)</label>
+      <textarea id="bkApiCfg" placeholder='{"scope":"transaction-inquiry"}'></textarea></div>
+    <div class="bk-checkgroup">
+      <label class="bk-checkrow"><input type="checkbox" id="bkApiActive"/> Active</label>
+      <label class="bk-checkrow"><input type="checkbox" id="bkApiVisible"/> Visible to tenant</label>
+    </div>
+    <div class="bk-err" id="bkApiErr"></div>
+    <div class="bk-modal-actions">
+      <div class="left">
+        <button class="bk-testbtn" type="button" id="bkApiTestBtn" onclick="bkTestApi()" style="display:none">🔍 Test connection</button>
+      </div>
+      <div class="right">
+        <button class="bk-cancelbtn" type="button" onclick="bkCloseApi()">ยกเลิก</button>
+        <button class="bk-savebtn" type="button" onclick="bkSaveApi()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR fullscreen overlay -->
+<div class="bk-qr-overlay" id="bkQrOverlay" onclick="bkCloseQr()">
+  <img id="bkQrFull" alt="QR"/>
+</div>
+
+<div class="bk-toast" id="bkToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('platform_token') || localStorage.getItem('viiv_token') || '';
+  const ORIGIN = window.location.origin;
+  const API_ACCT = ORIGIN + '/api/platform/bank-accounts';
+  const API_GW   = ORIGIN + '/api/platform/payment-gateways';
+  const API_APIS = ORIGIN + '/api/platform/bank-apis';
+
+  const BANK_DISPLAY = {
+    'kbank':'🏦 กสิกรไทย', 'bbl':'🏦 กรุงเทพ', 'ktb':'🏦 กรุงไทย',
+    'scb':'🏦 ไทยพาณิชย์', 'bay':'🏦 กรุงศรี', 'ttb':'🏦 ทหารไทยธนชาต',
+    'gsb':'🏦 ออมสิน', 'isbt':'🏦 อิสลาม', 'baac':'🏦 ธ.ก.ส.',
+    'promptpay':'💸 PromptPay'
+  };
+  const BANK_NAME_TH = {
+    'kbank':'กสิกรไทย', 'bbl':'กรุงเทพ', 'ktb':'กรุงไทย',
+    'scb':'ไทยพาณิชย์', 'bay':'กรุงศรี', 'ttb':'ทหารไทยธนชาต',
+    'gsb':'ออมสิน', 'isbt':'อิสลาม', 'baac':'ธ.ก.ส.',
+    'promptpay':'PromptPay'
+  };
+
+  let _accts = [], _gws = [], _apis = [];
+  let _editAcct = null, _editGw = null, _editApi = null;
+  let _pendingQrFile = null;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function toast(msg, kind){
+    const el = document.getElementById('bkToast');
+    el.className = 'bk-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'bk-toast', 2500);
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    const isForm = opts.body instanceof FormData;
+    opts.headers = Object.assign(
+      isForm ? {} : {'Content-Type':'application/json'},
+      opts.headers || {},
+      {'Authorization': 'Bearer ' + TOK()}
+    );
+    const r = await fetch(path, opts);
+    let j = null; try { j = await r.json(); } catch(_) {}
+    if(!r.ok) throw new Error((j && (j.detail || j.message)) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  // ═══ Section 1 : Bank Accounts ═══
+
+  async function loadAccts(){
+    try {
+      const d = await api(API_ACCT);
+      _accts = d.accounts || [];
+      renderAccts();
+    } catch(e){
+      document.getElementById('bkAcctBody').innerHTML = '<div class="bk-empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  }
+
+  function renderAccts(){
+    if(!_accts.length){
+      document.getElementById('bkAcctBody').innerHTML = '<div class="bk-empty">ยังไม่มีบัญชีธนาคาร</div>';
+      return;
+    }
+    const html = _accts.map(acctCard).join('');
+    document.getElementById('bkAcctBody').innerHTML = '<div class="bk-grid">'+html+'</div>';
+  }
+
+  function acctCard(a){
+    const display = BANK_DISPLAY[a.bank_code] || ('🏦 ' + esc(a.bank_name || a.bank_code));
+    const isInactive = !a.is_active ? 'inactive' : '';
+    const id = esc(a.id);
+    const qrHtml = a.qr_url
+      ? '<img class="bk-card-qr" src="'+esc(a.qr_url)+'" onclick="bkShowQr(\''+esc(a.qr_url)+'\')" alt="QR"/>'
+      : '<div class="bk-card-qr-empty">ไม่มี</div>';
+    const branch = a.branch ? '<div class="bk-card-meta">สาขา: '+esc(a.branch)+'</div>' : '';
+    const short  = a.short_name ? '<div class="bk-card-meta">Short: '+esc(a.short_name)+'</div>' : '';
+    return ''
+      + '<div class="bk-card '+isInactive+'">'
+      +   '<div class="bk-card-row">'
+      +     '<span class="bk-card-bank">'+display+'</span>'
+      +     (a.is_default ? '<span class="bk-pill gold">⭐ Default</span>' : '')
+      +     (a.feature_visible ? '<span class="bk-pill green">👁 Visible</span>' : '<span class="bk-pill gray">🚫 Hidden</span>')
+      +     (a.is_active ? '<span class="bk-pill green">Active</span>' : '<span class="bk-pill gray">Inactive</span>')
+      +   '</div>'
+      +   '<div class="bk-card-row">'
+      +     '<div style="flex:1;min-width:0">'
+      +       '<div class="bk-card-num">เลข: '+esc(a.account_no)+'</div>'
+      +       '<div class="bk-card-name">ชื่อ: '+esc(a.account_name)+'</div>'
+      +       branch + short
+      +     '</div>'
+      +     qrHtml
+      +   '</div>'
+      +   '<div class="bk-card-actions">'
+      +     '<button class="bk-iconbtn" title="แก้ไข" onclick="bkEditAcct(\''+id+'\')">✏️</button>'
+      +     '<button class="bk-iconbtn danger" title="ลบ" onclick="bkDelAcct(\''+id+'\')">🗑️</button>'
+      +   '</div>'
+      + '</div>';
+  }
+
+  window.bkAutoFillName = function(){
+    const code = document.getElementById('bkAcctCode').value;
+    const nameEl = document.getElementById('bkAcctName');
+    if(BANK_NAME_TH[code] && !nameEl.value.trim()){
+      nameEl.value = BANK_NAME_TH[code];
+    }
+  };
+
+  window.bkAcctPreview = function(e){
+    const f = e.target.files && e.target.files[0];
+    const img = document.getElementById('bkAcctQrPrev');
+    if(!f){ img.style.display='none'; _pendingQrFile=null; return; }
+    if(f.size > 2*1024*1024){ toast('QR ใหญ่เกิน 2MB', 'error'); e.target.value=''; img.style.display='none'; _pendingQrFile=null; return; }
+    _pendingQrFile = f;
+    const reader = new FileReader();
+    reader.onload = ev => { img.src = ev.target.result; img.style.display='block'; };
+    reader.readAsDataURL(f);
+  };
+
+  window.bkOpenAcct = function(){
+    _editAcct = null;
+    _pendingQrFile = null;
+    document.getElementById('bkAcctTitle').textContent = '+ เพิ่มบัญชีธนาคาร';
+    document.getElementById('bkAcctCode').value = '';
+    document.getElementById('bkAcctName').value = '';
+    document.getElementById('bkAcctNo').value = '';
+    document.getElementById('bkAcctOwner').value = '';
+    document.getElementById('bkAcctBranch').value = '';
+    document.getElementById('bkAcctShort').value = '';
+    document.getElementById('bkAcctOrder').value = '0';
+    document.getElementById('bkAcctActive').checked = true;
+    document.getElementById('bkAcctDefault').checked = false;
+    document.getElementById('bkAcctVisible').checked = true;
+    document.getElementById('bkAcctQrFile').value = '';
+    const prev = document.getElementById('bkAcctQrPrev');
+    prev.style.display = 'none';
+    prev.src = '';
+    document.getElementById('bkAcctErr').textContent = '';
+    document.getElementById('bkAcctMask').classList.add('open');
+  };
+
+  window.bkEditAcct = function(id){
+    const a = _accts.find(x => x.id === id);
+    if(!a) return;
+    _editAcct = a;
+    _pendingQrFile = null;
+    document.getElementById('bkAcctTitle').textContent = '✏️ แก้ไขบัญชีธนาคาร';
+    document.getElementById('bkAcctCode').value = a.bank_code || '';
+    document.getElementById('bkAcctName').value = a.bank_name || '';
+    document.getElementById('bkAcctNo').value = a.account_no || '';
+    document.getElementById('bkAcctOwner').value = a.account_name || '';
+    document.getElementById('bkAcctBranch').value = a.branch || '';
+    document.getElementById('bkAcctShort').value = a.short_name || '';
+    document.getElementById('bkAcctOrder').value = a.sort_order || 0;
+    document.getElementById('bkAcctActive').checked = !!a.is_active;
+    document.getElementById('bkAcctDefault').checked = !!a.is_default;
+    document.getElementById('bkAcctVisible').checked = !!a.feature_visible;
+    document.getElementById('bkAcctQrFile').value = '';
+    const prev = document.getElementById('bkAcctQrPrev');
+    if(a.qr_url){ prev.src = a.qr_url; prev.style.display='block'; }
+    else { prev.style.display='none'; prev.src=''; }
+    document.getElementById('bkAcctErr').textContent = '';
+    document.getElementById('bkAcctMask').classList.add('open');
+  };
+
+  window.bkCloseAcct = function(e){
+    if(e && e.target && e.target.id !== 'bkAcctMask') return;
+    document.getElementById('bkAcctMask').classList.remove('open');
+  };
+
+  window.bkSaveAcct = async function(){
+    const err = document.getElementById('bkAcctErr');
+    err.textContent = '';
+    const body = {
+      bank_code:       document.getElementById('bkAcctCode').value.trim(),
+      bank_name:       document.getElementById('bkAcctName').value.trim(),
+      account_no:      document.getElementById('bkAcctNo').value.trim(),
+      account_name:    document.getElementById('bkAcctOwner').value.trim(),
+      branch:          document.getElementById('bkAcctBranch').value.trim(),
+      short_name:      document.getElementById('bkAcctShort').value.trim(),
+      sort_order:      parseInt(document.getElementById('bkAcctOrder').value, 10) || 0,
+      is_active:       document.getElementById('bkAcctActive').checked,
+      is_default:      document.getElementById('bkAcctDefault').checked,
+      feature_visible: document.getElementById('bkAcctVisible').checked,
+    };
+    if(!body.bank_code){ err.textContent = 'เลือกธนาคาร'; return; }
+    if(!body.bank_name){ err.textContent = 'ชื่อธนาคารห้ามว่าง'; return; }
+    if(!body.account_no){ err.textContent = 'เลขบัญชีห้ามว่าง'; return; }
+    if(!body.account_name){ err.textContent = 'ชื่อบัญชีห้ามว่าง'; return; }
+
+    try {
+      let saved;
+      if(_editAcct){
+        saved = await api(API_ACCT + '/' + encodeURIComponent(_editAcct.id), {
+          method: 'PUT', body: JSON.stringify(body)
+        });
+      } else {
+        saved = await api(API_ACCT, {method: 'POST', body: JSON.stringify(body)});
+      }
+      // Upload QR ถ้ามี
+      if(_pendingQrFile && saved && saved.id){
+        const fd = new FormData();
+        fd.append('file', _pendingQrFile);
+        await api(API_ACCT + '/' + encodeURIComponent(saved.id) + '/upload-qr', {
+          method: 'POST', body: fd
+        });
+      }
+      document.getElementById('bkAcctMask').classList.remove('open');
+      toast(_editAcct ? 'อัปเดตแล้ว' : 'เพิ่มแล้ว', 'ok');
+      loadAccts();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  window.bkDelAcct = async function(id){
+    const a = _accts.find(x => x.id === id);
+    if(!confirm('ลบบัญชี "' + (a ? a.account_no : id) + '" ?\n(ลบถาวร)')) return;
+    try {
+      await api(API_ACCT + '/' + encodeURIComponent(id), {method: 'DELETE'});
+      toast('ลบแล้ว', 'ok');
+      loadAccts();
+    } catch(e){ toast('ลบไม่สำเร็จ: '+e.message, 'error'); }
+  };
+
+  window.bkShowQr = function(url){
+    document.getElementById('bkQrFull').src = url;
+    document.getElementById('bkQrOverlay').classList.add('open');
+  };
+  window.bkCloseQr = function(){
+    document.getElementById('bkQrOverlay').classList.remove('open');
+  };
+
+  // ═══ Section 2 : Payment Gateways ═══
+
+  async function loadGws(){
+    try {
+      const d = await api(API_GW);
+      _gws = d.gateways || [];
+      renderGws();
+    } catch(e){
+      document.getElementById('bkGwBody').innerHTML = '<div class="bk-empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  }
+
+  function renderGws(){
+    if(!_gws.length){
+      document.getElementById('bkGwBody').innerHTML = '<div class="bk-empty">ยังไม่มี Payment Gateway</div>';
+      return;
+    }
+    const html = _gws.map(gwCard).join('');
+    document.getElementById('bkGwBody').innerHTML = '<div class="bk-list">'+html+'</div>';
+  }
+
+  function gwCard(g){
+    const id = esc(g.id);
+    const inact = !g.is_active ? 'inactive' : '';
+    return ''
+      + '<div class="bk-list-card '+inact+'">'
+      +   '<div style="flex:1;min-width:0">'
+      +     '<div class="bk-list-name">💳 '+esc(g.provider_name)+' <span style="color:#888;font-size:11px;font-weight:400">('+esc(g.provider_code)+')</span></div>'
+      +     '<div class="bk-list-detail">Endpoint: '+esc(g.api_endpoint || '—')+'</div>'
+      +   '</div>'
+      +   '<div>'+(g.is_active?'<span class="bk-pill green">Active</span>':'<span class="bk-pill gray">Inactive</span>')+' '
+      +     (g.feature_visible?'<span class="bk-pill blue">Visible</span>':'<span class="bk-pill gray">Hidden</span>')+'</div>'
+      +   '<div class="bk-list-actions">'
+      +     '<button class="bk-iconbtn" title="แก้ไข" onclick="bkEditGw(\''+id+'\')">✏️</button>'
+      +     '<button class="bk-iconbtn danger" title="ลบ" onclick="bkDelGw(\''+id+'\')">🗑️</button>'
+      +   '</div>'
+      + '</div>';
+  }
+
+  window.bkOpenGw = function(){
+    _editGw = null;
+    document.getElementById('bkGwTitle').textContent = '+ เพิ่ม Payment Gateway';
+    ['bkGwCode','bkGwName','bkGwEnd','bkGwPub','bkGwSec','bkGwHook','bkGwCfg'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('bkGwActive').checked = false;
+    document.getElementById('bkGwVisible').checked = false;
+    document.getElementById('bkGwErr').textContent = '';
+    document.getElementById('bkGwMask').classList.add('open');
+  };
+
+  window.bkEditGw = function(id){
+    const g = _gws.find(x => x.id === id);
+    if(!g) return;
+    _editGw = g;
+    document.getElementById('bkGwTitle').textContent = '✏️ แก้ไข Payment Gateway';
+    document.getElementById('bkGwCode').value = g.provider_code || '';
+    document.getElementById('bkGwName').value = g.provider_name || '';
+    document.getElementById('bkGwEnd').value = g.api_endpoint || '';
+    document.getElementById('bkGwPub').value = g.api_key_public || '';
+    document.getElementById('bkGwSec').value = g.api_key_secret || '';
+    document.getElementById('bkGwHook').value = g.webhook_url || '';
+    document.getElementById('bkGwCfg').value = g.config_jsonb ? JSON.stringify(g.config_jsonb, null, 2) : '';
+    document.getElementById('bkGwActive').checked = !!g.is_active;
+    document.getElementById('bkGwVisible').checked = !!g.feature_visible;
+    document.getElementById('bkGwErr').textContent = '';
+    document.getElementById('bkGwMask').classList.add('open');
+  };
+
+  window.bkCloseGw = function(e){
+    if(e && e.target && e.target.id !== 'bkGwMask') return;
+    document.getElementById('bkGwMask').classList.remove('open');
+  };
+
+  window.bkSaveGw = async function(){
+    const err = document.getElementById('bkGwErr');
+    err.textContent = '';
+    const body = {
+      provider_code:   document.getElementById('bkGwCode').value.trim(),
+      provider_name:   document.getElementById('bkGwName').value.trim(),
+      api_endpoint:    document.getElementById('bkGwEnd').value.trim(),
+      api_key_public:  document.getElementById('bkGwPub').value.trim(),
+      api_key_secret:  document.getElementById('bkGwSec').value.trim(),
+      webhook_url:     document.getElementById('bkGwHook').value.trim(),
+      is_active:       document.getElementById('bkGwActive').checked,
+      feature_visible: document.getElementById('bkGwVisible').checked,
+    };
+    const cfgRaw = document.getElementById('bkGwCfg').value.trim();
+    if(cfgRaw){
+      try { body.config_jsonb = JSON.parse(cfgRaw); }
+      catch(_){ err.textContent = 'Config ต้องเป็น JSON ถูก format'; return; }
+    } else {
+      body.config_jsonb = {};
+    }
+    if(!body.provider_code){ err.textContent = 'provider_code ห้ามว่าง'; return; }
+    if(!body.provider_name){ err.textContent = 'provider_name ห้ามว่าง'; return; }
+
+    try {
+      if(_editGw){
+        await api(API_GW + '/' + encodeURIComponent(_editGw.id), {method:'PUT', body: JSON.stringify(body)});
+      } else {
+        await api(API_GW, {method:'POST', body: JSON.stringify(body)});
+      }
+      document.getElementById('bkGwMask').classList.remove('open');
+      toast(_editGw ? 'อัปเดตแล้ว' : 'เพิ่มแล้ว', 'ok');
+      loadGws();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  window.bkDelGw = async function(id){
+    const g = _gws.find(x => x.id === id);
+    if(!confirm('ลบ Gateway "' + (g ? g.provider_name : id) + '" ?')) return;
+    try {
+      await api(API_GW + '/' + encodeURIComponent(id), {method: 'DELETE'});
+      toast('ลบแล้ว', 'ok');
+      loadGws();
+    } catch(e){ toast('ลบไม่สำเร็จ: '+e.message, 'error'); }
+  };
+
+  // ═══ Section 3 : Bank APIs ═══
+
+  async function loadApis(){
+    try {
+      const d = await api(API_APIS);
+      _apis = d.apis || [];
+      renderApis();
+    } catch(e){
+      document.getElementById('bkApiBody').innerHTML = '<div class="bk-empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+    }
+  }
+
+  function fmtCheck(t, s){
+    if(!t) return '<span class="bk-pill gray">ยังไม่ตรวจ</span>';
+    const cls = s === 'ok' ? 'green' : 'red';
+    const dt = new Date(t);
+    const tStr = isNaN(dt) ? t : dt.toLocaleString('th-TH');
+    return '<span class="bk-pill '+cls+'">'+esc(s||'?')+'</span> <span class="bk-list-detail">'+esc(tStr)+'</span>';
+  }
+
+  function renderApis(){
+    if(!_apis.length){
+      document.getElementById('bkApiBody').innerHTML = '<div class="bk-empty">ยังไม่มี Bank API</div>';
+      return;
+    }
+    const html = _apis.map(apiCard).join('');
+    document.getElementById('bkApiBody').innerHTML = '<div class="bk-list">'+html+'</div>';
+  }
+
+  function apiCard(a){
+    const id = esc(a.id);
+    const inact = !a.is_active ? 'inactive' : '';
+    const display = BANK_DISPLAY[a.bank_code] || ('🔌 ' + esc(a.bank_code));
+    return ''
+      + '<div class="bk-list-card api '+inact+'">'
+      +   '<div style="flex:1;min-width:0">'
+      +     '<div class="bk-list-name">🔌 '+display+'</div>'
+      +     '<div class="bk-list-detail">'+esc(a.api_endpoint || '—')+'</div>'
+      +     '<div class="bk-list-detail">Last: '+fmtCheck(a.last_check_at, a.last_check_status)+'</div>'
+      +   '</div>'
+      +   '<div>'+(a.is_active?'<span class="bk-pill green">Active</span>':'<span class="bk-pill gray">Inactive</span>')+' '
+      +     (a.feature_visible?'<span class="bk-pill blue">Visible</span>':'<span class="bk-pill gray">Hidden</span>')+'</div>'
+      +   '<div class="bk-list-actions">'
+      +     '<button class="bk-iconbtn" title="แก้ไข" onclick="bkEditApi(\''+id+'\')">✏️</button>'
+      +     '<button class="bk-iconbtn test" title="Test connection" onclick="bkTestApiRow(\''+id+'\')">🔍</button>'
+      +     '<button class="bk-iconbtn danger" title="ลบ" onclick="bkDelApi(\''+id+'\')">🗑️</button>'
+      +   '</div>'
+      + '</div>';
+  }
+
+  window.bkOpenApi = function(){
+    _editApi = null;
+    document.getElementById('bkApiTitle').textContent = '+ เพิ่ม Bank API';
+    document.getElementById('bkApiCode').value = '';
+    document.getElementById('bkApiEnd').value = '';
+    document.getElementById('bkApiCid').value = '';
+    document.getElementById('bkApiCsec').value = '';
+    document.getElementById('bkApiCfg').value = '';
+    document.getElementById('bkApiActive').checked = false;
+    document.getElementById('bkApiVisible').checked = false;
+    document.getElementById('bkApiErr').textContent = '';
+    document.getElementById('bkApiTestBtn').style.display = 'none';
+    document.getElementById('bkApiMask').classList.add('open');
+  };
+
+  window.bkEditApi = function(id){
+    const a = _apis.find(x => x.id === id);
+    if(!a) return;
+    _editApi = a;
+    document.getElementById('bkApiTitle').textContent = '✏️ แก้ไข Bank API';
+    document.getElementById('bkApiCode').value = a.bank_code || '';
+    document.getElementById('bkApiEnd').value = a.api_endpoint || '';
+    document.getElementById('bkApiCid').value = a.client_id || '';
+    document.getElementById('bkApiCsec').value = a.client_secret || '';
+    document.getElementById('bkApiCfg').value = a.config_jsonb ? JSON.stringify(a.config_jsonb, null, 2) : '';
+    document.getElementById('bkApiActive').checked = !!a.is_active;
+    document.getElementById('bkApiVisible').checked = !!a.feature_visible;
+    document.getElementById('bkApiErr').textContent = '';
+    document.getElementById('bkApiTestBtn').style.display = 'inline-block';
+    document.getElementById('bkApiMask').classList.add('open');
+  };
+
+  window.bkCloseApi = function(e){
+    if(e && e.target && e.target.id !== 'bkApiMask') return;
+    document.getElementById('bkApiMask').classList.remove('open');
+  };
+
+  window.bkSaveApi = async function(){
+    const err = document.getElementById('bkApiErr');
+    err.textContent = '';
+    const body = {
+      bank_code:       document.getElementById('bkApiCode').value.trim(),
+      api_endpoint:    document.getElementById('bkApiEnd').value.trim(),
+      client_id:       document.getElementById('bkApiCid').value.trim(),
+      client_secret:   document.getElementById('bkApiCsec').value.trim(),
+      is_active:       document.getElementById('bkApiActive').checked,
+      feature_visible: document.getElementById('bkApiVisible').checked,
+    };
+    const cfgRaw = document.getElementById('bkApiCfg').value.trim();
+    if(cfgRaw){
+      try { body.config_jsonb = JSON.parse(cfgRaw); }
+      catch(_){ err.textContent = 'Config ต้องเป็น JSON ถูก format'; return; }
+    } else {
+      body.config_jsonb = {};
+    }
+    if(!body.bank_code){ err.textContent = 'เลือกธนาคาร'; return; }
+
+    try {
+      if(_editApi){
+        await api(API_APIS + '/' + encodeURIComponent(_editApi.id), {method:'PUT', body: JSON.stringify(body)});
+      } else {
+        await api(API_APIS, {method:'POST', body: JSON.stringify(body)});
+      }
+      document.getElementById('bkApiMask').classList.remove('open');
+      toast(_editApi ? 'อัปเดตแล้ว' : 'เพิ่มแล้ว', 'ok');
+      loadApis();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  window.bkTestApi = async function(){
+    if(!_editApi){ toast('บันทึกก่อน Test', 'error'); return; }
+    try {
+      const r = await api(API_APIS + '/' + encodeURIComponent(_editApi.id) + '/test-connection', {method: 'POST'});
+      toast(r.ok ? '✓ ' + (r.message || 'ok') : '✗ ' + (r.message || 'failed'), r.ok ? 'ok' : 'error');
+      loadApis();
+    } catch(e){ toast('Test ไม่สำเร็จ: '+e.message, 'error'); }
+  };
+
+  window.bkTestApiRow = async function(id){
+    try {
+      const r = await api(API_APIS + '/' + encodeURIComponent(id) + '/test-connection', {method: 'POST'});
+      toast(r.ok ? '✓ ' + (r.message || 'ok') : '✗ ' + (r.message || 'failed'), r.ok ? 'ok' : 'error');
+      loadApis();
+    } catch(e){ toast('Test ไม่สำเร็จ: '+e.message, 'error'); }
+  };
+
+  window.bkDelApi = async function(id){
+    const a = _apis.find(x => x.id === id);
+    if(!confirm('ลบ Bank API "' + (a ? a.bank_code : id) + '" ?')) return;
+    try {
+      await api(API_APIS + '/' + encodeURIComponent(id), {method: 'DELETE'});
+      toast('ลบแล้ว', 'ok');
+      loadApis();
+    } catch(e){ toast('ลบไม่สำเร็จ: '+e.message, 'error'); }
+  };
+
+  // initial load
+  loadAccts();
+  loadGws();
+  loadApis();
+})();
+</script>
+</body></html>
