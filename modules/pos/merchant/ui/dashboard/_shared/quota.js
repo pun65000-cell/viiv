@@ -12,7 +12,7 @@
     }
   }
 
-  var API = (window.location.hostname === 'merchant.viiv.me') ? '' : 'https://concore.viiv.me';
+  var API = '';
 
   window.loadQuotaBar = async function(type, customElId) {
     try {
