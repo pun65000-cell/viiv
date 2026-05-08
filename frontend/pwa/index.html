@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#fffdf8"/>
 <link rel="manifest" href="/pwa/manifest.json"/>
-<link rel="stylesheet" href="/pwa/css/app.css?v=4130"/>
+<link rel="stylesheet" href="/pwa/css/app.css?v=4999"/>
 <title>VIIV</title>
 </head>
 <body>
@@ -102,6 +102,13 @@
 
   <!-- BOTTOM NAVBAR -->
   <nav id="navbar">
+    <!-- 💎 Credit Widget (Part 3B) -->
+    <button class="nb-btn nb-credit" data-page="credits"
+            id="nbCredit" onclick="Router.go('credits')"
+            style="flex:0.85;">
+      <span class="nb-icon" style="font-size:18px">💎</span>
+      <span class="nb-label" id="nbCreditNum">—</span>
+    </button>
     <button class="nb-btn active" data-page="home" onclick="Router.go('home')">
       <span class="nb-icon">⌂</span><span class="nb-label">โฮม</span>
     </button>
@@ -178,29 +185,29 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<script src="/pwa/js/auth.js?v=4130"></script>
-<script src="/pwa/js/router.js?v=4130"></script>
-<script src="/pwa/js/app.js?v=4130"></script>
-<script src="/pwa/pages/home.js?v=4130"></script>
-<script src="/pwa/pages/pos.js?v=4130"></script>
-<script src="/pwa/pages/billing.js?v=4130"></script>
-<script src="/pwa/pages/statement.js?v=4130"></script>
-<script src="/pwa/pages/orders-upload.js?v=4130"></script>
-<script src="/pwa/pages/orders.js?v=4130"></script>
-<script src="/pwa/pages/orders-detail.js?v=4130"></script>
-<script src="/pwa/pages/bill-history.js?v=4130"></script>
-<script src="/pwa/pages/products.js?v=4130"></script>
-<script src="/pwa/pages/members.js?v=4130"></script>
-    <script src="/pwa/pages/bill.js?v=4130"></script>
-    <script src="/pwa/pages/sales.js?v=4130"></script>
-<script src="/pwa/pages/chat.js?v=4130"></script>
-<script src="/pwa/pages/autopost.js?v=4130"></script>
-<script src="/pwa/pages/affiliate.js?v=4130"></script>
-<script src="/pwa/pages/partners.js?v=4130"></script>
-<script src="/pwa/pages/store.js?v=4130"></script>
-<script src="/pwa/pages/line.js?v=4130"></script>
-<script src="/pwa/pages/comingsoon.js?v=4130"></script>
-  <script src="/pwa/pages/more.js?v=4130"></script>
+<script src="/pwa/js/auth.js?v=4999"></script>
+<script src="/pwa/js/router.js?v=4999"></script>
+<script src="/pwa/js/app.js?v=4999"></script>
+<script src="/pwa/pages/home.js?v=4999"></script>
+<script src="/pwa/pages/pos.js?v=4999"></script>
+<script src="/pwa/pages/billing.js?v=4999"></script>
+<script src="/pwa/pages/statement.js?v=4999"></script>
+<script src="/pwa/pages/orders-upload.js?v=4999"></script>
+<script src="/pwa/pages/orders.js?v=4999"></script>
+<script src="/pwa/pages/orders-detail.js?v=4999"></script>
+<script src="/pwa/pages/bill-history.js?v=4999"></script>
+<script src="/pwa/pages/products.js?v=4999"></script>
+<script src="/pwa/pages/members.js?v=4999"></script>
+    <script src="/pwa/pages/bill.js?v=4999"></script>
+    <script src="/pwa/pages/sales.js?v=4999"></script>
+<script src="/pwa/pages/chat.js?v=4999"></script>
+<script src="/pwa/pages/autopost.js?v=4999"></script>
+<script src="/pwa/pages/affiliate.js?v=4999"></script>
+<script src="/pwa/pages/partners.js?v=4999"></script>
+<script src="/pwa/pages/store.js?v=4999"></script>
+<script src="/pwa/pages/line.js?v=4999"></script>
+<script src="/pwa/pages/comingsoon.js?v=4999"></script>
+  <script src="/pwa/pages/more.js?v=4999"></script>
 <script>
 
 // ── PROFILE ──────────────────────────────────────────────────────────────────
@@ -359,10 +366,73 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/pwa/sw.js', { scope: '/pwa/' }).catch(() => {});
 }
 </script>
-  <script src="/pwa/pages/finance.js?v=4130"></script>
-  <script src="/pwa/pages/reserve.js?v=4130"></script>
-  <script src="/pwa/pages/staff.js?v=4130"></script>
-  <script src="/pwa/pages/bank.js?v=4130"></script>
-  <script src="/pwa/pages/receive.js?v=4130"></script>
+  <script src="/pwa/pages/finance.js?v=4999"></script>
+  <script src="/pwa/pages/reserve.js?v=4999"></script>
+  <script src="/pwa/pages/staff.js?v=4999"></script>
+  <script src="/pwa/pages/bank.js?v=4999"></script>
+  <script src="/pwa/pages/receive.js?v=4999"></script>
+
+<!-- 💎 Credit Widget — Part 3B (placeholder + badge loader) -->
+<script>
+(function(){
+  // Register 'credits' page placeholder (Part 3D ทำหน้าจริง)
+  if (window.Router && typeof Router.register === 'function') {
+    Router.register('credits', {
+      title: '💎 เครดิต',
+      load: function(){
+        var c = document.getElementById('page-container');
+        c.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#888;">' +
+          '<div style="font-size:48px;margin-bottom:20px">💎</div>' +
+          '<div style="font-size:16px;font-weight:700;color:#444;margin-bottom:8px">หน้าเครดิตกำลังพัฒนา</div>' +
+          '<div style="font-size:12px;color:#aaa">Part 3D — Coming soon</div>' +
+          '</div>';
+      }
+    });
+  }
+
+  // Badge loader — auto-refresh every 60s
+  window.loadPwaCreditBadge = async function(){
+    var el = document.getElementById('nbCreditNum');
+    var btn = document.getElementById('nbCredit');
+    if(!el || !btn) return;
+    try {
+      var token = localStorage.getItem('viiv_token');
+      if(!token){ el.textContent = '—'; return; }
+      var res = await fetch('/api/tenant/credits', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if(!res.ok){ el.textContent = '—'; return; }
+      var d = await res.json();
+      var total = d.total || 0;
+
+      var display;
+      if(total >= 10000) display = Math.round(total/1000) + 'k';
+      else if(total >= 1000) display = (total/1000).toFixed(1) + 'k';
+      else display = total.toString();
+      el.textContent = display;
+
+      var icon = btn.querySelector('.nb-icon');
+      if(total === 0){
+        if(icon) icon.style.color = '#ef4444';
+        el.style.color = '#ef4444';
+      } else if(d.is_low){
+        if(icon) icon.style.color = '#f97316';
+        el.style.color = '#f97316';
+      } else {
+        if(icon) icon.style.color = '';
+        el.style.color = '';
+      }
+    } catch(e){ /* silent */ }
+  };
+
+  // Hook: รันหลัง DOM พร้อม + delay เผื่อ Auth.init() set token
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadPwaCreditBadge, 500); });
+  } else {
+    setTimeout(loadPwaCreditBadge, 500);
+  }
+  setInterval(loadPwaCreditBadge, 60000);
+})();
+</script>
 </body>
 </html>

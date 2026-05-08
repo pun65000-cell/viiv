@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=4130" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=4999" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -290,6 +290,20 @@
 
   <div class="sb-spacer"></div>
 
+  <!-- 💎 Credit Widget (Part 3B) -->
+  <div id="sb-credit" class="sb-credit-pill"
+       onclick="sbNav('credits')"
+       title="เครดิตคงเหลือ"
+       style="display:flex;align-items:center;gap:6px;height:32px;
+              padding:0 12px;background:linear-gradient(135deg,#fdf6e3,#fef9ee);
+              border:1.5px solid #d4b866;border-radius:18px;cursor:pointer;
+              font-size:12px;font-weight:700;color:#1a1200;margin-right:8px;
+              transition:transform .15s,border-color .15s,background .3s;
+              user-select:none;white-space:nowrap;line-height:1;">
+    <span style="font-size:14px">💎</span>
+    <span id="sb-credit-num">—</span>
+  </div>
+
   <div id="sb-platforms" style="display:flex;align-items:center;gap:6px;margin-right:8px;">
     <div class="sb-plat-item" id="sbp-line" title="LINE OA" onclick="sbNav('connections')" style="cursor:pointer;position:relative;">
       <div id="sbp-line-box" style="width:26px;height:26px;border-radius:6px;background:#06C755;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid transparent;transition:border-color .3s,opacity .3s;">LINE</div>
@@ -482,6 +496,16 @@ window.sbNav = function(page){
   // remember page in URL so reload restores the same view
   if (location.hash !== '#'+page) history.replaceState(null, '', '#'+page);
   var c = document.getElementById('sbContent');
+  // Part 3B placeholder — Part 3D จะทำหน้าจริง
+  if(page==='credits'){
+    c.classList.remove('home-fullscreen');
+    c.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#888;">' +
+      '<div style="font-size:48px;margin-bottom:20px">💎</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#444;margin-bottom:8px">หน้าเครดิตกำลังพัฒนา</div>' +
+      '<div style="font-size:13px;color:#aaa">Part 3D — Coming soon</div>' +
+      '</div>';
+    return;
+  }
   if(page==='home'){c.classList.add('home-fullscreen');}
   else{c.classList.remove('home-fullscreen');}
   c.innerHTML = '<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-spinner"></div><div class="spa-loader-title">กำลังโหลด</div></div></div>';
@@ -708,6 +732,41 @@ async function loadShopBadge(){
   }catch(e){}
 }
 
+// 💎 Credit pill (Part 3B) — auto-refresh every 60s
+window.loadCreditBadge = async function(){
+  var el = document.getElementById('sb-credit-num');
+  var pill = document.getElementById('sb-credit');
+  if(!el || !pill) return;
+  try {
+    var token = getToken();
+    if(!token){ el.textContent = '—'; return; }
+    var res = await fetch('/api/tenant/credits', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if(!res.ok){ el.textContent = '—'; return; }
+    var d = await res.json();
+    var total = d.total || 0;
+    el.textContent = total.toLocaleString();
+
+    if(total === 0){
+      pill.style.background = 'linear-gradient(135deg,#fee2e2,#fef0f0)';
+      pill.style.borderColor = '#ef4444';
+      pill.style.color = '#991b1b';
+      pill.title = '🔴 เครดิตหมด — กดเติมด่วน';
+    } else if(d.is_low){
+      pill.style.background = 'linear-gradient(135deg,#fef3c7,#fef9ee)';
+      pill.style.borderColor = '#f97316';
+      pill.style.color = '#9a3412';
+      pill.title = '⚠️ เครดิตใกล้หมด ' + total.toLocaleString() + ' — กดดูรายละเอียด';
+    } else {
+      pill.style.background = 'linear-gradient(135deg,#fdf6e3,#fef9ee)';
+      pill.style.borderColor = '#d4b866';
+      pill.style.color = '#1a1200';
+      pill.title = '💎 เครดิตคงเหลือ ' + total.toLocaleString() + ' — คลิกดูรายละเอียด';
+    }
+  } catch(e){ /* silent */ }
+};
+
 // Topbar PLATFORMS widget: connected → dot เขียว + border glow / disconnected → dot ซ่อน + icon หรี่
 function sbLoadPlatformStatus() {
   const token = localStorage.getItem('viiv_token') || localStorage.getItem('platform_token');
@@ -846,6 +905,8 @@ window.addEventListener('hashchange', function(){
 document.addEventListener('DOMContentLoaded', function(){
   if(!getToken()){ window.location.href='/superboard/login.html'; return; }
   loadShopBadge();   // topbar เท่านั้น — list โหลดเมื่อเปิด dropdown
+  loadCreditBadge();
+  setInterval(loadCreditBadge, 60000);
   sbLoadLogo();
   sbLoadPlatformStatus();
   setInterval(sbLoadPlatformStatus, 30000);
