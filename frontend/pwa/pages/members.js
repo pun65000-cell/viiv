@@ -28,6 +28,7 @@
     const c = document.getElementById('page-container');
     c.innerHTML = _shell(_skeleton());
     _bindSearch();
+    try { if (typeof loadQuotaBar === 'function') loadQuotaBar('members-list'); } catch(e) {}
     _tab === 'store' ? await _loadStore() : await _loadPartners();
   }
 
@@ -56,6 +57,7 @@
           + สร้าง
         </button>
       </div>
+      <div id="quota-bar-members-list" style="padding:8px 14px 0"></div>
       <div id="mem-list" style="padding:10px 14px 80px">${inner}</div>
     </div>`;
   }

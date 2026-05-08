@@ -19,6 +19,7 @@
     </div>
   </div>
   <div class="ml-stats-row" id="mlStats"></div>
+  <div id="quota-bar-members-list"></div>
   <div id="mlList" class="ml-list"></div>
   <div id="mlPager"></div>
   <div id="mlOverlay" class="ml-overlay" style="display:none;" onclick="mlCloseForm()"></div>
@@ -59,6 +60,7 @@
 .ml-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;}
 .ml-form-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,95vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px;z-index:201;box-shadow:0 8px 32px rgba(0,0,0,.18);}
 </style>
+<script src="../../_shared/quota.js?v=1"></script>
 <script>
 (function(){
 'use strict';
@@ -81,6 +83,7 @@ function loadMembers(){
     _totalCount=data.total||0;
     renderStats();
     renderList();
+    try { if (window.loadQuotaBar) window.loadQuotaBar('members-list'); } catch(e) {}
   })
   .catch(function(){document.getElementById('mlList').innerHTML='<div style="color:#aaa;padding:40px;text-align:center;">โหลดข้อมูลไม่ได้</div>';});
 }

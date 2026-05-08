@@ -14,6 +14,7 @@
     </div>
     <button class="pt-btn-new" onclick="ptOpenForm(null)">+ สร้างคู่ค้า</button>
   </div>
+  <div id="quota-bar-members-list"></div>
   <div id="ptList" class="pt-list"></div>
   <div id="ptPager"></div>
   <div id="ptOverlay" class="pt-overlay" style="display:none;" onclick="ptCloseForm()"></div>
@@ -85,6 +86,7 @@ body{font-family:"Sarabun",sans-serif;font-size:13px;color:#1a1a1a;}
 .ac-item:hover{background:var(--gl);}
 .ac-item .ac-sub{font-size:10.5px;color:#9ca3af;}
 </style>
+<script src="../../_shared/quota.js?v=1"></script>
 <script>
 (function(){
 "use strict";
@@ -103,7 +105,7 @@ if(_t)tok({detail:{token:_t}});
 function load(){
   fetch(API+"/api/pos/partners/list",{headers:{"Authorization":"Bearer "+TOKEN}})
   .then(function(r){return r.json();})
-  .then(function(d){all=d||[];ptFilter();})
+  .then(function(d){all=d||[];ptFilter();try{if(window.loadQuotaBar)window.loadQuotaBar('members-list');}catch(e){}})
   .catch(function(){all=[];ptFilter();});
 }
 

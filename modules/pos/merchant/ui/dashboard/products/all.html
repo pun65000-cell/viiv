@@ -12,6 +12,8 @@
     </button>
   </div>
 
+  <div id="quota-bar-products-list"></div>
+
   <!-- filter bar -->
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
     <select id="allFilterStatus" class="all-select" onchange="allRender()">
@@ -42,6 +44,7 @@
 .all-badge.inactive{background:rgba(239,68,68,.1);color:#dc2626;}
 </style>
 
+<script src="../_shared/quota.js?v=1"></script>
 <script>
 (function(){
 'use strict';
@@ -68,6 +71,7 @@ async function allLoad(){
       sel.appendChild(o);
     });
     allRender();
+    try { if (window.loadQuotaBar) window.loadQuotaBar('products-list'); } catch(e) {}
   }catch(e){
     document.getElementById('allList').innerHTML='<div style="text-align:center;padding:40px;color:#aaa;">เชื่อมต่อไม่ได้</div>';
   }

@@ -118,6 +118,7 @@
           </button>`;
         }).join('') : ''}
       </div>
+      <div id="quota-bar-products-list" style="padding:8px 14px 0"></div>
       <div id="prod-list" style="padding:10px 14px 0"></div>`;
     const inp = document.getElementById('prod-search');
     if (inp) {
@@ -125,6 +126,7 @@
       inp.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => { _q = e.target.value; _renderAllList(); }, 200); });
     }
     _renderAllList();
+    try { if (typeof loadQuotaBar === 'function') loadQuotaBar('products-list'); } catch(e) {}
   }
 
   function _renderAllList() {
