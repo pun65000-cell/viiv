@@ -1,0 +1,327 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"></head>
+<body>
+<style>
+*{box-sizing:border-box}
+.cr-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;background:#f5f5f5;min-height:100%;color:#111;
+}
+.cr-top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.cr-title{font-size:16px;font-weight:700;margin:0;color:#111}
+.cr-subtitle{font-size:12px;color:#666;margin:2px 0 0}
+.cr-btn-add{
+  padding:9px 18px;border-radius:8px;
+  background:#e8b93e;color:#1a1200;border:1px solid #c9a84c;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;min-height:38px;
+}
+.cr-btn-add:hover{opacity:.85}
+
+/* Pending banner */
+.cr-pending{
+  background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);
+  border:0.5px solid #fcd34d;border-left:4px solid #f59e0b;
+  border-radius:10px;padding:12px 16px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;font-size:13px;color:#78350f;
+}
+.cr-pending-ic{font-size:18px}
+.cr-pending strong{color:#7c2d12;margin-right:4px}
+
+/* Hero */
+.cr-hero{
+  background:linear-gradient(135deg,#2a1f08 0%,#3d2e0f 60%,#1a1206 100%);
+  border-radius:14px;padding:22px 24px;margin-bottom:14px;
+  position:relative;overflow:hidden;color:#fff;
+}
+.cr-hero:before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(232,185,62,0.08)}
+.cr-hero:after{content:'';position:absolute;bottom:-40px;right:40px;width:90px;height:90px;border-radius:50%;background:rgba(232,185,62,0.05)}
+.cr-hero-tag{font-size:11px;font-weight:600;color:#e8b93e;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:6px;position:relative}
+.cr-hero-num{font-size:38px;font-weight:800;color:#fff;line-height:1;letter-spacing:-1px;margin-bottom:14px;position:relative}
+.cr-hero-num small{font-size:14px;color:#aaa;font-weight:500;margin-left:8px}
+.cr-quota-wrap{margin-top:6px;position:relative}
+.cr-quota-meta{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.7);margin-bottom:4px}
+.cr-quota-bar{height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.cr-quota-fill{height:100%;background:linear-gradient(90deg,#e8b93e,#fbbf24);border-radius:99px;transition:width .4s}
+.cr-quota-fill.warn{background:linear-gradient(90deg,#f97316,#fb923c)}
+.cr-quota-fill.danger{background:linear-gradient(90deg,#dc2626,#ef4444)}
+.cr-hero-actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;position:relative}
+
+/* 3-pool cards */
+.cr-pools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:760px){.cr-pools{grid-template-columns:1fr}}
+.cr-pool{
+  background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.cr-pool.gold{border-left:3px solid #e8b93e}
+.cr-pool.blue{border-left:3px solid #3b82f6}
+.cr-pool.green{border-left:3px solid #10b981}
+.cr-pool-key{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;font-weight:600;font-family:var(--font-mono,monospace)}
+.cr-pool-num{font-size:22px;font-weight:700;color:#111;line-height:1.1;margin-top:2px}
+.cr-pool-sub{font-size:11px;color:#999;margin-top:4px;font-family:var(--font-mono,monospace)}
+
+/* History */
+.cr-section{margin-bottom:14px}
+.cr-section-head{font-size:13px;font-weight:700;color:#111;margin:0 0 8px}
+.cr-history{
+  background:#fff;border:0.5px solid #ddd;border-radius:10px;overflow:hidden;
+}
+.cr-h-row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 16px;border-bottom:0.5px solid #f3f4f6;
+}
+.cr-h-row:last-child{border-bottom:none}
+.cr-h-ic{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+}
+.cr-h-ic.consume{background:#fee2e2;color:#b91c1c}
+.cr-h-ic.topup{background:#dcfce7;color:#166534}
+.cr-h-ic.subscription{background:#fef3c7;color:#92400e}
+.cr-h-ic.refund{background:#dbeafe;color:#1d4ed8}
+.cr-h-ic.adjust,.cr-h-ic.reset,.cr-h-ic.migrate{background:#f3f4f6;color:#666}
+.cr-h-info{flex:1;min-width:0}
+.cr-h-line1{font-size:13px;color:#111;font-weight:500}
+.cr-h-line2{font-size:11px;color:#888;margin-top:2px;font-family:var(--font-mono,monospace)}
+.cr-h-amt{font-weight:700;font-size:14px;font-family:var(--font-mono,monospace);white-space:nowrap}
+.cr-h-amt.neg{color:#b91c1c}
+.cr-h-amt.pos{color:#166534}
+
+.cr-empty{padding:30px;text-align:center;color:#999;font-size:13px;font-style:italic}
+.cr-loading{padding:24px;text-align:center;color:#888;font-size:13px}
+
+/* Toast */
+.cr-toast{
+  position:fixed;top:20px;right:20px;background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;font-size:13px;
+  box-shadow:0 8px 22px rgba(0,0,0,.25);z-index:2000;
+  opacity:0;transform:translateY(-8px);transition:all .25s;pointer-events:none;
+}
+.cr-toast.show{opacity:1;transform:translateY(0)}
+.cr-toast.error{background:#991b1b}
+.cr-toast.ok{background:#166534}
+</style>
+
+<div class="cr-wrap">
+  <div class="cr-top">
+    <div>
+      <h2 class="cr-title">💎 เครดิตของฉัน</h2>
+      <p class="cr-subtitle">ยอดคงเหลือ + ประวัติการใช้งาน 30 วันล่าสุด</p>
+    </div>
+    <button class="cr-btn-add" type="button" onclick="window.crGoTopup()">+ เติมเครดิต</button>
+  </div>
+
+  <div id="crPending"></div>
+  <div id="crHero"><div class="cr-loading">กำลังโหลด...</div></div>
+  <div id="crPools"></div>
+
+  <div class="cr-section">
+    <h3 class="cr-section-head">📋 ประวัติ 30 วันล่าสุด</h3>
+    <div id="crHistory"><div class="cr-loading">กำลังโหลด...</div></div>
+  </div>
+</div>
+
+<div class="cr-toast" id="crToast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const TOK = () => localStorage.getItem('viiv_token') || '';
+  const ORIGIN = window.location.origin;
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtNum(n){ return Number(n||0).toLocaleString('en-US'); }
+  function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+
+  function fmtDate(iso){
+    if(!iso) return '—';
+    const d = new Date(iso);
+    if(isNaN(d)) return iso;
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + (d.getFullYear()+543) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  function fmtRelative(iso){
+    if(!iso) return '—';
+    const d = new Date(iso);
+    if(isNaN(d)) return iso;
+    const sec = Math.floor((Date.now() - d.getTime())/1000);
+    if(sec < 30) return 'เมื่อสักครู่';
+    if(sec < 60) return sec + ' วินาทีที่แล้ว';
+    if(sec < 3600) return Math.floor(sec/60) + ' นาทีที่แล้ว';
+    if(sec < 86400) return Math.floor(sec/3600) + ' ชั่วโมงที่แล้ว';
+    if(sec < 86400*7) return Math.floor(sec/86400) + ' วันที่แล้ว';
+    return fmtDate(iso);
+  }
+
+  function toast(msg, kind){
+    const el = document.getElementById('crToast');
+    if(!el) return;
+    el.className = 'cr-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>el.className = 'cr-toast', 2500);
+  }
+
+  async function api(path){
+    const r = await fetch(ORIGIN + path, {
+      headers: { 'Authorization': 'Bearer ' + TOK() }
+    });
+    let j = null; try { j = await r.json(); } catch(_){}
+    if(!r.ok) throw new Error((j && (j.detail || j.message)) || ('HTTP ' + r.status));
+    return j;
+  }
+
+  window.crGoTopup = function(){
+    if(typeof window.sbNav === 'function') window.sbNav('topup');
+    else window.location.hash = '#topup';
+  };
+
+  function renderHero(d){
+    const total = d.total || 0;
+    const quota = (d.subscription && d.subscription.monthly_quota) || 0;
+    const used  = d.used_this_month || 0;
+    const pct   = quota > 0 ? Math.min(100, Math.round(used / quota * 100)) : 0;
+    const pkgName = (d.package_name || d.package_id || '—');
+    let fillCls = '';
+    if(pct >= 90) fillCls = 'danger';
+    else if(pct >= 70) fillCls = 'warn';
+
+    const quotaHtml = quota > 0
+      ? '<div class="cr-quota-wrap">'
+      +   '<div class="cr-quota-meta">'
+      +     '<span>ใช้ไป '+fmtNum(used)+' / โควต้ารายเดือน '+fmtNum(quota)+'</span>'
+      +     '<span>'+pct+'%</span>'
+      +   '</div>'
+      +   '<div class="cr-quota-bar"><div class="cr-quota-fill '+fillCls+'" style="width:'+pct+'%"></div></div>'
+      + '</div>'
+      : '<div class="cr-quota-wrap"><div class="cr-quota-meta"><span>แพ็กเกจไม่มีโควต้ารายเดือน</span></div></div>';
+
+    document.getElementById('crHero').innerHTML = ''
+      + '<div class="cr-hero">'
+      +   '<div class="cr-hero-tag">เครดิตคงเหลือทั้งหมด · '+esc(pkgName)+'</div>'
+      +   '<div class="cr-hero-num">'+fmtNum(total)+'<small>credits</small></div>'
+      +   quotaHtml
+      + '</div>';
+  }
+
+  function renderPools(d){
+    const sub  = (d.subscription && d.subscription.current) || 0;
+    const roll = (d.rollover && d.rollover.current) || 0;
+    const tup  = (d.topup && d.topup.current) || 0;
+    const monthlyQ = (d.subscription && d.subscription.monthly_quota) || 0;
+    const nextReset = (d.subscription && d.subscription.next_reset_date) || '';
+    document.getElementById('crPools').innerHTML = ''
+      + '<div class="cr-pools">'
+      +   '<div class="cr-pool gold">'
+      +     '<div class="cr-pool-key">📦 SUBSCRIPTION</div>'
+      +     '<div class="cr-pool-num">'+fmtNum(sub)+'</div>'
+      +     '<div class="cr-pool-sub">รีเซ็ต '+esc(nextReset||'—')+' (โควต้า '+fmtNum(monthlyQ)+'/เดือน)</div>'
+      +   '</div>'
+      +   '<div class="cr-pool blue">'
+      +     '<div class="cr-pool-key">🔁 ROLLOVER</div>'
+      +     '<div class="cr-pool-num">'+fmtNum(roll)+'</div>'
+      +     '<div class="cr-pool-sub">เครดิต subscription เหลือทบจากเดือนก่อน</div>'
+      +   '</div>'
+      +   '<div class="cr-pool green">'
+      +     '<div class="cr-pool-key">💰 TOP-UP</div>'
+      +     '<div class="cr-pool-num">'+fmtNum(tup)+'</div>'
+      +     '<div class="cr-pool-sub">เครดิตที่เติม สะสมตลอดชีพ ไม่หมดอายุ</div>'
+      +   '</div>'
+      + '</div>';
+  }
+
+  function renderPending(topups){
+    const pending = (topups || []).filter(t => t.status === 'pending');
+    if(!pending.length){ document.getElementById('crPending').innerHTML = ''; return; }
+    const t = pending[0];
+    const more = pending.length > 1 ? ' (+'+(pending.length-1)+' รายการอื่น)' : '';
+    document.getElementById('crPending').innerHTML = ''
+      + '<div class="cr-pending">'
+      +   '<span class="cr-pending-ic">⏳</span>'
+      +   '<div><strong>รอการอนุมัติ '+pending.length+' รายการ:</strong> '
+      +     'เติม ฿'+fmtNum(t.amount_thb)+' = '+fmtNum(t.credits_added)+' credits — '
+      +     '<span style="color:#92400e">'+fmtRelative(t.created_at)+'</span>'+more
+      +   '</div>'
+      + '</div>';
+  }
+
+  function txnIcon(type){
+    const t = (type || '').toLowerCase();
+    if(t === 'consume') return {cls:'consume', icon:'⬇'};
+    if(t === 'topup') return {cls:'topup', icon:'⬆'};
+    if(t === 'subscription') return {cls:'subscription', icon:'📦'};
+    if(t === 'refund') return {cls:'refund', icon:'↩'};
+    if(t === 'reset') return {cls:'reset', icon:'🔄'};
+    if(t === 'migrate') return {cls:'migrate', icon:'🔁'};
+    return {cls:'adjust', icon:'⚙'};
+  }
+
+  function txnLabel(e){
+    const t = (e.txn_type || '').toLowerCase();
+    if(t === 'consume') return 'ใช้เครดิต' + (e.action_key ? ' · '+esc(e.action_key) : '');
+    if(t === 'topup') return 'เติมเครดิต' + (e.topup_amount_thb ? ' (฿'+fmtNum(e.topup_amount_thb)+')' : '');
+    if(t === 'subscription') return 'รับเครดิต Subscription';
+    if(t === 'refund') return 'คืนเครดิต' + (e.action_key ? ' · '+esc(e.action_key) : '');
+    if(t === 'reset') return 'รีเซ็ตรายเดือน';
+    if(t === 'adjust') return 'ปรับเครดิตโดยแอดมิน';
+    if(t === 'migrate') return 'ย้ายเครดิต (migration)';
+    return esc(e.txn_type || '—');
+  }
+
+  function renderHistory(entries){
+    const c = document.getElementById('crHistory');
+    if(!entries || !entries.length){
+      c.innerHTML = '<div class="cr-history"><div class="cr-empty">ยังไม่มีประวัติใน 30 วันที่ผ่านมา</div></div>';
+      return;
+    }
+    const rows = entries.map(e => {
+      const ic = txnIcon(e.txn_type);
+      const amt = Number(e.amount || 0);
+      const sign = amt >= 0 ? '+' : '';
+      const cls = amt >= 0 ? 'pos' : 'neg';
+      return ''
+        + '<div class="cr-h-row">'
+        +   '<div class="cr-h-ic '+ic.cls+'">'+ic.icon+'</div>'
+        +   '<div class="cr-h-info">'
+        +     '<div class="cr-h-line1">'+txnLabel(e)+'</div>'
+        +     '<div class="cr-h-line2">'+esc(fmtRelative(e.created_at))+' · คงเหลือ '+fmtNum(e.balance_after)+'</div>'
+        +   '</div>'
+        +   '<div class="cr-h-amt '+cls+'">'+sign+fmtNum(amt)+'</div>'
+        + '</div>';
+    }).join('');
+    c.innerHTML = '<div class="cr-history">'+rows+'</div>';
+  }
+
+  async function load(){
+    let topups = [];
+    try {
+      const tStatus = await api('/api/tenant/credits/topup-status?limit=5');
+      topups = tStatus.topups || [];
+    } catch(_){}
+    renderPending(topups);
+
+    let creditsData = null;
+    try {
+      creditsData = await api('/api/tenant/credits');
+    } catch(e){
+      document.getElementById('crHero').innerHTML = '<div class="cr-empty">โหลดเครดิตไม่สำเร็จ: '+esc(e.message)+'</div>';
+      document.getElementById('crPools').innerHTML = '';
+    }
+    if(creditsData){
+      renderHero(creditsData);
+      renderPools(creditsData);
+    }
+
+    try {
+      const hist = await api('/api/tenant/credits/history?days=30&limit=30');
+      renderHistory(hist.entries || []);
+    } catch(e){
+      document.getElementById('crHistory').innerHTML = '<div class="cr-history"><div class="cr-empty">โหลดประวัติไม่สำเร็จ: '+esc(e.message)+'</div></div>';
+    }
+  }
+
+  load();
+})();
+</script>
+</body></html>

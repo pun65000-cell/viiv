@@ -496,16 +496,6 @@ window.sbNav = function(page){
   // remember page in URL so reload restores the same view
   if (location.hash !== '#'+page) history.replaceState(null, '', '#'+page);
   var c = document.getElementById('sbContent');
-  // Part 3B placeholder — Part 3D จะทำหน้าจริง
-  if(page==='credits'){
-    c.classList.remove('home-fullscreen');
-    c.innerHTML = '<div style="padding:60px 20px;text-align:center;color:#888;">' +
-      '<div style="font-size:48px;margin-bottom:20px">💎</div>' +
-      '<div style="font-size:18px;font-weight:700;color:#444;margin-bottom:8px">หน้าเครดิตกำลังพัฒนา</div>' +
-      '<div style="font-size:13px;color:#aaa">Part 3D — Coming soon</div>' +
-      '</div>';
-    return;
-  }
   if(page==='home'){c.classList.add('home-fullscreen');}
   else{c.classList.remove('home-fullscreen');}
   c.innerHTML = '<div class="spa-loading-wrap"><div class="spa-loader-box"><div class="spa-spinner"></div><div class="spa-loader-title">กำลังโหลด</div></div></div>';
