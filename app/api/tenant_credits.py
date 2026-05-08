@@ -157,7 +157,8 @@ VALID_TXN_TYPES = {"all", "consume", "topup", "subscription", "refund", "adjust"
 
 @router.get("/history")
 def get_history(
-    limit: int = Query(30, ge=1, le=100),
+    limit: int = Query(500, ge=1, le=1000),
+    days: int = Query(365, ge=1, le=365),
     type: str = Query("all"),
     authorization: str = Header(None),
 ):
@@ -166,13 +167,14 @@ def get_history(
         raise HTTPException(400, "Invalid type filter")
 
     with engine.connect() as c:
-        params = {"tid": tid, "type": type, "limit": limit}
+        params = {"tid": tid, "type": type, "limit": limit, "days": days}
         rows = c.execute(text("""
             SELECT id, txn_type, action_key, amount, balance_after, source,
                    reference_id, topup_amount_thb, metadata, created_at, created_by
               FROM credit_ledger
              WHERE tenant_id = :tid
                AND (:type = 'all' OR txn_type = :type)
+               AND created_at >= now() - make_interval(days => :days)
              ORDER BY created_at DESC
              LIMIT :limit
         """), params).fetchall()
@@ -181,7 +183,8 @@ def get_history(
             SELECT COUNT(*) FROM credit_ledger
              WHERE tenant_id = :tid
                AND (:type = 'all' OR txn_type = :type)
-        """), {"tid": tid, "type": type}).scalar() or 0
+               AND created_at >= now() - make_interval(days => :days)
+        """), {"tid": tid, "type": type, "days": days}).scalar() or 0
 
     entries = []
     for r in rows:
@@ -204,7 +207,19 @@ def get_history(
             "created_at": r[9].isoformat() if r[9] else None,
             "created_by": r[10],
         })
-    return {"entries": entries, "total_count": int(total_count)}
+
+    today = datetime.now(timezone.utc).date()
+    period_from = (today - timedelta(days=days)).isoformat()
+    period_to = today.isoformat()
+
+    return {
+        "entries": entries,
+        "total_count": int(total_count),
+        "returned_count": len(entries),
+        "period_days": days,
+        "period_from": period_from,
+        "period_to": period_to,
+    }
 
 
 # ─────────────────────── ENDPOINT 3: GET /api/tenant/credits/topup-packages ───────────────────────
