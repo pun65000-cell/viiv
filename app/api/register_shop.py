@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, constr, field_validator
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 import traceback, uuid
@@ -26,6 +27,16 @@ class RegisterShopIn(BaseModel):
     store_name: str
     subdomain: constr(strip_whitespace=True, to_lower=True, min_length=4, max_length=40)
     phone: str = None
+    tier: str | None = None
+
+    @field_validator('tier')
+    @classmethod
+    def _validate_tier(cls, v):
+        if v is None or v == '':
+            return None
+        if not v.startswith('pkg_'):
+            raise ValueError('tier must match packages.id format pkg_*')
+        return v
 
 class RegisterShopOut(BaseModel):
     user_id: str
@@ -80,6 +91,7 @@ def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
                 subdomain=payload.subdomain,
                 phone=payload.phone,
                 status="pending",
+                package_id=payload.tier,
             )
 
             # ── Provision login records ──────────────────────────────────────
@@ -125,6 +137,12 @@ def register_shop(payload: RegisterShopIn, db: Session = Depends(get_db)):
                    "hp": hashed_pw, "uid": account_id})
 
             db.commit()
+        except IntegrityError as ie:
+            db.rollback()
+            msg = str(ie.orig) if hasattr(ie, 'orig') else str(ie)
+            if 'package_id' in msg or 'tenants_package_id_fkey' in msg:
+                raise HTTPException(status_code=400, detail=f"invalid tier: {payload.tier}")
+            raise
         except Exception as e:
             db.rollback()
             print(f"SQL Error: {e}")
