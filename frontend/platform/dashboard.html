@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>VIIV Platform Control</title>
-  <link rel="stylesheet" href="/platform/css/theme.css?v=6122"/>
+  <link rel="stylesheet" href="/platform/css/theme.css?v=7326"/>
   <style>
     :root{
       --sb-w:240px;--top-h:56px;
@@ -153,9 +153,6 @@
     <div class="sb-item" data-page="shops" onclick="nav(this)">
       <span class="sb-item-icon">🏪</span> จัดการร้านค้า
     </div>
-    <div class="sb-item" data-page="packet" onclick="nav(this)">
-      <span class="sb-item-icon">📦</span> แพ็กเกจ
-    </div>
     <div class="sb-item" data-page="package" onclick="nav(this)">
       <span class="sb-item-icon">💳</span> จัดการแพ็กเกจ
     </div>
@@ -204,9 +201,6 @@
       </div>
       <div class="sb-sub-item" data-page="api-pricing" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
         <span class="sb-sub-item-icon">💳</span> Credit Pricing
-      </div>
-      <div class="sb-sub-item" data-page="topup-packages" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
-        <span class="sb-sub-item-icon">📦</span> Top-up Packages
       </div>
       <div class="sb-sub-item" data-page="topup-approvals" data-parent="sb-apigw-parent" onclick="navSub(this,'sb-apigw-parent')">
         <span class="sb-sub-item-icon">✅</span> Top-up Approvals
@@ -428,8 +422,21 @@ document.addEventListener('click', e => {
   if(!e.target.closest('#tb-profile')) document.getElementById('tb-dd').classList.remove('open');
 });
 
+// ─── Legacy hash redirect ────────────────────────────────────────────────────
+// bracket notation window['location']['hash'] (defensive) — keeps history clean
+function checkLegacyHash(){
+  var h = window['location']['hash'];
+  if (h === '#packet' || h === '#topup-packages') {
+    var newUrl = window['location'].pathname + window['location'].search + '#package';
+    window['location'].replace(newUrl);
+    return true;
+  }
+  return false;
+}
+
 // ─── Hash routing ────────────────────────────────────────────────────────────
 function routeHash(){
+  if (checkLegacyHash()) return;
   const name = location.hash.replace('#','') || 'overview';
   // ถ้า page เป็น sub-item ให้ expand parent ด้วย
   const activeSubItem = document.querySelector('.sb-sub-item[data-page="'+name+'"]');
