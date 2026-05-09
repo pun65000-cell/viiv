@@ -1,0 +1,1071 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"></head>
+<body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ── Page shell ────────────────────────────────────── */
+.page-wrap{
+  font-family:var(--font-sans,-apple-system,sans-serif);
+  padding:20px 24px;
+  background:var(--color-background-tertiary,#f5f5f5);
+  min-height:100%;
+  color:var(--color-text-primary,#111);
+}
+.page-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.page-title{font-size:15px;font-weight:600;margin:0 0 3px;color:#111}
+.page-subtitle{font-size:12px;color:#666;margin:0}
+
+/* Tab nav */
+.page-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;border-bottom:1px solid #e5e7eb;padding-bottom:0}
+.page-tab{
+  padding:10px 18px;border-radius:8px 8px 0 0;
+  background:transparent;border:1px solid transparent;border-bottom:none;
+  font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;font-family:inherit;
+  transition:background .15s,color .15s,border-color .15s;
+  position:relative;top:1px;
+}
+.page-tab:hover{color:#1a1200;background:#fef9ec}
+.page-tab.active{
+  background:#fff;color:#1a1200;font-weight:600;
+  border-color:#e5e7eb;border-bottom-color:#fff;
+}
+.page-panel{display:none}
+.page-panel.active{display:block}
+
+/* Shared toast */
+.page-toast{
+  position:fixed;top:20px;right:20px;
+  background:#111;color:#fff;
+  padding:10px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 8px 22px rgba(0,0,0,.25);
+  z-index:2000;opacity:0;transform:translateY(-8px);
+  transition:all .25s;pointer-events:none;
+}
+.page-toast.show{opacity:1;transform:translateY(0)}
+.page-toast.error{background:#991b1b}
+.page-toast.ok{background:#166534}
+
+/* ── Plans tab (pkg-*) ─────────────────────────────── */
+.pkg-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.pkg-btn{
+  padding:7px 14px;border-radius:7px;
+  font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;
+  border:0.5px solid #ddd;background:#fff;color:#111;
+  transition:background .15s,border-color .15s;
+}
+.pkg-btn:hover{background:#fafafa;border-color:#e8b93e}
+.pkg-btn-primary{background:#e8b93e;border-color:#c9a84c;color:#1a1200;font-weight:600}
+.pkg-btn-primary:hover{background:#d4a52c}
+.pkg-btn-sm{padding:5px 11px;font-size:12px}
+
+.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pkg-card{
+  background:#fff;border:0.5px solid #ddd;border-left:3px solid #e8b93e;
+  border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;
+}
+.pkg-card.free{border-left-color:#9ca3af}
+.pkg-card.custom{border-left-color:#7c3aed}
+.pkg-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.pkg-id{font-family:var(--font-mono,monospace);font-size:11.5px;color:#6b7280}
+.pkg-label{font-size:15px;font-weight:600;color:#1a1a1a}
+.pkg-badge{
+  display:inline-block;padding:2px 8px;border-radius:8px;
+  background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;
+  border:0.5px solid #fde68a;
+}
+.pkg-row{display:flex;justify-content:space-between;font-size:13px;color:#374151}
+.pkg-row span:first-child{color:#6b7280}
+.pkg-row b{color:#111;font-weight:600}
+.pkg-tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:11px;font-weight:600;line-height:18px}
+.pkg-tag.paid{background:#dcfce7;color:#15803d}
+.pkg-tag.free{background:#e5e7eb;color:#4b5563}
+.pkg-tag.custom{background:#ede9fe;color:#6d28d9}
+
+.pkg-flags-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.pkg-flag-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;
+  border:0.5px solid #e5e7eb;
+}
+.pkg-flag-chip.on{background:#dcfce7;color:#15803d;border-color:#86efac}
+.pkg-flag-chip.off{background:#f3f4f6;color:#9ca3af}
+
+.pkg-feat-preview{
+  margin-top:5px;padding-top:8px;border-top:1px dashed #e5e7eb;
+  font-size:12.5px;color:#4b5563;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.pkg-feat-empty{font-style:italic;color:#9ca3af}
+
+.pkg-foot{display:flex;align-items:center;justify-content:space-between;margin-top:5px;padding-top:7px;border-top:0.5px dashed #e5e7eb}
+.pkg-tenant{font-size:12px;color:#6b7280}
+.pkg-tenant b{color:#111}
+
+/* Plans modal */
+.pkg-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+.pkg-mask.open{display:flex}
+.pkg-modal{
+  background:#fff;border-radius:12px;max-width:620px;width:100%;
+  padding:22px 24px;box-shadow:0 16px 40px rgba(0,0,0,.2);
+  margin:auto 0;
+}
+.pkg-modal h3{margin:0 0 4px;font-size:15px;font-weight:600;color:#111}
+.pkg-modal-sub{font-size:11.5px;color:#9ca3af;margin-bottom:14px;font-family:var(--font-mono,monospace)}
+.pkg-section{margin-top:14px;padding-top:11px;border-top:0.5px solid #e5e7eb}
+.pkg-section-title{font-size:11.5px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.pkg-field{margin-bottom:10px}
+.pkg-field label{display:block;font-size:11.5px;font-weight:500;color:#666;margin-bottom:4px}
+.pkg-field input,.pkg-field select,.pkg-field textarea{
+  width:100%;padding:8px 11px;
+  border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;color:#111;
+  background:#f9f9f9;outline:none;box-sizing:border-box;min-height:36px;
+}
+.pkg-field input:focus,.pkg-field select:focus,.pkg-field textarea:focus{border-color:#e8b93e;background:#fff}
+.pkg-field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.pkg-field-note{font-size:11px;color:#9ca3af;margin-top:3px}
+.pkg-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pkg-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+/* Feature flag toggle row in modal */
+.pkg-flag-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;
+  margin-bottom:7px;background:#fafafa;
+}
+.pkg-flag-row:last-child{margin-bottom:0}
+.pkg-flag-name{font-size:13px;font-weight:500;color:#111;display:flex;align-items:center;gap:8px}
+
+/* Toggle slider — used by plans + modules + topup */
+.pkg-toggle{position:relative;display:inline-block;width:36px;height:20px;cursor:pointer;flex-shrink:0}
+.pkg-toggle input{opacity:0;width:0;height:0}
+.pkg-tslider{position:absolute;inset:0;background:#d1d5db;border-radius:20px;transition:.18s}
+.pkg-tslider:before{content:"";position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.18s}
+.pkg-toggle input:checked + .pkg-tslider{background:#e8b93e}
+.pkg-toggle input:checked + .pkg-tslider:before{transform:translateX(16px)}
+
+/* Rollover radios */
+.pkg-radio{display:flex;gap:10px}
+.pkg-radio label{
+  flex:1;display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:9px;
+  cursor:pointer;font-size:13px;font-weight:500;color:#6b7280;
+}
+.pkg-radio label.active{border-color:#e8b93e;background:#fff8e7;color:#1a1200}
+.pkg-radio input{accent-color:#e8b93e}
+
+.pkg-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.pkg-empty{padding:30px;text-align:center;color:#9ca3af;font-size:13px;font-style:italic}
+
+/* ── Modules tab (mod-*) ───────────────────────────── */
+.mod-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.mod-filter-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#374151;cursor:pointer}
+.mod-filter-row input{accent-color:#e8b93e;width:14px;height:14px;cursor:pointer}
+
+.mod-card{
+  background:#fff;border:0.5px solid #ddd;
+  border-left:3px solid #e8b93e;border-radius:10px;
+  overflow:hidden;
+}
+.mod-table{width:100%;border-collapse:collapse;font-size:13px}
+.mod-table th{
+  text-align:left;font-weight:500;
+  font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  color:#999;padding:9px 14px;
+  background:#fafafa;border-bottom:0.5px solid #eee;
+  font-family:var(--font-mono,monospace);
+}
+.mod-table td{padding:10px 14px;border-bottom:0.5px solid #f3f4f6;vertical-align:middle;color:#111}
+.mod-table tr:last-child td{border-bottom:none}
+.mod-table tr.dirty td{background:#fffaeb}
+.mod-readonly{
+  display:inline-block;font-family:var(--font-mono,monospace);
+  font-size:12px;color:#6b7280;background:#f3f4f6;
+  padding:3px 9px;border-radius:11px;
+}
+.mod-input{
+  width:100%;padding:5px 8px;
+  border:0.5px solid #ddd;border-radius:6px;
+  font-size:13px;font-family:inherit;
+  background:#f9f9f9;outline:none;
+}
+.mod-input.narrow{width:95px;text-align:right}
+.mod-input.tiny{width:60px;text-align:center}
+.mod-input:focus{border-color:#e8b93e;background:#fff}
+.mod-save{
+  background:#e8b93e;border:0.5px solid #c9a84c;color:#1a1200;
+  border-radius:6px;padding:5px 11px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;
+}
+.mod-save:disabled{background:#e5e7eb;border-color:#d1d5db;color:#9ca3af;cursor:default}
+.mod-save:not(:disabled):hover{opacity:.85}
+.mod-empty{padding:30px;text-align:center;color:#9ca3af;font-size:13px;font-style:italic}
+.mod-loading{padding:30px;text-align:center;color:#9ca3af;font-size:13px}
+
+/* ── Topup tab (tpk-*) ─────────────────────────────── */
+.tpk-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.tpk-add-btn{
+  padding:8px 16px;border-radius:8px;
+  background:#e8b93e;color:#1a1200;
+  border:1px solid #c9a84c;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;white-space:nowrap;min-height:36px;
+}
+.tpk-add-btn:hover{opacity:.85}
+
+.tpk-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:760px){.tpk-stats{grid-template-columns:repeat(2,1fr)}}
+.tpk-stat{
+  background:#fff;border:0.5px solid #ddd;
+  border-radius:10px;padding:13px 15px;
+}
+.tpk-stat-key{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.4px;font-weight:500;margin-bottom:4px;font-family:var(--font-mono,monospace)}
+.tpk-stat-val{font-size:1.3rem;font-weight:600;color:#111;line-height:1.1}
+.tpk-stat-sub{font-size:10px;color:#999;margin-top:2px;font-family:var(--font-mono,monospace)}
+
+.tpk-card{
+  background:#fff;border:0.5px solid #ddd;
+  border-left:3px solid #e8b93e;border-radius:10px;overflow:hidden;
+}
+.tpk-card-head{
+  padding:11px 16px;border-bottom:0.5px solid #eee;
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;font-weight:600;color:#111;
+}
+.tpk-card-count{
+  margin-left:auto;background:#e8b93e;color:#1a1200;
+  font-size:11px;font-weight:700;
+  padding:2px 9px;border-radius:10px;
+}
+.tpk-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tpk-tbl th{
+  text-align:left;font-weight:500;
+  font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  color:#999;padding:9px 14px;
+  background:#fafafa;border-bottom:0.5px solid #eee;
+  font-family:var(--font-mono,monospace);
+}
+.tpk-tbl td{padding:10px 14px;border-bottom:0.5px solid #f3f4f6;vertical-align:middle;color:#111}
+.tpk-tbl tr:last-child td{border-bottom:none}
+.tpk-tbl tr:hover td{background:#fafafa}
+.tpk-order{
+  display:inline-block;font-family:var(--font-mono,monospace);
+  font-size:12px;color:#666;background:#f3f4f6;
+  padding:3px 9px;border-radius:11px;
+  min-width:26px;text-align:center;
+}
+.tpk-amount{font-weight:600;color:#111;font-family:var(--font-mono,monospace)}
+.tpk-credits{font-weight:600;color:#111}
+.tpk-rate{
+  display:inline-block;font-family:var(--font-mono,monospace);font-size:11.5px;
+  color:#1a56db;background:#e8f0fe;
+  padding:3px 9px;border-radius:11px;font-weight:600;
+}
+.tpk-bonus{
+  display:inline-block;font-family:var(--font-mono,monospace);font-size:11.5px;
+  font-weight:600;padding:3px 9px;border-radius:11px;
+}
+.tpk-bonus.zero{color:#999;background:#f3f4f6}
+.tpk-bonus.has{color:#166534;background:#dcfce7}
+.tpk-badge-pill{
+  display:inline-block;
+  font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:11px;
+  background:#fef3c7;color:#92400e;
+  border:0.5px solid #fde68a;
+}
+.tpk-badge-empty{color:#999;font-style:italic;font-size:12px}
+.tpk-input{
+  width:90px;padding:5px 8px;
+  border:0.5px solid #ddd;border-radius:6px;
+  font-size:13px;font-family:inherit;text-align:right;
+  background:#f9f9f9;outline:none;
+}
+.tpk-input.wide{width:140px;text-align:left}
+.tpk-input:focus{border-color:#e8b93e;background:#fff}
+/* Topup row toggle reuses .pkg-toggle/.pkg-tslider */
+
+.tpk-actions{display:flex;gap:5px;align-items:center}
+.tpk-iconbtn{
+  background:transparent;border:0.5px solid #ddd;border-radius:6px;
+  width:28px;height:28px;cursor:pointer;
+  font-size:13px;color:#666;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.tpk-iconbtn:hover{border-color:#e8b93e;color:#92400e;background:#fff}
+.tpk-iconbtn.danger:hover{border-color:#fecaca;color:#b91c1c;background:#fff}
+.tpk-savebtn{
+  background:#e8b93e;border:1px solid #c9a84c;color:#1a1200;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.tpk-cancelbtn{
+  background:transparent;border:0.5px solid #ddd;color:#666;
+  border-radius:6px;padding:5px 11px;
+  font-size:12px;cursor:pointer;font-family:inherit;
+}
+.tpk-empty{padding:30px;text-align:center;color:#999;font-size:13px;font-style:italic}
+
+.tpk-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.tpk-mask.open{display:flex}
+.tpk-modal{background:#fff;border-radius:12px;max-width:520px;width:100%;padding:22px 24px;box-shadow:0 16px 40px rgba(0,0,0,.2)}
+.tpk-modal h3{margin:0 0 14px;font-size:15px;font-weight:600;color:#111}
+.tpk-field{margin-bottom:11px}
+.tpk-field label{display:block;font-size:11.5px;font-weight:500;color:#666;margin-bottom:4px}
+.tpk-field input,.tpk-field textarea{
+  width:100%;padding:8px 11px;
+  border:0.5px solid #ddd;border-radius:7px;
+  font-size:13px;font-family:inherit;color:#111;
+  background:#f9f9f9;outline:none;box-sizing:border-box;min-height:36px;
+}
+.tpk-field input:focus,.tpk-field textarea:focus{border-color:#e8b93e;background:#fff}
+.tpk-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tpk-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.tpk-err{font-size:12px;color:#b91c1c;min-height:18px;margin-top:4px}
+</style>
+
+<div class="page-wrap">
+  <div class="page-top">
+    <div>
+      <h2 class="page-title">📦 จัดการแพ็กเกจ</h2>
+      <p class="page-subtitle">แผนการสมัคร · ราคาโมดูล · เติมเครดิต</p>
+    </div>
+  </div>
+
+  <div class="page-tabs">
+    <button class="page-tab" data-pagetab="plans">💳 แผน</button>
+    <button class="page-tab" data-pagetab="modules">🧩 โมดูล</button>
+    <button class="page-tab" data-pagetab="topup">💎 เติมเครดิต</button>
+  </div>
+
+  <!-- Tab: Plans -->
+  <div class="page-panel" data-pagepanel="plans">
+    <div class="pkg-toolbar">
+      <div></div>
+      <div>
+        <button class="pkg-btn pkg-btn-primary" onclick="window.pkgOpenCreate()">+ เพิ่มแพ็กเกจ</button>
+        <button class="pkg-btn" onclick="window.pkgLoad()">↻ Refresh</button>
+      </div>
+    </div>
+    <div id="pkgBody"><div class="pkg-empty">กำลังโหลด…</div></div>
+  </div>
+
+  <!-- Tab: Modules -->
+  <div class="page-panel" data-pagepanel="modules">
+    <div class="mod-toolbar">
+      <label class="mod-filter-row">
+        <input type="checkbox" id="modFilterReq" onchange="window.modToggleFilter()">
+        <span>แสดงเฉพาะที่บังคับ (is_required = true)</span>
+      </label>
+      <button class="pkg-btn" onclick="window.modLoad()">↻ Refresh</button>
+    </div>
+    <div class="mod-card">
+      <div id="modBody"><div class="mod-loading">กำลังโหลด…</div></div>
+    </div>
+  </div>
+
+  <!-- Tab: Topup -->
+  <div class="page-panel" data-pagepanel="topup">
+    <div class="tpk-top">
+      <div></div>
+      <button class="tpk-add-btn" onclick="window.tpkOpenAdd()">+ เพิ่ม tier</button>
+    </div>
+    <div class="tpk-stats">
+      <div class="tpk-stat"><div class="tpk-stat-key">Tiers ทั้งหมด</div><div class="tpk-stat-val" id="tpkStTotal">—</div></div>
+      <div class="tpk-stat"><div class="tpk-stat-key">Active</div><div class="tpk-stat-val" id="tpkStActive">—</div></div>
+      <div class="tpk-stat"><div class="tpk-stat-key">ราคาถูกสุด</div><div class="tpk-stat-val" id="tpkStMin">—</div><div class="tpk-stat-sub" id="tpkStMinName">—</div></div>
+      <div class="tpk-stat"><div class="tpk-stat-key">ราคาแพงสุด</div><div class="tpk-stat-val" id="tpkStMax">—</div><div class="tpk-stat-sub" id="tpkStMaxName">—</div></div>
+    </div>
+    <div id="tpkBody"><div class="tpk-empty">กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<!-- Plans modal -->
+<div class="pkg-mask" id="pkgEditModal" onclick="if(event.target===this)window.pkgClose()">
+  <div class="pkg-modal">
+    <h3 id="pkgEditTitle">✏️ แก้ไขแพ็กเกจ</h3>
+    <div class="pkg-modal-sub" id="pkgEditIdLine">—</div>
+
+    <div class="pkg-grid2">
+      <div class="pkg-field"><label>ชื่อ Internal *</label>
+        <input type="text" id="pkgFldName" placeholder="basic"></div>
+      <div class="pkg-field"><label>ชื่อแสดง *</label>
+        <input type="text" id="pkgFldLabel" placeholder="เริ่มต้น"></div>
+    </div>
+
+    <div class="pkg-grid2">
+      <div class="pkg-field"><label>Badge</label>
+        <input type="text" id="pkgFldBadge" placeholder="(ว่าง = ไม่มี)"></div>
+      <div class="pkg-field"><label>ประเภท</label>
+        <select id="pkgFldType">
+          <option value="free">free</option>
+          <option value="paid" selected>paid</option>
+          <option value="custom">custom</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pkg-section">
+      <div class="pkg-section-title">ราคา & คูณ</div>
+      <div class="pkg-grid2">
+        <div class="pkg-field"><label>Multiplier</label>
+          <input type="number" id="pkgFldMult" min="0" step="0.01" value="1.00"></div>
+        <div class="pkg-field"><label>Fixed Price (บาท)</label>
+          <input type="number" id="pkgFldFixed" min="0" step="0.01" placeholder="(ว่าง = คำนวณจาก multiplier)"></div>
+      </div>
+    </div>
+
+    <div class="pkg-section">
+      <div class="pkg-section-title">Limits</div>
+      <div class="pkg-grid3">
+        <div class="pkg-field"><label>Credit/เดือน</label>
+          <input type="number" id="pkgFldCredit" min="0" value="0"></div>
+        <div class="pkg-field"><label>Members</label>
+          <input type="number" id="pkgFldMembers" min="-1" value="0" placeholder="-1=ไม่จำกัด"></div>
+        <div class="pkg-field"><label>Products</label>
+          <input type="number" id="pkgFldProducts" min="-1" value="0" placeholder="-1=ไม่จำกัด"></div>
+      </div>
+    </div>
+
+    <div class="pkg-section">
+      <div class="pkg-section-title">Features (เปิด/ปิดต่อแพ็กเกจ)</div>
+      <div class="pkg-flag-row">
+        <span class="pkg-flag-name">💬 chat</span>
+        <label class="pkg-toggle"><input type="checkbox" id="pkgFldFlagChat"><span class="pkg-tslider"></span></label>
+      </div>
+      <div class="pkg-flag-row">
+        <span class="pkg-flag-name">📲 autopost</span>
+        <label class="pkg-toggle"><input type="checkbox" id="pkgFldFlagAutopost"><span class="pkg-tslider"></span></label>
+      </div>
+      <div class="pkg-flag-row">
+        <span class="pkg-flag-name">🔗 affiliate</span>
+        <label class="pkg-toggle"><input type="checkbox" id="pkgFldFlagAffiliate"><span class="pkg-tslider"></span></label>
+      </div>
+    </div>
+
+    <div class="pkg-section">
+      <div class="pkg-section-title">คำอธิบายในหน้าสมัคร (feature_text)</div>
+      <div class="pkg-field">
+        <textarea id="pkgFldFeatText" rows="4" maxlength="500" placeholder="เช่น 1 ร้าน · AI Basic&#10;500 credits/เดือน"></textarea>
+        <div class="pkg-field-note">ขึ้นบรรทัดใหม่ด้วย Enter — สูงสุด 500 ตัวอักษร</div>
+      </div>
+    </div>
+
+    <div class="pkg-section">
+      <div class="pkg-section-title">Rollover Policy</div>
+      <div class="pkg-radio">
+        <label id="pkgFldRollLblOff" class="active">
+          <input type="radio" name="pkgFldRoll" value="off" checked> รีเซ็ตทุก
+          <input type="number" id="pkgFldResetDays" min="1" max="365" value="30" style="width:60px;padding:4px 6px;border:0.5px solid #e5e7eb;border-radius:6px;font-size:13px;text-align:center">
+          วัน
+        </label>
+        <label id="pkgFldRollLblOn">
+          <input type="radio" name="pkgFldRoll" value="on"> สะสมเครดิต (rollover)
+        </label>
+      </div>
+    </div>
+
+    <div class="pkg-field" style="margin-top:14px">
+      <label>Sort Order</label>
+      <input type="number" id="pkgFldSort" value="0" style="width:120px">
+    </div>
+
+    <div class="pkg-modal-actions">
+      <button class="pkg-btn" onclick="window.pkgClose()">ยกเลิก</button>
+      <button class="pkg-btn pkg-btn-primary" id="pkgSaveBtn" onclick="window.pkgSubmit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Topup add modal -->
+<div class="tpk-mask" id="tpkAddMask" onclick="window.tpkCloseAdd(event)">
+  <div class="tpk-modal" onclick="event.stopPropagation()">
+    <h3>+ เพิ่ม Tier ใหม่</h3>
+    <div class="tpk-field"><label>ชื่อ Tier</label>
+      <input id="tpkAddName" placeholder="เช่น เติมพื้นฐาน" autocomplete="off"></div>
+    <div class="tpk-grid2">
+      <div class="tpk-field"><label>ราคา (฿)</label>
+        <input id="tpkAddAmt" type="number" min="1" step="0.01" placeholder="99"></div>
+      <div class="tpk-field"><label>Credits ที่ได้</label>
+        <input id="tpkAddCr" type="number" min="1" placeholder="1500"></div>
+    </div>
+    <div class="tpk-grid2">
+      <div class="tpk-field"><label>Bonus %</label>
+        <input id="tpkAddBonus" type="number" min="0" step="0.1" placeholder="0.0"></div>
+      <div class="tpk-field"><label>Badge (ไม่บังคับ)</label>
+        <input id="tpkAddBadge" placeholder="เช่น คุ้มสุด / แนะนำ" autocomplete="off"></div>
+    </div>
+    <div class="tpk-field"><label>คำอธิบาย</label>
+      <textarea id="tpkAddDesc" rows="2" placeholder="เช่น 15 credits/บาท"></textarea></div>
+    <div class="tpk-err" id="tpkAddErr"></div>
+    <div class="tpk-modal-actions">
+      <button class="tpk-cancelbtn" type="button" onclick="window.tpkCloseAdd()">ยกเลิก</button>
+      <button class="tpk-savebtn" type="button" onclick="window.tpkDoAdd()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-toast" id="pageToast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ── Shared utilities ─────────────────────────────────
+  var TAB_KEY = 'viiv_package_active_tab';
+  var VALID_TABS = ['plans','modules','topup'];
+  var FILTER_KEY = 'viiv_package_mod_filter';
+  var TPK_API = '/api/platform/gateway/topup-packages';
+
+  function tok(){
+    return (window.platformToken && window.platformToken())
+        || localStorage.getItem('platform_token')
+        || localStorage.getItem('viiv_token')
+        || '';
+  }
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{}, {
+      'Authorization': 'Bearer ' + tok()
+    });
+    var r = await fetch(path, opts);
+    var j = null; try { j = await r.json(); } catch(_){}
+    if(!r.ok) throw new Error((j && j.detail) || ('HTTP ' + r.status));
+    return j;
+  }
+  function esc(s){
+    return (s==null ? '' : String(s)).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+  var _toastT = null;
+  function toast(msg, kind){
+    var el = document.getElementById('pageToast');
+    if(!el) return;
+    el.className = 'page-toast show ' + (kind || '');
+    el.textContent = msg;
+    clearTimeout(_toastT);
+    _toastT = setTimeout(function(){ el.className = 'page-toast'; }, 2500);
+  }
+
+  // ── Tab framework ────────────────────────────────────
+  var _loaded = {plans:false, modules:false, topup:false};
+
+  function pageSwitchTab(name){
+    if(VALID_TABS.indexOf(name) === -1) name = 'plans';
+    document.querySelectorAll('.page-tab').forEach(function(t){
+      t.classList.toggle('active', t.dataset.pagetab === name);
+    });
+    document.querySelectorAll('.page-panel').forEach(function(p){
+      p.classList.toggle('active', p.dataset.pagepanel === name);
+    });
+    try { localStorage.setItem(TAB_KEY, name); } catch(_){}
+    if(name === 'plans'   && !_loaded.plans)   { _loaded.plans = true;   pkgLoad(); }
+    if(name === 'modules' && !_loaded.modules) { _loaded.modules = true; modLoad(); }
+    if(name === 'topup'   && !_loaded.topup)   { _loaded.topup = true;   tpkLoad(); }
+  }
+  document.querySelectorAll('.page-tab').forEach(function(t){
+    t.onclick = function(){ pageSwitchTab(t.dataset.pagetab); };
+  });
+
+  // ── Plans tab (pkg*) ─────────────────────────────────
+  var _pkgs = [];
+  var _pkgEditId = null;
+
+  function pkgFmtNum(n){
+    if(n == null) return '—';
+    var v = Number(n);
+    if(v === -1) return 'ไม่จำกัด';
+    return v.toLocaleString();
+  }
+  function pkgTagHtml(t){
+    var cls = (t === 'free') ? 'free' : (t === 'custom') ? 'custom' : 'paid';
+    return '<span class="pkg-tag ' + cls + '">' + esc(t || '-') + '</span>';
+  }
+  function pkgFlagsHtml(flags){
+    flags = flags || {};
+    var items = [
+      {k:'chat',      icon:'💬', label:'chat'},
+      {k:'autopost',  icon:'📲', label:'autopost'},
+      {k:'affiliate', icon:'🔗', label:'affiliate'}
+    ];
+    return '<div class="pkg-flags-row">' + items.map(function(it){
+      var on = !!flags[it.k];
+      return '<span class="pkg-flag-chip ' + (on?'on':'off') + '">' + it.icon + ' ' + it.label + '</span>';
+    }).join('') + '</div>';
+  }
+  function pkgFeatPreview(text){
+    if(!text || !String(text).trim()){
+      return '<div class="pkg-feat-preview pkg-feat-empty">(ไม่มีคำอธิบาย)</div>';
+    }
+    var flat = String(text).split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean).join(' · ');
+    var truncated = flat.length > 80 ? (flat.slice(0, 80) + '…') : flat;
+    return '<div class="pkg-feat-preview">' + esc(truncated) + '</div>';
+  }
+  function pkgCardHtml(p){
+    var cls = (p.type === 'free') ? 'free' : (p.type === 'custom') ? 'custom' : '';
+    var badge = p.badge ? ('<span class="pkg-badge">' + esc(p.badge) + '</span>') : '';
+    var rolloverLine = p.rollover_enabled
+      ? '<b style="color:#15803d">✓ สะสมเครดิต</b>'
+      : ('<b>❌ รีเซ็ต ' + (p.reset_days || 30) + ' วัน</b>');
+    var fixedLine = (p.fixed_price != null)
+      ? ('<div class="pkg-row"><span>Fixed Price:</span><b>฿' + Number(p.fixed_price).toLocaleString() + '</b></div>')
+      : '';
+    return ''
+      + '<div class="pkg-card ' + cls + '">'
+      +   '<div class="pkg-head">'
+      +     '<div>'
+      +       '<div class="pkg-id">' + esc(p.id) + '</div>'
+      +       '<div class="pkg-label">' + esc(p.label || p.name || '-') + '</div>'
+      +     '</div>'
+      +     badge
+      +   '</div>'
+      +   '<div class="pkg-row"><span>Type:</span>' + pkgTagHtml(p.type) + '</div>'
+      +   '<div class="pkg-row"><span>Multiplier:</span><b>' + Number(p.multiplier || 0).toFixed(2) + '×</b></div>'
+      +   fixedLine
+      +   '<div class="pkg-row"><span>Credit/เดือน:</span><b>' + pkgFmtNum(p.credit_monthly) + '</b></div>'
+      +   '<div class="pkg-row"><span>Members:</span><b>' + pkgFmtNum(p.max_members) + '</b></div>'
+      +   '<div class="pkg-row"><span>Products:</span><b>' + pkgFmtNum(p.max_products) + '</b></div>'
+      +   '<div class="pkg-row"><span>Rollover:</span>' + rolloverLine + '</div>'
+      +   pkgFlagsHtml(p.feature_flags)
+      +   pkgFeatPreview(p.feature_text)
+      +   '<div class="pkg-foot">'
+      +     '<span class="pkg-tenant">ใช้โดย: <b>' + (p.tenant_count || 0) + '</b> ร้าน</span>'
+      +     '<button class="pkg-btn pkg-btn-sm" onclick="window.pkgOpenEdit(\'' + esc(p.id) + '\')">✏️ แก้ไข</button>'
+      +   '</div>'
+      + '</div>';
+  }
+  function pkgRender(){
+    var body = document.getElementById('pkgBody');
+    if(!_pkgs.length){
+      body.innerHTML = '<div class="pkg-empty">ยังไม่มีแพ็กเกจ</div>';
+      return;
+    }
+    body.innerHTML = '<div class="pkg-grid">' + _pkgs.map(pkgCardHtml).join('') + '</div>';
+  }
+  async function pkgLoad(){
+    var body = document.getElementById('pkgBody');
+    body.innerHTML = '<div class="pkg-empty">กำลังโหลด…</div>';
+    try {
+      var j = await api('/api/platform/packages');
+      _pkgs = j.packages || [];
+      pkgRender();
+    } catch(e){
+      body.innerHTML = '<div class="pkg-empty">โหลดไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    }
+  }
+  function pkgSetRollover(on){
+    document.querySelectorAll('input[name="pkgFldRoll"]').forEach(function(r){
+      r.checked = (r.value === (on ? 'on' : 'off'));
+    });
+    document.getElementById('pkgFldRollLblOff').classList.toggle('active', !on);
+    document.getElementById('pkgFldRollLblOn').classList.toggle('active', on);
+  }
+  function pkgFillForm(p){
+    document.getElementById('pkgFldName').value     = p.name || '';
+    document.getElementById('pkgFldLabel').value    = p.label || '';
+    document.getElementById('pkgFldBadge').value    = p.badge || '';
+    document.getElementById('pkgFldType').value     = p.type || 'paid';
+    document.getElementById('pkgFldMult').value     = (p.multiplier != null) ? p.multiplier : 1.0;
+    document.getElementById('pkgFldFixed').value    = (p.fixed_price != null) ? p.fixed_price : '';
+    document.getElementById('pkgFldCredit').value   = p.credit_monthly || 0;
+    document.getElementById('pkgFldMembers').value  = (p.max_members != null) ? p.max_members : 0;
+    document.getElementById('pkgFldProducts').value = (p.max_products != null) ? p.max_products : 0;
+    var flags = p.feature_flags || {};
+    document.getElementById('pkgFldFlagChat').checked      = !!flags.chat;
+    document.getElementById('pkgFldFlagAutopost').checked  = !!flags.autopost;
+    document.getElementById('pkgFldFlagAffiliate').checked = !!flags.affiliate;
+    document.getElementById('pkgFldFeatText').value = p.feature_text || '';
+    document.getElementById('pkgFldResetDays').value = p.reset_days || 30;
+    document.getElementById('pkgFldSort').value      = p.sort_order || 0;
+    pkgSetRollover(!!p.rollover_enabled);
+  }
+  document.querySelectorAll('input[name="pkgFldRoll"]').forEach(function(r){
+    r.addEventListener('change', function(){ pkgSetRollover(r.value === 'on'); });
+  });
+
+  window.pkgLoad = pkgLoad;
+  window.pkgOpenEdit = function(pkgId){
+    var p = (_pkgs || []).find(function(x){ return x.id === pkgId; });
+    if(!p){ alert('ไม่พบแพ็กเกจ'); return; }
+    _pkgEditId = pkgId;
+    document.getElementById('pkgEditTitle').textContent = '✏️ แก้ไขแพ็กเกจ';
+    document.getElementById('pkgEditIdLine').textContent = 'ID: ' + pkgId + ' (read-only)';
+    pkgFillForm(p);
+    document.getElementById('pkgEditModal').classList.add('open');
+  };
+  window.pkgOpenCreate = function(){
+    _pkgEditId = null;
+    document.getElementById('pkgEditTitle').textContent = '+ เพิ่มแพ็กเกจใหม่';
+    document.getElementById('pkgEditIdLine').textContent = 'ID: auto-generate (pkg_xxx)';
+    pkgFillForm({
+      type:'paid', multiplier:1.0,
+      credit_monthly:0, max_members:0, max_products:0,
+      reset_days:30, sort_order:0, rollover_enabled:false,
+      feature_flags: {chat:false, autopost:false, affiliate:false},
+      feature_text: ''
+    });
+    document.getElementById('pkgEditModal').classList.add('open');
+  };
+  window.pkgClose = function(){
+    document.getElementById('pkgEditModal').classList.remove('open');
+    _pkgEditId = null;
+  };
+  window.pkgSubmit = async function(){
+    var btn = document.getElementById('pkgSaveBtn');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    try {
+      var fixed = document.getElementById('pkgFldFixed').value.trim();
+      var rollOn = document.querySelector('input[name="pkgFldRoll"]:checked').value === 'on';
+      var featTextRaw = document.getElementById('pkgFldFeatText').value;
+      var featTextTrimmed = String(featTextRaw||'').trim();
+      var body = {
+        name: document.getElementById('pkgFldName').value.trim(),
+        label: document.getElementById('pkgFldLabel').value.trim(),
+        badge: document.getElementById('pkgFldBadge').value.trim() || null,
+        type: document.getElementById('pkgFldType').value,
+        multiplier: parseFloat(document.getElementById('pkgFldMult').value) || 0,
+        fixed_price: fixed === '' ? null : parseFloat(fixed),
+        credit_monthly: parseInt(document.getElementById('pkgFldCredit').value, 10) || 0,
+        max_members: parseInt(document.getElementById('pkgFldMembers').value, 10),
+        max_products: parseInt(document.getElementById('pkgFldProducts').value, 10),
+        rollover_enabled: rollOn,
+        reset_days: parseInt(document.getElementById('pkgFldResetDays').value, 10) || 30,
+        sort_order: parseInt(document.getElementById('pkgFldSort').value, 10) || 0,
+        feature_flags: {
+          chat: !!document.getElementById('pkgFldFlagChat').checked,
+          autopost: !!document.getElementById('pkgFldFlagAutopost').checked,
+          affiliate: !!document.getElementById('pkgFldFlagAffiliate').checked
+        },
+        feature_text: featTextTrimmed ? featTextRaw : null
+      };
+      if(!body.name){ alert('กรุณากรอก ชื่อ Internal'); btn.disabled = false; btn.textContent = '💾 บันทึก'; return; }
+      if(!body.label){ alert('กรุณากรอก ชื่อแสดง'); btn.disabled = false; btn.textContent = '💾 บันทึก'; return; }
+
+      var url = _pkgEditId
+        ? '/api/platform/packages/' + encodeURIComponent(_pkgEditId)
+        : '/api/platform/packages';
+      var method = _pkgEditId ? 'PUT' : 'POST';
+      await api(url, { method: method, body: JSON.stringify(body) });
+      window.pkgClose();
+      toast('บันทึกแล้ว', 'ok');
+      pkgLoad();
+    } catch(e){
+      toast('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💾 บันทึก';
+    }
+  };
+
+  // ── Modules tab (mod*) ───────────────────────────────
+  var _mods = [];
+  var _modDirty = new Set();
+
+  function modGetFilter(){
+    try { return localStorage.getItem(FILTER_KEY) === '1'; } catch(_){ return false; }
+  }
+  function modSetFilter(on){
+    try { localStorage.setItem(FILTER_KEY, on ? '1' : '0'); } catch(_){}
+  }
+  function modRowHtml(m){
+    var id = esc(m.module);
+    return ''
+      + '<tr data-mod="' + id + '">'
+      +   '<td><input class="mod-input tiny" type="number" id="modFldSort-' + id + '" value="' + (m.sort_order || 0) + '" min="0" oninput="window.modOnDirty(\'' + id + '\')"></td>'
+      +   '<td><span class="mod-readonly">' + id + '</span></td>'
+      +   '<td><input class="mod-input" id="modFldLabel-' + id + '" value="' + esc(m.label || '') + '" oninput="window.modOnDirty(\'' + id + '\')"></td>'
+      +   '<td><input class="mod-input narrow" type="number" id="modFldPrice-' + id + '" value="' + Number(m.price || 0) + '" min="0" step="0.01" oninput="window.modOnDirty(\'' + id + '\')"></td>'
+      +   '<td>'
+      +     '<label class="pkg-toggle">'
+      +       '<input type="checkbox" id="modFldReq-' + id + '" ' + (m.is_required ? 'checked' : '') + ' onchange="window.modOnDirty(\'' + id + '\')">'
+      +       '<span class="pkg-tslider"></span>'
+      +     '</label>'
+      +   '</td>'
+      +   '<td><button class="mod-save" id="modSaveBtn-' + id + '" disabled title="ไม่มีการเปลี่ยนแปลง" onclick="window.modSave(\'' + id + '\')">💾</button></td>'
+      + '</tr>';
+  }
+  function modRender(){
+    var body = document.getElementById('modBody');
+    if(!_mods.length){
+      body.innerHTML = '<div class="mod-empty">ไม่มีโมดูลที่ตรง filter</div>';
+      return;
+    }
+    body.innerHTML = ''
+      + '<table class="mod-table"><thead><tr>'
+      +   '<th style="width:75px">ลำดับ</th>'
+      +   '<th style="width:130px">Module</th>'
+      +   '<th>ป้าย</th>'
+      +   '<th style="width:130px">ราคา/เดือน (฿)</th>'
+      +   '<th style="width:80px">บังคับ</th>'
+      +   '<th style="width:60px"></th>'
+      + '</tr></thead><tbody>'
+      + _mods.map(modRowHtml).join('')
+      + '</tbody></table>';
+    _modDirty.clear();
+  }
+  async function modLoad(){
+    if(_modDirty.size > 0){
+      if(!confirm('มี ' + _modDirty.size + ' row ที่ยังไม่บันทึก โหลดใหม่จะทำให้ค่าหาย ดำเนินการต่อ?')){
+        return;
+      }
+    }
+    var body = document.getElementById('modBody');
+    body.innerHTML = '<div class="mod-loading">กำลังโหลด…</div>';
+    try {
+      var filterOn = modGetFilter();
+      document.getElementById('modFilterReq').checked = filterOn;
+      var url = '/api/platform/module-prices' + (filterOn ? '?is_required=true' : '');
+      var j = await api(url);
+      _mods = j.modules || [];
+      modRender();
+    } catch(e){
+      body.innerHTML = '<div class="mod-empty">โหลดไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    }
+  }
+  window.modLoad = modLoad;
+  window.modToggleFilter = function(){
+    var on = !!document.getElementById('modFilterReq').checked;
+    modSetFilter(on);
+    modLoad();
+  };
+  window.modOnDirty = function(module){
+    _modDirty.add(module);
+    var row = document.querySelector('tr[data-mod="' + module + '"]');
+    if(row) row.classList.add('dirty');
+    var btn = document.getElementById('modSaveBtn-' + module);
+    if(btn){
+      btn.disabled = false;
+      btn.title = 'บันทึก ' + module;
+    }
+  };
+  window.modSave = async function(module){
+    var btn = document.getElementById('modSaveBtn-' + module);
+    btn.disabled = true; btn.textContent = '⏳';
+    try {
+      var label = document.getElementById('modFldLabel-' + module).value.trim();
+      var price = parseFloat(document.getElementById('modFldPrice-' + module).value);
+      var isReq = !!document.getElementById('modFldReq-' + module).checked;
+      var sort  = parseInt(document.getElementById('modFldSort-' + module).value, 10) || 0;
+      if(!label){ toast('ป้ายห้ามว่าง', 'error'); btn.disabled = false; btn.textContent = '💾'; btn.title = 'บันทึก ' + module; return; }
+      if(isNaN(price) || price < 0){ toast('ราคา ต้อง >= 0', 'error'); btn.disabled = false; btn.textContent = '💾'; btn.title = 'บันทึก ' + module; return; }
+      await api('/api/platform/module-prices/' + encodeURIComponent(module), {
+        method: 'PUT',
+        body: JSON.stringify({label: label, price: price, is_required: isReq, sort_order: sort})
+      });
+      var m = _mods.find(function(x){ return x.module === module; });
+      if(m){ m.label = label; m.price = price; m.is_required = isReq; m.sort_order = sort; }
+      _modDirty.delete(module);
+      var row = document.querySelector('tr[data-mod="' + module + '"]');
+      if(row) row.classList.remove('dirty');
+      btn.textContent = '✓';
+      btn.title = 'ไม่มีการเปลี่ยนแปลง';
+      setTimeout(function(){ btn.textContent = '💾'; }, 1200);
+      toast('บันทึก ' + module + ' แล้ว', 'ok');
+    } catch(e){
+      toast('บันทึกไม่สำเร็จ: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = '💾';
+      btn.title = 'บันทึก ' + module;
+    }
+  };
+
+  // ── Topup tab (tpk*) ─────────────────────────────────
+  var _tpkData = [];
+  var _tpkEditingId = null;
+
+  function tpkFmtBaht(n){ return n == null ? '—' : '฿' + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+  function tpkFmtCr(n){ return n == null ? '—' : Number(n).toLocaleString(); }
+  function tpkRate(p){
+    if(!p || !p.amount_thb || !p.credits) return '—';
+    return (Number(p.credits) / Number(p.amount_thb)).toFixed(1) + ' cr/฿';
+  }
+  function tpkFmtBonus(b){
+    if(b == null) return '<span class="tpk-bonus zero">0%</span>';
+    var v = Number(b);
+    var cls = v > 0 ? 'has' : 'zero';
+    return '<span class="tpk-bonus ' + cls + '">+' + v.toFixed(0) + '%</span>';
+  }
+  function tpkFmtBadge(s){
+    if(!s) return '<span class="tpk-badge-empty">—</span>';
+    return '<span class="tpk-badge-pill">' + esc(s) + '</span>';
+  }
+  function tpkToggleHtml(p, disabled){
+    var id = esc(p.id);
+    return '<label class="pkg-toggle">'
+      + '<input type="checkbox" ' + (p.is_active ? 'checked' : '') + ' ' + (disabled ? 'disabled' : '')
+      +   ' onchange="window.tpkToggle(\'' + id + '\', this.checked)">'
+      + '<span class="pkg-tslider"></span></label>';
+  }
+  function tpkRowHtml(p){
+    var editing = _tpkEditingId === p.id;
+    var id = esc(p.id);
+    if(editing){
+      return ''
+        + '<tr data-id="' + id + '">'
+        +   '<td><span class="tpk-order">' + (p.sort_order || 0) + '</span></td>'
+        +   '<td><input class="tpk-input wide" id="tpkEdit-name-' + id + '" value="' + esc(p.display_name || '') + '"></td>'
+        +   '<td><input class="tpk-input" id="tpkEdit-amt-' + id + '" type="number" min="1" step="0.01" value="' + (p.amount_thb || 0) + '"></td>'
+        +   '<td><input class="tpk-input" id="tpkEdit-cr-' + id + '" type="number" min="1" value="' + (p.credits || 0) + '"></td>'
+        +   '<td><input class="tpk-input" id="tpkEdit-bonus-' + id + '" type="number" min="0" step="0.1" value="' + (p.bonus_pct || 0) + '"></td>'
+        +   '<td>' + tpkRate(p) + '</td>'
+        +   '<td><input class="tpk-input wide" id="tpkEdit-badge-' + id + '" value="' + esc(p.badge || '') + '" placeholder="(ไม่มี)"></td>'
+        +   '<td>' + tpkToggleHtml(p, true) + '</td>'
+        +   '<td><div class="tpk-actions">'
+        +     '<button class="tpk-savebtn" onclick="window.tpkDoSave(\'' + id + '\')">บันทึก</button>'
+        +     '<button class="tpk-cancelbtn" onclick="window.tpkCancelEdit()">ยกเลิก</button>'
+        +   '</div></td>'
+        + '</tr>';
+    }
+    return ''
+      + '<tr data-id="' + id + '">'
+      +   '<td><span class="tpk-order">' + (p.sort_order || 0) + '</span></td>'
+      +   '<td>' + esc(p.display_name || '') + '</td>'
+      +   '<td><span class="tpk-amount">' + tpkFmtBaht(p.amount_thb) + '</span></td>'
+      +   '<td><span class="tpk-credits">' + tpkFmtCr(p.credits) + '</span></td>'
+      +   '<td>' + tpkFmtBonus(p.bonus_pct) + '</td>'
+      +   '<td><span class="tpk-rate">' + tpkRate(p) + '</span></td>'
+      +   '<td>' + tpkFmtBadge(p.badge) + '</td>'
+      +   '<td>' + tpkToggleHtml(p, false) + '</td>'
+      +   '<td><div class="tpk-actions">'
+      +     '<button class="tpk-iconbtn" title="แก้ไข" onclick="window.tpkEdit(\'' + id + '\')">✏️</button>'
+      +     '<button class="tpk-iconbtn danger" title="ปิดใช้งาน" onclick="window.tpkAskDelete(\'' + id + '\')">🗑️</button>'
+      +   '</div></td>'
+      + '</tr>';
+  }
+  function tpkRender(){
+    var total = _tpkData.length;
+    var activeRows = _tpkData.filter(function(p){ return p.is_active; });
+    document.getElementById('tpkStTotal').textContent = total;
+    document.getElementById('tpkStActive').textContent = activeRows.length;
+    if(activeRows.length){
+      var minR = activeRows.reduce(function(m,p){ return Number(p.amount_thb) < Number(m.amount_thb) ? p : m; });
+      var maxR = activeRows.reduce(function(m,p){ return Number(p.amount_thb) > Number(m.amount_thb) ? p : m; });
+      document.getElementById('tpkStMin').textContent = tpkFmtBaht(minR.amount_thb);
+      document.getElementById('tpkStMinName').textContent = minR.display_name || '—';
+      document.getElementById('tpkStMax').textContent = tpkFmtBaht(maxR.amount_thb);
+      document.getElementById('tpkStMaxName').textContent = maxR.display_name || '—';
+    } else {
+      document.getElementById('tpkStMin').textContent = '—';
+      document.getElementById('tpkStMax').textContent = '—';
+      document.getElementById('tpkStMinName').textContent = '—';
+      document.getElementById('tpkStMaxName').textContent = '—';
+    }
+    if(!_tpkData.length){
+      document.getElementById('tpkBody').innerHTML = '<div class="tpk-empty">ยังไม่มี tier</div>';
+      return;
+    }
+    var rows = _tpkData.map(tpkRowHtml).join('');
+    document.getElementById('tpkBody').innerHTML = ''
+      + '<div class="tpk-card">'
+      +   '<div class="tpk-card-head">📦 ทั้งหมด<span class="tpk-card-count">' + total + '</span></div>'
+      +   '<table class="tpk-tbl"><thead><tr>'
+      +     '<th>ลำดับ</th><th>ชื่อ Tier</th><th>ราคา (฿)</th><th>Credits</th>'
+      +     '<th>Bonus%</th><th>Rate</th><th>Badge</th><th>Active</th><th></th>'
+      +   '</tr></thead><tbody>' + rows + '</tbody></table>'
+      + '</div>';
+  }
+  async function tpkLoad(){
+    try {
+      var d = await api(TPK_API);
+      _tpkData = d.packages || [];
+      tpkRender();
+    } catch(e){
+      document.getElementById('tpkBody').innerHTML = '<div class="tpk-empty">โหลดไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    }
+  }
+  window.tpkEdit       = function(id){ _tpkEditingId = id; tpkRender(); };
+  window.tpkCancelEdit = function(){ _tpkEditingId = null; tpkRender(); };
+  window.tpkDoSave = async function(id){
+    var name  = document.getElementById('tpkEdit-name-' + id).value.trim();
+    var amt   = parseFloat(document.getElementById('tpkEdit-amt-' + id).value);
+    var cr    = parseInt(document.getElementById('tpkEdit-cr-' + id).value, 10);
+    var bonus = parseFloat(document.getElementById('tpkEdit-bonus-' + id).value);
+    var badge = document.getElementById('tpkEdit-badge-' + id).value.trim();
+    if(!name){ toast('ชื่อ tier ห้ามว่าง', 'error'); return; }
+    if(isNaN(amt) || amt <= 0){ toast('amount_thb ต้อง > 0', 'error'); return; }
+    if(isNaN(cr) || cr <= 0){ toast('credits ต้อง > 0', 'error'); return; }
+    if(isNaN(bonus) || bonus < 0){ toast('bonus_pct ต้อง >= 0', 'error'); return; }
+    try {
+      await api(TPK_API + '/' + encodeURIComponent(id), {
+        method: 'PUT',
+        body: JSON.stringify({display_name: name, amount_thb: amt, credits: cr, bonus_pct: bonus, badge: badge})
+      });
+      _tpkEditingId = null;
+      toast('บันทึกแล้ว', 'ok');
+      tpkLoad();
+    } catch(e){ toast('บันทึกไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+  window.tpkToggle = async function(id, active){
+    try {
+      await api(TPK_API + '/' + encodeURIComponent(id), {
+        method: 'PUT', body: JSON.stringify({is_active: !!active})
+      });
+      var row = _tpkData.find(function(p){ return p.id === id; });
+      if(row) row.is_active = !!active;
+      tpkRender();
+    } catch(e){
+      toast('Toggle ไม่สำเร็จ: ' + e.message, 'error');
+      tpkLoad();
+    }
+  };
+  window.tpkAskDelete = async function(id){
+    var row = _tpkData.find(function(p){ return p.id === id; });
+    var name = row ? row.display_name : id;
+    if(!confirm('ปิดใช้งาน tier "' + name + '" ?\n(soft-delete — กู้คืนภายหลังได้)')) return;
+    try {
+      await api(TPK_API + '/' + encodeURIComponent(id), {method: 'DELETE'});
+      toast('ปิดใช้งานแล้ว', 'ok');
+      tpkLoad();
+    } catch(e){ toast('ลบไม่สำเร็จ: ' + e.message, 'error'); }
+  };
+  window.tpkOpenAdd = function(){
+    document.getElementById('tpkAddName').value = '';
+    document.getElementById('tpkAddAmt').value = '';
+    document.getElementById('tpkAddCr').value = '';
+    document.getElementById('tpkAddBonus').value = '';
+    document.getElementById('tpkAddBadge').value = '';
+    document.getElementById('tpkAddDesc').value = '';
+    document.getElementById('tpkAddErr').textContent = '';
+    document.getElementById('tpkAddMask').classList.add('open');
+  };
+  window.tpkCloseAdd = function(e){
+    if(e && e.target && e.target.id !== 'tpkAddMask') return;
+    document.getElementById('tpkAddMask').classList.remove('open');
+  };
+  window.tpkDoAdd = async function(){
+    var err = document.getElementById('tpkAddErr');
+    err.textContent = '';
+    var body = {
+      display_name: document.getElementById('tpkAddName').value.trim(),
+      amount_thb:   parseFloat(document.getElementById('tpkAddAmt').value),
+      credits:      parseInt(document.getElementById('tpkAddCr').value, 10),
+      badge:        document.getElementById('tpkAddBadge').value.trim(),
+      description:  document.getElementById('tpkAddDesc').value.trim()
+    };
+    var bonus = document.getElementById('tpkAddBonus').value;
+    if(bonus !== '') body.bonus_pct = parseFloat(bonus);
+    if(!body.display_name){ err.textContent = 'ชื่อ tier ห้ามว่าง'; return; }
+    if(isNaN(body.amount_thb) || body.amount_thb <= 0){ err.textContent = 'amount_thb ต้อง > 0'; return; }
+    if(isNaN(body.credits) || body.credits <= 0){ err.textContent = 'credits ต้อง > 0'; return; }
+    try {
+      await api(TPK_API, {method: 'POST', body: JSON.stringify(body)});
+      document.getElementById('tpkAddMask').classList.remove('open');
+      toast('เพิ่มสำเร็จ', 'ok');
+      tpkLoad();
+    } catch(e){ err.textContent = e.message; }
+  };
+
+  // ── Init: pick tab from localStorage, default 'plans' ──
+  var initial = 'plans';
+  try {
+    var saved = localStorage.getItem(TAB_KEY);
+    if(saved && VALID_TABS.indexOf(saved) !== -1) initial = saved;
+  } catch(_){}
+  pageSwitchTab(initial);
+
+})();
+</script>
+</body></html>

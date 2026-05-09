@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>VIIV Platform Control</title>
-  <link rel="stylesheet" href="/platform/css/theme.css?v=1247"/>
+  <link rel="stylesheet" href="/platform/css/theme.css?v=4766"/>
   <style>
     :root{
       --sb-w:240px;--top-h:56px;
@@ -155,6 +155,9 @@
     </div>
     <div class="sb-item" data-page="packet" onclick="nav(this)">
       <span class="sb-item-icon">📦</span> แพ็กเกจ
+    </div>
+    <div class="sb-item" data-page="package" onclick="nav(this)">
+      <span class="sb-item-icon">💳</span> จัดการแพ็กเกจ
     </div>
     <div class="sb-item" data-page="finance" id="sb-finance-parent" onclick="navParent(this,'finance-sub')">
       <span class="sb-item-icon">💰</span> บัญชีการเงิน
@@ -347,6 +350,7 @@ const PAGE_META = {
   overview: { title:'ภาพรวมระบบ',  badge:'Admin'    },
   shops:    { title:'จัดการร้านค้า', badge:'Admin'    },
   packet:   { title:'แพ็กเกจ',      badge:'Admin'    },
+  package:  { title:'จัดการแพ็กเกจ', badge:'Admin'    },
   finance:  { title:'บัญชีการเงิน', badge:'Admin'    },
   bank:     { title:'บัญชีธนาคาร', badge:'Admin'    },
   orders:   { title:'คำสั่งซื้อ',   badge:'Admin'    },
