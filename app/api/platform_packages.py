@@ -190,11 +190,8 @@ def update_package(pkg_id: str, payload: dict, authorization: str = Header(None)
     if not fields:
         raise HTTPException(400, "no editable fields in payload")
 
-    # JSONB-safe binding for feature_flags (Rule 192: explicit CAST)
     sql_params = dict(fields)
-    if "feature_flags" in sql_params:
-        sql_params["feature_flags"] = _json.dumps(
-            sql_params["feature_flags"], ensure_ascii=False)
+    sql_params["pid"] = pkg_id
 
     set_parts = []
     for k in fields.keys():
@@ -203,12 +200,22 @@ def update_package(pkg_id: str, payload: dict, authorization: str = Header(None)
         else:
             set_parts.append(f"{k} = :{k}")
     set_clauses = ", ".join(set_parts)
-    sql_params["pid"] = pkg_id
 
     with engine.begin() as c:
-        if not c.execute(text("SELECT 1 FROM packages WHERE id=:pid"),
-                         {"pid": pkg_id}).first():
+        existing = c.execute(text(
+            "SELECT feature_flags FROM packages WHERE id=:pid"
+        ), {"pid": pkg_id}).mappings().first()
+        if not existing:
             raise HTTPException(404, "package not found")
+
+        # feature_flags: merge with current value (partial-update semantics)
+        if "feature_flags" in sql_params:
+            current = existing["feature_flags"] or {}
+            if isinstance(current, str):
+                current = _json.loads(current) if current else {}
+            merged = {**current, **sql_params["feature_flags"]}
+            sql_params["feature_flags"] = _json.dumps(merged, ensure_ascii=False)
+
         c.execute(text(f"UPDATE packages SET {set_clauses} WHERE id=:pid"), sql_params)
         row = c.execute(text("""
             SELECT id, name, label, badge, type,
