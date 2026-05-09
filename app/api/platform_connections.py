@@ -346,7 +346,7 @@ def get_pkg_config(authorization: str = Header("")):
 
         pkg_rows = c.execute(text("""
             SELECT id, label as name, multiplier, fixed_price, type, sort_order,
-                   unit, feature_flags, badge
+                   unit, feature_flags, badge, feature_text
             FROM packages ORDER BY sort_order
         """)).mappings().all()
 
@@ -383,6 +383,10 @@ def get_pkg_config(authorization: str = Header("")):
             'pkg_pro':      '10 ร้าน · AI Max\n5,000 credits/เดือน',
             'pkg_privacy':  'เริ่มต้น 3,459฿ ปรับตามความต้องการ',
         }
+        # Prefer DB column feature_text, fallback to hardcoded feat_map
+        ft = (p['feature_text'] or '').strip()
+        features_value = ft if ft else feat_map.get(p['id'], '')
+
         plans.append({
             'id':          p['id'],
             'name':        p['name'] or p['id'],
@@ -391,7 +395,7 @@ def get_pkg_config(authorization: str = Header("")):
             'fixed_price': float(p['fixed_price']) if p['fixed_price'] is not None else None,
             'price':       0,   # ไม่ใช้แล้ว — คำนวณจาก module_prices × multiplier
             'unit':        p['unit'] or '/เดือน',
-            'features':    feat_map.get(p['id'], ''),
+            'features':    features_value,
             'is_free':     is_free,
             'is_custom':   is_custom,
             'discount':    0,
