@@ -405,20 +405,18 @@ def get_pkg_config(authorization: str = Header("")):
 
 # ── PKG Config POST ────────────────────────────────────────────────────────────
 @router.post("/pkg-config")
-def save_pkg_config(body: dict, authorization: str = Header("")):
-    import json as _json
-    _admin_auth(authorization)
-    with engine.begin() as c:
-        for key in ("modules", "plans"):
-            val = body.get(key)
-            if val is not None:
-                c.execute(text("""
-                    INSERT INTO platform_pkg_config(config_key, config_value)
-                    VALUES(:k, CAST(:v AS jsonb))
-                    ON CONFLICT (config_key) DO UPDATE
-                    SET config_value=EXCLUDED.config_value, updated_at=NOW()
-                """), {"k": key, "v": _json.dumps(val, ensure_ascii=False)})
-    return {"ok": True}
+def save_pkg_config():
+    """Deprecated 2026-05-09. Writes to platform_pkg_config were never
+    consumed by any reader (orphan writer). Replaced by:
+      - /api/platform/packages          (CRUD packages)
+      - /api/platform/module-prices     (CRUD module prices)
+    Table retained pending Phase 3c (DROP TABLE deferred for observation)."""
+    raise HTTPException(
+        status_code=410,
+        detail=("POST /api/platform/pkg-config is deprecated. "
+                "Use /api/platform/packages and "
+                "/api/platform/module-prices instead."),
+    )
 
 # ── My Shops ──────────────────────────────────────────────────────────────────
 @router.get("/my-shops")
