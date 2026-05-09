@@ -1,6 +1,8 @@
 # app/api/platform_packages.py — Platform admin: Credit Packages CRUD
 # Endpoints under /api/platform/packages/*
 
+import json as _json
+
 from fastapi import APIRouter, Header, HTTPException
 from sqlalchemy import text
 from app.core.db import engine
@@ -10,12 +12,15 @@ router = APIRouter()
 
 _TYPE_VALUES = {"free", "paid", "custom"}
 
+ALLOWED_FEATURE_KEYS = {"chat", "autopost", "affiliate"}
+
 _EDITABLE_FIELDS = (
     "name", "label", "badge", "type",
     "credit_monthly", "max_members", "max_products",
     "fixed_price", "multiplier", "sort_order",
     "rollover_enabled", "reset_days",
     "ai_model", "unit",
+    "feature_text", "feature_flags",
 )
 
 
@@ -37,7 +42,25 @@ def _row_to_dict(r) -> dict:
         "ai_model":         r["ai_model"],
         "unit":             r["unit"],
         "feature_flags":    r["feature_flags"] if r["feature_flags"] is not None else {},
+        "feature_text":     r["feature_text"],
     }
+
+
+def _validate_feature_flags(value):
+    """Whitelist 3 keys (chat/autopost/affiliate), boolean values only.
+    Unknown keys silently dropped. None → {}. Non-dict → 400."""
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise HTTPException(400, "feature_flags must be a JSON object")
+    out = {}
+    for k in ALLOWED_FEATURE_KEYS:
+        if k in value:
+            v = value[k]
+            if not isinstance(v, bool):
+                raise HTTPException(400, f"feature_flags.{k} must be boolean")
+            out[k] = v
+    return out
 
 
 def _validate(payload: dict, partial: bool = False) -> dict:
@@ -117,6 +140,13 @@ def _validate(payload: dict, partial: bool = False) -> dict:
         except (TypeError, ValueError):
             raise HTTPException(400, "sort_order must be integer")
 
+    if "feature_flags" in out:
+        out["feature_flags"] = _validate_feature_flags(out["feature_flags"])
+
+    if "feature_text" in out and out["feature_text"] is not None:
+        s = str(out["feature_text"]).strip()
+        out["feature_text"] = s if s else None
+
     # name/label/badge: trim or null
     for f in ("name", "label", "badge", "ai_model", "unit"):
         if f in out and out[f] is not None:
@@ -136,7 +166,7 @@ def list_packages(authorization: str = Header(None)):
                    p.credit_monthly, p.max_members, p.max_products,
                    p.fixed_price, p.multiplier, p.sort_order,
                    p.rollover_enabled, p.reset_days,
-                   p.ai_model, p.unit, p.feature_flags,
+                   p.ai_model, p.unit, p.feature_flags, p.feature_text,
                    COUNT(t.id) AS tenant_count
             FROM packages p
             LEFT JOIN tenants t ON t.package_id = p.id
@@ -160,20 +190,32 @@ def update_package(pkg_id: str, payload: dict, authorization: str = Header(None)
     if not fields:
         raise HTTPException(400, "no editable fields in payload")
 
-    set_clauses = ", ".join(f"{k} = :{k}" for k in fields.keys())
-    params = {**fields, "pid": pkg_id}
+    # JSONB-safe binding for feature_flags (Rule 192: explicit CAST)
+    sql_params = dict(fields)
+    if "feature_flags" in sql_params:
+        sql_params["feature_flags"] = _json.dumps(
+            sql_params["feature_flags"], ensure_ascii=False)
+
+    set_parts = []
+    for k in fields.keys():
+        if k == "feature_flags":
+            set_parts.append(f"{k} = CAST(:{k} AS jsonb)")
+        else:
+            set_parts.append(f"{k} = :{k}")
+    set_clauses = ", ".join(set_parts)
+    sql_params["pid"] = pkg_id
 
     with engine.begin() as c:
         if not c.execute(text("SELECT 1 FROM packages WHERE id=:pid"),
                          {"pid": pkg_id}).first():
             raise HTTPException(404, "package not found")
-        c.execute(text(f"UPDATE packages SET {set_clauses} WHERE id=:pid"), params)
+        c.execute(text(f"UPDATE packages SET {set_clauses} WHERE id=:pid"), sql_params)
         row = c.execute(text("""
             SELECT id, name, label, badge, type,
                    credit_monthly, max_members, max_products,
                    fixed_price, multiplier, sort_order,
                    rollover_enabled, reset_days,
-                   ai_model, unit, feature_flags
+                   ai_model, unit, feature_flags, feature_text
             FROM packages WHERE id=:pid
         """), {"pid": pkg_id}).mappings().first()
 
@@ -197,23 +239,37 @@ def create_package(payload: dict, authorization: str = Header(None)):
     fields.setdefault("sort_order", 0)
     fields.setdefault("rollover_enabled", False)
     fields.setdefault("reset_days", 30)
+    fields.setdefault("feature_flags", {})
+    # feature_text: omit when not provided → DB nullable default NULL
+
+    # JSONB-safe binding for feature_flags (Rule 192: explicit CAST)
+    sql_params = dict(fields)
+    if "feature_flags" in sql_params:
+        sql_params["feature_flags"] = _json.dumps(
+            sql_params["feature_flags"], ensure_ascii=False)
 
     cols = list(fields.keys())
     cols_sql = ", ".join(cols)
-    vals_sql = ", ".join(f":{k}" for k in cols)
+    vals_parts = []
+    for k in cols:
+        if k == "feature_flags":
+            vals_parts.append(f"CAST(:{k} AS jsonb)")
+        else:
+            vals_parts.append(f":{k}")
+    vals_sql = ", ".join(vals_parts)
 
     with engine.begin() as c:
         new_id = c.execute(text(f"""
             INSERT INTO packages ({cols_sql})
             VALUES ({vals_sql})
             RETURNING id
-        """), fields).scalar()
+        """), sql_params).scalar()
         row = c.execute(text("""
             SELECT id, name, label, badge, type,
                    credit_monthly, max_members, max_products,
                    fixed_price, multiplier, sort_order,
                    rollover_enabled, reset_days,
-                   ai_model, unit, feature_flags
+                   ai_model, unit, feature_flags, feature_text
             FROM packages WHERE id=:pid
         """), {"pid": new_id}).mappings().first()
 
