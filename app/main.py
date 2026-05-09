@@ -244,6 +244,8 @@ app.include_router(platform_connections_router, prefix="/api/platform")
 app.include_router(billing_router, prefix="/api/platform/billing")
 from app.api.platform_packages import router as platform_packages_router
 app.include_router(platform_packages_router, prefix="/api/platform/packages")
+from app.api.platform_modules import router as platform_modules_router
+app.include_router(platform_modules_router, prefix="/api/platform")
 from app.api.platform_bank import router as platform_bank_router
 app.include_router(platform_bank_router, prefix="/api/platform")
 app.include_router(tenant_staff_router)
