@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>VIIV Superboard</title>
-  <link rel="stylesheet" href="/superboard/css/theme.css?v=0512" />
+  <link rel="stylesheet" href="/superboard/css/theme.css?v=2575" />
   <link rel="manifest" href="/superboard/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -758,14 +758,32 @@ window.loadCreditBadge = async function(){
 };
 
 // Topbar PLATFORMS widget: connected → dot เขียว + border glow / disconnected → dot ซ่อน + icon หรี่
+function sbApplyFacebookDot(status) {
+  const dot = document.getElementById('sbp-facebook-dot');
+  const box = document.getElementById('sbp-facebook-box');
+  if (!dot || !box) return;
+  if (status === 'active') {
+    dot.style.background = '#22c55e'; dot.style.display = 'block';
+    box.style.borderColor = '#1877F2'; box.style.opacity = '1'; box.style.boxShadow = '0 0 6px #1877F266';
+  } else if (status === 'pending_verify') {
+    dot.style.background = '#f59e0b'; dot.style.display = 'block';
+    box.style.borderColor = '#1877F2'; box.style.opacity = '1'; box.style.boxShadow = 'none';
+  } else if (status === 'needs_reauth') {
+    dot.style.background = '#ef4444'; dot.style.display = 'block';
+    box.style.borderColor = 'transparent'; box.style.opacity = '0.7'; box.style.boxShadow = 'none';
+  } else {
+    dot.style.display = 'none';
+    box.style.borderColor = 'transparent'; box.style.opacity = '0.35'; box.style.boxShadow = 'none';
+  }
+}
+
 function sbLoadPlatformStatus() {
   const token = localStorage.getItem('viiv_token') || localStorage.getItem('platform_token');
   if (!token) return;
 
-  // platform colors สำหรับ border glow
+  // line / tiktok / instagram / youtube — platform-level endpoint
   const COLORS = {
     line:      '#06C755',
-    facebook:  '#1877F2',
     tiktok:    '#ffffff',
     instagram: '#e6683c',
     youtube:   '#FF0000',
@@ -778,25 +796,30 @@ function sbLoadPlatformStatus() {
       const dot = document.getElementById('sbp-' + k + '-dot');
       const box = document.getElementById('sbp-' + k + '-box');
       const connected = data[k] && data[k].connected;
-
       if (connected) {
-        // เชื่อมต่อ — dot เขียว + border glow สีของ platform
         if (dot) { dot.style.background = '#22c55e'; dot.style.display = 'block'; }
         if (box) { box.style.borderColor = color; box.style.opacity = '1'; box.style.boxShadow = '0 0 6px ' + color + '66'; }
       } else {
-        // ไม่ได้เชื่อมต่อ — dot ซ่อน + icon หรี่ลง + border transparent
         if (dot) { dot.style.background = 'transparent'; dot.style.display = 'none'; }
         if (box) { box.style.borderColor = 'transparent'; box.style.opacity = '0.35'; box.style.boxShadow = 'none'; }
       }
     });
   }).catch(() => {
-    // endpoint ยังไม่พร้อม — ซ่อน dot ทั้งหมด icon หรี่
-    ['line','facebook','tiktok','instagram','youtube'].forEach(k => {
+    ['line','tiktok','instagram','youtube'].forEach(k => {
       const dot = document.getElementById('sbp-' + k + '-dot');
       const box = document.getElementById('sbp-' + k + '-box');
       if (dot) { dot.style.display = 'none'; }
       if (box) { box.style.opacity = '0.35'; }
     });
+  });
+
+  // Facebook — modulefb endpoint (4 states: active / pending_verify / needs_reauth / none)
+  fetch('/api/fb/connection/status', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(r => r.json()).then(fb => {
+    sbApplyFacebookDot(fb.status);
+  }).catch(() => {
+    sbApplyFacebookDot('none');
   });
 }
 
