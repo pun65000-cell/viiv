@@ -13,3 +13,4 @@ python-multipart
 Pillow
 httpx>=0.27.0
 playwright>=1.59.0
+patchright>=1.59.1
