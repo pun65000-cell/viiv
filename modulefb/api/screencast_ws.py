@@ -65,12 +65,15 @@ async def screencast(
         return
 
     await ws.accept()
+    logger.info("[ws-fb:%s] accepted, dev=%s", tenant_id, dev)
 
     pool = ws.app.state.pool
     if pool is None or not pool._started:
         await ws.send_json({"type": "error", "message": "browser pool not started"})
         await ws.close()
         return
+
+    logger.info("[ws-fb:%s] auth ok", tenant_id)
 
     bridge: Optional[CDPBridge] = None
     page = None
@@ -80,8 +83,11 @@ async def screencast(
         page = await context.new_page()
         await page.set_viewport_size({"width": 1280, "height": 800})
 
+        logger.info("[ws-fb:%s] spawning bridge...", tenant_id)
         bridge = CDPBridge(context, page)
         await bridge.start()
+        logger.info("[ws-fb:%s] bridge started", tenant_id)
+
         await page.goto("about:blank", timeout=10_000)
 
         async def on_frame(data: bytes, session_id: int, _frame_num: int) -> None:
@@ -91,8 +97,12 @@ async def screencast(
                 pass
 
         await bridge.start_screencast(on_frame=on_frame)
-        await ws.send_json({"type": "ready"})
+        logger.info("[ws-fb:%s] screencast started", tenant_id)
 
+        await ws.send_json({"type": "ready"})
+        logger.info("[ws-fb:%s] ready sent", tenant_id)
+
+        logger.info("[ws-fb:%s] entering message loop", tenant_id)
         while True:
             msg_text = await ws.receive_text()
             try:
@@ -102,6 +112,7 @@ async def screencast(
                 continue
 
             mtype = msg.get("type")
+            logger.info("[ws-fb:%s] msg received: type=%s", tenant_id, mtype)
 
             if mtype == "mouse":
                 await bridge.dispatch_mouse(msg)
@@ -111,10 +122,12 @@ async def screencast(
 
             elif mtype == "navigate":
                 url = msg.get("url", "about:blank")
+                logger.info("[ws-fb:%s] navigate to %s", tenant_id, url)
                 if not any(url == p or url.startswith(p) for p in _ALLOWED_URL_PREFIXES):
                     await ws.send_json({"type": "error", "message": "url not allowed"})
                     continue
                 await page.goto(url, timeout=15_000)
+                logger.info("[ws-fb:%s] navigate dispatched", tenant_id)
                 await ws.send_json({"type": "info", "navigated": url})
 
             elif mtype == "login_complete":

@@ -32,7 +32,10 @@ class CDPBridge:
 
     async def start(self) -> None:
         """Initialize CDP session for the page."""
+        logger.info("[cdp] start: getting CDP session from context")
         self._cdp = await self._context.new_cdp_session(self._page)
+        logger.info("[cdp] CDP session ready")
+        self._frame_count = 0
 
     async def start_screencast(
         self,
@@ -55,6 +58,9 @@ class CDPBridge:
         self._on_frame = on_frame
         self._cdp.on("Page.screencastFrame", self._handle_frame)
 
+        logger.info("[cdp] enabling Page domain")
+        await self._cdp.send("Page.enable")
+        logger.info("[cdp] starting screencast")
         await self._cdp.send("Page.startScreencast", {
             "format": format,
             "quality": quality,
@@ -62,12 +68,17 @@ class CDPBridge:
             "maxHeight": max_height,
             "everyNthFrame": every_nth_frame,
         })
+        logger.info("[cdp] screencast cmd sent")
 
     async def _handle_frame(self, params: dict) -> None:
         """Receive frame from CDP, decode, forward to caller, ack."""
         try:
             data = base64.b64decode(params["data"])
             session_id = params["sessionId"]
+
+            self._frame_count += 1
+            if self._frame_count <= 3 or self._frame_count % 50 == 0:
+                logger.info("[cdp] frame #%d size=%d", self._frame_count, len(data))
 
             if self._on_frame:
                 await self._on_frame(data, session_id, 0)
