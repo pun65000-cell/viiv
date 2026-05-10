@@ -21,6 +21,9 @@ import logging
 from fastapi import FastAPI
 
 from .browser.pool import BrowserPool
+from .db import FBDatabase
+from .browser.session import FBSessionManager
+from .api.connection import router as connection_router
 
 log = logging.getLogger(__name__)
 
@@ -28,10 +31,13 @@ log = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    modulefb lifespan — initialize browser pool on startup,
-    cleanup on shutdown.
+    modulefb lifespan — initialize DB pool, browser pool, and session
+    manager on startup; clean shutdown in reverse order.
     """
     log.info("modulefb starting up")
+
+    app.state.db = FBDatabase()
+    await app.state.db.start()
 
     app.state.pool = BrowserPool(
         max_active_contexts=20,
@@ -39,10 +45,13 @@ async def lifespan(app: FastAPI):
     )
     await app.state.pool.start()
 
+    app.state.session_mgr = FBSessionManager(app.state.pool, app.state.db)
+
     yield
 
     log.info("modulefb shutting down")
     await app.state.pool.shutdown()
+    await app.state.db.shutdown()
 
 
 app = FastAPI(
@@ -51,6 +60,8 @@ app = FastAPI(
     version="0.2.0",
     lifespan=lifespan,
 )
+
+app.include_router(connection_router, prefix="/api/fb/connection", tags=["fb-connection"])
 
 
 @app.get("/health")

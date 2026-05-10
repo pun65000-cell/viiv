@@ -182,6 +182,11 @@ class FBSessionManager:
             UPDATE fb_sessions
             SET status = 'disconnected_by_user',
                 session_data_encrypted = NULL,
+                api_token_encrypted = NULL,
+                profile_url = NULL,
+                page_url = NULL,
+                fb_user_id = NULL,
+                fb_user_name = NULL,
                 updated_at = now()
             WHERE tenant_id = :tid
             """,
@@ -209,7 +214,7 @@ class FBSessionManager:
             """
             INSERT INTO fb_audit_log
                 (tenant_id, action, target_id, detail)
-            VALUES (:tid, :act, :target, :detail::jsonb)
+            VALUES (:tid, :act, :target, CAST(:detail AS jsonb))
             """,
             {
                 "tid": tenant_id,
