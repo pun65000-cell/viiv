@@ -15,6 +15,7 @@ Lifecycle:
 """
 import asyncio
 import logging
+import os
 import time
 from pathlib import Path
 from typing import Dict, Optional
@@ -106,6 +107,7 @@ class BrowserPool:
         try:
             profile_dir = PROFILE_BASE_DIR / tenant_id
             profile_dir.mkdir(parents=True, exist_ok=True)
+            os.chmod(profile_dir, 0o700)
 
             # Persistent context = customer's session persists between launches
             # patchright 1.59.1: launch_persistent_context does not accept
