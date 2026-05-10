@@ -18,6 +18,9 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 from contextlib import asynccontextmanager
 import logging
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.getLogger("modulefb").setLevel(logging.INFO)
+
 from fastapi import FastAPI
 
 from .browser.pool import BrowserPool
