@@ -24,6 +24,7 @@ from .browser.pool import BrowserPool
 from .db import FBDatabase
 from .browser.session import FBSessionManager
 from .api.connection import router as connection_router
+from .api._smoketest import router as smoketest_router
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ app = FastAPI(
 )
 
 app.include_router(connection_router, prefix="/api/fb/connection", tags=["fb-connection"])
+app.include_router(smoketest_router, prefix="/api/fb", tags=["fb-smoketest"])
 
 
 @app.get("/health")

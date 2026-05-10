@@ -108,6 +108,8 @@ class BrowserPool:
             profile_dir.mkdir(parents=True, exist_ok=True)
 
             # Persistent context = customer's session persists between launches
+            # patchright 1.59.1: launch_persistent_context does not accept
+            # storage_state; state loads from user_data_dir automatically.
             context = await self._playwright.chromium.launch_persistent_context(
                 user_data_dir=str(profile_dir),
                 headless=True,
@@ -116,7 +118,6 @@ class BrowserPool:
                     "--disable-dev-shm-usage",
                     "--disable-blink-features=AutomationControlled",
                 ],
-                storage_state=storage_state,
             )
 
             self._contexts[tenant_id] = context
