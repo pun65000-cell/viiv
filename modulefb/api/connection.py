@@ -3,13 +3,12 @@ modulefb/api/connection.py — Facebook connection management endpoints.
 
 4 endpoints:
   POST /api/fb/connection/save    — บันทึก profile/page URL + optional api_token
-  POST /api/fb/connection/verify  — verify ความเป็นเจ้าของบัญชี FB
+  POST /api/fb/connection/verify  — trust-based verify (popup-closed signal)
   GET  /api/fb/connection/status  — ดูสถานะ connection ปัจจุบัน
   POST /api/fb/connection/disconnect — ตัดการเชื่อมต่อ
 
 ขึ้นอยู่กับ DDL ใน scripts/ddl_3a5.sql — ต้องรัน ALTER TABLE ก่อนเรียก /save
 """
-import re
 from typing import Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request
@@ -30,8 +29,7 @@ class SaveRequest(BaseModel):
 
 
 class VerifyRequest(BaseModel):
-    fb_user_id: str
-    fb_user_name: Optional[str] = None
+    pass  # trust-based: popup-closed signal, no user input needed
 
 
 class StatusResponse(BaseModel):
@@ -44,32 +42,21 @@ class StatusResponse(BaseModel):
     fb_user_id: Optional[str] = None
     status: str        # active | pending_verify | needs_reauth | disconnected | none
     last_active_at: Optional[str] = None
+    active_mode: Optional[str] = None  # 'api' | 'page' | 'profile' | None
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-def _extract_fb_identifier(url: Optional[str]) -> Optional[str]:
-    """
-    Extract numeric FB ID or username from a Facebook profile/page URL.
-
-    Handles:
-      https://facebook.com/profile.php?id=100012345678901   → '100012345678901'
-      https://facebook.com/{username}                       → '{username}' (lower)
-      https://m.facebook.com/{username}                     → '{username}' (lower)
-    """
-    if not url:
+def _calc_active_mode(row: dict) -> Optional[str]:
+    """Priority: api > page > profile — runtime calc from stored data."""
+    if not row:
         return None
-    # Numeric ID via query param
-    m = re.search(r"[?&]id=(\d+)", url)
-    if m:
-        return m.group(1)
-    # Username from path after facebook.com/
-    m = re.search(r"facebook\.com/([^/?#]+)", url)
-    if m:
-        slug = m.group(1).lower()
-        # Skip 'profile.php' — already handled above via ?id=
-        if slug not in ("profile.php", "pages", "groups", "events"):
-            return slug
+    if row.get("api_token_encrypted"):
+        return "api"
+    if row.get("page_url"):
+        return "page"
+    if row.get("profile_url"):
+        return "profile"
     return None
 
 
@@ -83,9 +70,8 @@ async def save_connection(
 ):
     """
     บันทึก FB profile/page URL และ optional Graph API token.
-    UPSERT: ถ้ามีแถวอยู่แล้วและ status='active' → คงสถานะไว้
-    api_token ถูก encrypt ก่อนบันทึก.
-    ต้องการ columns: profile_url, page_url, api_token_encrypted (ddl_3a5.sql)
+    Phase 3.B.2: ถ้ามี api_token → verify via Graph API → auto-set active.
+    UPSERT: preserves existing token + status='active' if already active.
     """
     claims = verify_tenant_token(authorization)
     tenant_id = claims["tenant_id"]
@@ -95,22 +81,53 @@ async def save_connection(
     if req.api_token:
         api_token_enc = encrypt_session(req.api_token)
 
+    # Phase 3.B.2: API auto-verify
+    fb_token_info = None
+    if req.api_token:
+        from modulefb.fb_graph import verify_fb_token
+        fb_token_info = await verify_fb_token(req.api_token)
+        if not fb_token_info:
+            raise HTTPException(
+                400,
+                "Facebook API Token ไม่ถูกต้องหรือหมดอายุ — กรุณาตรวจสอบและลองใหม่",
+            )
+
+    new_status: Optional[str] = "active" if fb_token_info else None
+    new_user_id: Optional[str] = fb_token_info["id"] if fb_token_info else None
+    new_user_name: Optional[str] = fb_token_info["name"] if fb_token_info else None
+    new_account_type: Optional[str] = (
+        ("page" if fb_token_info.get("is_page") else "profile") if fb_token_info else None
+    )
+
     await db.execute(
         """
         INSERT INTO fb_sessions
           (tenant_id, profile_url, page_url, api_token_encrypted,
-           status, updated_at)
+           fb_user_id, fb_user_name, fb_account_type,
+           status, last_login_at, updated_at)
         VALUES
-          (:tid, :purl, :pgurl, :tok, 'pending_verify', NOW())
+          (:tid, :purl, :pgurl, :tok,
+           :uid, :uname, :atype,
+           COALESCE(CAST(:status AS text), 'pending_verify'),
+           CASE WHEN CAST(:status AS text) = 'active' THEN NOW() ELSE NULL END,
+           NOW())
         ON CONFLICT (tenant_id) DO UPDATE SET
-          profile_url          = EXCLUDED.profile_url,
-          page_url             = EXCLUDED.page_url,
-          api_token_encrypted  = COALESCE(
-                                   EXCLUDED.api_token_encrypted,
-                                   fb_sessions.api_token_encrypted),
+          profile_url         = EXCLUDED.profile_url,
+          page_url            = EXCLUDED.page_url,
+          api_token_encrypted = COALESCE(EXCLUDED.api_token_encrypted,
+                                          fb_sessions.api_token_encrypted),
+          fb_user_id          = COALESCE(EXCLUDED.fb_user_id, fb_sessions.fb_user_id),
+          fb_user_name        = COALESCE(EXCLUDED.fb_user_name, fb_sessions.fb_user_name),
+          fb_account_type     = COALESCE(EXCLUDED.fb_account_type,
+                                          fb_sessions.fb_account_type),
           status = CASE
+            WHEN CAST(:status AS text) = 'active' THEN 'active'
             WHEN fb_sessions.status = 'active' THEN 'active'
             ELSE 'pending_verify'
+          END,
+          last_login_at = CASE
+            WHEN CAST(:status AS text) = 'active' THEN NOW()
+            ELSE fb_sessions.last_login_at
           END,
           updated_at = NOW()
         """,
@@ -119,6 +136,10 @@ async def save_connection(
             "purl": req.profile_url,
             "pgurl": req.page_url,
             "tok": api_token_enc,
+            "uid": new_user_id,
+            "uname": new_user_name,
+            "atype": new_account_type,
+            "status": new_status,
         },
     )
 
@@ -130,10 +151,17 @@ async def save_connection(
             "has_profile": bool(req.profile_url),
             "has_page": bool(req.page_url),
             "has_token": bool(req.api_token),
+            "api_verified": bool(fb_token_info),
+            "fb_user_id": fb_token_info["id"] if fb_token_info else None,
         },
     )
 
-    return {"ok": True}
+    return {
+        "ok": True,
+        "verified": bool(fb_token_info),
+        "active_mode": "api" if fb_token_info else None,
+        "fb_user_name": fb_token_info["name"] if fb_token_info else None,
+    }
 
 
 @router.post("/verify")
@@ -143,9 +171,8 @@ async def verify_ownership(
     authorization: str = Header(""),
 ):
     """
-    Verify ว่า FB account ที่ login ตรงกับ URL ที่บันทึกไว้.
-    ดึง profile_url + page_url → extract identifier → เปรียบกับ fb_user_id.
-    ถ้าตรง → อัปเดต status='active' พร้อม fb_user_id, fb_user_name.
+    Trust-based verify — ลูกค้า login FB แล้วปิด popup → frontend ส่ง {} มา.
+    ตรวจว่ามีข้อมูลบันทึกไว้ → mark active.  ไม่มีการ match ID.
     """
     claims = verify_tenant_token(authorization)
     tenant_id = claims["tenant_id"]
@@ -156,57 +183,33 @@ async def verify_ownership(
         {"tid": tenant_id},
     )
     if not row:
-        raise HTTPException(400, "ยังไม่ได้บันทึกลิงก์ FB — กรุณา save ก่อน verify")
+        raise HTTPException(400, "ยังไม่ได้บันทึกข้อมูล Facebook")
+    if not row.get("profile_url") and not row.get("page_url"):
+        raise HTTPException(400, "กรุณากรอกลิงก์ Facebook ก่อนเชื่อมต่อ")
 
-    profile_id = _extract_fb_identifier(row["profile_url"])
-    page_id = _extract_fb_identifier(row["page_url"])
-    target_id = req.fb_user_id.strip().lower()
-
-    match = (profile_id == target_id) or (page_id == target_id)
-
-    if not match:
-        session_mgr = request.app.state.session_mgr
-        await session_mgr.audit_log(
-            tenant_id,
-            "verify_failed",
-            {
-                "target_id": target_id,
-                "profile_id": profile_id,
-                "page_id": page_id,
-            },
-        )
-        raise HTTPException(400, "บัญชีที่ login ไม่ตรงกับลิงก์ที่บันทึกไว้")
-
-    account_type = "page" if (page_id and page_id == target_id) else "profile"
+    account_type = "page" if row.get("page_url") else "profile"
 
     await db.execute(
         """
         UPDATE fb_sessions SET
-          fb_user_id      = :uid,
-          fb_user_name    = :uname,
-          fb_account_type = :atype,
+          fb_account_type = COALESCE(fb_account_type, :atype),
           status          = 'active',
           last_login_at   = NOW(),
           last_active_at  = NOW(),
           updated_at      = NOW()
         WHERE tenant_id = :tid
         """,
-        {
-            "tid": tenant_id,
-            "uid": req.fb_user_id,
-            "uname": req.fb_user_name,
-            "atype": account_type,
-        },
+        {"tid": tenant_id, "atype": account_type},
     )
 
     session_mgr = request.app.state.session_mgr
     await session_mgr.audit_log(
         tenant_id,
-        "verify_success",
-        {"fb_user_id": req.fb_user_id, "account_type": account_type},
+        "verify_acknowledged",
+        {"method": "popup_closed", "account_type": account_type},
     )
 
-    return {"ok": True, "account_type": account_type}
+    return {"ok": True, "verified": True, "account_type": account_type}
 
 
 @router.get("/status", response_model=StatusResponse)
@@ -254,6 +257,7 @@ async def connection_status(
         fb_user_id=row["fb_user_id"],
         status=status,
         last_active_at=last_at.isoformat() if last_at else None,
+        active_mode=_calc_active_mode(dict(row)),
     )
 
 

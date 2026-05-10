@@ -30,6 +30,8 @@ body{font-family:'Sarabun',sans-serif;background:#f5f3ef;color:#1f2937;font-size
 .cn-status-banner{border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
 .cn-status-banner.connected{background:#06C755;color:#fff;}
 .cn-status-banner.disconnected{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;}
+.cn-status-banner.pending{background:#fffbeb;color:#92400e;border:1px solid #fcd34d;}
+.cn-status-banner.reauth{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;}
 .cn-status-dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.9;}
 .cn-status-badge{margin-left:auto;background:rgba(255,255,255,.25);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
 
@@ -102,6 +104,10 @@ body{font-family:'Sarabun',sans-serif;background:#f5f3ef;color:#1f2937;font-size
 
 /* ── MSG ── */
 .cn-msg{display:none;margin-top:8px;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;}
+
+/* ── FB CONNECT PULSE ── */
+@keyframes cnFbPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.cn-fb-pulse{animation:cnFbPulse 1.2s ease-in-out infinite;color:#1877F2;}
 </style>
 </head>
 <body>
@@ -366,15 +372,146 @@ body{font-family:'Sarabun',sans-serif;background:#f5f3ef;color:#1f2937;font-size
      PANELS: Coming Soon
 ════════════════════════════════════════ -->
 <div class="cn-panel" id="cn-panel-facebook">
+
+  <!-- Status Banner -->
+  <div id="cnFbStatusBanner" class="cn-status-banner disconnected">
+    <div class="cn-status-dot"></div>
+    <div>
+      <div style="font-weight:700;font-size:14px;" id="cnFbStatusTitle">ยังไม่ได้เชื่อมต่อ Facebook</div>
+      <div style="font-size:12px;opacity:.8;" id="cnFbStatusSub">กรอกข้อมูลด้านล่าง — ใส่อันไหนก็ได้</div>
+    </div>
+    <span class="cn-status-badge" id="cnFbStatusBadge" style="display:none;">● Active</span>
+  </div>
+
+  <!-- Card 1: Connection -->
   <div class="cn-card">
-    <div class="cn-coming">
-      <div class="cn-coming-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="#1877F2" opacity=".4"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    <div class="cn-card-header">
+      <div class="cn-card-icon" style="background:#1877F2;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
       </div>
-      <div class="cn-coming-title">Facebook — Coming Soon</div>
-      <div class="cn-coming-desc">เร็วๆ นี้ เชื่อมต่อ Facebook Page เพื่อรับ Order และส่งข้อความอัตโนมัติ</div>
+      <div>
+        <div class="cn-card-title">เชื่อมต่อ Facebook</div>
+        <div class="cn-card-sub">ใส่ลิงก์โปรไฟล์ ลิงก์เพจ หรือ API Token (อันใดอันหนึ่ง หรือทั้งหมด)</div>
+      </div>
+      <button type="button" onclick="cnFbHelpToken()"
+              style="margin-left:auto;padding:7px 14px;background:#1877F2;color:#fff;
+                     border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+        ⓘ วิธีขอ API Token
+      </button>
+    </div>
+
+    <div class="cn-field">
+      <div class="cn-label">ลิงก์โปรไฟล์ Facebook</div>
+      <input id="cnFbProfileUrl" type="text" class="cn-input"
+             placeholder="https://facebook.com/your.username"/>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">ไม่บังคับ — ใส่ถ้าต้องการเชื่อมต่อโปรไฟล์ส่วนตัว</div>
+    </div>
+
+    <div class="cn-field">
+      <div class="cn-label">ลิงก์เพจ Facebook</div>
+      <input id="cnFbPageUrl" type="text" class="cn-input"
+             placeholder="https://facebook.com/your.page"/>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">ไม่บังคับ — ใส่ถ้ามีเพจร้านค้า</div>
+    </div>
+
+    <div class="cn-field">
+      <div class="cn-label">Facebook API Token</div>
+      <div class="cn-input-wrap">
+        <input id="cnFbToken" type="password" class="cn-input"
+               placeholder="Page Access Token (ไม่บังคับ)"/>
+        <button type="button" class="cn-eye" onclick="cnToggleEye('cnFbToken',this)">👁</button>
+      </div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">ไม่บังคับ — ใส่เพื่อให้ตอบ AI แม่นยำและรวดเร็วขึ้น</div>
+    </div>
+
+    <div id="cnFbCredMsg" class="cn-msg"></div>
+    <div class="cn-btn-row">
+      <button type="button" class="cn-btn cn-btn-cancel" onclick="cnFbLoadStatus()">รีเฟรช</button>
+      <button type="button" class="cn-btn cn-btn-save" onclick="cnFbSave()">บันทึก</button>
     </div>
   </div>
+
+  <!-- Card 2: Privacy notice -->
+  <div class="cn-card" style="background:#fef9e7;border:1px solid #f59e0b33;">
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="font-size:24px;flex-shrink:0;">🔒</div>
+      <div style="font-size:13px;color:#78350f;line-height:1.6;">
+        <div style="font-weight:700;margin-bottom:6px;">ความเป็นส่วนตัวของคุณ</div>
+        <div>VIIV ใช้ลิงก์นี้เพื่อยืนยันว่าคุณเป็นเจ้าของบัญชี Facebook จริง — เราไม่เห็น password หรือข้อมูลส่วนตัว</div>
+        <ul style="margin:8px 0 0 0;padding-left:18px;">
+          <li>บัญชีของคุณยังคงเป็นของคุณ</li>
+          <li>VIIV เห็นแค่ user ID หลังคุณยืนยันตัวตน</li>
+          <li>ยกเลิกการเชื่อมต่อได้ตลอดเวลา</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verify section (Phase 3.B.2 — manual confirm, no popup.closed polling) -->
+  <div id="cnFbVerifySection" style="display:none;">
+    <div class="cn-card" style="text-align:center;padding:24px;">
+      <div style="font-size:32px;margin-bottom:8px;">📱</div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:4px;">เชื่อมต่อบัญชี Facebook</div>
+
+      <!-- State 1: Default — ปุ่มเปิด FB -->
+      <div id="cnFbStateDefault">
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6;">
+          กดปุ่มด้านล่างเพื่อเปิด Facebook<br>
+          Login ให้เรียบร้อย แล้วกลับมากด "เชื่อมต่อแล้ว"
+        </div>
+        <button type="button" onclick="cnFbOpenFb()"
+                style="background:#1877F2;color:#fff;border:none;
+                       padding:14px 32px;border-radius:10px;
+                       font-size:15px;font-weight:700;cursor:pointer;
+                       box-shadow:0 4px 12px rgba(24,119,242,.3);">
+          🔗 เปิด Facebook
+        </button>
+      </div>
+
+      <!-- State 2: Waiting — หลัง popup เปิดแล้ว -->
+      <div id="cnFbStateWaiting" style="display:none;">
+        <div style="font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.6;">
+          ✓ เปิด Facebook แล้ว<br>
+          เมื่อ Login เรียบร้อยและเห็นเพจของคุณ — กดปุ่มด้านล่าง
+        </div>
+        <button type="button" onclick="cnFbConfirmConnect()"
+                style="background:#16a34a;color:#fff;border:none;
+                       padding:14px 32px;border-radius:10px;
+                       font-size:15px;font-weight:700;cursor:pointer;
+                       box-shadow:0 4px 12px rgba(22,163,74,.3);
+                       margin-bottom:8px;">
+          ✅ ฉันเชื่อมต่อแล้ว
+        </button>
+        <div>
+          <button type="button" onclick="cnFbOpenFb()"
+                  style="background:transparent;color:#1877F2;
+                         border:1px solid #1877F2;
+                         padding:8px 20px;border-radius:8px;
+                         font-size:13px;cursor:pointer;
+                         margin-top:8px;">
+            ↻ เปิด Facebook อีกครั้ง
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disconnect section -->
+  <div id="cnFbDisconnectSection" style="display:none;margin-top:12px;">
+    <div class="cn-card" style="background:#fef2f2;border:1px solid #ef444433;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="font-size:13px;color:#991b1b;">
+          <div style="font-weight:700;margin-bottom:2px;">ยกเลิกการเชื่อมต่อ</div>
+          <div style="font-size:12px;">ลบข้อมูลทั้งหมดและเริ่มต้นใหม่</div>
+        </div>
+        <button type="button" class="cn-btn" style="background:#ef4444;color:#fff;border:none;flex-shrink:0;"
+                onclick="cnFbDisconnect()">
+          ยกเลิก
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="cn-panel" id="cn-panel-tiktok">
@@ -426,12 +563,23 @@ var _origData = {};
 
 // ── รับ token จาก parent ──
 window.addEventListener('message', function(e){
-  if(e.data && e.data.type==='viiv_token'){ _tok=e.data.token; cnLoadSettings(); }
+  if(e.data && e.data.type==='viiv_token'){
+    _tok=e.data.token;
+    cnLoadSettings();
+    cnFbLoadStatus();
+  }
 });
 // fallback localStorage
 (function(){
   var t=localStorage.getItem('viiv_token');
-  if(t){ _tok=t; cnLoadSettings(); }
+  if(t){ _tok=t; cnLoadSettings(); cnFbLoadStatus(); }
+  // Phase 3.B.1: auto-switch tab from sbNav opts
+  try {
+    if(window._sbNavOpts && window._sbNavOpts.tab){
+      cnTab(window._sbNavOpts.tab);
+      window._sbNavOpts = null;
+    }
+  } catch(e){ console.warn('sbNav opts read fail', e); }
 })();
 
 // ── Tab switch ──
@@ -646,6 +794,227 @@ function cnToggleEye(inputId,btn){
   if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
   else { inp.type='password'; btn.textContent='👁'; }
 }
+
+// ============ Facebook Connection ============
+
+function cnFbHelpToken(){
+  alert('คู่มือวิธีขอ Facebook API Token กำลังจัดทำ — เร็วๆ นี้\n\nระหว่างนี้ลูกค้าสามารถใช้งานโดยใส่แค่ลิงก์โปรไฟล์หรือลิงก์เพจได้');
+}
+
+function cnFbLoadStatus(){
+  if(!_tok) return;
+
+  fetch('/api/fb/connection/status', {
+    headers: {'Authorization':'Bearer '+_tok}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){ cnFbApplyStatus(d); })
+  .catch(function(e){ console.warn('FB status load fail', e); });
+}
+
+function cnFbApplyStatus(d){
+  var banner = document.getElementById('cnFbStatusBanner');
+  var title  = document.getElementById('cnFbStatusTitle');
+  var sub    = document.getElementById('cnFbStatusSub');
+  var badge  = document.getElementById('cnFbStatusBadge');
+  if(!banner) return;
+
+  // Populate form fields
+  if(d.profile_url) document.getElementById('cnFbProfileUrl').value = d.profile_url;
+  if(d.page_url)    document.getElementById('cnFbPageUrl').value    = d.page_url;
+  var tokenInput = document.getElementById('cnFbToken');
+  if(d.has_api_token){
+    tokenInput.placeholder = '••••••••• (มี token อยู่ — ใส่ใหม่เพื่อแทนที่)';
+  } else {
+    tokenInput.placeholder = 'Page Access Token (ไม่บังคับ)';
+  }
+
+  // Reset banner classes
+  ['connected','disconnected','pending','reauth'].forEach(function(c){ banner.classList.remove(c); });
+
+  if(d.status === 'active'){
+    banner.classList.add('connected');
+    title.textContent = '✅ เชื่อมต่อแล้ว: ' + (d.fb_user_name || d.fb_user_id || 'Facebook');
+    sub.textContent   = 'พร้อมใช้งาน';
+    badge.style.display = '';
+    badge.textContent = '● Active';
+  } else if(d.status === 'pending_verify'){
+    banner.classList.add('pending');
+    title.textContent = '🟡 บันทึกข้อมูลแล้ว — รอยืนยันตัวตน';
+    sub.textContent   = 'กดปุ่มยืนยันตัวตนเพื่อเปิดใช้งาน';
+    badge.style.display = 'none';
+  } else if(d.status === 'needs_reauth'){
+    banner.classList.add('reauth');
+    title.textContent = '⚠️ ต้องยืนยันตัวตนใหม่';
+    sub.textContent   = 'บัญชี Facebook ต้องการการยืนยันอีกครั้ง';
+    badge.style.display = 'none';
+  } else {
+    banner.classList.add('disconnected');
+    title.textContent = 'ยังไม่ได้เชื่อมต่อ Facebook';
+    sub.textContent   = 'กรอกข้อมูลด้านล่าง — ใส่อันไหนก็ได้';
+    badge.style.display = 'none';
+  }
+
+  // Show/hide verify + disconnect sections
+  var verifySection     = document.getElementById('cnFbVerifySection');
+  var disconnectSection = document.getElementById('cnFbDisconnectSection');
+  if(verifySection && disconnectSection){
+    if(d.status === 'pending_verify'){
+      verifySection.style.display     = (d.active_mode === 'api') ? 'none' : 'block';
+      disconnectSection.style.display = 'block';
+    } else if(d.status === 'active'){
+      verifySection.style.display     = 'none';
+      disconnectSection.style.display = 'block';
+    } else if(d.status === 'needs_reauth'){
+      verifySection.style.display     = 'block';
+      disconnectSection.style.display = 'block';
+    } else {
+      verifySection.style.display     = 'none';
+      disconnectSection.style.display = 'none';
+    }
+    // Reset verify state to default every render (ป้องกัน stale waiting state)
+    var stateDefault = document.getElementById('cnFbStateDefault');
+    var stateWaiting = document.getElementById('cnFbStateWaiting');
+    if(stateDefault) stateDefault.style.display = 'block';
+    if(stateWaiting) stateWaiting.style.display = 'none';
+  }
+
+  // Active mode badge appended to sub text
+  if(d.active_mode){
+    var modeLabel = {'api':'API Token','page':'เพจ','profile':'โปรไฟล์'}[d.active_mode] || d.active_mode;
+    sub.textContent = sub.textContent + ' • ระบบใช้: ' + modeLabel;
+  }
+}
+
+function cnFbSave(){
+  if(!_tok) return;
+  var msg = document.getElementById('cnFbCredMsg');
+  msg.style.display = 'none';
+
+  var body = JSON.stringify({
+    profile_url: document.getElementById('cnFbProfileUrl').value.trim() || null,
+    page_url:    document.getElementById('cnFbPageUrl').value.trim()    || null,
+    api_token:   document.getElementById('cnFbToken').value.trim()      || null
+  });
+
+  fetch('/api/fb/connection/save', {
+    method: 'POST',
+    headers: {'Authorization':'Bearer '+_tok, 'Content-Type':'application/json'},
+    body: body
+  })
+  .then(function(r){ return r.json().then(function(j){ return {ok: r.ok, body: j}; }); })
+  .then(function(res){
+    msg.style.display = 'block';
+    if(res.ok && res.body.ok){
+      msg.style.background = '#f0fdf4'; msg.style.color = '#16a34a';
+      if(res.body.verified){
+        msg.textContent = '✅ เชื่อมต่อสำเร็จด้วย API Token: ' + (res.body.fb_user_name || '');
+      } else {
+        msg.textContent = '✅ บันทึกเรียบร้อย — กดยืนยันตัวตนเพื่อใช้งาน';
+      }
+      document.getElementById('cnFbToken').value = '';
+      setTimeout(cnFbLoadStatus, 500);
+      if(typeof window.sbLoadPlatformStatus === 'function'){
+        setTimeout(window.sbLoadPlatformStatus, 600);
+      }
+    } else {
+      msg.style.background = '#fef2f2'; msg.style.color = '#ef4444';
+      msg.textContent = '❌ ' + (res.body.detail || 'เกิดข้อผิดพลาด');
+    }
+    setTimeout(function(){ msg.style.display = 'none'; }, 3000);
+  })
+  .catch(function(){
+    msg.style.display = 'block';
+    msg.style.background = '#fef2f2'; msg.style.color = '#ef4444';
+    msg.textContent = '❌ เชื่อมต่อ server ไม่ได้';
+    setTimeout(function(){ msg.style.display = 'none'; }, 3000);
+  });
+}
+
+// Phase 3.B.2 — manual confirm flow (no popup.closed polling — COOP blocks it)
+
+function cnFbOpenFb(){
+  var profile = document.getElementById('cnFbProfileUrl').value.trim();
+  var page    = document.getElementById('cnFbPageUrl').value.trim();
+  var targetUrl = page || profile;
+  if(!targetUrl){
+    alert('กรุณากรอกลิงก์ Facebook ก่อน');
+    return;
+  }
+  var w = 600, h = 700;
+  var left = Math.round((screen.width  - w) / 2);
+  var top  = Math.round((screen.height - h) / 2);
+  var popup = window.open(
+    targetUrl, 'fbConnect',
+    'width='+w+',height='+h+',left='+left+',top='+top+',scrollbars=yes'
+  );
+  if(!popup){
+    alert('Browser block popup — กรุณา allow popup สำหรับเว็บ VIIV แล้วลองใหม่');
+    return;
+  }
+  document.getElementById('cnFbStateDefault').style.display = 'none';
+  document.getElementById('cnFbStateWaiting').style.display = 'block';
+}
+
+function cnFbConfirmConnect(){
+  fetch('/api/fb/connection/verify', {
+    method: 'POST',
+    headers: {'Authorization':'Bearer '+_tok, 'Content-Type':'application/json'},
+    body: JSON.stringify({})
+  })
+  .then(function(r){ return r.json().then(function(j){ return {ok: r.ok, body: j}; }); })
+  .then(function(res){
+    var msg = document.getElementById('cnFbCredMsg');
+    msg.style.display = 'block';
+    if(res.ok && res.body.ok){
+      msg.style.background = '#f0fdf4'; msg.style.color = '#16a34a';
+      msg.textContent = '✅ เชื่อมต่อ Facebook สำเร็จ';
+      setTimeout(cnFbLoadStatus, 500);
+      if(typeof window.sbLoadPlatformStatus === 'function'){
+        setTimeout(window.sbLoadPlatformStatus, 600);
+      }
+      setTimeout(function(){
+        var banner = document.getElementById('cnFbStatusBanner');
+        if(banner) banner.scrollIntoView({behavior:'smooth', block:'center'});
+      }, 700);
+    } else {
+      msg.style.background = '#fef2f2'; msg.style.color = '#ef4444';
+      msg.textContent = '❌ ' + (res.body.detail || 'เชื่อมต่อไม่สำเร็จ');
+    }
+    setTimeout(function(){ msg.style.display = 'none'; }, 4000);
+  })
+  .catch(function(){
+    var msg = document.getElementById('cnFbCredMsg');
+    msg.style.display = 'block';
+    msg.style.background = '#fef2f2'; msg.style.color = '#ef4444';
+    msg.textContent = '❌ เชื่อมต่อ server ไม่ได้';
+    setTimeout(function(){ msg.style.display = 'none'; }, 3000);
+  });
+}
+
+function cnFbDisconnect(){
+  if(!confirm('ยกเลิกการเชื่อมต่อ Facebook?\nข้อมูลทั้งหมดจะถูกลบ')){ return; }
+
+  fetch('/api/fb/connection/disconnect', {
+    method: 'POST',
+    headers: {'Authorization':'Bearer '+_tok}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){
+      document.getElementById('cnFbProfileUrl').value = '';
+      document.getElementById('cnFbPageUrl').value    = '';
+      document.getElementById('cnFbToken').value      = '';
+      cnFbLoadStatus();
+      if(typeof window.sbLoadPlatformStatus === 'function'){
+        setTimeout(window.sbLoadPlatformStatus, 100);
+      }
+    }
+  })
+  .catch(function(){ alert('เชื่อมต่อ server ไม่ได้'); });
+}
+
+// ============ End Facebook ============
 </script>
 </body>
 </html>
