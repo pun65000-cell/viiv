@@ -844,13 +844,6 @@ function cnFbStartLogin(){
     }
   };
 
-  // Navigate to FB login ~1.5s after WS opens
-  setTimeout(function(){
-    if(_cnFbWs && _cnFbWs.readyState === WebSocket.OPEN){
-      _cnFbWs.send(JSON.stringify({type:'navigate', url:'https://www.facebook.com/login'}));
-    }
-  }, 1500);
-
   // Mouse + keyboard events
   _cnFbCanvas.addEventListener('mousedown', cnFbOnMouseDown);
   _cnFbCanvas.addEventListener('mouseup',   cnFbOnMouseUp);
@@ -912,6 +905,9 @@ function cnFbLoginComplete(){
 function cnFbHandleWsMsg(msg){
   if(msg.type === 'ready'){
     console.log('[cnFbWS] ready');
+    if(_cnFbWs && _cnFbWs.readyState === WebSocket.OPEN){
+      _cnFbWs.send(JSON.stringify({type:'navigate', url:'https://www.facebook.com/login'}));
+    }
   } else if(msg.type === 'login_success'){
     var m = document.getElementById('cnFbLoginMsg');
     m.style.display = 'block';
