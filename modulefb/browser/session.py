@@ -16,6 +16,8 @@ happens once auth API arrives.
 """
 import json
 import logging
+import sqlite3
+from pathlib import Path
 from typing import Any, Optional
 
 from .crypto import decrypt_session, encrypt_session
@@ -50,6 +52,9 @@ class FBSessionManager:
     ) -> Optional[dict]:
         """
         Load customer's authorized session from DB and decrypt.
+
+        DEPRECATED (Phase 3.D.2): Profile dir is now the runtime primary.
+        DB session_data_encrypted = manual backup only. Keep for future DR.
 
         Returns:
           dict (session_state) if active and decryptable
@@ -196,6 +201,64 @@ class FBSessionManager:
         await self.pool.close_context(tenant_id)
 
         await self.audit_log(tenant_id, "disconnect", {})
+
+    # ── Snapshot (Phase 3.D.2) ───────────────────────────────────
+
+    async def snapshot_profile_to_db(
+        self, tenant_id: str, profile_dir: Path
+    ) -> dict:
+        """Manual snapshot — read Chromium Cookies SQLite, encrypt, UPSERT DB.
+
+        Profile dir = runtime primary (Option B'). DB snapshot = disaster
+        recovery only. Call manually; never auto-synced.
+
+        Returns: {tenant_id, bytes_encrypted, cookies_count}
+        """
+        cookies_db = profile_dir / "Default" / "Cookies"
+        cookies: list[dict] = []
+
+        if cookies_db.exists():
+            conn = sqlite3.connect(f"file:{cookies_db}?mode=ro", uri=True)
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT host_key, name, value, path, expires_utc, "
+                    "is_secure, is_httponly, samesite FROM cookies"
+                )
+                for row in cur.fetchall():
+                    cookies.append({
+                        "domain": row[0], "name": row[1], "value": row[2],
+                        "path": row[3], "expires": row[4],
+                        "secure": bool(row[5]), "httpOnly": bool(row[6]),
+                        "sameSite": row[7],
+                    })
+            finally:
+                conn.close()
+
+        storage_state = {"cookies": cookies, "origins": []}
+        encrypted = encrypt_session(json.dumps(storage_state))
+
+        await self.db.execute(
+            """
+            UPDATE fb_sessions
+            SET session_data_encrypted = :data,
+                encryption_key_id      = :key_id,
+                updated_at             = NOW()
+            WHERE tenant_id = :tid
+            """,
+            {"tid": tenant_id, "data": encrypted, "key_id": "v1"},
+        )
+
+        await self.audit_log(
+            tenant_id, "snapshot_to_db",
+            {"cookies_count": len(cookies), "bytes": len(encrypted)},
+        )
+
+        return {
+            "tenant_id": tenant_id,
+            "bytes_encrypted": len(encrypted),
+            "cookies_count": len(cookies),
+        }
 
     # ── Audit ────────────────────────────────────────────────────
 

@@ -72,3 +72,33 @@ async def smoketest(
         "duration_ms": duration_ms,
         "active_contexts": pool.stats()["active_contexts"],
     }
+
+
+@router.post("/_snapshot")
+async def snapshot(
+    request: Request,
+    authorization: str = Header(""),
+):
+    """Phase 3.D.2 — Manual snapshot profile dir cookies to DB.
+
+    DEV ONLY — for disaster recovery testing.
+    Reads Chromium Cookies SQLite, encrypts, UPSERTs fb_sessions.
+    """
+    _dev_guard(request)
+
+    claims = verify_tenant_token(authorization)
+    tenant_id = claims["tenant_id"]
+
+    session_mgr = request.app.state.session_mgr
+    if session_mgr is None:
+        raise HTTPException(503, "session_mgr not started")
+
+    profile_dir = PROFILE_BASE / tenant_id
+    if not profile_dir.exists():
+        raise HTTPException(404, f"profile dir not found: {tenant_id}")
+
+    try:
+        result = await session_mgr.snapshot_profile_to_db(tenant_id, profile_dir)
+        return {"success": True, **result}
+    except Exception as e:
+        raise HTTPException(500, f"snapshot failed: {e}")
