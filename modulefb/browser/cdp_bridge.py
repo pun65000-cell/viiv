@@ -102,8 +102,21 @@ class CDPBridge:
             return
 
         action = msg.get("action", "")
-        x = float(msg.get("x", 0))
-        y = float(msg.get("y", 0))
+        x_raw = msg.get("x")
+        y_raw = msg.get("y")
+        if x_raw is None or y_raw is None:
+            logger.warning("dispatch_mouse: invalid coords x=%s y=%s action=%s", x_raw, y_raw, action)
+            return
+        try:
+            x = float(x_raw)
+            y = float(y_raw)
+        except (TypeError, ValueError) as e:
+            logger.warning("dispatch_mouse: float convert failed x=%s y=%s err=%s", x_raw, y_raw, e)
+            return
+        import math
+        if not (math.isfinite(x) and math.isfinite(y)):
+            logger.warning("dispatch_mouse: non-finite coords x=%s y=%s", x, y)
+            return
         button = msg.get("button", "left")
         modifiers = msg.get("modifiers", 0)
         click_count = msg.get("clickCount", 1)

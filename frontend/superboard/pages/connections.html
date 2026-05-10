@@ -862,6 +862,7 @@ function cnFbStartLogin(){
 
 function cnFbGetCanvasCoords(e){
   var rect = _cnFbCanvas.getBoundingClientRect();
+  if(rect.width === 0 || rect.height === 0){ return {x:null, y:null}; }
   return {
     x: Math.round((e.clientX - rect.left) * (_cnFbCanvas.width  / rect.width)),
     y: Math.round((e.clientY - rect.top)  * (_cnFbCanvas.height / rect.height))
@@ -871,6 +872,7 @@ function cnFbGetCanvasCoords(e){
 function cnFbSendMouse(action, e){
   if(!_cnFbWs || _cnFbWs.readyState !== WebSocket.OPEN) return;
   var p = cnFbGetCanvasCoords(e);
+  if(p.x === null || p.y === null) return;
   _cnFbWs.send(JSON.stringify({type:'mouse', action:action, x:p.x, y:p.y, button:'left'}));
 }
 
