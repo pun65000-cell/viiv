@@ -62,7 +62,9 @@ def _calc_active_mode(row: dict) -> Optional[str]:
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
-@router.post("/save")
+# DEPRECATED (Phase 3.D.4) — paste-URL flow replaced by canvas login (screencast_ws.py).
+# Frontend no longer calls this endpoint. Kept for reference.
+# @router.post("/save")
 async def save_connection(
     req: SaveRequest,
     request: Request,

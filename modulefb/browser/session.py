@@ -202,6 +202,69 @@ class FBSessionManager:
 
         await self.audit_log(tenant_id, "disconnect", {})
 
+    # ── Login detection (Phase 3.D.4) ───────────────────────────
+
+    async def detect_login_and_extract_profile(
+        self, tenant_id: str, page
+    ) -> Optional[dict]:
+        """Called when user clicks 'ฉัน Login เสร็จแล้ว' in canvas UI.
+
+        1. Read cookies from browser context
+        2. Find c_user cookie → Facebook user ID
+        3. If not found → return None (login not complete)
+        4. Navigate to facebook.com/me → read page.url()
+        5. Fallback URL: profile.php?id=<c_user>
+        6. UPSERT fb_sessions: status='active', fb_user_id, profile_url
+        7. Return {fb_user_id, profile_url}
+        """
+        # Get all cookies from the persistent browser context
+        cookies = await page.context.cookies()
+        c_user = next(
+            (c["value"] for c in cookies
+             if c["name"] == "c_user" and "facebook.com" in c.get("domain", "")),
+            None,
+        )
+
+        if not c_user:
+            await self.audit_log(tenant_id, "login_not_detected", {"reason": "no_c_user"})
+            return None
+
+        # Navigate to /me to get the canonical profile URL
+        profile_url = f"https://www.facebook.com/profile.php?id={c_user}"
+        try:
+            await page.goto("https://www.facebook.com/me", timeout=15_000)
+            await page.wait_for_load_state("domcontentloaded", timeout=10_000)
+            final_url = page.url
+            # Use final URL if it's a real profile page (not a login/checkpoint redirect)
+            if (final_url and "facebook.com" in final_url
+                    and "/login" not in final_url
+                    and "/checkpoint" not in final_url
+                    and "/me" not in final_url):
+                profile_url = final_url
+        except Exception as e:
+            log.warning("navigate to /me failed for %s: %s", tenant_id, e)
+
+        await self.db.execute(
+            """
+            UPDATE fb_sessions SET
+                status         = 'active',
+                fb_user_id     = :uid,
+                profile_url    = :purl,
+                last_login_at  = NOW(),
+                last_active_at = NOW(),
+                updated_at     = NOW()
+            WHERE tenant_id = :tid
+            """,
+            {"tid": tenant_id, "uid": c_user, "purl": profile_url},
+        )
+
+        await self.audit_log(
+            tenant_id, "login_detected",
+            {"fb_user_id": c_user, "profile_url": profile_url, "method": "c_user_cookie"},
+        )
+
+        return {"fb_user_id": c_user, "profile_url": profile_url}
+
     # ── Snapshot (Phase 3.D.2) ───────────────────────────────────
 
     async def snapshot_profile_to_db(

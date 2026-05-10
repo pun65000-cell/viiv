@@ -117,6 +117,20 @@ async def screencast(
                 await page.goto(url, timeout=15_000)
                 await ws.send_json({"type": "info", "navigated": url})
 
+            elif mtype == "login_complete":
+                session_mgr = ws.app.state.session_mgr
+                try:
+                    result = await session_mgr.detect_login_and_extract_profile(
+                        tenant_id, page
+                    )
+                    if result:
+                        await ws.send_json({"type": "login_success", **result})
+                    else:
+                        await ws.send_json({"type": "login_not_detected"})
+                except Exception as e:
+                    logger.exception("login_complete error tenant=%s: %s", tenant_id, e)
+                    await ws.send_json({"type": "error", "message": f"login check failed: {e}"})
+
             elif mtype == "ping":
                 await ws.send_json({"type": "pong"})
 
