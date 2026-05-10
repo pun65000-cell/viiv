@@ -65,6 +65,7 @@ async def screencast(
         return
 
     await ws.accept()
+    print(f"[PRINT-DEBUG] WS endpoint entered tenant={tenant_id}", flush=True)
     logger.info("[ws-fb:%s] accepted, dev=%s", tenant_id, dev)
 
     pool = ws.app.state.pool
@@ -73,6 +74,7 @@ async def screencast(
         await ws.close()
         return
 
+    print(f"[PRINT-DEBUG] auth ok tenant={tenant_id}", flush=True)
     logger.info("[ws-fb:%s] auth ok", tenant_id)
 
     bridge: Optional[CDPBridge] = None
@@ -83,6 +85,7 @@ async def screencast(
         page = await context.new_page()
         await page.set_viewport_size({"width": 1280, "height": 800})
 
+        print(f"[PRINT-DEBUG] before bridge spawn tenant={tenant_id}", flush=True)
         logger.info("[ws-fb:%s] spawning bridge...", tenant_id)
         bridge = CDPBridge(context, page)
         await bridge.start()
