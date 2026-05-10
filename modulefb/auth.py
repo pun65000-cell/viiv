@@ -52,3 +52,26 @@ def verify_tenant_token(authorization: str) -> dict:
         raise
     except Exception:
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def decode_tenant_token(token: str) -> dict:
+    """Decode raw JWT (no 'Bearer' prefix). Used by WebSocket endpoints
+    where the token arrives as a query parameter, not an Authorization header.
+
+    Same leeway + verify_exp=False as verify_tenant_token (Rule 24).
+    Raises ValueError on invalid/missing token.
+    """
+    if not token or not token.strip():
+        raise ValueError("empty token")
+
+    payload = jwt.decode(
+        token.strip(),
+        JWT_SECRET,
+        algorithms=["HS256"],
+        options={"leeway": 864000, "verify_exp": False},
+    )
+
+    if not payload.get("tenant_id"):
+        raise ValueError("missing tenant_id in token")
+
+    return payload
