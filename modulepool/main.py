@@ -1,4 +1,4 @@
-"""VIIV Pool Manager :8010 — skeleton (Phase C.2)"""
+"""VIIV Pool Manager :8010 — Phase C.3"""
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -10,7 +10,7 @@ load_dotenv("/home/viivadmin/viiv/.env")
 from fastapi import FastAPI
 
 from .db import init_db_pool, close_db_pool
-from .api import health
+from .api import health, request_slot
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,8 +27,7 @@ async def lifespan(app: FastAPI):
     app.state.db = pool
     logger.info("DB pool initialized (min=5 max=20)")
 
-    # Phase C.3: PoolManager state + background scorer
-    # Phase C.4: background scheduler + request_slot endpoint
+    # Phase C.4: background scheduler (eviction sweep)
 
     logger.info("modulepool ready on :8010")
     yield
@@ -40,18 +39,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="VIIV Pool Manager",
-    version="0.1.0-c2",
+    version="0.1.0-c3",
     lifespan=lifespan,
 )
 
 app.include_router(health.router)
+app.include_router(request_slot.router)
 
 
 @app.get("/")
 async def root():
     return {
         "service": "modulepool",
-        "version": "0.1.0-c2",
-        "status": "skeleton",
-        "phase": "C.2",
+        "version": "0.1.0-c3",
+        "status": "active",
+        "phase": "C.3",
     }
