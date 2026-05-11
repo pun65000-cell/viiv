@@ -21,6 +21,7 @@ from .api.health import router as health_router
 from .api.session import router as session_router
 from .api.smoketest import router as smoketest_router
 from .api.poll import router as poll_router
+from .api._admin_test import router as admin_test_router
 
 log = logging.getLogger(__name__)
 
@@ -57,3 +58,4 @@ app.include_router(health_router)
 app.include_router(session_router, prefix="/api/fbchat", tags=["fbchat-session"])
 app.include_router(smoketest_router, prefix="/api/fbchat", tags=["fbchat-smoketest"])
 app.include_router(poll_router, prefix="/api/fbchat", tags=["fbchat-poll"])
+app.include_router(admin_test_router)
