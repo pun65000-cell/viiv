@@ -26,3 +26,7 @@ __pycache__/
 *.pyc
 logs/uvicorn*.log
 logs/chat.log
+
+# mautrix-meta Docker stack (contains tokens)
+docker/mautrix/mautrix/
+docker/mautrix/synapse/
