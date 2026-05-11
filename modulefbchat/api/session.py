@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from ..auth import verify_tenant_token
+from ..poll_loop import register_room
 
 router = APIRouter()
 
@@ -15,6 +16,7 @@ router = APIRouter()
 class ConnectRequest(BaseModel):
     cookies_path: str
     http_proxy: Optional[str] = None
+    room_id: Optional[str] = None  # Matrix room ID — ถ้าระบุจะ register เข้า poll loop
 
 
 @router.post("/session/connect")
@@ -34,7 +36,15 @@ async def connect_session(
             http_proxy=body.http_proxy,
         )
         logged_in = await client.is_logged_in()
-        return {"ok": True, "tenant_id": tenant_id, "uid": client.uid, "logged_in": logged_in}
+        if body.room_id:
+            register_room(room_id=body.room_id, tenant_id=tenant_id)
+        return {
+            "ok": True,
+            "tenant_id": tenant_id,
+            "uid": client.uid,
+            "logged_in": logged_in,
+            "room_registered": bool(body.room_id),
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
