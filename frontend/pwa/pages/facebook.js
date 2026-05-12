@@ -7,6 +7,14 @@
   let _destroyed = false;
   let _pendingCookies = null;
 
+  // === F.D.3: polling state ===
+  let _activeSessionId = null;
+  let _pollIntervalId = null;
+  let _popupRef = null;
+  let _pollStartedAt = null;
+  const POLL_INTERVAL_MS = 3000;
+  const POLL_HARD_TIMEOUT_MS = 10 * 60 * 1000; // 10 min = cookie expiry
+
   Router.register('facebook', {
     title: 'Facebook Messenger',
     async load() {
@@ -27,6 +35,9 @@
     destroy() {
       _destroyed = true;
       _pendingCookies = null;
+      _stopStatusPolling();
+      _activeSessionId = null;
+      if (_popupRef && !_popupRef.closed) _popupRef = null;
     }
   });
 
@@ -187,14 +198,20 @@
 
   /* ─────────────────────── Helpers ─────────────────────── */
 
-  function _renderState(state) {
+  function _renderState(state, data) {
     const c = document.getElementById('page-container');
     if (!c) return;
 
     if (state === 'connecting') {
-      c.innerHTML = `<div style="text-align:center;padding:80px 16px;color:var(--muted)">
-        <div style="width:28px;height:28px;border:3px solid var(--bdr);border-top-color:#1877F2;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-        กำลังเชื่อมต่อ...
+      _injectFbStyle();
+      const sid = (data && data.sessionIdShort) ? data.sessionIdShort : '...';
+      c.innerHTML = `<div class="fb-connecting-wrap">
+        <div class="fb-spinner-lg"></div>
+        <h3 style="margin:0 0 8px;font-size:17px;color:var(--txt)">กำลังรอ Login Facebook</h3>
+        <p style="margin:0;font-size:14px;color:var(--muted)">หน้าต่าง Facebook พิเศษเปิดอยู่<br>กรุณา login ในหน้าต่างนั้น</p>
+        <p class="fb-sess-id">Session: ${sid}...</p>
+        <button class="fb-cancel-btn" onclick="FbPage._handleCancel()">ยกเลิก</button>
+        <p class="fb-hint">💡 หลัง login เสร็จ ระบบจะตรวจจับอัตโนมัติ<br>และกลับมาที่หน้านี้</p>
       </div>`;
       return;
     }
@@ -232,6 +249,12 @@
       .fb-verify-actions button{flex:1;padding:14px 8px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none}
       .fb-btn-cancel{background:var(--card);color:var(--txt);border:1.5px solid var(--bdr) !important}
       .fb-btn-confirm{background:#1877F2;color:#fff}
+      .fb-connecting-wrap{text-align:center;padding:48px 16px}
+      .fb-spinner-lg{width:48px;height:48px;border:4px solid #e0e0e0;border-top-color:#1877F2;border-radius:50%;animation:fb-spin .8s linear infinite;margin:0 auto 20px}
+      @keyframes fb-spin{to{transform:rotate(360deg)}}
+      .fb-sess-id{font-family:monospace;font-size:12px;color:#888;margin:12px 0}
+      .fb-hint{font-size:13px;color:var(--muted);margin-top:20px;line-height:1.5}
+      .fb-cancel-btn{margin-top:16px;padding:12px 28px;border-radius:10px;border:1.5px solid var(--bdr);background:var(--card);color:var(--txt);font-size:14px;font-weight:600;cursor:pointer}
     `;
     document.head.appendChild(style);
   }
@@ -359,28 +382,119 @@
 
   /* ─────────────────────── ACTIONS ──────────────────── */
 
-  // F.D.2: parse HTTP status from App.api Error (throws "401 Unauthorized" or d.detail)
+  // F.D.3: parse HTTP status from App.api Error("401 Unauthorized" or detail string)
   function _handleSpawnError(err) {
-    const raw = err.message || '';
-    const status = parseInt(raw.split(' ')[0], 10) || 0;
+    const msg = err.message || '';
+    const m = msg.match(/^(\d{3})\s/);
+    const status = m ? parseInt(m[1], 10) : 0;
     if (status === 401) {
       App.toast('ไม่ได้รับอนุญาต — กรุณา login ใหม่');
     } else if (status === 403) {
       App.toast('ไม่มีสิทธิ์เชื่อมบัญชี');
     } else if (status === 409) {
-      App.toast('มี session ทำงานอยู่แล้ว — F.D.4 จะเพิ่มปุ่มยกเลิก');
+      App.toast('มี session ทำงานอยู่ — กรุณาลองใหม่อีกครั้ง');
     } else if (status === 422) {
-      App.toast('ข้อมูลไม่ถูกต้อง: ' + raw);
+      App.toast('ข้อมูลไม่ถูกต้อง: ' + msg);
     } else {
-      App.toast('เกิดข้อผิดพลาด: ' + (raw || 'ไม่ทราบสาเหตุ'));
+      App.toast('เกิดข้อผิดพลาด: ' + (msg || 'ไม่ทราบสาเหตุ'));
     }
   }
 
-  // F.D.2: spawn cookie session — แสดงผลใน toast/console เท่านั้น (ไม่ redirect)
+  // F.D.3: polling helpers
+  function _stopStatusPolling() {
+    if (_pollIntervalId) {
+      clearInterval(_pollIntervalId);
+      _pollIntervalId = null;
+    }
+  }
+
+  function _startStatusPolling() {
+    _stopStatusPolling();
+    _pollOnce();
+    _pollIntervalId = setInterval(_pollOnce, POLL_INTERVAL_MS);
+  }
+
+  async function _pollOnce() {
+    if (_destroyed) { _stopStatusPolling(); return; }
+
+    if (_pollStartedAt && Date.now() - _pollStartedAt > POLL_HARD_TIMEOUT_MS) {
+      console.warn('[F.D.3] poll hard timeout (10 min)');
+      _stopStatusPolling();
+      if (_popupRef && !_popupRef.closed) _popupRef.close();
+      _popupRef = null;
+      _activeSessionId = null;
+      _renderState('disconnected');
+      App.toast('หมดเวลา 10 นาที — กรุณาเริ่มใหม่');
+      return;
+    }
+
+    try {
+      const sess = await App.api('/api/cookie/session/status');
+      console.log('[F.D.3] poll: session alive=' + sess.alive + ', age=' + (sess.age_seconds || 0) + 's');
+
+      if (!sess.alive) {
+        // Cookie session gone → check fbchat connected
+        _stopStatusPolling();
+        console.log('[F.D.3] session gone — checking fbchat status');
+        try {
+          const fb = await App.api('/api/fbchat/status');
+          if (fb.connected) {
+            console.log('[F.D.3] fbchat connected:', fb.fb_user_name);
+            if (_popupRef && !_popupRef.closed) _popupRef.close();
+            _popupRef = null;
+            _activeSessionId = null;
+            App.toast('✅ เชื่อมต่อ Facebook สำเร็จ!', 3000);
+            if (!_destroyed) Router.go('facebook');
+          } else {
+            console.warn('[F.D.3] session gone but fbchat not connected');
+            if (_popupRef && !_popupRef.closed) _popupRef.close();
+            _popupRef = null;
+            _activeSessionId = null;
+            _renderState('disconnected');
+            App.toast('Login ไม่สำเร็จ — กรุณาลองใหม่');
+          }
+        } catch (e) {
+          console.error('[F.D.3] fbchat status check failed:', e);
+          _activeSessionId = null;
+          _renderState('disconnected');
+        }
+      }
+    } catch (e) {
+      console.warn('[F.D.3] poll error (will retry):', e.message);
+    }
+  }
+
+  // F.D.3: cancel active cookie session
+  async function _handleCancel() {
+    const sid = _activeSessionId;
+    _stopStatusPolling();
+    if (_popupRef && !_popupRef.closed) _popupRef.close();
+    _popupRef = null;
+    _activeSessionId = null;
+    _renderState('disconnected');
+
+    if (sid) {
+      try {
+        await App.api('/api/cookie/session/' + sid, { method: 'DELETE' });
+        console.log('[F.D.3] session destroyed:', sid.slice(0, 8));
+        App.toast('ยกเลิกการเชื่อมต่อ');
+      } catch (e) {
+        console.warn('[F.D.3] destroy session error (may already be gone):', e.message);
+      }
+    }
+  }
+
+  // F.D.3: spawn cookie session with iOS-safe popup pattern
   async function _handleStartLogin() {
+    // iOS-safe: window.open() BEFORE await — popup blocked after async boundary
+    _popupRef = window.open('about:blank', 'viiv_fb_session');
+    const popupAllowed = !!(_popupRef && !_popupRef.closed);
+
     const btn = document.getElementById('fb-continue-btn');
     const tenantId = App.tenantId;
     if (!tenantId) {
+      if (_popupRef) _popupRef.close();
+      _popupRef = null;
       App.toast('ไม่พบ tenant_id — กรุณา login ใหม่');
       return;
     }
@@ -394,14 +508,30 @@
         method: 'POST',
         body: JSON.stringify({ tenant_id: tenantId })
       });
-      console.log('[F.D.2] spawn response:', resp);
-      console.log('[F.D.2] browser_url:', resp.url);
-      console.log('[F.D.2] expires_at:', resp.expires_at);
-      App.toast('✅ Session spawned: ' + (resp.session_id || '').slice(0, 8) + '...');
+      console.log('[F.D.3] spawn response:', resp);
+      console.log('[F.D.3] browser_url:', resp.url);
+      console.log('[F.D.3] expires_at:', resp.expires_at);
+
+      _activeSessionId = resp.session_id;
+      _pollStartedAt = Date.now();
+
+      if (popupAllowed) {
+        _popupRef.location.href = resp.url;
+        console.log('[F.D.3] popup opened to:', resp.url);
+        _renderState('connecting', { sessionIdShort: resp.session_id.slice(0, 8) });
+        _startStatusPolling();
+      } else {
+        // Fallback: same-tab redirect (popup blocked)
+        console.warn('[F.D.3] popup blocked — fallback same-tab');
+        App.toast('กำลังเปิด Facebook ในหน้าต่างเดียวกัน...', 3000);
+        window.location.href = resp.url;
+      }
     } catch (err) {
-      console.error('[F.D.2] spawn failed:', err);
+      console.error('[F.D.3] spawn failed:', err);
+      if (_popupRef) _popupRef.close();
+      _popupRef = null;
+      _activeSessionId = null;
       _handleSpawnError(err);
-    } finally {
       if (btn) {
         btn.disabled = false;
         btn.textContent = btn._origText || 'เริ่ม Login Facebook →';
@@ -411,6 +541,7 @@
 
   window.FbPage = {
     handleStartLogin: _handleStartLogin,
+    _handleCancel: _handleCancel,
 
     _continue() { _handleStartLogin(); },
 
