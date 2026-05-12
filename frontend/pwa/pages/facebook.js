@@ -180,7 +180,7 @@
     if (continueBtn) {
       continueBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        FbPage._stubStart();
+        FbPage.handleStartLogin();
       });
     }
   }
@@ -359,12 +359,60 @@
 
   /* ─────────────────────── ACTIONS ──────────────────── */
 
-  window.FbPage = {
-    _stubStart() {
-      App.toast('F.D.1: button wiring จะมาใน F.D.2');
-    },
+  // F.D.2: parse HTTP status from App.api Error (throws "401 Unauthorized" or d.detail)
+  function _handleSpawnError(err) {
+    const raw = err.message || '';
+    const status = parseInt(raw.split(' ')[0], 10) || 0;
+    if (status === 401) {
+      App.toast('ไม่ได้รับอนุญาต — กรุณา login ใหม่');
+    } else if (status === 403) {
+      App.toast('ไม่มีสิทธิ์เชื่อมบัญชี');
+    } else if (status === 409) {
+      App.toast('มี session ทำงานอยู่แล้ว — F.D.4 จะเพิ่มปุ่มยกเลิก');
+    } else if (status === 422) {
+      App.toast('ข้อมูลไม่ถูกต้อง: ' + raw);
+    } else {
+      App.toast('เกิดข้อผิดพลาด: ' + (raw || 'ไม่ทราบสาเหตุ'));
+    }
+  }
 
-    _continue() { FbPage._stubStart(); },
+  // F.D.2: spawn cookie session — แสดงผลใน toast/console เท่านั้น (ไม่ redirect)
+  async function _handleStartLogin() {
+    const btn = document.getElementById('fb-continue-btn');
+    const tenantId = App.tenantId;
+    if (!tenantId) {
+      App.toast('ไม่พบ tenant_id — กรุณา login ใหม่');
+      return;
+    }
+    if (btn) {
+      btn.disabled = true;
+      btn._origText = btn.textContent;
+      btn.textContent = 'กำลังเปิดหน้าต่าง...';
+    }
+    try {
+      const resp = await App.api('/api/cookie/session/start', {
+        method: 'POST',
+        body: JSON.stringify({ tenant_id: tenantId })
+      });
+      console.log('[F.D.2] spawn response:', resp);
+      console.log('[F.D.2] browser_url:', resp.url);
+      console.log('[F.D.2] expires_at:', resp.expires_at);
+      App.toast('✅ Session spawned: ' + (resp.session_id || '').slice(0, 8) + '...');
+    } catch (err) {
+      console.error('[F.D.2] spawn failed:', err);
+      _handleSpawnError(err);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn._origText || 'เริ่ม Login Facebook →';
+      }
+    }
+  }
+
+  window.FbPage = {
+    handleStartLogin: _handleStartLogin,
+
+    _continue() { _handleStartLogin(); },
 
     async _disconnect() {
       if (!confirm('ยืนยันยกเลิกการเชื่อมต่อ Facebook?')) return;
