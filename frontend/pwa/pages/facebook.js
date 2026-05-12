@@ -1,4 +1,4 @@
-/* VIIV PWA — facebook.js  Facebook Messenger (WebView login flow) */
+/* VIIV PWA — facebook.js  Facebook Messenger (Browser Sandbox login flow) */
 (function () {
 
   const FB_ICON = `<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#1877F2;border-radius:10px;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>`;
@@ -6,13 +6,6 @@
   let _status = null;
   let _destroyed = false;
   let _pendingCookies = null;
-  let _fbListenerHandles = [];
-  const _fbDebugLog = [];
-  const FB_DEBUG_MAX = 50;
-  const FB_DESKTOP_UA =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-    'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-    'Chrome/131.0.0.0 Safari/537.36';
 
   Router.register('facebook', {
     title: 'Facebook Messenger',
@@ -33,7 +26,6 @@
     },
     destroy() {
       _destroyed = true;
-      _cleanupFbListeners();
       _pendingCookies = null;
     }
   });
@@ -89,16 +81,6 @@
           style="width:100%;height:46px;background:#1877F2;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s">
           เริ่ม Login Facebook →
         </button>
-
-        <!-- Debug panel trigger (temp B.4.4a) -->
-        <div style="text-align:right;margin-top:8px">
-          <button id="fb-debug-btn"
-            style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;opacity:0.45;padding:4px 0">
-            🐞 debug log
-          </button>
-        </div>
-        <div id="fb-inline-log"
-          style="background:#1a1a1a;color:#0f0;font-family:monospace;font-size:10px;padding:8px;margin-top:6px;max-height:120px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;border-radius:4px">(no logs yet)</div>
       </div>
 
       <style>
@@ -198,245 +180,16 @@
     if (continueBtn) {
       continueBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        handleStartLogin();
+        FbPage._stubStart();
       });
-    }
-
-    const dbgBtn = document.getElementById('fb-debug-btn');
-    if (dbgBtn) {
-      dbgBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        try {
-          _showDebugPanel();
-        } catch (err) {
-          alert('Debug panel error: ' + (err.message || err));
-        }
-      });
-    }
-    _renderInlineLog();
-  }
-
-  function _renderInlineLog() {
-    const panel = document.getElementById('fb-inline-log');
-    if (!panel) return;
-    const tail = _fbDebugLog.slice(-8).join('\n');
-    panel.textContent = tail || '(no logs yet)';
-  }
-
-  /* ─────────────────────── WebView Flow ─────────────────── */
-
-  async function handleStartLogin() {
-    const InAppBrowser = window.capacitorInAppBrowser?.InAppBrowser;
-    const Cookies      = window.capacitorExports?.CapacitorCookies;
-
-    if (!InAppBrowser || !Cookies) {
-      showInlineError('ฟีเจอร์นี้ใช้ได้เฉพาะในแอป VIIV (Android) เท่านั้น');
-      return;
-    }
-
-    await openFbWebView();
-  }
-
-  async function openFbWebView() {
-    const InAppBrowser = window.capacitorInAppBrowser.InAppBrowser;
-    const Cookies = window.capacitorExports?.CapacitorCookies;
-
-    await _cleanupFbListeners();
-
-    // Manual clear FB cookies before opening (ensures clean session without
-    // using clearCache flag which clears cookies on every page navigation)
-    if (Cookies) {
-      try {
-        _logDebug('clearing fb cookies before open');
-        await Cookies.clearCookies?.({ url: 'https://www.facebook.com' });
-        await Cookies.clearCookies?.({ url: 'https://m.facebook.com' });
-        await Cookies.clearCookies?.({ url: 'https://facebook.com' });
-        _logDebug('cookies cleared ok');
-      } catch (e) {
-        _logDebug('clearCookies error: ' + (e?.message || e));
-      }
-    }
-
-    const navHandle = await InAppBrowser.addListener(
-      'browserPageNavigationCompleted',
-      async (data) => {
-        const url = (data && data.url) || '';
-        _logDebug('nav: ' + url);
-        await _logCookieState('on-nav');
-
-        if (await _hasFbLoginCookie()) {
-          _logDebug('c_user detected → login success');
-          try {
-            await InAppBrowser.close();
-          } catch (e) { /* ignore */ }
-          await handleLoginComplete();
-        }
-      }
-    );
-    _fbListenerHandles.push(navHandle);
-    _logDebug('listener-ok: browserPageNavigationCompleted');
-
-    const closeHandle = await InAppBrowser.addListener(
-      'browserClosed',
-      async () => {
-        _logDebug('user closed browser');
-        await _cleanupFbListeners();
-      }
-    );
-    _fbListenerHandles.push(closeHandle);
-    _logDebug('listener-ok: browserClosed');
-
-    // Diagnostic: try extra events
-    const _diagEvents = ['browserPageLoaded', 'browserPageLoadStarted', 'urlChangeEvent'];
-    for (const evt of _diagEvents) {
-      try {
-        const h = await InAppBrowser.addListener(evt, async (data) => {
-          const url = (data && data.url) || '';
-          _logDebug(`EVENT=${evt} url=${url}`);
-          await _logCookieState('on-' + evt);
-        });
-        _fbListenerHandles.push(h);
-        _logDebug('listener-ok: ' + evt);
-      } catch (e) {
-        _logDebug('listener-fail: ' + evt + ' — ' + (e?.message || '?'));
-      }
-    }
-
-    try {
-      await InAppBrowser.openInWebView({
-        url: 'https://www.facebook.com/login.php?login_attempt=1',
-        options: {
-          showURL: false,
-          showToolbar: true,
-          clearCache: false,
-          clearSessionCache: false,
-          closeButtonText: 'ยกเลิก',
-          toolbarPosition: 0,
-          showNavigationButtons: false,
-          mediaPlaybackRequiresUserAction: true,
-          customWebViewUserAgent: FB_DESKTOP_UA,
-          android: {
-            hardwareBack: true,
-            allowZoom: false,
-            pauseMedia: true,
-          }
-        }
-      });
-    } catch (err) {
-      await _cleanupFbListeners();
-      showError('เปิด Facebook ไม่สำเร็จ: ' + (err.message || 'unknown'));
-    }
-  }
-
-  function _isLoginSuccess(url) {
-    if (!url) return false;
-    if (!url.includes('facebook.com')) return false;
-
-    const excludePatterns = [
-      '/login',
-      '/checkpoint',
-      '/two_step_verification',
-      '/recover',
-      '/help/',
-      '/privacy/',
-      '/legal/',
-      '/policies/',
-      '/r.php',
-      '/reg/',
-    ];
-    for (const p of excludePatterns) {
-      if (url.includes(p)) return false;
-    }
-
-    const successPatterns = [
-      'm.facebook.com/home',
-      'm.facebook.com/?',
-      'm.facebook.com/feed',
-      'm.facebook.com/messages',
-      'www.facebook.com/?',
-      'www.facebook.com/home',
-    ];
-    for (const p of successPatterns) {
-      if (url.includes(p)) return true;
-    }
-
-    if (/^https:\/\/(m|www)\.facebook\.com\/?$/.test(url)) return true;
-
-    return false;
-  }
-
-  async function handleLoginComplete() {
-    await _cleanupFbListeners();
-
-    const Cookies = window.capacitorExports.CapacitorCookies;
-
-    _renderState('extracting');
-
-    try {
-      const cookies = await Cookies.getCookies({
-        url: 'https://www.facebook.com'
-      });
-
-      console.log('[fb] cookies keys:', Object.keys(cookies || {}));
-
-      const xs     = (cookies && cookies.xs)     || '';
-      const c_user = (cookies && cookies.c_user) || '';
-      const datr   = (cookies && cookies.datr)   || '';
-
-      if (!xs || !c_user || !datr) {
-        showError('ไม่สามารถดึง cookies ได้ครบ\nกรุณาลองเชื่อมใหม่อีกครั้ง');
-        _renderState('disconnected');
-        return;
-      }
-
-      _pendingCookies = { xs, c_user, datr };
-
-      _renderVerifyScreen(_pendingCookies);
-
-    } catch (err) {
-      showError('อ่าน cookies ไม่สำเร็จ: ' + (err.message || 'unknown'));
-      _renderState('disconnected');
-    }
-  }
-
-  async function _hasFbLoginCookie() {
-    try {
-      const Cookies = window.capacitorExports?.CapacitorCookies;
-      if (!Cookies) return false;
-      const cookies = await Cookies.getCookies({ url: 'https://www.facebook.com' });
-      const cuser = cookies && cookies.c_user;
-      return Boolean(cuser && cuser.length > 0);
-    } catch (e) {
-      _logDebug('cookie-check-err: ' + (e?.message || e));
-      return false;
     }
   }
 
   /* ─────────────────────── Helpers ─────────────────────── */
 
-  async function _cleanupFbListeners() {
-    for (const handle of _fbListenerHandles) {
-      try {
-        if (handle && typeof handle.remove === 'function') {
-          await handle.remove();
-        }
-      } catch (e) { /* ignore */ }
-    }
-    _fbListenerHandles = [];
-  }
-
   function _renderState(state) {
     const c = document.getElementById('page-container');
     if (!c) return;
-
-    if (state === 'extracting') {
-      c.innerHTML = `<div style="text-align:center;padding:80px 16px;color:var(--muted)">
-        <div style="width:28px;height:28px;border:3px solid var(--bdr);border-top-color:#1877F2;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-        กำลังอ่านบัญชี...
-      </div>`;
-      return;
-    }
 
     if (state === 'connecting') {
       c.innerHTML = `<div style="text-align:center;padding:80px 16px;color:var(--muted)">
@@ -451,57 +204,6 @@
       _bindEvents();
       return;
     }
-  }
-
-  function _logDebug(msg) {
-    const ts = new Date().toLocaleTimeString();
-    const line = '[' + ts + '] ' + msg;
-    _fbDebugLog.push(line);
-    if (_fbDebugLog.length > FB_DEBUG_MAX) _fbDebugLog.shift();
-    console.log('[fb]', msg);
-    const tail = _fbDebugLog.slice(-8).join('\n');
-    const inline = document.getElementById('fb-inline-log');
-    if (inline) inline.textContent = tail;
-    const panel = document.getElementById('fb-debug-panel-content');
-    if (panel) panel.textContent = _fbDebugLog.join('\n');
-  }
-
-  async function _logCookieState(label) {
-    try {
-      const Cookies = window.capacitorExports?.CapacitorCookies;
-      if (!Cookies) { _logDebug(label + ' cookies=unavailable'); return; }
-      const c1 = await Cookies.getCookies({ url: 'https://www.facebook.com' });
-      const c2 = await Cookies.getCookies({ url: 'https://m.facebook.com' });
-      const c3 = await Cookies.getCookies({ url: 'https://facebook.com' });
-      const k1 = Object.keys(c1 || {});
-      const k2 = Object.keys(c2 || {});
-      const k3 = Object.keys(c3 || {});
-      const cuser = (c1?.c_user || c2?.c_user || c3?.c_user || '');
-      _logDebug(label + ' www-keys=[' + k1.join(',') + ']');
-      _logDebug(label + ' m-keys=[' + k2.join(',') + ']');
-      _logDebug(label + ' bare-keys=[' + k3.join(',') + ']');
-      _logDebug(label + ' c_user.len=' + cuser.length);
-    } catch (e) {
-      _logDebug(label + ' cookie-err: ' + (e?.message || e));
-    }
-  }
-
-  function _showDebugPanel() {
-    const old = document.getElementById('fb-debug-modal');
-    if (old) old.remove();
-    const modal = document.createElement('div');
-    modal.id = 'fb-debug-modal';
-    modal.style.cssText = [
-      'position:fixed;top:0;left:0;right:0;bottom:0',
-      'background:#0a0a0a;color:#00ff88;font-family:monospace',
-      'font-size:11px;padding:48px 10px 10px;z-index:99999;overflow:auto',
-    ].join(';');
-    modal.innerHTML =
-      '<button onclick="document.getElementById(\'fb-debug-modal\').remove()"' +
-      ' style="position:fixed;top:10px;right:10px;background:#dc2626;color:#fff;' +
-      'border:none;padding:8px 14px;border-radius:8px;font-weight:700;z-index:100000">✕ ปิด</button>' +
-      '<pre id="fb-debug-panel-content">' + (_fbDebugLog.join('\n') || '(no logs yet)') + '</pre>';
-    document.body.appendChild(modal);
   }
 
   function showInlineError(msg) {
@@ -658,7 +360,11 @@
   /* ─────────────────────── ACTIONS ──────────────────── */
 
   window.FbPage = {
-    _continue() { handleStartLogin(); },
+    _stubStart() {
+      App.toast('F.D.1: button wiring จะมาใน F.D.2');
+    },
+
+    _continue() { FbPage._stubStart(); },
 
     async _disconnect() {
       if (!confirm('ยืนยันยกเลิกการเชื่อมต่อ Facebook?')) return;
@@ -685,10 +391,6 @@
       _pendingCookies = null;
       _renderState('disconnected');
     },
-
-    _showDebug() {
-      _showDebugPanel();
-    }
   };
 
   function _esc(s) {
