@@ -252,7 +252,10 @@
         const url = (data && data.url) || '';
         console.log('[fb] nav:', url);
 
-        if (_isLoginSuccess(url)) {
+        // ตรวจ login success โดยอ่าน c_user cookie
+        // c_user จะมีเฉพาะหลัง FB authenticate สำเร็จเท่านั้น
+        if (await _hasFbLoginCookie()) {
+          console.log('[fb] c_user detected → login success');
           try {
             await InAppBrowser.close();
           } catch (e) { /* ignore */ }
@@ -356,13 +359,7 @@
       const datr   = (cookies && cookies.datr)   || '';
 
       if (!xs || !c_user || !datr) {
-        showError(
-          'ไม่พบ cookies ที่จำเป็น ลองเชื่อมใหม่อีกครั้ง\n' +
-          '(missing: ' +
-          [!xs && 'xs', !c_user && 'c_user', !datr && 'datr']
-            .filter(Boolean).join(', ') +
-          ')'
-        );
+        showError('ไม่สามารถดึง cookies ได้ครบ\nกรุณาลองเชื่อมใหม่อีกครั้ง');
         _renderState('disconnected');
         return;
       }
@@ -374,6 +371,19 @@
     } catch (err) {
       showError('อ่าน cookies ไม่สำเร็จ: ' + (err.message || 'unknown'));
       _renderState('disconnected');
+    }
+  }
+
+  async function _hasFbLoginCookie() {
+    try {
+      const Cookies = window.capacitorExports?.CapacitorCookies;
+      if (!Cookies) return false;
+      const cookies = await Cookies.getCookies({ url: 'https://www.facebook.com' });
+      const cuser = cookies && cookies.c_user;
+      return Boolean(cuser && cuser.length > 0);
+    } catch (e) {
+      console.log('[fb] cookie check error:', e.message || e);
+      return false;
     }
   }
 
