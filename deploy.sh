@@ -8,7 +8,20 @@ set -e
 cd /home/viivadmin/viiv
 
 CADDYFILE=/etc/caddy/Caddyfile
-DEV_PORT=$(sudo awk '/^dev7\.viiv\.me/,/^}/' $CADDYFILE | grep -oP "reverse_proxy localhost:\K[0-9]+" | grep -v "8003" | head -1)
+
+# Approach B: hardcode expected + cross-verify against Caddyfile /api/* block
+# (head -1 on full block matched :8006/fbchat before :9000 — incident 2026-05-12)
+EXPECTED_DEV_PORT=9000
+ACTUAL_DEV_PORT=$(sudo awk '/^dev7\.viiv\.me/,/^}/' $CADDYFILE | \
+    awk '/handle \/api\/\*/,/\}/' | \
+    grep -oP "reverse_proxy localhost:\K[0-9]+" | head -1)
+if [ "$ACTUAL_DEV_PORT" != "$EXPECTED_DEV_PORT" ]; then
+  echo "❌ Caddyfile dev7 /api/* port ($ACTUAL_DEV_PORT) != expected ($EXPECTED_DEV_PORT)"
+  echo "ABORT: refuse to deploy with unexpected port"
+  exit 1
+fi
+DEV_PORT=$EXPECTED_DEV_PORT
+
 if [ -z "$DEV_PORT" ]; then
   echo "❌ ไม่พบ DEV port จาก Caddyfile dev7 block — abort"
   exit 1
@@ -25,6 +38,11 @@ if git diff HEAD@{1} HEAD --name-only 2>/dev/null | grep -q "requirements.txt"; 
 fi
 
 echo "⏹️  Stopping old :$DEV_PORT..."
+# Sanity: refuse to kill reserved/production ports
+if [[ "$DEV_PORT" =~ ^(8000|8002|8003|8005|8006|8008|8009|8010)$ ]]; then
+  echo "❌ DEV_PORT=$DEV_PORT is a reserved/production port — ABORT"
+  exit 1
+fi
 pkill -f "uvicorn.*--port $DEV_PORT" || true
 sleep 2
 
