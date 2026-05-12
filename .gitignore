@@ -30,3 +30,15 @@ logs/chat.log
 # mautrix-meta Docker stack (contains tokens)
 docker/mautrix/mautrix/
 docker/mautrix/synapse/
+
+# Capacitor (Phase A.3+)
+android/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/app/build/
+ios/
+*.apk
+*.aab
+*.ipa
+.capacitor/
