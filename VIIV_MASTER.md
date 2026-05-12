@@ -402,7 +402,39 @@ ab5ec4d  PWA shell foundation
 c778e1d  PWA Phase 1 complete
 890acd6  store.js v1.18 — 7-tab full parity
 ac5ad6f  reserve bill system
-89bd450  delivery.html ← LATEST
+89bd450  delivery.html
+d59ff84  Phase B.4.6 — FB WebView cookie fix ← Phase B DONE
+5123b00  Phase F.B — modulecookie FastAPI orchestrator ← LATEST
+```
+
+Completed Today (2026-05-12) — Phase F.B
+```
+✅ Phase B (retired) — WebView FB login (B.4.4a.1, B.4.5, B.4.6, commit d59ff84):
+   - B.4.4a.1: debug button CSP fix + always-visible inline log
+   - B.4.5: desktop Chrome UA + single-button flow (no intent:// hijack)
+   - B.4.6: clearCache:false + manual Cookies.clearCookies() before open
+   → Phase B retired: CapacitorCookies ไม่อ่าน httpOnly xs/c_user ได้
+
+✅ Phase F.A — Cookie Sandbox Infrastructure (Docker + Squid + Caddy):
+   - viiv-cookie-sandbox network (172.30.0.0/16, cookiebr0)
+   - Firefox+Squid sidecar pair: spawn-session.sh / destroy-session.sh
+   - Squid conf template: NodeMaven Thailand proxy auth transparent
+   - Caddy /browser/* handle (dev7.viiv.me)
+   - F.A.1 verified: Thailand IP confirmed via curl container in sandbox network
+
+✅ Phase F.B — FastAPI orchestrator (commit 5123b00):
+   - modulecookie/ package: models.py, auth.py, manager.py
+   - API: /cookie/health, /cookie/session/start|status|DELETE, /cookie/_verify
+   - SessionManager: single global session, spawn/destroy async, 10-min TTL, auto-cleanup loop
+   - HMAC-SHA256 signed browser session cookie (viiv_browser_session)
+   - Caddy: /api/cookie/* → :8005 (uri strip /api), /browser/* → forward_auth + path rewrite
+   - Service: start_cookie.sh / stop_cookie.sh, running on :8005
+   - E2E: health ✓, start/status/destroy ✓, 401 no cookie ✓, 200 valid cookie ✓
+
+Next Phase F Steps:
+  F.C — Cookie extraction JS extension + E2E encryption
+  F.D — VIIV app integration (PWA facebook.js)
+  F.E — POC test (IHeal Thy account)
 ```
 Known Issues
 ```
@@ -3112,6 +3144,57 @@ COMMITS (2 commits, branch main)
 
 Version: v3.9 | Updated: 2026-05-07
 Git Latest: 1c067e4
+
+---
+
+## [J] SESSION 2026-05-11 — modulefbchat POC
+
+### modulefbchat :8006 (NEW MODULE)
+```
+Path:    /home/viivadmin/viiv/modulefbchat/
+Port:    :8006
+Start:   bash start_fbchat.sh
+Log:     logs/fbchat.log
+Lib:     fbchat-muqit v1.2.2
+```
+
+FILES CREATED:
+  modulefbchat/__init__.py
+  modulefbchat/auth.py           JWT verify (pattern เดียวกับ modulefb)
+  modulefbchat/db.py             asyncpg pool min=1 max=5
+  modulefbchat/client.py         FBChatClient wrapper (1 tenant)
+  modulefbchat/manager.py        FBChatManager pool (max=20, idle=30m)
+  modulefbchat/main.py           FastAPI lifespan + routers
+  modulefbchat/api/health.py     GET /health
+  modulefbchat/api/session.py    POST /api/fbchat/session/connect|disconnect GET /status
+  modulefbchat/api/smoketest.py  POST /api/fbchat/_smoketest (dev only)
+  start_fbchat.sh                start script (setsid+nohup+disown pattern)
+
+FEATURES:
+  ✅ fbchat-muqit login via cookies file
+  ✅ listen incoming messages → async callback
+  ✅ send_reply(thread_id, text) + human-like delay 30-120s
+  ✅ proxy support (http_proxy param)
+  ✅ multi-tenant pool max=20, idle=30min → auto disconnect
+  ✅ session expired → fire on_expired callback
+  ✅ smoketest: is_logged_in + fetch_thread_list (no listen)
+
+RULES:
+Rule 279: load_dotenv() ก่อน import ทุกอย่าง ✅
+Rule 353: app.state pattern — no module-level instance ✅
+Rule 193: setsid + nohup + disown ✅
+
+VERIFY:
+  curl http://localhost:8006/health
+  → {"status":"ok","module":"modulefbchat","version":"0.1.0","pool":{"active":0,"total":0,"max":20}}
+
+NEXT (หลัง smoketest ผ่านด้วย cookies จริง):
+  - ต่อ moduleai
+  - Caddy route /api/fbchat/*
+  - DB table fb_chat_sessions
+  - LINE notify เมื่อ session expired
+
+Version: v3.10 | Updated: 2026-05-11
 
 ---
 

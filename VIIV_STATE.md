@@ -1,42 +1,52 @@
-# VIIV STATE — Runtime Snapshot
-> Snapshot: 2026-05-10 (modulefb Phase 3.A complete — Foundation done)
+# VIIV_STATE.md
+# Date: 2026-05-12 (late evening)
+# Last session: Phase F.B complete — Browser Sandbox paradigm operational
 
-## Git State
-HEAD: 6185d0c — 18 commits ahead of origin/main (LOCAL only)
-origin/main: 6dbb79f (Phase 1B+2+3a/3b promote เก่า)
+---
 
-Restore tag (pre-Phase 3.A commit):
-  pre-3a-commit-20260510-040212
+## 🎯 Current Position
 
-Local commits stack:
-  Session 2026-05-10 (Phase 3.A — modulefb Foundation):
-    6185d0c  3.A.6 + 3.A.7   Caddy /api/fb/* + Topbar widget per-tenant FB
-    449ef68  3.A.5           DDL script (3 columns added to fb_sessions)
-    e24727a  3.A.4           4 endpoints + JWT + audit_log
-    12f4f20  3.A.2 + 3.A.3   asyncpg wrapper + wire SessionManager + Rule 192 fix
-    09e72db  3.A.1           Patchright migration
+**Priority TOP:** Phase F continues — Cookie Module (Browser Sandbox paradigm)
+**Next sub-phase:** F.C — Cookie Extraction + E2E Encryption
 
-  Session 2026-05-09 PM (PWA Store Overhaul — pre-existing):
-    Phase D     drag & drop reorder categories
-    Phase E.3.1 full options print sheet
-    Phase E.2   popup ย้าย + ตัด single product
-    Phase E.1.5 fix _toast CSS calc() bug + z-index
-    Phase E.1.2 single delegated card handler
-    Phase E.1.1 icons inline with badge
-    Phase E.1   card action icons stubs
-    Phase C.6   tighten spacing + MutationObserver
-    Phase C.5   inline count + quota
-    Phase C     remove stock filter chips
-    Phase B     slim search + category dropdown + manage sheet
-    Phase A.5   tab style polish
-    Phase A     top tabs reshape (8 → 4)
+**Paradigm evolution (summary):**
+- Phase B (Capacitor WebView) → RETIRED (httpOnly + FB anti-bot)
+- Cookie-Editor paradigm (planned F.0-F.5 ใน v3.2 state) → SUPERSEDED before implementation
+- **Current paradigm:** Browser Sandbox (Firefox container + Squid broker + Caddy + FastAPI orchestrator)
 
-## Pin Port (Law 7) — unchanged
-test7 → :8000 (PROD ten_1) ⛔ ห้ามแตะ
-dev7  → :9000 (DEV test_dev) ✅ verified ทุก phase
-concore → :8000 (admin sync prod)
-modulechat :8003 / moduleai :8002 / modulefb :8005
+**Why superseded:** Customer install Firefox+Cookie-Editor was rated "hard" UX during planning. Browser Sandbox paradigm makes customer experience "tap button → login → done" with no installation.
 
-## modulefb Phase 3.A — COMPLETE ✅
+---
 
-### Foundation Stack (verified working on dev7)
+## ✅ What's Working (don't touch)
+
+- **APK Capacitor wrapper** (Phase A) — `viiv-debug-v4.apk` at `/home/viivadmin/viiv/uploads/apk/`
+- **PWA at dev7.viiv.me/pwa/** — APK loads from network via `server.url`
+- **Login + cross-subdomain** — works inside APK (B.4.2 fixed)
+- **mautrix-meta stack** — Synapse:8008 + mautrix:8009 + modulefbchat:8006 (proven with manual cookies)
+- **Pool architecture** — modulepool:8010 ready, slots allocated
+- **AI replies LINE Messenger** — modulechat + moduleai working
+- **Backend FB endpoint** — `/api/fbchat/connect` (D.0.2 commit `b9bb72a`) — F.C will integrate
+- **modulecookie service** ⭐ NEW (F.B, commit 5123b00)
+  - FastAPI on 127.0.0.1:8005
+  - Endpoints: POST/DELETE/GET /cookie/session/* + GET /cookie/_verify
+  - JWT auth + HMAC-SHA256 signed cookies + SessionManager + auto-cleanup
+- **Browser sandbox infrastructure** ⭐ NEW (F.A + F.A.1)
+  - Docker network `viiv-cookie-sandbox` (172.30.0.0/16)
+  - Firefox + Squid sidecar pattern verified (290 + 14 MB RAM/session)
+  - NodeMaven Thailand proxy (sticky per-session, credential hidden from Firefox)
+  - Mobile UX (390x844 + iPhone UA → m.facebook.com)
+  - Caddy: dev7.viiv.me/api/cookie/* + /browser/* (forward_auth protected)
+
+---
+
+## 🔴 What's Broken / Retired
+
+- **`frontend/pwa/pages/facebook.js`** — WebView paradigm dead, ~600+ lines to refactor in F.D
+- **Capacitor InAppBrowser plugin** — keep in package.json but unused
+- **Cookie-Editor paradigm artifacts** — never implemented (skipped F.0-F.5 of v3.2 plan)
+- **B.4.x debug instrumentation** — _logDebug, inline-log strip — remove in F.D cleanup phase
+
+---
+
+## 🗂️ Critical File Paths
