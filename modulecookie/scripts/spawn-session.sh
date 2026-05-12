@@ -88,6 +88,27 @@ docker run -d \
     jlesage/firefox:latest
 
 echo "✅ Firefox spawned: $FIREFOX_NAME"
+
+# === F.D.3 Hotfix: wait for Firefox noVNC ready ===
+echo "[spawn-session] Waiting for Firefox noVNC ready on :5800..."
+WAIT_TIMEOUT=30
+ELAPSED=0
+
+while [ $ELAPSED -lt $WAIT_TIMEOUT ]; do
+  if curl -sf --max-time 2 http://127.0.0.1:5800/ -o /dev/null 2>&1; then
+    echo "[spawn-session] Firefox ready after ${ELAPSED}s"
+    break
+  fi
+  sleep 1
+  ELAPSED=$((ELAPSED + 1))
+done
+
+if [ $ELAPSED -ge $WAIT_TIMEOUT ]; then
+  echo "[spawn-session] ERROR: Firefox not ready after ${WAIT_TIMEOUT}s — cleaning up"
+  docker rm -f "$FIREFOX_NAME" "$SQUID_NAME" 2>/dev/null || true
+  exit 1
+fi
+
 echo ""
 echo "Session $SESSION_ID ready."
 echo "Access:"
