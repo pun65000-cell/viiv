@@ -12,7 +12,8 @@
   "private": true,
   "dependencies": {
     "@capacitor/android": "^8.3.3",
-    "@capacitor/core": "^8.3.3"
+    "@capacitor/core": "^8.3.3",
+    "@capacitor/inappbrowser": "^3.0.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.3"
