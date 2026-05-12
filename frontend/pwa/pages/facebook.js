@@ -104,11 +104,13 @@
 
         <!-- Debug panel trigger (temp B.4.4a) -->
         <div style="text-align:right;margin-top:8px">
-          <button onclick="FbPage._showDebug()"
+          <button id="fb-debug-btn"
             style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;opacity:0.45;padding:4px 0">
             🐞 debug log
           </button>
         </div>
+        <div id="fb-inline-log"
+          style="background:#1a1a1a;color:#0f0;font-family:monospace;font-size:10px;padding:8px;margin-top:6px;max-height:120px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;border-radius:4px">(no logs yet)</div>
       </div>
 
       <style>
@@ -213,6 +215,27 @@
       radio.addEventListener('change', _updateRadioUI);
     });
     _updateRadioUI();
+
+    const dbgBtn = document.getElementById('fb-debug-btn');
+    if (dbgBtn) {
+      dbgBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          _showDebugPanel();
+        } catch (err) {
+          alert('Debug panel error: ' + (err.message || err));
+        }
+      });
+    }
+    _renderInlineLog();
+  }
+
+  function _renderInlineLog() {
+    const panel = document.getElementById('fb-inline-log');
+    if (!panel) return;
+    const tail = _fbDebugLog.slice(-8).join('\n');
+    panel.textContent = tail || '(no logs yet)';
   }
 
   function _updateRadioUI() {
@@ -460,6 +483,9 @@
     _fbDebugLog.push(line);
     if (_fbDebugLog.length > FB_DEBUG_MAX) _fbDebugLog.shift();
     console.log('[fb]', msg);
+    const tail = _fbDebugLog.slice(-8).join('\n');
+    const inline = document.getElementById('fb-inline-log');
+    if (inline) inline.textContent = tail;
     const panel = document.getElementById('fb-debug-panel-content');
     if (panel) panel.textContent = _fbDebugLog.join('\n');
   }
