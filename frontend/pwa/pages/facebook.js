@@ -9,6 +9,10 @@
   let _fbListenerHandles = [];
   const _fbDebugLog = [];
   const FB_DEBUG_MAX = 50;
+  const FB_DESKTOP_UA =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+    'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+    'Chrome/131.0.0.0 Safari/537.36';
 
   Router.register('facebook', {
     title: 'Facebook Messenger',
@@ -69,38 +73,22 @@
         </div>
       </div>
 
-      <!-- Mode picker -->
+      <!-- Login card -->
       <div class="fb-card">
-        <div class="fb-sec-title">เลือกบัญชี Facebook ที่จะเชื่อม</div>
-
-        <label class="fb-radio-card" id="fb-opt-inherit">
-          <input type="radio" name="fb-mode" value="inherit" checked style="display:none">
-          <div class="fb-radio-dot" data-for="inherit"></div>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:600;color:var(--txt)">บัญชีที่ใช้อยู่ในมือถือ</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">เร็วและสะดวก — ล็อกอินครั้งเดียว</div>
-          </div>
-        </label>
-
-        <label class="fb-radio-card" id="fb-opt-isolated" style="margin-top:10px">
-          <input type="radio" name="fb-mode" value="isolated" style="display:none">
-          <div class="fb-radio-dot" data-for="isolated"></div>
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:600;color:var(--txt)">บัญชีอื่น</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">ต้องพิมพ์ user/pass ใหม่ (โหมดแยกต่างหาก)</div>
-          </div>
-        </label>
+        <div style="font-size:13.5px;color:var(--txt);line-height:1.65;margin-bottom:14px">
+          💡 <strong>คำแนะนำ</strong><br>
+          เพื่อความปลอดภัย ระบบจะเปิดหน้าต่าง Facebook พิเศษ<br>
+          Login แล้วหน้าต่างจะปิดอัตโนมัติ<br>
+          <span style="color:var(--muted);font-size:12px">(ไม่กระทบ Facebook app ในมือถือของคุณ)</span>
+        </div>
 
         <!-- inline error -->
-        <div id="fb-mode-err" style="display:none;font-size:12px;color:#dc2626;margin-top:10px"></div>
+        <div id="fb-mode-err" style="display:none;font-size:12px;color:#dc2626;margin-bottom:10px"></div>
 
-        <button id="fb-continue-btn" onclick="FbPage._continue()"
-          style="margin-top:16px;width:100%;height:46px;background:#1877F2;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s">
-          ดำเนินการต่อ →
+        <button id="fb-continue-btn"
+          style="width:100%;height:46px;background:#1877F2;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s">
+          เริ่ม Login Facebook →
         </button>
-
-        <!-- placeholder output for B.3 TODO -->
-        <div id="fb-todo-msg" style="display:none;margin-top:12px;background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted)"></div>
 
         <!-- Debug panel trigger (temp B.4.4a) -->
         <div style="text-align:right;margin-top:8px">
@@ -116,11 +104,6 @@
       <style>
         .fb-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:14px}
         .fb-sec-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
-        .fb-radio-card{display:flex;align-items:center;gap:12px;border:1.5px solid var(--bdr);border-radius:11px;padding:12px 14px;cursor:pointer;transition:border-color .15s}
-        .fb-radio-card.selected{border-color:#1877F2;background:#eff6ff}
-        .fb-radio-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);background:var(--card);flex-shrink:0;transition:border-color .15s;position:relative}
-        .fb-radio-dot.active{border-color:#1877F2}
-        .fb-radio-dot.active::after{content:'';position:absolute;top:3px;left:3px;width:10px;height:10px;background:#1877F2;border-radius:50%}
       </style>
     </div>`;
   }
@@ -211,10 +194,13 @@
   /* ─────────────────────── BIND ─────────────────────── */
 
   function _bindEvents() {
-    document.querySelectorAll('input[name="fb-mode"]').forEach(radio => {
-      radio.addEventListener('change', _updateRadioUI);
-    });
-    _updateRadioUI();
+    const continueBtn = document.getElementById('fb-continue-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        handleStartLogin();
+      });
+    }
 
     const dbgBtn = document.getElementById('fb-debug-btn');
     if (dbgBtn) {
@@ -238,30 +224,9 @@
     panel.textContent = tail || '(no logs yet)';
   }
 
-  function _updateRadioUI() {
-    document.querySelectorAll('input[name="fb-mode"]').forEach(radio => {
-      const card  = radio.closest('.fb-radio-card');
-      const dot   = card && card.querySelector('.fb-radio-dot');
-      if (!card || !dot) return;
-      if (radio.checked) {
-        card.classList.add('selected');
-        dot.classList.add('active');
-      } else {
-        card.classList.remove('selected');
-        dot.classList.remove('active');
-      }
-    });
-  }
-
   /* ─────────────────────── WebView Flow ─────────────────── */
 
-  async function handleContinue() {
-    const mode = document.querySelector('input[name="fb-mode"]:checked')?.value;
-    if (!mode) {
-      showInlineError('กรุณาเลือกบัญชี');
-      return;
-    }
-
+  async function handleStartLogin() {
     const InAppBrowser = window.capacitorInAppBrowser?.InAppBrowser;
     const Cookies      = window.capacitorExports?.CapacitorCookies;
 
@@ -270,12 +235,11 @@
       return;
     }
 
-    await openFbWebView(mode);
+    await openFbWebView();
   }
 
-  async function openFbWebView(mode) {
+  async function openFbWebView() {
     const InAppBrowser = window.capacitorInAppBrowser.InAppBrowser;
-    const isInherit = (mode === 'inherit');
 
     await _cleanupFbListeners();
 
@@ -291,7 +255,7 @@
           try {
             await InAppBrowser.close();
           } catch (e) { /* ignore */ }
-          await handleLoginComplete(mode);
+          await handleLoginComplete();
         }
       }
     );
@@ -308,7 +272,7 @@
     _fbListenerHandles.push(closeHandle);
     _logDebug('listener-ok: browserClosed');
 
-    // Diagnostic: try extra events (กัน case ที่ plugin ใช้ event name ต่าง)
+    // Diagnostic: try extra events
     const _diagEvents = ['browserPageLoaded', 'browserPageLoadStarted', 'urlChangeEvent'];
     for (const evt of _diagEvents) {
       try {
@@ -324,22 +288,19 @@
       }
     }
 
-    const url = isInherit
-      ? 'https://m.facebook.com/'
-      : 'https://m.facebook.com/login';
-
     try {
       await InAppBrowser.openInWebView({
-        url,
+        url: 'https://www.facebook.com/login.php?login_attempt=1',
         options: {
           showURL: false,
           showToolbar: true,
-          clearCache: !isInherit,
-          clearSessionCache: !isInherit,
+          clearCache: true,
+          clearSessionCache: true,
           closeButtonText: 'ยกเลิก',
           toolbarPosition: 0,
           showNavigationButtons: false,
           mediaPlaybackRequiresUserAction: true,
+          customWebViewUserAgent: FB_DESKTOP_UA,
           android: {
             hardwareBack: true,
             allowZoom: false,
@@ -390,7 +351,7 @@
     return false;
   }
 
-  async function handleLoginComplete(mode) {
+  async function handleLoginComplete() {
     await _cleanupFbListeners();
 
     const Cookies = window.capacitorExports.CapacitorCookies;
@@ -414,7 +375,7 @@
         return;
       }
 
-      _pendingCookies = { xs, c_user, datr, mode };
+      _pendingCookies = { xs, c_user, datr };
 
       _renderVerifyScreen(_pendingCookies);
 
@@ -682,7 +643,7 @@
   /* ─────────────────────── ACTIONS ──────────────────── */
 
   window.FbPage = {
-    _continue() { handleContinue(); },
+    _continue() { handleStartLogin(); },
 
     async _disconnect() {
       if (!confirm('ยืนยันยกเลิกการเชื่อมต่อ Facebook?')) return;
