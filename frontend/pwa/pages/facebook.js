@@ -240,8 +240,23 @@
 
   async function openFbWebView() {
     const InAppBrowser = window.capacitorInAppBrowser.InAppBrowser;
+    const Cookies = window.capacitorExports?.CapacitorCookies;
 
     await _cleanupFbListeners();
+
+    // Manual clear FB cookies before opening (ensures clean session without
+    // using clearCache flag which clears cookies on every page navigation)
+    if (Cookies) {
+      try {
+        _logDebug('clearing fb cookies before open');
+        await Cookies.clearCookies?.({ url: 'https://www.facebook.com' });
+        await Cookies.clearCookies?.({ url: 'https://m.facebook.com' });
+        await Cookies.clearCookies?.({ url: 'https://facebook.com' });
+        _logDebug('cookies cleared ok');
+      } catch (e) {
+        _logDebug('clearCookies error: ' + (e?.message || e));
+      }
+    }
 
     const navHandle = await InAppBrowser.addListener(
       'browserPageNavigationCompleted',
@@ -294,8 +309,8 @@
         options: {
           showURL: false,
           showToolbar: true,
-          clearCache: true,
-          clearSessionCache: true,
+          clearCache: false,
+          clearSessionCache: false,
           closeButtonText: 'ยกเลิก',
           toolbarPosition: 0,
           showNavigationButtons: false,
