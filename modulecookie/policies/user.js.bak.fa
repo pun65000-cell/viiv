@@ -1,0 +1,16 @@
+// Force proxy with credential (NodeMaven authentication bypass)
+user_pref("network.proxy.type", 1);
+user_pref("network.proxy.http", "gate.nodemaven.com");
+user_pref("network.proxy.http_port", 8080);
+user_pref("network.proxy.ssl", "gate.nodemaven.com");
+user_pref("network.proxy.ssl_port", 8080);
+user_pref("network.proxy.share_proxy_settings", true);
+user_pref("network.proxy.no_proxies_on", "localhost,127.0.0.1");
+// Authentication storage
+user_pref("signon.autologin.proxy", true);
+user_pref("network.automatic-ntlm-auth.allow-proxies", true);
+user_pref("network.negotiate-auth.allow-proxies", true);
+// Privacy
+user_pref("toolkit.telemetry.enabled", false);
+user_pref("datareporting.healthreport.uploadEnabled", false);
+user_pref("app.shield.optoutstudies.enabled", false);

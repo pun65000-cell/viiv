@@ -1,0 +1,38 @@
+{
+  "policies": {
+    "Proxy": {
+      "Mode": "manual",
+      "Locked": true,
+      "HTTPProxy": "gate.nodemaven.com:8080",
+      "SSLProxy": "gate.nodemaven.com:8080",
+      "Passthrough": "localhost,127.0.0.1,172.30.0.0/16",
+      "UseHTTPProxyForAllProtocols": true
+    },
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisableProfileImport": true,
+    "DisableFormHistory": true,
+    "DisablePasswordManager": true,
+    "DontCheckDefaultBrowser": true,
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": "",
+    "DisableProfileRefresh": true,
+    "Homepage": {
+      "URL": "https://www.facebook.com/login.php",
+      "Locked": true,
+      "StartPage": "homepage"
+    },
+    "DisableAppUpdate": true,
+    "DisableSystemAddonUpdate": true,
+    "FirefoxHome": {
+      "Search": false,
+      "TopSites": false,
+      "SponsoredTopSites": false,
+      "Highlights": false,
+      "Pocket": false,
+      "SponsoredPocket": false,
+      "Snippets": false,
+      "Locked": true
+    }
+  }
+}
