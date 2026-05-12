@@ -7,6 +7,8 @@
   let _destroyed = false;
   let _pendingCookies = null;
   let _fbListenerHandles = [];
+  const _fbDebugLog = [];
+  const FB_DEBUG_MAX = 50;
 
   Router.register('facebook', {
     title: 'Facebook Messenger',
@@ -99,6 +101,14 @@
 
         <!-- placeholder output for B.3 TODO -->
         <div id="fb-todo-msg" style="display:none;margin-top:12px;background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted)"></div>
+
+        <!-- Debug panel trigger (temp B.4.4a) -->
+        <div style="text-align:right;margin-top:8px">
+          <button onclick="FbPage._showDebug()"
+            style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;opacity:0.45;padding:4px 0">
+            🐞 debug log
+          </button>
+        </div>
       </div>
 
       <style>
@@ -250,12 +260,11 @@
       'browserPageNavigationCompleted',
       async (data) => {
         const url = (data && data.url) || '';
-        console.log('[fb] nav:', url);
+        _logDebug('nav: ' + url);
+        await _logCookieState('on-nav');
 
-        // ตรวจ login success โดยอ่าน c_user cookie
-        // c_user จะมีเฉพาะหลัง FB authenticate สำเร็จเท่านั้น
         if (await _hasFbLoginCookie()) {
-          console.log('[fb] c_user detected → login success');
+          _logDebug('c_user detected → login success');
           try {
             await InAppBrowser.close();
           } catch (e) { /* ignore */ }
@@ -264,15 +273,33 @@
       }
     );
     _fbListenerHandles.push(navHandle);
+    _logDebug('listener-ok: browserPageNavigationCompleted');
 
     const closeHandle = await InAppBrowser.addListener(
       'browserClosed',
       async () => {
-        console.log('[fb] user closed');
+        _logDebug('user closed browser');
         await _cleanupFbListeners();
       }
     );
     _fbListenerHandles.push(closeHandle);
+    _logDebug('listener-ok: browserClosed');
+
+    // Diagnostic: try extra events (กัน case ที่ plugin ใช้ event name ต่าง)
+    const _diagEvents = ['browserPageLoaded', 'browserPageLoadStarted', 'urlChangeEvent'];
+    for (const evt of _diagEvents) {
+      try {
+        const h = await InAppBrowser.addListener(evt, async (data) => {
+          const url = (data && data.url) || '';
+          _logDebug(`EVENT=${evt} url=${url}`);
+          await _logCookieState('on-' + evt);
+        });
+        _fbListenerHandles.push(h);
+        _logDebug('listener-ok: ' + evt);
+      } catch (e) {
+        _logDebug('listener-fail: ' + evt + ' — ' + (e?.message || '?'));
+      }
+    }
 
     const url = isInherit
       ? 'https://m.facebook.com/'
@@ -382,7 +409,7 @@
       const cuser = cookies && cookies.c_user;
       return Boolean(cuser && cuser.length > 0);
     } catch (e) {
-      console.log('[fb] cookie check error:', e.message || e);
+      _logDebug('cookie-check-err: ' + (e?.message || e));
       return false;
     }
   }
@@ -425,6 +452,54 @@
       _bindEvents();
       return;
     }
+  }
+
+  function _logDebug(msg) {
+    const ts = new Date().toLocaleTimeString();
+    const line = '[' + ts + '] ' + msg;
+    _fbDebugLog.push(line);
+    if (_fbDebugLog.length > FB_DEBUG_MAX) _fbDebugLog.shift();
+    console.log('[fb]', msg);
+    const panel = document.getElementById('fb-debug-panel-content');
+    if (panel) panel.textContent = _fbDebugLog.join('\n');
+  }
+
+  async function _logCookieState(label) {
+    try {
+      const Cookies = window.capacitorExports?.CapacitorCookies;
+      if (!Cookies) { _logDebug(label + ' cookies=unavailable'); return; }
+      const c1 = await Cookies.getCookies({ url: 'https://www.facebook.com' });
+      const c2 = await Cookies.getCookies({ url: 'https://m.facebook.com' });
+      const c3 = await Cookies.getCookies({ url: 'https://facebook.com' });
+      const k1 = Object.keys(c1 || {});
+      const k2 = Object.keys(c2 || {});
+      const k3 = Object.keys(c3 || {});
+      const cuser = (c1?.c_user || c2?.c_user || c3?.c_user || '');
+      _logDebug(label + ' www-keys=[' + k1.join(',') + ']');
+      _logDebug(label + ' m-keys=[' + k2.join(',') + ']');
+      _logDebug(label + ' bare-keys=[' + k3.join(',') + ']');
+      _logDebug(label + ' c_user.len=' + cuser.length);
+    } catch (e) {
+      _logDebug(label + ' cookie-err: ' + (e?.message || e));
+    }
+  }
+
+  function _showDebugPanel() {
+    const old = document.getElementById('fb-debug-modal');
+    if (old) old.remove();
+    const modal = document.createElement('div');
+    modal.id = 'fb-debug-modal';
+    modal.style.cssText = [
+      'position:fixed;top:0;left:0;right:0;bottom:0',
+      'background:#0a0a0a;color:#00ff88;font-family:monospace',
+      'font-size:11px;padding:48px 10px 10px;z-index:99999;overflow:auto',
+    ].join(';');
+    modal.innerHTML =
+      '<button onclick="document.getElementById(\'fb-debug-modal\').remove()"' +
+      ' style="position:fixed;top:10px;right:10px;background:#dc2626;color:#fff;' +
+      'border:none;padding:8px 14px;border-radius:8px;font-weight:700;z-index:100000">✕ ปิด</button>' +
+      '<pre id="fb-debug-panel-content">' + (_fbDebugLog.join('\n') || '(no logs yet)') + '</pre>';
+    document.body.appendChild(modal);
   }
 
   function showInlineError(msg) {
@@ -607,6 +682,10 @@
     _cancelVerify() {
       _pendingCookies = null;
       _renderState('disconnected');
+    },
+
+    _showDebug() {
+      _showDebugPanel();
     }
   };
 
