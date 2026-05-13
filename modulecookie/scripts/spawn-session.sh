@@ -42,6 +42,7 @@ sed -e "s|{PROXY_HOST}|${PROXY_HOST}|g" \
     -e "s|{PROXY_PORT}|${PROXY_PORT}|g" \
     -e "s|{PROXY_USER}|${PROXY_USER}|g" \
     -e "s|{PROXY_PASS}|${ESCAPED_PASS}|g" \
+    -e "s|{SESSION_ID}|${SESSION_ID}|g" \
     "$MODULE_DIR/squid/squid.conf.template" > "$SQUID_CONF_DIR/squid.conf"
 
 chmod 600 "$SQUID_CONF_DIR/squid.conf"

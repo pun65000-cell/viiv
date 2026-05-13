@@ -11,7 +11,7 @@ http_access deny all
 # Parent proxy = NodeMaven Thailand (with credential)
 cache_peer {PROXY_HOST} parent {PROXY_PORT} 0 \
     no-query \
-    login={PROXY_USER}:{PROXY_PASS} \
+    login={PROXY_USER}-sid-{SESSION_ID}-sessionduration-10:{PROXY_PASS} \
     connect-timeout=30 \
     name=nodemaven
 
