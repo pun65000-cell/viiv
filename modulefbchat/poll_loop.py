@@ -10,7 +10,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-POLL_INTERVAL = 30  # วินาที (Rule 327)
+POLL_INTERVAL = 5  # วินาที (Rule 327 revised 2026-05-13 — Vector A++)
 
 # registry: room_id → tenant_id (in-memory)
 _active_rooms: dict[str, str] = {}

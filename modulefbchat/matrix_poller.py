@@ -71,7 +71,7 @@ async def poll_room_and_reply(
                 continue
 
             # human-like delay ก่อน reply (Rule 341, 343)
-            delay = random.uniform(30, 120)
+            delay = random.uniform(5, 20)  # Vector A++ 2026-05-13 (was 30-120)
             logger.info(
                 "New message room=%s text='%s...' → reply in %.0fs",
                 room_id, msg_text[:50], delay,
