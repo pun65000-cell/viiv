@@ -1,6 +1,6 @@
 /* ViiV Compliance Pages — Refined Editorial */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Noto+Sans+Thai:wght@400;500;700&family=Noto+Serif+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap');
 
 :root {
   --ink: #1a1815;
@@ -15,7 +15,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'IBM Plex Sans Thai', 'Fraunces', Georgia, serif;
+  font-family: 'Noto Sans Thai', 'Fraunces', Georgia, serif;
   background: var(--paper);
   color: var(--ink);
   line-height: 1.7;
@@ -42,7 +42,7 @@ body {
 }
 
 .brand {
-  font-family: 'Fraunces', serif;
+  font-family: 'Noto Serif Thai', 'Fraunces', serif;
   font-weight: 700;
   font-size: 26px;
   letter-spacing: -0.02em;
@@ -76,7 +76,7 @@ body {
   border: 1px solid var(--line);
   color: var(--ink);
   padding: 6px 14px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Noto Sans Thai', monospace;
   font-size: 12px;
   cursor: pointer;
   border-radius: 2px;
@@ -100,7 +100,7 @@ body {
 }
 
 .eyebrow {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Noto Sans Thai', monospace;
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -109,7 +109,7 @@ body {
 }
 
 h1 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Noto Serif Thai', 'Fraunces', Georgia, serif;
   font-size: clamp(36px, 6vw, 54px);
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -119,7 +119,7 @@ h1 {
 }
 
 .updated {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Noto Sans Thai', monospace;
   font-size: 13px;
   color: var(--muted);
   padding-bottom: 32px;
@@ -132,7 +132,7 @@ section {
 }
 
 h2 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Noto Serif Thai', 'Fraunces', Georgia, serif;
   font-size: 24px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -142,7 +142,7 @@ h2 {
 }
 
 h3 {
-  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-family: 'Noto Sans Thai', sans-serif;
   font-size: 17px;
   font-weight: 700;
   margin-top: 20px;
@@ -193,7 +193,7 @@ strong {
 .method-card h3 {
   margin-top: 0;
   color: var(--accent);
-  font-family: 'Fraunces', serif;
+  font-family: 'Noto Serif Thai', 'Fraunces', serif;
   font-size: 19px;
   font-weight: 500;
 }
@@ -204,7 +204,7 @@ strong {
 
 .status-link {
   display: inline-block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Noto Sans Thai', monospace;
   font-size: 14px;
   padding: 10px 18px;
   background: var(--ink);
@@ -228,7 +228,7 @@ strong {
   text-align: center;
   color: var(--muted);
   font-size: 13px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Noto Sans Thai', monospace;
 }
 
 .site-footer a {
