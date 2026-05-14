@@ -43,3 +43,5 @@ ios/
 *.ipa
 .capacitor/
 sandbox/preserved-logs/
+sandbox/.env.archive*
+*.env.bak*
