@@ -125,14 +125,26 @@
       font-size:12px; color:#a09070; flex-wrap:wrap; gap:8px;
     }
     .f-logo{ color:var(--gold); font-weight:900; letter-spacing:2px; font-size:14px; }
-    .f-legal{ font-size:12px; }
+    .f-legal{ font-size:12px; display:inline-flex; align-items:center; gap:6px 12px; flex-wrap:wrap; }
     .f-legal a{ color:#a09070; text-decoration:none; transition:color 0.2s; }
     .f-legal a:hover{ color:var(--gold); }
+    .f-sep{ color:#a09070; opacity:0.5; }
 
     @media(max-width:600px){
       h1{ font-size:32px; }
       nav,footer{ padding:0 20px; }
       .hero,.features,.plans-strip,.cta-bottom{ padding-left:20px; padding-right:20px; }
+      /* Mobile nav refinement */
+      nav{ height:56px; padding:0 14px; }
+      .logo{ font-size:16px; letter-spacing:1.5px; white-space:nowrap; }
+      .nav-right{ gap:6px; }
+      .btn{ padding:7px 12px; font-size:12px; white-space:nowrap; }
+      /* Mobile footer refinement */
+      footer{
+        flex-direction:column; align-items:center; text-align:center;
+        gap:10px; padding:24px 20px;
+      }
+      .f-legal{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px 12px; }
     }
   </style>
 </head>
@@ -246,7 +258,7 @@
   <footer>
     <span class="f-logo">ViiV Platform</span>
     <span>AI-Powered Sales Automation · viiv.me · v0.1.0</span>
-    <span class="f-legal"><a href="/privacy">นโยบายความเป็นส่วนตัว</a> · <a href="/terms">เงื่อนไขการใช้บริการ</a> · <a href="/data-deletion">การลบข้อมูล</a></span>
+    <span class="f-legal"><a href="/privacy">นโยบายความเป็นส่วนตัว</a><span class="f-sep">·</span><a href="/terms">เงื่อนไขการใช้บริการ</a><span class="f-sep">·</span><a href="/data-deletion">การลบข้อมูล</a></span>
   </footer>
 
 </body>
