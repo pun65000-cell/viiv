@@ -42,3 +42,4 @@ ios/
 *.aab
 *.ipa
 .capacitor/
+sandbox/preserved-logs/
