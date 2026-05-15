@@ -371,10 +371,10 @@
     const id = esc(b.id);
     const branch = b.branch ? '<div class="tu-bank-meta">สาขา: '+esc(b.branch)+'</div>' : '';
     const qr = b.qr_url
-      ? '<img class="tu-bank-qr" src="'+esc(b.qr_url)+'" onclick="event.stopPropagation();window.open(this.src,\'_blank\')" alt="QR"/>'
+      ? '<img class="tu-bank-qr" src="'+esc(b.qr_url)+'" onclick="event.stopPropagation();window.tuShowBankDetail(\''+id+'\')" alt="QR" title="ดูรายละเอียด"/>'
       : '';
     return ''
-      + '<div class="tu-bank '+sel+'" onclick="window.tuPickBank(\''+id+'\')">'
+      + '<div class="tu-bank '+sel+'" onclick="window.tuShowBankDetail(\''+id+'\')">'
       +   '<div class="tu-bank-radio"></div>'
       +   '<div class="tu-bank-info">'
       +     '<div class="tu-bank-name">'+bankDisplay(b)+(b.is_default?' <span style="font-size:10px;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px;margin-left:4px">⭐ Default</span>':'')+'</div>'
@@ -473,6 +473,101 @@
       document.getElementById('tuBanks').innerHTML = '<div class="tu-empty">โหลดบัญชีไม่สำเร็จ: '+esc(e.message)+'</div>';
     }
   }
+
+  // ── Bank Detail Modal ────────────────────────────────────────────────────
+
+  function renderBankModal(bankId) {
+    const b = _banks.find(function(x){ return x.id === bankId; });
+    if (!b) return;
+    const isSelected = _selectedBank && _selectedBank.id === bankId;
+    const content = document.getElementById('tuBankModalContent');
+    const btn = document.getElementById('tuBankModalSelectBtn');
+
+    const branchHtml = b.branch
+      ? '<div class="tu-bank-modal-row">'
+          + '<span class="tu-bank-modal-label">สาขา</span>'
+          + '<span class="tu-bank-modal-value" style="font-family:inherit">' + esc(b.branch) + '</span>'
+        + '</div>'
+      : '';
+
+    const qrHtml = b.qr_url
+      ? '<div class="tu-bank-modal-qr">'
+          + '<img src="' + ORIGIN + esc(b.qr_url) + '" alt="QR ' + esc(b.bank_name) + '">'
+          + '<div class="tu-bank-modal-qr-hint">สแกนผ่านแอปธนาคารเพื่อโอนเงิน</div>'
+        + '</div>'
+      : '';
+
+    content.innerHTML = ''
+      + '<div class="tu-bank-modal-bank-name">🏦 ' + esc(b.bank_name) + '</div>'
+      + '<div class="tu-bank-modal-row">'
+      +   '<span class="tu-bank-modal-label">เลขบัญชี</span>'
+      +   '<span>'
+      +     '<span class="tu-bank-modal-value" id="tuBankModalAccountNo">' + esc(b.account_no) + '</span>'
+      +     '<button type="button" class="tu-bank-modal-copy-btn"'
+      +       ' onclick="window.tuCopyAccountNo(\'' + esc(b.account_no) + '\', this)">คัดลอก</button>'
+      +   '</span>'
+      + '</div>'
+      + '<div class="tu-bank-modal-row">'
+      +   '<span class="tu-bank-modal-label">ชื่อบัญชี</span>'
+      +   '<span class="tu-bank-modal-value" style="font-family:inherit">' + esc(b.account_name) + '</span>'
+      + '</div>'
+      + branchHtml
+      + qrHtml;
+
+    if (isSelected) {
+      btn.classList.add('is-selected');
+      btn.textContent = 'เลือกบัญชีนี้แล้ว';
+    } else {
+      btn.classList.remove('is-selected');
+      btn.textContent = 'เลือกบัญชีนี้สำหรับโอนเงิน';
+    }
+    btn.onclick = function() {
+      window.tuPickBank(bankId);
+      closeBankModal();
+      toast('✓ เลือกบัญชีแล้ว', 'ok');
+    };
+  }
+
+  window.tuShowBankDetail = function(bankId) {
+    renderBankModal(bankId);
+    document.getElementById('tuBankModal').classList.add('open');
+  };
+
+  function closeBankModal() {
+    document.getElementById('tuBankModal').classList.remove('open');
+  }
+
+  window.tuCopyAccountNo = function(text, btn) {
+    try {
+      navigator.clipboard.writeText(text).then(function() {
+        btn.classList.add('copied');
+        btn.textContent = '✓ คัดลอกแล้ว';
+        setTimeout(function() {
+          btn.classList.remove('copied');
+          btn.textContent = 'คัดลอก';
+        }, 1500);
+      });
+    } catch(e) {
+      const valEl = document.getElementById('tuBankModalAccountNo');
+      if (!valEl) return;
+      const range = document.createRange();
+      range.selectNodeContents(valEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  };
+
+  // Modal close wiring (runs immediately — modal DOM is above this script)
+  (function() {
+    const modal = document.getElementById('tuBankModal');
+    if (!modal) return;
+    modal.querySelector('.tu-bank-modal-close').addEventListener('click', closeBankModal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) closeBankModal(); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeBankModal();
+    });
+  })();
 
   load();
 })();
