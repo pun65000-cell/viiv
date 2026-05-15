@@ -1,4 +1,4 @@
-/* VIIV PWA — topup.js (Part 3D)
+/* VIIV PWA — topup.js (Part 3D + Phase C bank bottom sheet)
  * Multipart top-up form: pick tier → pick bank → upload slip → submit
  *  POST /api/tenant/credits/topup (multipart) — pending status
  */
@@ -17,8 +17,19 @@
       _selectedTier = null; _selectedBank = null;
       _slipFile = null;
       await _render();
+
+      // Bank sheet close handlers
+      const sheet = document.getElementById('tuPwaBankSheet');
+      const closeBtn = document.getElementById('tuPwaBankSheetClose');
+      if (closeBtn) closeBtn.addEventListener('click', _closeBankSheet);
+      if (sheet) sheet.addEventListener('click', (e) => { if (e.target === sheet) _closeBankSheet(); });
+      document.addEventListener('keydown', _tuPwaEscHandler);
     },
-    destroy(){ _destroyed = true; }
+    destroy(){
+      _destroyed = true;
+      document.removeEventListener('keydown', _tuPwaEscHandler);
+      document.body.style.overflow = '';
+    }
   });
 
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -65,6 +76,7 @@
       +   _slipBoxHtml()
       +   '<div id="tuSummaryWrap"></div>'
       +   _actionsHtml()
+      +   _bankSheetHtml()
       + '</div>';
 
     const results = await Promise.allSettled([
@@ -118,6 +130,259 @@
       + '</div>';
   }
 
+  // ─── Bank Detail Bottom Sheet HTML ───────────────────────────────────────
+
+  function _tuPwaPaymentLogosHtml(){
+    const items = [
+      {
+        label: 'Visa',
+        svg: `<svg viewBox="0 0 80 26" xmlns="http://www.w3.org/2000/svg">
+          <text x="40" y="20" font-family="Arial Black,sans-serif"
+                font-size="22" font-weight="900" fill="#1a1f71"
+                text-anchor="middle" letter-spacing="-1">VISA</text>
+        </svg>`
+      },
+      {
+        label: 'Mastercard',
+        svg: `<svg viewBox="0 0 50 30" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="19" cy="15" r="11" fill="#eb001b"/>
+          <circle cx="31" cy="15" r="11" fill="#f79e1b"/>
+          <path d="M25,7 a11,11 0 0,1 0,16 a11,11 0 0,1 0,-16" fill="#ff5f00"/>
+        </svg>`
+      },
+      {
+        label: 'JCB',
+        svg: `<svg viewBox="0 0 60 26" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="18" height="22" rx="3" fill="#0e4c96"/>
+          <rect x="22" y="2" width="18" height="22" rx="3" fill="#bc2434"/>
+          <rect x="42" y="2" width="16" height="22" rx="3" fill="#2e8b3e"/>
+          <text x="11" y="17" font-family="Arial Black,sans-serif"
+                font-size="10" font-weight="900" fill="#fff" text-anchor="middle">J</text>
+          <text x="31" y="17" font-family="Arial Black,sans-serif"
+                font-size="10" font-weight="900" fill="#fff" text-anchor="middle">C</text>
+          <text x="50" y="17" font-family="Arial Black,sans-serif"
+                font-size="10" font-weight="900" fill="#fff" text-anchor="middle">B</text>
+        </svg>`
+      },
+      {
+        label: 'PromptPay',
+        svg: `<svg viewBox="0 0 80 26" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="22" height="20" rx="3" fill="#003d6e"/>
+          <text x="13" y="18" font-family="Arial Black,sans-serif"
+                font-size="11" font-weight="900" fill="#fff" text-anchor="middle">P</text>
+          <text x="55" y="18" font-family="Arial,sans-serif"
+                font-size="10" font-weight="700" fill="#003d6e" text-anchor="middle">PromptPay</text>
+        </svg>`
+      },
+      {
+        label: 'TrueMoney',
+        svg: `<svg viewBox="0 0 80 26" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="22" height="20" rx="4" fill="#ff6900"/>
+          <text x="13" y="18" font-family="Arial Black,sans-serif"
+                font-size="11" font-weight="900" fill="#fff" text-anchor="middle">T</text>
+          <text x="52" y="18" font-family="Arial,sans-serif"
+                font-size="9" font-weight="700" fill="#ff6900" text-anchor="middle">TrueMoney</text>
+        </svg>`
+      },
+      {
+        label: 'ShopeePay',
+        svg: `<svg viewBox="0 0 80 26" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="22" height="20" rx="4" fill="#ee4d2d"/>
+          <path d="M8,10 L18,10 L18,12 L10,12 L10,14 L17,14 L17,16 L10,16 L10,20 L8,20 Z"
+                fill="#fff"/>
+          <text x="52" y="18" font-family="Arial,sans-serif"
+                font-size="9" font-weight="700" fill="#ee4d2d" text-anchor="middle">ShopeePay</text>
+        </svg>`
+      }
+    ];
+
+    return items.map(it => `
+      <div title="${it.label} - เร็วๆ นี้" style="
+        position:relative;background:#fff;border:1px solid #e5e7eb;
+        border-radius:10px;padding:12px 6px;
+        display:flex;flex-direction:column;align-items:center;
+        justify-content:center;gap:4px;
+        opacity:.45;filter:grayscale(50%);
+        min-height:64px;cursor:not-allowed;
+      ">
+        <span style="
+          position:absolute;top:-6px;right:-4px;
+          background:#fef3c7;color:#92400e;
+          font-size:9px;font-weight:600;padding:2px 6px;
+          border-radius:8px;border:1px solid #fde68a;
+          white-space:nowrap;
+        ">เร็วๆ นี้</span>
+        <div style="
+          width:100%;height:24px;display:flex;
+          align-items:center;justify-content:center;
+        ">${it.svg}</div>
+        <span style="
+          font-size:10px;color:#94a3b8;font-weight:500;white-space:nowrap;
+        ">${it.label}</span>
+      </div>
+    `).join('');
+  }
+
+  function _bankSheetHtml(){
+    return `<div id="tuPwaBankSheet" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:500;align-items:flex-end;justify-content:center;padding-bottom:0;">
+  <div id="tuPwaBankSheetBox" style="background:#fff;width:100%;max-width:768px;max-height:92dvh;border-radius:20px 20px 0 0;overflow-y:auto;padding:8px 20px calc(24px + var(--safe-bot,0px));transform:translateY(100%);transition:transform .28s cubic-bezier(.16,1,.3,1);box-shadow:0 -10px 40px rgba(0,0,0,.2);position:relative;">
+    <div style="display:flex;justify-content:center;padding:8px 0 4px;">
+      <div style="width:40px;height:4px;background:#cbd5e1;border-radius:2px;"></div>
+    </div>
+    <button type="button" id="tuPwaBankSheetClose" aria-label="ปิด" style="position:absolute;top:14px;right:14px;width:36px;height:36px;border:none;border-radius:50%;background:#f3f4f6;color:#6b7280;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+    <div style="text-align:center;margin:8px 0 20px;">
+      <div style="font-size:32px;margin-bottom:8px;">🏦</div>
+      <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 6px;letter-spacing:-.01em;">รายละเอียดบัญชี</h2>
+      <p style="font-size:13px;color:#64748b;margin:0;">โอนเงินเข้าบัญชีนี้แล้วอัปโหลดสลิป</p>
+    </div>
+    <div id="tuPwaBankSheetContent"></div>
+    <div style="padding-top:4px;margin-bottom:20px;">
+      <button type="button" id="tuPwaBankSheetSelectBtn" style="width:100%;padding:14px;background:#0f172a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:.01em;">เลือกบัญชีนี้สำหรับโอนเงิน</button>
+    </div>
+    <div style="margin-top:4px;padding-top:20px;border-top:1px dashed #d1d5db;">
+      <div style="text-align:center;font-size:13px;color:#94a3b8;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <span style="flex:1;height:1px;background:#e5e7eb;"></span>
+        <span>หรือชำระผ่าน</span>
+        <span style="flex:1;height:1px;background:#e5e7eb;"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">${_tuPwaPaymentLogosHtml()}</div>
+    </div>
+  </div>
+</div>`;
+  }
+
+  // ─── Sheet open / close / render ─────────────────────────────────────────
+
+  function _renderBankSheet(bankId){
+    const b = _banks.find(x => x.id === bankId);
+    if (!b) return;
+
+    const isSelected = _selectedBank && _selectedBank.id === bankId;
+    const content = document.getElementById('tuPwaBankSheetContent');
+    const btn = document.getElementById('tuPwaBankSheetSelectBtn');
+    if (!content || !btn) return;
+
+    const origin = window.location.origin;
+
+    const branchRow = b.branch ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eef2f7;gap:12px;">
+        <span style="font-size:14px;color:#64748b;">สาขา</span>
+        <span style="font-size:15px;font-weight:600;color:#0f172a;">${esc(b.branch)}</span>
+      </div>
+    ` : '';
+
+    const qrSection = b.qr_url ? `
+      <div style="text-align:center;margin-top:18px;padding-top:18px;border-top:1px solid #e5e7eb;">
+        <img src="${origin}${esc(b.qr_url)}" alt="QR ${esc(b.bank_name||b.bank_code)}" style="width:280px;max-width:80vw;aspect-ratio:1;object-fit:contain;border:2px solid #fff;border-radius:12px;background:#fff;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.08);">
+        <div style="font-size:13px;color:#64748b;margin-top:10px;">สแกนผ่านแอปธนาคารเพื่อโอนเงิน</div>
+      </div>
+    ` : '';
+
+    const defBadge = b.is_default
+      ? ' <span style="font-size:10px;color:#92400e;background:#fef3c7;padding:1px 7px;border-radius:6px;margin-left:6px;">⭐ หลัก</span>'
+      : '';
+
+    content.innerHTML = `
+      <div style="background:linear-gradient(180deg,#fafbfc 0%,#fff 60%);border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:17px;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+          ${bankDisplay(b)}${defBadge}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eef2f7;gap:12px;">
+          <div>
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">เลขบัญชี</div>
+            <div id="tuPwaBankSheetAcct" style="font-size:18px;font-weight:700;color:#0f172a;font-family:var(--font-mono,monospace);letter-spacing:.05em;">${esc(b.account_no)}</div>
+          </div>
+          <button id="tuPwaBankSheetCopyBtn" data-acct="${esc(b.account_no)}" type="button" style="padding:7px 14px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;">คัดลอก</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eef2f7;gap:12px;">
+          <span style="font-size:14px;color:#64748b;">ชื่อบัญชี</span>
+          <span style="font-size:15px;font-weight:600;color:#0f172a;">${esc(b.account_name)}</span>
+        </div>
+        ${branchRow}
+        ${qrSection}
+      </div>
+    `;
+
+    // Select button state
+    if (isSelected) {
+      btn.style.background = '#10b981';
+      btn.textContent = '✓ เลือกแล้ว';
+    } else {
+      btn.style.background = '#0f172a';
+      btn.textContent = 'เลือกบัญชีนี้สำหรับโอนเงิน';
+    }
+
+    btn.onclick = () => {
+      window.tuPwaPickBank(bankId);
+      _closeBankSheet();
+      toast('✓ เลือกบัญชีแล้ว');
+    };
+
+    // Copy button
+    const copyBtn = document.getElementById('tuPwaBankSheetCopyBtn');
+    if (copyBtn) {
+      copyBtn.onclick = async function(){
+        const acct = this.dataset.acct;
+        try {
+          await navigator.clipboard.writeText(acct);
+          this.textContent = '✓ คัดลอกแล้ว';
+          this.style.background = '#d1fae5';
+          this.style.borderColor = '#10b981';
+          this.style.color = '#065f46';
+          setTimeout(() => {
+            this.textContent = 'คัดลอก';
+            this.style.background = '#fff';
+            this.style.borderColor = '#d1d5db';
+            this.style.color = '#374151';
+          }, 1500);
+        } catch(_){
+          const el = document.getElementById('tuPwaBankSheetAcct');
+          if (el) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      };
+    }
+  }
+
+  function _tuPwaEscHandler(e){
+    if (e.key === 'Escape') {
+      const sheet = document.getElementById('tuPwaBankSheet');
+      if (sheet && sheet.style.display === 'flex') _closeBankSheet();
+    }
+  }
+
+  function _openBankSheet(bankId){
+    _renderBankSheet(bankId);
+    const sheet = document.getElementById('tuPwaBankSheet');
+    const box = document.getElementById('tuPwaBankSheetBox');
+    if (!sheet || !box) return;
+    sheet.style.display = 'flex';
+    void sheet.offsetWidth; // force reflow
+    requestAnimationFrame(() => { box.style.transform = 'translateY(0)'; });
+    document.body.style.overflow = 'hidden';
+  }
+
+  function _closeBankSheet(){
+    const sheet = document.getElementById('tuPwaBankSheet');
+    const box = document.getElementById('tuPwaBankSheetBox');
+    if (!sheet || !box) return;
+    box.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+      if (_destroyed) return;
+      sheet.style.display = 'none';
+      document.body.style.overflow = '';
+    }, 280);
+  }
+
+  window.tuPwaShowBankDetail = _openBankSheet;
+
+  // ─── Tier / Bank renderers ────────────────────────────────────────────────
+
   function _renderTiers(){
     const w = document.getElementById('tuTierWrap');
     if(!w) return;
@@ -170,11 +435,11 @@
       const id = esc(b.id);
       const branch = b.branch ? '<div style="font-size:10.5px;color:var(--muted);margin-top:2px">สาขา: '+esc(b.branch)+'</div>' : '';
       const qr = b.qr_url
-        ? '<img src="'+esc(b.qr_url)+'" onclick="event.stopPropagation();window.open(this.src,\'_blank\')" style="width:48px;height:48px;border:1px solid var(--bdr);border-radius:6px;background:#fff;object-fit:contain;cursor:zoom-in"/>'
+        ? '<img src="'+esc(b.qr_url)+'" onclick="event.stopPropagation();window.tuPwaShowBankDetail(\''+id+'\')" style="width:48px;height:48px;border:1px solid var(--bdr);border-radius:6px;background:#fff;object-fit:contain;cursor:zoom-in"/>'
         : '';
       const def = b.is_default ? ' <span style="font-size:9.5px;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px;margin-left:4px">⭐</span>' : '';
       return ''
-        + '<div onclick="window.tuPwaPickBank(\''+id+'\')" '
+        + '<div onclick="window.tuPwaShowBankDetail(\''+id+'\')" '
         +   'style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;'
         +   'background:'+(sel?'#fffbeb':'var(--card)')+';'
         +   'border:'+(sel?'2px':'1px')+' solid '+(sel?'var(--gold)':'var(--bdr)')+';'
