@@ -108,6 +108,20 @@
     .plan-price.free{ color:#16a34a; font-size:14px; }
     .plan-unit{ font-size:11px; color:var(--muted); }
 
+    /* ── PAYMENT CTA ── */
+    .payment-cta{
+      padding:28px 40px; text-align:center;
+      border-bottom:1px solid var(--border); background:var(--bg);
+    }
+    .payment-cta-btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:11px 26px; border-radius:10px; font-size:14px; font-weight:700;
+      background:#dcfce7; color:#15803d;
+      border:1.5px solid #86efac; text-decoration:none; transition:all .15s;
+    }
+    .payment-cta-btn:hover{ background:#bbf7d0; border-color:#4ade80; }
+    .payment-cta-icon{ font-size:16px; }
+
     /* ── CTA BOTTOM ── */
     .cta-bottom{ padding:70px 40px; text-align:center; }
     .cta-inner{
@@ -245,6 +259,14 @@
     </div>
   </div>
 
+  <!-- PAYMENT CTA -->
+  <div class="payment-cta">
+    <a class="payment-cta-btn" href="/payment">
+      <span class="payment-cta-icon">💳</span>
+      ดูวิธีชำระเงินและเติมเครดิต
+    </a>
+  </div>
+
   <!-- CTA BOTTOM -->
   <div class="cta-bottom">
     <div class="cta-inner">
@@ -258,7 +280,7 @@
   <footer>
     <span class="f-logo">ViiV Platform</span>
     <span>AI-Powered Sales Automation · viiv.me · v0.1.0</span>
-    <span class="f-legal"><a href="/privacy">นโยบายความเป็นส่วนตัว</a><span class="f-sep">·</span><a href="/terms">เงื่อนไขการใช้บริการ</a><span class="f-sep">·</span><a href="/data-deletion">การลบข้อมูล</a></span>
+    <span class="f-legal"><a href="/privacy">นโยบายความเป็นส่วนตัว</a><span class="f-sep">·</span><a href="/terms">เงื่อนไขการใช้บริการ</a><span class="f-sep">·</span><a href="/data-deletion">การลบข้อมูล</a><span class="f-sep">·</span><a href="/payment">วิธีชำระเงิน</a></span>
   </footer>
 
 </body>
