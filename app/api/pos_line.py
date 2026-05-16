@@ -566,7 +566,8 @@ import logging
 import httpx as _httpx
 _log = logging.getLogger("pos_line")
 
-CHAT_FORWARD_URL = "http://localhost:8003/chat/webhook/line/platform"
+CHAT_URL = os.getenv("CHAT_URL", "http://localhost:8003")
+CHAT_FORWARD_URL = f"{CHAT_URL}/chat/webhook/line/platform"
 
 
 async def _forward_to_chat_module(body: bytes, signature: str) -> None:
