@@ -174,6 +174,9 @@ def get_settings(authorization: str = Header("")):
         except Exception:
             ctx = {}
     ai_constraints = ctx.get("constraints", "") if isinstance(ctx, dict) else ""
+    ai_do_text     = ctx.get("do_text",     "") if isinstance(ctx, dict) else ""
+    ai_dont_text   = ctx.get("dont_text",   "") if isinstance(ctx, dict) else ""
+    ai_safety_text = ctx.get("safety_text", "") if isinstance(ctx, dict) else ""
 
     return {
         "tenant_id": m["id"],
@@ -195,8 +198,11 @@ def get_settings(authorization: str = Header("")):
             "remaining": max(credit_total - credit_used, 0),
         },
         "ai": {
-            "persona": m.get("ai_persona") or "friendly-female",
-            "constraints": ai_constraints,
+            "persona":      m.get("ai_persona") or "friendly-female",
+            "constraints":  ai_constraints,
+            "do_text":      ai_do_text,
+            "dont_text":    ai_dont_text,
+            "safety_text":  ai_safety_text,
         },
         "biz_type": {
             "l1": m.get("biz_type_l1") or "",
@@ -209,13 +215,16 @@ def get_settings(authorization: str = Header("")):
 
 
 class SettingsIn(BaseModel):
-    ai_persona: Optional[str] = None
+    ai_persona:    Optional[str] = None
     ai_constraints: Optional[str] = None
-    bio: Optional[str] = None
-    biz_type_l1: Optional[str] = None
-    biz_type_l2: Optional[str] = None
-    biz_type_l3: Optional[str] = None
-    biz_custom: Optional[str] = None
+    do_text:       Optional[str] = None
+    dont_text:     Optional[str] = None
+    safety_text:   Optional[str] = None
+    bio:           Optional[str] = None
+    biz_type_l1:   Optional[str] = None
+    biz_type_l2:   Optional[str] = None
+    biz_type_l3:   Optional[str] = None
+    biz_custom:    Optional[str] = None
 
 
 @router.put("/settings")
@@ -243,6 +252,39 @@ def put_settings(payload: SettingsIn, authorization: str = Header("")):
                 )
                 WHERE id = :tid
             """), {"v": payload.ai_constraints, "tid": tid})
+
+        if payload.do_text is not None:
+            c.execute(text("""
+                UPDATE tenants
+                SET ai_context = jsonb_set(
+                    COALESCE(ai_context, '{}'::jsonb),
+                    '{do_text}',
+                    to_jsonb(CAST(:v AS text))
+                )
+                WHERE id = :tid
+            """), {"v": payload.do_text, "tid": tid})
+
+        if payload.dont_text is not None:
+            c.execute(text("""
+                UPDATE tenants
+                SET ai_context = jsonb_set(
+                    COALESCE(ai_context, '{}'::jsonb),
+                    '{dont_text}',
+                    to_jsonb(CAST(:v AS text))
+                )
+                WHERE id = :tid
+            """), {"v": payload.dont_text, "tid": tid})
+
+        if payload.safety_text is not None:
+            c.execute(text("""
+                UPDATE tenants
+                SET ai_context = jsonb_set(
+                    COALESCE(ai_context, '{}'::jsonb),
+                    '{safety_text}',
+                    to_jsonb(CAST(:v AS text))
+                )
+                WHERE id = :tid
+            """), {"v": payload.safety_text, "tid": tid})
 
         if payload.bio is not None:
             c.execute(text("UPDATE tenants SET bio=:v WHERE id=:tid"),
