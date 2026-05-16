@@ -77,14 +77,11 @@ def get_brain_prompt(
     slot: str,
     brain_group: str = "customer",
     subs: dict | None = None,
-    return_prohibit: bool = False,
-) -> "str | None | tuple[str | None, str]":
+) -> "tuple[str | None, str]":
     """
     อ่าน base_text + custom_text + prohibit_text + active patches จาก ai_prompts
-    compose เป็น final prompt แล้ว return
-
-    return_prohibit=False (default) → return str | None  (backward compat)
-    return_prohibit=True            → return (str | None, prohibit_text: str)
+    คืน (prompt: str | None, prohibit_text: str) เสมอ
+    prompt=None หมายถึง caller ใช้ persona fallback
     """
     try:
         with psycopg2.connect(DB_URL) as conn:
@@ -95,14 +92,14 @@ def get_brain_prompt(
                 )
                 row = cur.fetchone()
                 if not row:
-                    return (None, "") if return_prohibit else None
+                    return (None, "")
 
                 base = (row["base_text"] or "").strip()
                 custom = (row["custom_text"] or "").strip()
                 prohibit = (row["prohibit_text"] or "").strip()
 
                 if base.startswith("[TODO"):
-                    return (None, prohibit) if return_prohibit else None
+                    return (None, prohibit)
 
                 cur.execute(
                     """
@@ -129,8 +126,8 @@ def get_brain_prompt(
                     for k, v in subs.items():
                         result = result.replace("{" + k + "}", str(v) if v is not None else "")
 
-                return (result, prohibit) if return_prohibit else result
+                return (result, prohibit)
 
     except Exception as e:
         print(f"[moduleai.db] get_brain_prompt({slot}) error: {e}")
-        return (None, "") if return_prohibit else None
+        return (None, "")

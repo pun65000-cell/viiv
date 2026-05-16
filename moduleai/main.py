@@ -101,7 +101,7 @@ def chat(payload: ChatIn):
         "tenant_name": payload.store_name or "ร้านค้า",
     }
     brain_prompt, prohibit_text = get_brain_prompt(
-        payload.slot or "chat_bot", subs=subs, return_prohibit=True
+        payload.slot or "chat_bot", subs=subs
     )
 
     if brain_prompt:
