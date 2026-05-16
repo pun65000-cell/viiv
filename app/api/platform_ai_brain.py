@@ -82,6 +82,7 @@ def _user_id(payload: dict) -> str:
 class PromptSaveBody(BaseModel):
     base_text: Optional[str] = None
     custom_text: Optional[str] = None
+    prohibit_text: Optional[str] = None
     notes: Optional[str] = ""
 
 
@@ -161,7 +162,7 @@ def list_prompts(authorization: str = Header(None)):
     _admin_auth(authorization)
     with engine.connect() as conn:
         rows = conn.execute(text("""
-            SELECT slot, base_text, custom_text, current_version, updated_at, updated_by
+            SELECT slot, base_text, custom_text, prohibit_text, current_version, updated_at, updated_by
             FROM ai_prompts ORDER BY slot
         """)).fetchall()
     return {
@@ -170,6 +171,7 @@ def list_prompts(authorization: str = Header(None)):
                 "slot": r.slot,
                 "base_text": r.base_text,
                 "custom_text": r.custom_text,
+                "prohibit_text": r.prohibit_text or "",
                 "current_version": r.current_version,
                 "updated_at": r.updated_at.isoformat() if r.updated_at else None,
                 "updated_by": r.updated_by,
@@ -188,7 +190,7 @@ def get_prompt(slot: str, authorization: str = Header(None)):
     _validate_slot(slot)
     with engine.connect() as conn:
         row = conn.execute(text("""
-            SELECT slot, base_text, custom_text, current_version, updated_at, updated_by
+            SELECT slot, base_text, custom_text, prohibit_text, current_version, updated_at, updated_by
             FROM ai_prompts WHERE slot=:s
         """), {"s": slot}).fetchone()
         if not row:
@@ -202,6 +204,7 @@ def get_prompt(slot: str, authorization: str = Header(None)):
         "slot": row.slot,
         "base_text": row.base_text,
         "custom_text": row.custom_text,
+        "prohibit_text": row.prohibit_text or "",
         "current_version": row.current_version,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
         "updated_by": row.updated_by,
@@ -231,11 +234,14 @@ def save_prompt(slot: str, body: PromptSaveBody, authorization: str = Header(Non
 
     new_base = body.base_text
     new_custom = body.custom_text
+    new_prohibit = body.prohibit_text
 
     if new_base is not None and len(new_base) > 10000:
         raise HTTPException(400, "base_text too long (max 10000)")
     if new_custom is not None and len(new_custom) > 10000:
         raise HTTPException(400, "custom_text too long (max 10000)")
+    if new_prohibit is not None and len(new_prohibit) > 5000:
+        raise HTTPException(400, "prohibit_text too long (max 5000)")
 
     user = _user_id(payload)
 
@@ -280,6 +286,9 @@ def save_prompt(slot: str, body: PromptSaveBody, authorization: str = Header(Non
         if new_custom is not None:
             sets.append("custom_text=:c")
             params["c"] = new_custom
+        if new_prohibit is not None:
+            sets.append("prohibit_text=:p")
+            params["p"] = new_prohibit
         conn.execute(text(f"""
             UPDATE ai_prompts SET {', '.join(sets)} WHERE slot=:s
         """), params)

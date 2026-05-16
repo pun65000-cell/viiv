@@ -316,6 +316,19 @@
     </div>
   </div>
 
+  <!-- PLATFORM PROHIBITION (ZONE 4) -->
+  <div class="brn-card" style="border-left:4px solid #c62828">
+    <div class="brn-card-head">
+      <span class="brn-card-title">&#x1F6E1;&#xFE0F; ข้อห้ามระดับแพลตฟอร์ม (ทุกร้าน)</span>
+      <span class="brn-card-meta"><span id="brn-prohibit-chars">0</span> chars</span>
+    </div>
+    <div style="font-size:12px;color:var(--color-text-tertiary,#999);margin-bottom:8px">AI ห้ามทำสิ่งเหล่านี้เด็ดขาด ทุกร้าน ทุกกรณี (ZONE 4 — ลำดับสูงสุด)</div>
+    <textarea class="brn-textarea" id="brn-prohibit-text" style="min-height:110px;border-color:#ef9a9a" placeholder="ห้ามรับชำระเงินผ่านแชท&#10;ห้ามอ้างเป็น LINE หรือแพลตฟอร์มอื่น&#10;ห้ามให้คำแนะนำกฎหมาย/การแพทย์เกินขอบเขตร้าน&#10;ห้ามแต่งข้อมูลสินค้า/ราคาที่ไม่มีจริง"></textarea>
+    <div class="brn-actions">
+      <button class="brn-btn brn-btn-primary" id="brn-prohibit-save" type="button" style="background:#c62828;border-color:#c62828">บันทึก</button>
+    </div>
+  </div>
+
   <!-- PATCHES -->
   <div class="brn-card">
     <div class="brn-card-head">
@@ -464,9 +477,11 @@ async function DEL(path){
 function updateCounters(){
   const b=document.getElementById('brn-base-text').value;
   const c=document.getElementById('brn-custom-text').value;
+  const p=document.getElementById('brn-prohibit-text').value;
   document.getElementById('brn-base-chars').textContent=b.length;
   document.getElementById('brn-base-tokens').textContent=estTokens(b);
   document.getElementById('brn-custom-chars').textContent=c.length;
+  document.getElementById('brn-prohibit-chars').textContent=p.length;
 }
 
 function renderSlotTabs(){
@@ -489,6 +504,7 @@ function renderData(){
   if(!_data)return;
   document.getElementById('brn-base-text').value=_data.base_text||'';
   document.getElementById('brn-custom-text').value=_data.custom_text||'';
+  document.getElementById('brn-prohibit-text').value=_data.prohibit_text||'';
   document.getElementById('brn-base-meta').textContent=
     'v.'+_data.current_version+' · '+fmtDate(_data.updated_at)+
     (_data.updated_by?' · '+_data.updated_by:'');
@@ -688,6 +704,17 @@ async function saveCustom(){
   finally{btn.disabled=false;}
 }
 
+async function saveProhibit(){
+  const btn=document.getElementById('brn-prohibit-save');
+  btn.disabled=true;
+  try{
+    await PUT('/'+_slot,{prohibit_text:document.getElementById('brn-prohibit-text').value,notes:'Edit prohibit via UI'});
+    toast('บันทึก prohibit เรียบร้อย','success');
+    await loadSlot(_slot);
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'error');}
+  finally{btn.disabled=false;}
+}
+
 async function refreshPreview(){
   try{
     const r=await POST('/'+_slot+'/preview',{});
@@ -775,9 +802,11 @@ document.querySelectorAll('.brn-gtab').forEach(btn=>{
 });
 document.getElementById('brn-base-text').addEventListener('input',updateCounters);
 document.getElementById('brn-custom-text').addEventListener('input',updateCounters);
+document.getElementById('brn-prohibit-text').addEventListener('input',updateCounters);
 document.getElementById('brn-base-save').addEventListener('click',saveBase);
 document.getElementById('brn-base-revert').addEventListener('click',()=>{if(_data)document.getElementById('brn-base-text').value=_data.base_text||'';updateCounters();});
 document.getElementById('brn-custom-save').addEventListener('click',saveCustom);
+document.getElementById('brn-prohibit-save').addEventListener('click',saveProhibit);
 document.getElementById('brn-preview-refresh').addEventListener('click',refreshPreview);
 document.getElementById('brn-test-run').addEventListener('click',runTest);
 document.getElementById('brn-version-refresh').addEventListener('click',loadVersions);
