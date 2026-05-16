@@ -132,10 +132,63 @@
         <select class="ss-input" id="ssPersona" onchange="ssMarkDirty()"></select>
       </div>
       <div class="ss-field" style="margin-top:14px;">
-        <label class="ss-label">ข้อจำกัด/แนวทางการตอบ (ใส่เพื่อให้ AI ตอบในแนวที่ต้องการ)</label>
-        <textarea class="ss-input" id="ssConstraints" rows="5" style="resize:vertical;font-family:inherit;" oninput="ssMarkDirty()" placeholder="เช่น ห้ามรับประกันราคา / ไม่ยืนยันสต็อกถ้าไม่มีในระบบ / ใช้คำสุภาพ ไม่ทักทายซ้ำ"></textarea>
-        <div style="font-size:0.72rem;color:#888;margin-top:5px;">💡 ข้อความนี้จะถูกใส่ใน system prompt ของ AI ทุกครั้งที่ตอบ</div>
+        <label class="ss-label">โทนการตอบ (ข้อจำกัด/แนวทางการตอบ)</label>
+        <textarea class="ss-input" id="ssConstraints" rows="4" style="resize:vertical;font-family:inherit;" oninput="ssMarkDirty()" placeholder="เช่น ตอบสั้นๆ ไม่ใช้อิโมจิ / ใช้คำสุภาพ / ไม่ทักทายซ้ำ"></textarea>
+        <div style="font-size:0.72rem;color:#888;margin-top:5px;">กำหนดน้ำเสียง/สไตล์การพูดโดยรวม</div>
       </div>
+
+      <!-- GREEN box: do_text -->
+      <div style="background:#e8f5e9;border:1px solid #66bb6a;border-radius:8px;padding:14px;margin-top:14px;">
+        <div style="font-weight:600;font-size:14px;color:#2e7d32;margin-bottom:4px;">🟢 สิ่งที่อยากให้ AI ช่วยทำ</div>
+        <div style="font-size:13px;color:#555;margin-bottom:8px;">บอกสิ่งที่อยากให้ผู้ช่วยทำ ยิ่งบอกชัด ยิ่งตรงใจ</div>
+        <textarea id="ssDoText" maxlength="1000" rows="4"
+          style="width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:12px;border-radius:8px;border:1px solid #c8e6c9;resize:vertical;background:#fff;"
+          oninput="ssMarkDirty();ssUpdateCount('ssDoText','ssDoCount')"
+          placeholder="เช่น:&#10;- ช่วยปิดการขาย เน้นส่ง QR PromptPay ให้ลูกค้าโอน&#10;- แนะนำสินค้าใกล้เคียงถ้าของที่ถามหมด&#10;- ทักทายอบอุ่นเป็นกันเอง"></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:12px;color:#666;">ตัวอย่าง: "เน้นปิดการขายเร็ว" / "แนะนำโปรเสมอ" / "ถ้าลูกค้าลังเล ให้เสนอส่วนลด"</span>
+          <span id="ssDoCount" style="font-size:12px;color:#888;white-space:nowrap;margin-left:8px;">0 / 1000</span>
+        </div>
+      </div>
+
+      <!-- RED box: dont_text -->
+      <div style="background:#ffebee;border:1px solid #ef5350;border-radius:8px;padding:14px;margin-top:14px;">
+        <div style="font-weight:600;font-size:14px;color:#c62828;margin-bottom:4px;">🔴 สิ่งที่ห้าม AI ทำ / เงื่อนไขพิเศษ</div>
+        <div style="font-size:13px;color:#555;margin-bottom:8px;">ข้อจำกัด หรือเงื่อนไขที่ต้องเปลี่ยนวิธีตอบ</div>
+        <textarea id="ssDontText" maxlength="1000" rows="4"
+          style="width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:12px;border-radius:8px;border:1px solid #ffcdd2;resize:vertical;background:#fff;"
+          oninput="ssMarkDirty();ssUpdateCount('ssDontText','ssDontCount')"
+          placeholder="เช่น:&#10;- สินค้าเกิน 10000 บาท: ไม่ต้องปิดการขายเอง ให้แจ้งว่าพนักงานติดต่อกลับ&#10;- อาหารสด: จัดส่งรถควบคุมอุณหภูมิเท่านั้น&#10;- ห้ามรับชำระปลายทาง (COD)"></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:12px;color:#666;">ตัวอย่าง: "ห้ามรับ COD" / "ห้ามสัญญาวันจัดส่ง" / "สินค้าพรีออเดอร์ ห้ามบอกว่ามีของพร้อมส่ง"</span>
+          <span id="ssDontCount" style="font-size:12px;color:#888;white-space:nowrap;margin-left:8px;">0 / 1000</span>
+        </div>
+      </div>
+
+      <!-- SHIELD box: safety_text -->
+      <div style="background:#fff8e1;border:1px solid #ffa726;border-radius:8px;padding:14px;margin-top:14px;">
+        <div style="font-weight:600;font-size:14px;color:#ef6c00;margin-bottom:4px;">🛡️ ประกาศความปลอดภัย (สินค้าที่ร้านไม่สนับสนุน)</div>
+        <div style="font-size:13px;color:#555;margin-bottom:8px;">ระบุประเภทสินค้า/บริการที่ร้านไม่ขายเด็ดขาด AI จะปฏิเสธทันทีและส่งต่อพนักงาน</div>
+        <textarea id="ssSafetyText" maxlength="1000" rows="3"
+          style="width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:12px;border-radius:8px;border:1px solid #ffe0b2;resize:vertical;background:#fff;"
+          oninput="ssMarkDirty();ssUpdateCount('ssSafetyText','ssSafetyCount')"
+          placeholder="เช่น: ยารักษาโรค, อาวุธ, ของผิดกฎหมาย, สินค้าละเมิดลิขสิทธิ์"></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:12px;color:#e65100;font-weight:500;">ช่องนี้สำคัญทางกฎหมาย ระบุชัดเพื่อคุ้มครองร้าน AI จะไม่ให้ข้อมูล/ไม่ปิดการขายสินค้ากลุ่มนี้ทุกกรณี</span>
+          <span id="ssSafetyCount" style="font-size:12px;color:#888;white-space:nowrap;margin-left:8px;">0 / 1000</span>
+        </div>
+      </div>
+
+      <!-- collapsible: ทำไมต้องแยก 3 ช่อง -->
+      <details style="margin-top:12px;border:1px solid #e0e0e0;border-radius:8px;padding:10px 14px;background:#fafafa;">
+        <summary style="font-size:13px;font-weight:600;color:#555;cursor:pointer;">ℹ️ ทำไมต้องแยก 3 ช่อง?</summary>
+        <div style="font-size:12px;color:#444;line-height:1.7;margin-top:8px;">
+          <b style="color:#2e7d32;">🟢 เขียว</b> = AI <i>พยายามทำ</i> ตามที่บอก<br>
+          <b style="color:#c62828;">🔴 แดง</b> = AI <i>ไม่ทำ</i> หรือเปลี่ยนวิธีตามเงื่อนไข<br>
+          <b style="color:#ef6c00;">🛡️ ส้ม</b> = AI <i>ปฏิเสธเด็ดขาด</i> + ส่งต่อพนักงาน (ระดับกฎหมาย)<br><br>
+          แยกชัด = AI ทำงานแม่นยำ ไม่สับสน ลูกค้าเข้าใจง่าย
+        </div>
+      </details>
     </div>
 
     <!-- Bottom save bar -->
@@ -162,9 +215,55 @@
           <div style="font-weight:700;font-size:0.92rem;margin:0 0 4px;">🎭 บุคลิก AI</div>
           <div style="font-size:0.83rem;color:#444;line-height:1.55;">เลือกบุคลิกที่เหมาะกับแบรนด์ของคุณ ลูกค้าจะรู้สึกเป็นธรรมชาติ ไม่เหมือนคุยกับบอท เพิ่มโอกาสปิดการขายได้มากขึ้น</div>
         </div>
+
+        <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:10px;padding:13px 15px;">
+          <div style="font-weight:700;font-size:0.92rem;margin:0 0 6px;">💡 ข้อดีของการแยก 3 ช่อง</div>
+          <div style="font-size:0.83rem;color:#444;line-height:1.6;">
+            ถ้าใส่รวมช่องเดียว AI จะสับสนว่า "อยากให้ทำ" หรือ "ห้ามทำ"<br>
+            แยก 3 ช่อง = AI เข้าใจเจตนาชัด ตอบแม่นยำขึ้น
+          </div>
+        </div>
+
+        <div style="background:#e8f5e9;border:1px solid #66bb6a;border-radius:10px;padding:13px 15px;">
+          <div style="font-weight:700;font-size:0.92rem;color:#2e7d32;margin:0 0 6px;">🟢 ช่องเขียว — สิ่งที่อยากให้ทำ</div>
+          <div style="font-size:0.83rem;color:#444;line-height:1.6;">ใส่พฤติกรรมเชิงบวกที่อยากให้ AI แสดง<br>
+            <span style="color:#555;">
+              ร้านอาหาร: "แนะนำเมนูขายดี ถามจำนวนคน เสนอเครื่องดื่มคู่"<br>
+              ร้านเสื้อผ้า: "ถามไซส์ แนะนำ mix and match เสนอโปรซื้อคู่"<br>
+              ร้านของชำ: "เสนอซื้อยกแพ็คคุ้มกว่า แจ้งโปรประจำสัปดาห์"
+            </span>
+          </div>
+        </div>
+
+        <div style="background:#ffebee;border:1px solid #ef5350;border-radius:10px;padding:13px 15px;">
+          <div style="font-weight:700;font-size:0.92rem;color:#c62828;margin:0 0 6px;">🔴 ช่องแดง — ห้ามทำ/เงื่อนไข</div>
+          <div style="font-size:0.83rem;color:#444;line-height:1.6;">ใส่ข้อห้าม หรือเงื่อนไข "ถ้า...ให้..."<br>
+            <span style="color:#555;">
+              "สินค้าราคาสูง (เกิน 10000): ไม่ปิดการขายเอง ให้พนักงานติดต่อ"<br>
+              "ของพรีออเดอร์: แจ้งรอบจัดส่งชัดเจน ห้ามบอกมีพร้อมส่ง"<br>
+              "ห้ามรับชำระปลายทาง (COD)"
+            </span>
+          </div>
+        </div>
+
+        <div style="background:#fff8e1;border:1px solid #ffa726;border-radius:10px;padding:13px 15px;">
+          <div style="font-weight:700;font-size:0.92rem;color:#ef6c00;margin:0 0 6px;">🛡️ ช่องส้ม — ประกาศความปลอดภัย</div>
+          <div style="font-size:0.83rem;color:#444;line-height:1.6;">
+            ใส่ประเภทสินค้าที่ร้าน "ไม่ขายเด็ดขาด" — สำคัญทางกฎหมาย<br>
+            ถ้าลูกค้าพยายามถามสินค้ากลุ่มนี้ (แม้เลี่ยงคำ) AI จะปฏิเสธ + ส่งต่อพนักงานทันที<br>
+            <span style="color:#e65100;">"ยา/อาหารเสริมที่ต้องมีใบอนุญาต"<br>"สินค้าผิดกฎหมาย อาวุธ ของเลียนแบบ"</span><br><br>
+            ช่องนี้ = หลักฐานว่าร้านประกาศชัด ไม่สนับสนุน คุ้มครองทั้งร้านและระบบ
+          </div>
+        </div>
+
         <div style="background:#fafafa;border:1px solid #ececec;border-radius:10px;padding:13px 15px;">
-          <div style="font-weight:700;font-size:0.92rem;margin:0 0 4px;">📝 รายละเอียดพิเศษ</div>
-          <div style="font-size:0.83rem;color:#444;line-height:1.55;">ใส่ข้อมูลที่ AI ควรรู้ เช่น เวลาเปิด-ปิด โปรโมชั่น เงื่อนไขพิเศษ AI ตอบได้แม่นขึ้นทันที ลด token ที่ใช้ต่อการสนทนา</div>
+          <div style="font-weight:700;font-size:0.92rem;margin:0 0 6px;">📋 คำแนะนำทั่วไป</div>
+          <div style="font-size:0.83rem;color:#444;line-height:1.7;">
+            • เขียนเป็นข้อๆ ขึ้นบรรทัดใหม่ อ่านง่าย<br>
+            • ระบุให้ชัด: "เกิน 10000 บาท" ดีกว่า "ของแพง"<br>
+            • ถ้าเขียวกับแดงขัดกัน → AI ยึดแดงก่อน (ปลอดภัยไว้ก่อน)<br>
+            • ไม่ต้องกังวลเรื่องเทคนิค เขียนภาษาคนปกติ AI เข้าใจเอง
+          </div>
         </div>
       </div>
 
@@ -345,6 +444,12 @@ function populateFields(){
   document.getElementById('ssLogoImg').src = _state.logo_url || LOGO_PLACEHOLDER;
   document.getElementById('ssLogoImg').onerror = function(){ this.onerror=null; this.src=LOGO_PLACEHOLDER; };
   document.getElementById('ssConstraints').value = (_state.ai && _state.ai.constraints) || '';
+  document.getElementById('ssDoText').value     = (_state.ai && _state.ai.do_text)     || '';
+  document.getElementById('ssDontText').value   = (_state.ai && _state.ai.dont_text)   || '';
+  document.getElementById('ssSafetyText').value = (_state.ai && _state.ai.safety_text) || '';
+  ssUpdateCount('ssDoText','ssDoCount');
+  ssUpdateCount('ssDontText','ssDontCount');
+  ssUpdateCount('ssSafetyText','ssSafetyCount');
 
   var pkg = _state.package || {};
   document.getElementById('ssPkgName').textContent = pkg.name || pkg.id || 'ฟรี';
@@ -387,7 +492,7 @@ function fmtDate(iso){
 function applyPermissions(){
   var ro = !_canEdit;
   document.getElementById('ssRoBanner').style.display = ro ? 'block' : 'none';
-  ['ssStoreName','ssBio','ssBizL1','ssBizL2','ssBizL3','ssBizCustom','ssPersona','ssConstraints'].forEach(function(id){
+  ['ssStoreName','ssBio','ssBizL1','ssBizL2','ssBizL3','ssBizCustom','ssPersona','ssConstraints','ssDoText','ssDontText','ssSafetyText'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.disabled = ro;
   });
@@ -407,6 +512,12 @@ window.ssMarkDirty = function(){
   document.getElementById('ssSaveBtn').disabled = false;
   var bb = document.getElementById('ssSaveBtnBottom');
   if (bb) bb.disabled = false;
+};
+
+window.ssUpdateCount = function(taId, countId){
+  var ta = document.getElementById(taId);
+  var sp = document.getElementById(countId);
+  if (ta && sp) sp.textContent = ta.value.length + ' / 1000';
 };
 
 window.ssOpenLearn = function(){
@@ -467,8 +578,11 @@ window.ssSave = async function(){
     // 1. Save AI/biz/bio fields ผ่าน /api/tenant/settings (เสมอ)
     var l3 = document.getElementById('ssBizL3').value || null;
     var aiBody = {
-      ai_persona: document.getElementById('ssPersona').value,
+      ai_persona:    document.getElementById('ssPersona').value,
       ai_constraints: document.getElementById('ssConstraints').value,
+      do_text:       document.getElementById('ssDoText').value,
+      dont_text:     document.getElementById('ssDontText').value,
+      safety_text:   document.getElementById('ssSafetyText').value,
       bio: document.getElementById('ssBio').value,
       biz_type_l1: document.getElementById('ssBizL1').value || null,
       biz_type_l2: document.getElementById('ssBizL2').value || null,
