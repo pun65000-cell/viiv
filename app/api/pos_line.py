@@ -11,6 +11,7 @@ from app.core.db import engine
 router = APIRouter()
 
 JWT_SECRET = os.getenv("JWT_SECRET", "")
+AI_URL = os.getenv("AI_URL", "http://localhost:8002")
 
 def _new_id(prefix):
     rand = "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
@@ -146,7 +147,7 @@ def _ai_reply(message_text: str, tenant_id: str, conv_id: str) -> str | None:
         import httpx as _httpx
         with _httpx.Client(timeout=8.0) as hc:
             r = hc.post(
-                "http://localhost:8002/chat",
+                f"{AI_URL}/chat",
                 json={
                     "message":   message_text,
                     "slot":      "chat_bot",
@@ -233,7 +234,7 @@ def _ai_push_reply(
         # 1. เรียก AI (timeout 25s — push ไม่มี deadline)
         with _httpx.Client(timeout=25.0) as hc:
             r = hc.post(
-                "http://localhost:8002/chat",
+                f"{AI_URL}/chat",
                 json={
                     "message":     message_text,
                     "slot":        "chat_bot",

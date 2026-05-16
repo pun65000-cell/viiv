@@ -12,6 +12,7 @@ JWT_SECRET = os.getenv(
     "JWT_SECRET",
     "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c"
 )
+AI_URL = os.getenv("AI_URL", "http://localhost:8002")
 
 VALID_SLOTS = (
     "chat_bot","pos_help","autopost","analytics","fallback_customer",
@@ -573,7 +574,7 @@ def test_prompt(slot: str, body: TestBody, authorization: str = Header(None)):
     try:
         with httpx.Client(timeout=15.0) as client:
             r = client.post(
-                "http://localhost:8002/chat",
+                f"{AI_URL}/chat",
                 json={
                     "messages": [
                         {"role": "system", "content": final_prompt},

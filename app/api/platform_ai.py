@@ -14,6 +14,7 @@ from app.core.db import engine
 router = APIRouter(prefix="/ai", tags=["platform-ai"])
 
 JWT_SECRET = os.getenv("JWT_SECRET", "21cc8b2ff8e25e6262effb2b47b15c39fb16438525b6d041bb842a130c08be7c")
+AI_URL = os.getenv("AI_URL", "http://localhost:8002")
 
 COST_PER_TOKEN = {
     "claude-haiku-4-5":    {"input": 0.00000025, "output": 0.00000125},
@@ -140,7 +141,7 @@ async def get_stats(authorization: str = Header(None)):
     ai_status = "unknown"
     try:
         async with httpx.AsyncClient(timeout=2) as client:
-            r = await client.get("http://localhost:8002/health")
+            r = await client.get(f"{AI_URL}/health")
             ai_status = "online" if r.status_code == 200 else "error"
     except Exception:
         ai_status = "offline"
@@ -211,7 +212,7 @@ def get_ai_health(authorization: str = Header(None)):
     _admin_auth(authorization)
     try:
         with httpx.Client(timeout=3.0) as client:
-            r = client.get("http://localhost:8002/health")
+            r = client.get(f"{AI_URL}/health")
         if r.status_code != 200:
             return {"status": "offline", "reason": f"http_{r.status_code}"}
         data = r.json()

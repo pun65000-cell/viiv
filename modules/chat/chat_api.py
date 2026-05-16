@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import text
-import httpx, json
+import os, httpx, json
 from .db import AsyncSessionLocal
+
+AI_URL = os.getenv("AI_URL", "http://localhost:8002")
 
 router = APIRouter()
 
@@ -390,7 +392,7 @@ def get_ai_health():
     """
     try:
         with httpx.Client(timeout=3.0) as client:
-            r = client.get("http://localhost:8002/health")
+            r = client.get(f"{AI_URL}/health")
         if r.status_code != 200:
             return {"status": "offline", "reason": f"http_{r.status_code}"}
         data = r.json()
