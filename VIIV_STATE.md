@@ -1,361 +1,208 @@
 # VIIV STATE — Runtime Snapshot
-> Version: **v3.6** | Updated: 2026-05-15
+> Version: **v3.9** | Updated: 2026-05-16
 > ⛔ AI/Claude Code ห้ามแก้ไฟล์นี้โดยตรง — user copy paste manual
 
 ═══════════════════════════════════════════════════════════════
-CURRENT STATE — 2026-05-15 (post Phase B/C/D + LINE incident fix)
+CURRENT STATE — 2026-05-16 (AI Prompt Layering + Business Paradigm)
 ═══════════════════════════════════════════════════════════════
 
 ## Active services
-PRODUCTION : test7.viiv.me     → :8000  ✅ (restarted 2026-05-15 evening)
-DEV/STAGE  : dev7.viiv.me      → :9000  ✅ (restarted 2026-05-15 evening)
-ADMIN      : concore.viiv.me   → :8000  ✅
-LANDING    : viiv.me           → :8000  ✅ (compliance + soon /payment)
+PRODUCTION : test7.viiv.me  → :8000 (ten_1/iAM_Food @749wyqfy) ✅
+DEV/STAGE  : dev7.viiv.me   → :9000 (test_dev, OA dev เทส)      ✅
+ADMIN      : concore.viiv.me → :8000                            ✅
+LANDING    : viiv.me        → :8000                             ✅
 
-Modules running:
-  modulechat   :8003  ✅ (LINE Official API — VERIFIED working)
-  moduleai     :8002  ✅ (gpt-4.1-nano)
-  app          :8000 + :9000
-
-Modules DORMANT:
-  modulepool   — code retained, refactor target Phase API.6
-
-Modules ARCHIVED (sandbox, see MASTER [Z]):
-  modulefbchat, modulecookie, docker/mautrix, android/Capacitor
-
-## LINE OA Status (verified 2026-05-15 20:42)
-  ten_1     → @749wyqfy  (iAM_Food production)   ✅ tested working
-  test_dev  → 284uegop   (dev7 testing OA)        ✅ unique, no conflict
-
-## Tenants: 11 ร้าน (unchanged)
-  - ten_1 (test7, pkg_pro, active) — PRODUCTION
-  - test_dev (dev7, pkg_pro, active, trial) — STAGING
-  - + 9 ร้าน pending
+Modules:
+  modulechat :8003 ✅
+  moduleai   :8002 ✅ ⚠️ SHARED prod+dev (PID 1005452, restart 16 พ.ค.)
+  app        :8000 (PID 1005505) + :9000
 
 ## Git state
 branch: main
-HEAD: c188a51 (Phase C PWA bottom sheet)
-Pending commits: Phase B.5 enlarge (not yet committed)
-Pending push: MASTER v6.3 + STATE v3.6 (this update)
+HEAD local: b124691 (chore bump Phase 2)
+origin/main: 37593bf  ← ⚠️ ยังไม่ push (CGO รัน push เอง)
 
-## Compliance Foundation Live (Phase API.0 ✅)
-https://viiv.me/privacy        ✅ 200
-https://viiv.me/terms          ✅ 200
-https://viiv.me/data-deletion  ✅ 200
-https://viiv.me/               ✅ 200
+commit chain (local — ปลอดภัย):
+  b124691 chore(bump) Phase 2 cache version
+  8f6ea14 Phase 2.5 prohibit editor
+  985b426 fix tuple 2-tuple (Phase 2.4 fix)
+  edf5df1 Phase 2.4 4-zone + keyword-scan
+  eaee07a Phase 2.3 UI 3 box
+  9942780 Phase 2.2 settings API
+  09c6a4f Phase 1 persona injection
 
-═══════════════════════════════════════════════════════════════
-SESSION 2026-05-15 — Phase B/C/D + LINE incident
-═══════════════════════════════════════════════════════════════
+tag restore points:
+  pre-persona-fix-20260516-042158
+  pre-phase2.2-20260516-051022
+  pre-phase2.3-20260516-051508
+  pre-phase2.4-20260516-052404
+  pre-phase2.5-20260516-054340
 
-Duration: ~all-day
-Outcome: 
-  ✅ Bank popup landed (superboard + PWA)
-  ✅ MASTER v6.3 clean rewrite
-  ✅ Phase D /payment in design (spec ready)
-  ✅ LINE OA production fix (7-8 day silent outage discovered + resolved)
-
-## Work completed today
-
-### Phase B — Superboard Bank Detail Modal ✅
-Files: frontend/superboard/pages/topup.html
-Pattern: center modal, 780px desktop, payment methods grid
-
-Commits:
-- 30f292e  feat(topup): add bank detail modal HTML+CSS (no JS yet)
-- c8e32be  feat(topup): wire bank card click → detail popup with copy+select
-
-Verified: ✅ All 8 functional + 4 visual + 3 edge case tests passed
-
-### Phase B.5 — Enlarged superboard modal + payment methods 🔲
-Files: frontend/superboard/pages/topup.html
-Changes:
-  - Modal width 560px → 780px desktop
-  - QR enlarged: 240px → 320px
-  - Payment grid: 6 logos (Visa/MC/JCB/PromptPay/TrueMoney/ShopeePay)
-  - All payment logos disabled (opacity 0.45 + "เร็วๆ นี้" badge)
-  - Backdrop blur 4px → 6px
-  - Mobile responsive 6→3 column grid
-  
-Status: Spec ready, implementation pending verify
-⚠️ Not yet committed
-
-### Phase C — PWA Bank Bottom Sheet ✅
-Files: frontend/pwa/pages/topup.js
-Pattern: bottom sheet (PWA convention — profile-modal style)
-  - Slide-up animation from bottom
-  - Drag handle pill + ESC + backdrop close
-  - Safe-area aware (max-height 92dvh)
-  - z-index 500 (between store-sheet 200 and shop-add 9000)
-  - Function prefix: tuPwa* (PWA convention)
-  - Inline style strings (no CSS class system — PWA convention)
-  - 3-column payment grid (vs 6-column desktop)
-
-Commit:
-- c188a51  feat(pwa-topup): port bank detail popup as bottom sheet
-
-Verified: ✅ Visual + interaction + animation + PWA-specific tests passed
-
-### Phase D — /payment public page 🔲 IN PROGRESS
-Scope:
-  D.1: GET /api/public/payment-info (no auth, 1 default account)
-       File: app/api/public_info.py (new)
-  D.2: frontend/payment.html (brand consistent, Noto Thai fonts)
-  D.3: Caddyfile changes — 2 blocks:
-       - handle /payment { rewrite /payment.html + no-store cache }
-       - handle /uploads/* { file_server + cache 1d } on viiv.me
-  D.4: Landing CTA button "วิธีชำระเงิน" (green) + footer link
-
-Status: Spec ready, recon complete
-Blockers: 
-  - B1: viiv.me ต้องเพิ่ม /uploads/* handler (QR image accessibility)
-  - B2: is_default = false ทุก row → fallback sort_order ASC
-Next: User confirm + run spec D.1 → D.2 → D.3 → D.4
-
-### MASTER v6.3 — Clean rewrite ✅
-- ลด ~2000 → ~1640 lines (-20%)
-- Consolidated Rules 1-405 by category
-- Removed paradigm-specific decisions (D85-D92 Patchright, D99-D119 mautrix)
-- Condensed [Z] Decommissioned section (5 paradigms × 1-line summary)
-- Added Law 14 (API-First) + Rules 406-411 (Public Pages)
-- Added D159-D165 (bank popup + /payment decisions)
+Pending commit (CGO copy paste เอง — FILE SAFETY):
+  - VIIV_MASTER.md v6.5 (clean rewrite — ไฟล์ใหม่)
+  - VIIV_STATE.md v3.9 (ไฟล์นี้)
 
 ═══════════════════════════════════════════════════════════════
-🚨 INCIDENT 2026-05-15 — LINE OA Production Bot Down
+SESSION 2026-05-16 — สรุปครบ
 ═══════════════════════════════════════════════════════════════
 
-## Summary
-Production LINE OA (iAM_Food = @749wyqfy) bot ไม่ตอบ silent outage
-ระยะเวลา ~7-8 วัน (07 พ.ค. → 14 พ.ค. ระหว่างนั้นไม่ทราบ)
-CGO discovered 14 พ.ค. (ทดสอบ — bot ไม่ตอบ)
-Resolved 2026-05-15 20:42 (verified with test message "ทดสอบ5")
+## งานหลัก: AI Prompt Layering (Phase 1 + Phase 2 ครบ)
 
-## Root cause
-`line_settings.oa_id` ของ `ten_1` ใน DB ถูกตั้งผิดเป็น `284uegop` (OA ของ
-dev7) แทนที่จะเป็น `@749wyqfy` (OA ของ iAM_Food production)
+ปัญหาเข้ามา: AI chat dev7 ไม่ยึด persona (ตอบ "ค่ะ" ทั้งที่ตั้ง male)
 
-ส่งผล:
-1. iAM_Food OA ส่ง webhook → /api/line/webhook?tenant=ten_1
-2. Backend resolve tenant จาก signature → ต้องการ oa_id = @749wyqfy
-3. DB return 0 rows (เพราะ ten_1.oa_id = 284uegop)
-4. Drop webhook event เงียบ ๆ — ไม่ save inbound + ไม่ AI reply
+Recon เจอ 4 DEFECTS:
+  1. {tenant_name} ค้าง literal (ไม่มี .replace())
+  2. persona bypass (brain_prompt != None)
+  3. persona 2-namespace ไม่ตรง (professional-male ↔ male_2)
+  4. _ai_push_reply ไม่ query tenant (ROOT CAUSE)
 
-## Timeline
-- ก่อน 7 พ.ค.    : ทำงานปกติ
-- 7 พ.ค. 07:45  : last successful reply ("สวัสดีค่ะ มีอะไรให้ช่วยค่ะ?")
-- 7-14 พ.ค.     : silent outage (ลูกค้าทักไม่ได้รับตอบ)
-                  อาจเกิดช่วง Phase Z paradigm cleanup หรือ clone tenant test
-- 14 พ.ค.       : CGO discover bot ไม่ตอบ
-- 15 พ.ค. (วัน): diagnose, identify, fix
-- 15 พ.ค. 20:42: verified working with "ทดสอบ5"
+## Phase 1 — persona injection ✅
+  - persona.py: PERSONA_ALIAS + resolve_persona
+  - db.py: get_brain_prompt subs= substitution
+  - main.py: ChatIn +fields, ZONE 1 identity inject
+  - pos_line.py: _ai_push_reply query tenant → payload
+  commit 09c6a4f → (rollback ทับ working tree) → กู้ → restart :9000
+  verified dev7: test_dev ตอบ "ครับ" + รู้บริบทร้าน ✅
 
-## Fix applied
-```sql
-UPDATE line_settings 
-SET oa_id = '@749wyqfy' 
-WHERE tenant_id = 'ten_1';
-```
+## Phase 2 — full layering ✅ (5 sub-phase)
+  2.1 DDL ai_prompts.prohibit_text (Dashboard)
+  2.2 tenant_settings.py do/dont/safety (9942780)
+  2.3 store-settings.html UI 3 box สี (eaee07a)
+  2.4 moduleai 4-zone + keyword-scan (edf5df1)
+      → bug tuple unpack → fix 985b426 (2-tuple ทุก path)
+  2.5 concore prohibit editor (8f6ea14)
+  verified dev7 (test_dev 3 เคส screenshot):
+    "มีผัก" → ตอบปกติ+ครับ | "COD" → QR only | "ยา" → ปฏิเสธ ✅
 
-+ Restart uvicorn :8000 (clear _subdomain_tenant_cache per Rule 68)
-+ Restart uvicorn :9000 (same fix for dev)
+## Deploy prod ✅ (technical)
+  pre-flight 6 gate ผ่าน (working tree clean + commit bump b124691)
+  restart :8002 + :8000 พร้อมกัน — log "startup complete"
+  ไม่มี traceback/ValueError
+  health: test7 200, concore 200, moduleai ok
 
-## Verification
-✅ DB state correct: ten_1=@749wyqfy, test_dev=284uegop (unique)
-✅ Process restart successful (both :8000 and :9000 = 200)
-✅ E2E test: inbound "ทดสอบ5" → AI reply "สวัสดีค่ะ ต้องการความช่วยเหลืออะไรคะ?"
-✅ Chat Dashboard UI updated real-time
+## 🔴 Paradigm shift (CGO decision)
+  D185: family-and-friends → ธุรกิจเต็มรูปแบบ
+  (นิติบุคคล + Official API + ต้นทุนแฝงจริงสูง)
+  → Law 10 ปรับ: tech debt = business liability
+  → Law 15 NEW: verify method ต้องเขียนชัด (D186)
+  บันทึกใน MASTER v6.5 (clean rewrite)
 
-## Tech debt added — Preventive Measures (proposed Rules 412-413 for MASTER)
-
-```
-412 oa_id uniqueness invariant:
-    line_settings.oa_id ต้อง UNIQUE per active tenant
-    ห้าม 2+ tenants ใช้ oa_id เดียวกัน (ยกเว้น NULL)
-    Future: add UNIQUE constraint via Dashboard
-    CREATE UNIQUE INDEX line_settings_oa_id_active_uniq
-      ON line_settings (oa_id) WHERE oa_id IS NOT NULL;
-
-413 Credentials change ต้อง restart process:
-    หลัง update line_settings ต้อง restart uvicorn ที่ port ตรงกัน
-    _subdomain_tenant_cache + tenant_cache เป็น process-level (Rule 68)
-    ไม่ใช่แค่ subdomain change — credentials change ก็กระทบ cache
-```
-
-## Monitoring gap discovered
-❌ ไม่มี alerting เมื่อ bot reply rate = 0
-❌ ไม่มี health check ที่ตรวจ ai_token_log activity
-❌ ไม่มี integrity check ที่ตรวจ oa_id uniqueness
-
-Future improvements (priority depends on user growth):
-- Cronjob ตรวจ ai_token_log ของแต่ละ tenant ในรอบ 24 ชม.
-- LINE OA notify owner ถ้า > 24 ชม. ไม่มี AI reply activity
-- DB constraint partial unique index บน oa_id
+## Session lessons (กัน loop ซ้ำ)
+  - working tree ถูก git checkout ทับ → :9000 code ผิด (Rule 427)
+  - tuple unpack: syntax OK แต่ runtime crash (D187 — pre-check จับ)
+  - verify method ไม่เขียนชัด → AI guide ผิด 3 รอบ (Law 15)
+  - emoji ใน pra-prompt → Claude Code ค้าง (Rule 55 ขยาย)
+  - bump uncommitted → working tree ไม่ clean (Rule 428)
 
 ═══════════════════════════════════════════════════════════════
-CGO ACTIONS REQUIRED (priority order)
+🔴 CGO ACTIONS REQUIRED
 ═══════════════════════════════════════════════════════════════
 
-## 🔴 NOW (วันนี้/พรุ่งนี้)
+## NOW
 
-P0  Commit MASTER v6.3 + STATE v3.6
+P0  git push origin main
     cd /home/viivadmin/viiv
-    # Replace VIIV_MASTER.md with v6.3 (downloaded from chat)
-    # Replace VIIV_STATE.md with v3.6 (downloaded from chat)
+    git push origin main
+    # verify: git log --oneline -1 origin/main → ต้อง = b124691
+
+P0  Update docs (FILE SAFETY — copy เอง)
+    1. แทนที่ VIIV_MASTER.md ด้วยไฟล์ v6.5 ใหม่ทั้งไฟล์
+       (clean rewrite — ไม่ใช่ append)
+    2. แทนที่ VIIV_STATE.md ด้วย v3.9 (ไฟล์นี้)
     git add VIIV_MASTER.md VIIV_STATE.md
-    git commit -m "docs: MASTER v6.3 + STATE v3.6
-    
-    - Clean rewrite (~2000 → ~1640 lines)
-    - Add Phase B/C/D bank popup + /payment
-    - Add Law 14 API-First, Rules 406-411
-    - INCIDENT 2026-05-15 LINE OA production fix"
+    git commit -m "docs: MASTER v6.5 + STATE v3.9 -- business paradigm
+    + AI prompt layering Phase 1+2 implemented"
     git push origin main
 
-P1  NodeMaven credential rotation (D145, security debt from Phase Z)
-    1. เปิด https://app.nodemaven.com
-    2. Login → Account → API Credentials
-    3. Click "Rotate" / "Regenerate"
-    ⚠️ ยัง pending จาก STATE v3.5
+## 🔴 Next session (P0 — แก้ปมปวดหัว)
 
-P2  Complete Phase B.5 (enlarge superboard modal)
-    Spec อยู่ใน chat ก่อนหน้า — สั่ง Claude Code
-    Verify → commit ต่อจาก c8e32be
+P0  สร้าง ~/viiv/verify_chat.sh (Law 15, D186)
+    - รับ arg tenant_id (test_dev | ten_1)
+    - ค้นจาก code จริงว่า chat flow ทำงานยังไง
+    - ส่ง test + query chat_messages + moduleai.log
+    - print PASS/FAIL
+    → ลบความปวดหัว "verify ยังไง" ถาวร
+    → ตกผลึก verify method prod (ten_1) ที่ยังไม่ชัด
 
-P3  Complete Phase D (/payment public page)
-    D.1 → D.2 → D.3 → D.4 phased
-    Spec อยู่ใน chat ก่อนหน้า
+P0  verify prod ten_1 (รอ verify_chat.sh หรือ manual)
+    คาดหวัง: professional-female → "ค่ะ" + 4-zone + biz_type
+    (ปัจจุบัน prod restart code ใหม่แล้ว แต่ยังไม่ confirm
+     ด้วย message จริง — code โหลดได้ไม่ crash)
 
-## 🟡 ภายในสัปดาห์ (Phase API preparation)
+## This week
 
-P4  Email provider decision (privacy@/support@viiv.me)
-    Required ก่อน Meta/Google App Review submission
-    Options: Google Workspace (~฿200/u) / Zoho (~฿35/u) / FastMail (~฿100/u)
+P1  NodeMaven credential rotation (D145 — ค้างนาน)
+P1  Phase 3 Bot tools (search_products/affiliate, on-demand)
+P2  Strategic review: ธุรกิจ paradigm (D185)
+    → re-architect tech debt อะไร (session สดๆ ไม่ใช่ปลาย session)
+P2  email privacy@/support@ (ก่อน App Review)
 
-P5  Phase API.1 spec drafting
-    - data_deletion_requests table schema
-    - POST /api/data-deletion/facebook callback endpoint
-    - /data-deletion/status?code=xxx page
-    - tenant_integrations table
+## Scheduled
 
-## 🟡 ~2026-05-28 (2 สัปดาห์)
-
-P6  Cleanup backups ถ้า production stable
-    sudo rm /etc/caddy/Caddyfile.bak.20260514-*
-    rm /home/viivadmin/viiv/.env.bak.20260514-*
-    rm -rf /tmp/viiv-bak-files-20260514/
-    rm /tmp/z*-*.txt
-    rm /home/viivadmin/viiv/frontend/index.html.bak.20260514-*
-    rm /home/viivadmin/viiv/frontend/compliance/style.css.bak.20260514-*
-    # + Caddyfile backups จาก Phase D ถ้าทำเสร็จและ stable
-
-## 🟢 ~2026-06-14 (1 เดือน)
-
-P7  รัน DDL DROP via Supabase Dashboard
-    1. เปิด Supabase Dashboard → SQL Editor
-    2. Copy SQL จาก sandbox/dashboard-sql-queue-20260514.sql
-    3. Uncomment DROP statements
-    4. Execute
-    Tables: public.fb_sessions + public.fb_audit_log
-
-P8  (Optional) Add UNIQUE constraint บน line_settings.oa_id
-    CREATE UNIQUE INDEX line_settings_oa_id_active_uniq
-      ON line_settings (oa_id) WHERE oa_id IS NOT NULL;
-    via Dashboard (Rule 308)
-    
-    ป้องกัน incident แบบ 2026-05-15 ไม่ให้เกิดอีก
+~2026-05-28  cleanup backups
+~2026-06-14  DROP fb_sessions + fb_audit_log (Dashboard)
 
 ═══════════════════════════════════════════════════════════════
-NEXT SESSION CANDIDATES
+TECH DEBT (v6.5 — business liability mindset)
 ═══════════════════════════════════════════════════════════════
 
-## P1 — Complete Phase B.5 + Phase D
-Spec อยู่ใน chat ก่อนหน้าครบถ้วน
-Effort: 1-2 sessions
-Trigger: ทันที (ไม่ต้องรอ)
+## P0
+- verify method prod (ten_1) ไม่ตกผลึก → CGO ปวดหัวซ้ำ
+- verify_chat.sh ยังไม่สร้าง
+- prod ten_1 ยังไม่ confirm verify (code โหลดได้แต่ไม่ test จริง)
 
-## P2 — Phase API.1 implementation (highest priority for Phase API)
-Scope:
-- DB: data_deletion_requests + tenant_integrations (DDL via Dashboard)
-- API: POST /api/data-deletion/facebook callback
-- API: OAuth flow (start/callback/refresh per platform)
-- Frontend: /data-deletion/status?code=xxx page
-- Tests: validate FB signed_request + token storage
+## P1
+- :8002 SHARED prod+dev → restart มือ (re-architect: dev :8012?)
+- NodeMaven credential (D145 pending นาน)
+- git push pending (local ปลอดภัย แต่ยังไม่ off-site จนกว่า push)
 
-Effort: 2-3 sessions
-Trigger: รอ CGO ตัดสิน email + decide platform priority
+## P2
+- MASTER เคย 426 rules → v6.5 condensed (รักษา lean ต่อ)
+- ai_token_log slot column ยังไม่มี
+- modulepool dormant | fb_sessions DROP queued
+- ai-bot.html CRUD ยังไม่ทดสอบจริง
 
-## P3 — Phase API.2 FB Graph API + Messenger
-Effort: 3-5 sessions + App Review wait (2-8 สัปดาห์)
-Trigger: รอ Phase API.1 + compliance live (DONE) + email live
-
-## P4 — Phase API.3-5 (TikTok/IG/YT/Shopee/Lazada)
-Each: 1-2 sessions + App Review per platform
-
-## P5 — Phase API.6 modulepool refactor → API rate-limit pool
-Reuse: state machine, scoring formula, audit, manager
-Effort: 2-3 sessions
-Trigger: when API platforms มี rate limit ที่ต้อง manage
-
-## P6 — Operational hardening (LINE OA monitoring)
-- Cron + alert สำหรับ tenant ที่ silent > 24h
-- Health endpoint integrity check
-- DB UNIQUE constraint enforcement
-Effort: 1 session
-Trigger: optional แต่แนะนำ หลัง P1-P5 stable
+## P3
+- email privacy@/support@ ยังไม่ setup
+- Phase 4 logo upload ยังไม่ทดสอบ
+- BILLING_GUARD_MODE=report (ยังไม่ enforce)
 
 ═══════════════════════════════════════════════════════════════
 NEXT TURN HANDOFF
 ═══════════════════════════════════════════════════════════════
 
-## ก่อนเริ่ม session ใหม่
+## เปิด session ใหม่
+1. Copy VIIV_MASTER.md (v6.5) + VIIV_STATE.md (v3.9) → AI chat
+2. ps aux | grep claude | grep -v grep → kill เก่า
 
-1. Copy VIIV_MASTER.md (v6.3) + VIIV_STATE.md (v3.6) → วางใน AI แชท
-2. ตรวจ Claude Code RAM:
-   ps aux | grep claude | grep -v grep
-   kill instance เก่าถ้ามี
-
-## ตรวจสถานะ infrastructure
-
-```bash
-# Active services
-curl -s http://localhost:8002/health  # moduleai
-curl -s http://localhost:8003/health  # modulechat
-
-# Production health
-curl -sS -o /dev/null -w "viiv.me:        %{http_code}\n" https://viiv.me/
-curl -sS -o /dev/null -w "privacy:        %{http_code}\n" https://viiv.me/privacy
-curl -sS -o /dev/null -w "terms:          %{http_code}\n" https://viiv.me/terms
-curl -sS -o /dev/null -w "data-deletion:  %{http_code}\n" https://viiv.me/data-deletion
-curl -sS -o /dev/null -w "test7:          %{http_code}\n" https://test7.viiv.me/api/platform/health
-curl -sS -o /dev/null -w "dev7:           %{http_code}\n" https://dev7.viiv.me/api/platform/health
-
-# LINE OA health (post-incident — should be working)
-# Send test message to iAM_Food OA → check DB
-psql postgresql://postgres:viiv_secure_123@10.1.0.3:5434/postgres -c \
-  "SELECT id, direction, message_type, LEFT(content,40) AS preview, created_at
-   FROM chat_messages 
-   WHERE created_at > NOW() - INTERVAL '1 hour'
-   ORDER BY created_at DESC LIMIT 10;"
-
-# Verify oa_id uniqueness (post-fix)
-psql postgresql://postgres:viiv_secure_123@10.1.0.3:5434/postgres -c \
-  "SELECT tenant_id, oa_id FROM line_settings ORDER BY tenant_id;"
-# Expected:
-#  ten_1     | @749wyqfy
-#  test_dev  | 284uegop
-# Both unique ≠ each other
+## สถานะสั้นที่สุด (เผื่อไม่อยากอ่านยาว)
+```
+✅ Phase 1+2 AI prompt layering — code commit + verified dev7
+🟡 prod ten_1 — restart code ใหม่แล้ว แต่ยังไม่ verify message จริง
+🔴 ทำ verify_chat.sh ก่อน (แก้ปม CGO ปวดหัวซ้ำ — Law 15)
+🔴 git push (ถ้ายังไม่ทำ NOW)
+🔴 docs MASTER v6.5 + STATE v3.9 (ถ้ายังไม่ commit)
 ```
 
-## Quick reference สำหรับ Phase API
+## Health check
+```bash
+curl -s http://localhost:8002/health   # moduleai (SHARED)
+curl -s http://localhost:8003/health   # modulechat
+curl -sS -o /dev/null -w "test7 %{http_code}\n" \
+  https://test7.viiv.me/api/platform/health
+curl -sS -o /dev/null -w "dev7 %{http_code}\n" \
+  https://dev7.viiv.me/api/platform/health
+psql postgresql://postgres:viiv_secure_123@10.1.0.3:5434/postgres -c \
+  "SELECT id,store_name,ai_persona,jsonb_pretty(ai_context)
+   FROM tenants WHERE id IN ('ten_1','test_dev');"
+```
 
-- LINE Messaging API: https://developers.line.biz/en/reference/messaging-api/
-- FB Graph API + Messenger: https://developers.facebook.com/docs/messenger-platform
-- IG Graph API: https://developers.facebook.com/docs/instagram-api
-- TikTok for Business: https://business-api.tiktok.com/portal/docs
-- YouTube Data API: https://developers.google.com/youtube/v3
-- Google API Services User Data Policy: https://developers.google.com/terms/api-services-user-data-policy
-- Shopee Open: https://open.shopee.com/
-- Lazada Open: https://open.lazada.com/
+## Quick reference
+- LINE API: https://developers.line.biz/en/reference/messaging-api/
+- ai_prompts.prohibit_text DDL (ทำแล้ว 2.1):
+  ALTER TABLE ai_prompts ADD COLUMN IF NOT EXISTS
+    prohibit_text text NOT NULL DEFAULT '';
 
 ═══════════════════════════════════════════════════════════════
-END OF STATE v3.6
+END OF STATE v3.9
 ═══════════════════════════════════════════════════════════════
