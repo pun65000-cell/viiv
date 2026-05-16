@@ -193,11 +193,14 @@ def _ai_push_reply(
     try:
         import httpx as _httpx
 
-        # Phase 1: fetch tenant context for persona injection
+        # Phase 1+2: fetch tenant context for persona + boundary injection
         _store_name: str | None = None
         _ai_persona: str | None = None
         _tone: str = ""
         _biz_type: str = ""
+        _do: str = ""
+        _dont: str = ""
+        _safe: str = ""
         try:
             with engine.connect() as _tc:
                 _tr = _tc.execute(text(
@@ -220,6 +223,10 @@ def _ai_push_reply(
                     _l2 = _tr[4] or ""
                     _l3 = _tr[5] or ""
                     _biz_type = " > ".join(filter(None, [_l1, _l2, _l3]))
+                    if isinstance(_ctx, dict):
+                        _do   = _ctx.get("do_text",    "") or ""
+                        _dont = _ctx.get("dont_text",  "") or ""
+                        _safe = _ctx.get("safety_text","") or ""
         except Exception as _te:
             _log.warning("[ai_push] tenant ctx fail tenant=%s: %s", tenant_id, _te)
 
@@ -237,6 +244,9 @@ def _ai_push_reply(
                     "persona_key": _ai_persona,
                     "tone":        _tone,
                     "biz_type":    _biz_type,
+                    "do_text":     _do,
+                    "dont_text":   _dont,
+                    "safety_text": _safe,
                 },
             )
             if r.status_code != 200:

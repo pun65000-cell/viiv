@@ -1,7 +1,8 @@
 # moduleai/main.py — AI module (port 8002)
-# v0.2: OpenAI gpt-5-nano via DB key (test mode, single model)
+# v0.3: 4-zone prompt assembly + keyword-scan (Phase 2)
 
 import os
+import re
 import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -18,12 +19,24 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [ai] %(message)s")
 log = logging.getLogger("moduleai")
 
-app = FastAPI(title="ViiV AI Module", version="0.2.0")
+app = FastAPI(title="ViiV AI Module", version="0.3.0")
 collector = TrainingCollector()
 
 # Test mode: lock single model
 LOCKED_MODEL = os.getenv("AI_MODEL", "gpt-4.1-nano")
 LOCKED_PROVIDER = "openai"
+
+# Phase 2: platform-level blocked keywords (always enforced, regardless of tenant settings)
+BLOCK_WORDS_BASE = [
+    "ยาเสพติด", "อาวุธ", "ปืน", "ระเบิด",
+    "ผิดกฎหมาย", "ลิขสิทธิ์", "ของเลียนแบบ", "ปลอม",
+]
+
+
+def _safety_tokens(safety_text: str) -> list[str]:
+    """แยก safety_text (คั่นด้วย comma/newline/space) เป็น list คำ ความยาว >= 2"""
+    tokens = re.split(r"[,\n\s]+", safety_text or "")
+    return [t.strip() for t in tokens if len(t.strip()) >= 2]
 
 
 class ChatIn(BaseModel):
@@ -38,6 +51,10 @@ class ChatIn(BaseModel):
     persona_key: str | None = None     # tenant PERSONA_IDS key
     tone:        str | None = None     # ai_context.constraints
     biz_type:    str | None = None     # "l1 > l2 > l3"
+    # Phase 2 boundary fields (all optional — backward compat)
+    do_text:     str | None = None     # สิ่งที่ร้านอยากให้ช่วย
+    dont_text:   str | None = None     # สิ่งที่ห้ามพูดถึง
+    safety_text: str | None = None     # คำที่ trigger block ก่อน LLM
 
 
 @app.get("/health")
@@ -57,6 +74,25 @@ def chat(payload: ChatIn):
     if not payload.message:
         raise HTTPException(400, "empty message")
 
+    # Phase 2: keyword-scan — short-circuit BEFORE LLM call
+    msg_l = (payload.message or "").lower()
+    scan_words = BLOCK_WORDS_BASE + _safety_tokens(payload.safety_text or "")
+    hit = next((w for w in scan_words if w and w.lower() in msg_l), None)
+    if hit:
+        log.info("[block] keyword=%s tenant=%s", hit, payload.tenant_id)
+        reply = "ขออภัยครับ เรื่องนี้ทางพนักงานจะติดต่อกลับ เพื่อให้ข้อมูลที่ถูกต้องนะครับ"
+        collector.collect(payload.message, reply, payload.tenant_id)
+        return {
+            "reply": reply,
+            "persona": "system",
+            "model": "blocked",
+            "provider": "none",
+            "tokens_in": 0,
+            "tokens_out": 0,
+            "cost_usd": 0,
+            "blocked": True,
+        }
+
     # Phase 1: resolve persona via alias map (รองรับทั้ง 2 namespace)
     persona = resolve_persona(payload.persona_key or payload.persona)
 
@@ -64,10 +100,12 @@ def chat(payload: ChatIn):
     subs = {
         "tenant_name": payload.store_name or "ร้านค้า",
     }
-    brain_prompt = get_brain_prompt(payload.slot or "chat_bot", subs=subs)
+    brain_prompt, prohibit_text = get_brain_prompt(
+        payload.slot or "chat_bot", subs=subs, return_prohibit=True
+    )
 
     if brain_prompt:
-        # ZONE 1 — identity block (persona + biz_type + tone) นำหน้า orchestration
+        # ZONE 1 — identity (persona + biz_type + tone + do_text)
         identity: list[str] = []
         if payload.store_name:
             identity.append(f"คุณคือผู้ช่วยร้าน {payload.store_name}")
@@ -78,12 +116,36 @@ def chat(payload: ChatIn):
             identity.append(persona_tone)
         if payload.tone:
             identity.append(f"ข้อกำหนดการตอบ: {payload.tone}")
+        if payload.do_text:
+            identity.append(f"สิ่งที่ร้านอยากให้ช่วย: {payload.do_text}")
 
         identity_block = "\n".join(identity)
-        system_prompt = (identity_block + "\n\n" + brain_prompt
-                         if identity_block else brain_prompt)
-        log.info("[brain] slot=%s identity=%d prompt=%d chars",
-                 payload.slot, len(identity_block), len(system_prompt))
+
+        # ZONE 2 — boundaries (dont_text + safety_text)
+        boundary_lines: list[str] = []
+        if payload.dont_text:
+            boundary_lines.append(f"ห้ามพูดถึง: {payload.dont_text}")
+        if payload.safety_text:
+            boundary_lines.append(f"ห้ามตอบเรื่อง: {payload.safety_text}")
+        boundary_block = "\n".join(boundary_lines)
+
+        # ZONE 3 — orchestration (brain_prompt)
+        # ZONE 4 — absolute prohibition (prohibit_text from platform DB)
+        prohibit_block = (f"\n[ห้ามเด็ดขาด] {prohibit_text}" if prohibit_text else "")
+
+        parts = []
+        if identity_block:
+            parts.append(identity_block)
+        if boundary_block:
+            parts.append(boundary_block)
+        parts.append(brain_prompt)
+        if prohibit_block:
+            parts.append(prohibit_block)
+
+        system_prompt = "\n\n".join(parts)
+        log.info("[brain] slot=%s identity=%d boundary=%d prompt=%d prohibit=%d chars",
+                 payload.slot, len(identity_block), len(boundary_block),
+                 len(brain_prompt), len(prohibit_text))
     else:
         system_prompt = persona["system_prompt"]
         log.info("[brain] slot=%s → fallback persona=%s", payload.slot, persona["name"])

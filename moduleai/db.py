@@ -77,31 +77,32 @@ def get_brain_prompt(
     slot: str,
     brain_group: str = "customer",
     subs: dict | None = None,
-) -> str | None:
+    return_prohibit: bool = False,
+) -> "str | None | tuple[str | None, str]":
     """
-    อ่าน base_text + custom_text + active patches จาก ai_prompts
+    อ่าน base_text + custom_text + prohibit_text + active patches จาก ai_prompts
     compose เป็น final prompt แล้ว return
-    ถ้าไม่มีข้อมูล → return None (caller ใช้ persona fallback)
 
-    subs: dict ที่ใช้ replace placeholder เช่น {"tenant_name": "ร้านผัก"}
-          None → behavior เดิม (backward compat)
+    return_prohibit=False (default) → return str | None  (backward compat)
+    return_prohibit=True            → return (str | None, prohibit_text: str)
     """
     try:
         with psycopg2.connect(DB_URL) as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
-                    "SELECT base_text, custom_text FROM ai_prompts WHERE slot=%s",
+                    "SELECT base_text, custom_text, prohibit_text FROM ai_prompts WHERE slot=%s",
                     (slot,)
                 )
                 row = cur.fetchone()
                 if not row:
-                    return None
+                    return (None, "") if return_prohibit else None
 
                 base = (row["base_text"] or "").strip()
                 custom = (row["custom_text"] or "").strip()
+                prohibit = (row["prohibit_text"] or "").strip()
 
                 if base.startswith("[TODO"):
-                    return None
+                    return (None, prohibit) if return_prohibit else None
 
                 cur.execute(
                     """
@@ -128,8 +129,8 @@ def get_brain_prompt(
                     for k, v in subs.items():
                         result = result.replace("{" + k + "}", str(v) if v is not None else "")
 
-                return result
+                return (result, prohibit) if return_prohibit else result
 
     except Exception as e:
         print(f"[moduleai.db] get_brain_prompt({slot}) error: {e}")
-        return None
+        return (None, "") if return_prohibit else None
