@@ -7,11 +7,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 try:
-    from moduleai.persona import PERSONAS, get_persona
+    from moduleai.persona import PERSONAS, get_persona, resolve_persona
     from moduleai.training import TrainingCollector
     from moduleai.db import get_api_key, log_token_usage, get_brain_prompt
 except ImportError:
-    from persona import PERSONAS, get_persona
+    from persona import PERSONAS, get_persona, resolve_persona
     from training import TrainingCollector
     from db import get_api_key, log_token_usage, get_brain_prompt
 
@@ -28,11 +28,16 @@ LOCKED_PROVIDER = "openai"
 
 class ChatIn(BaseModel):
     message: str
-    persona: str | None = None
-    slot: str | None = "chat_bot"      # ← brain slot (Phase D-2)
+    persona: str | None = None         # legacy key (moduleai namespace)
+    slot: str | None = "chat_bot"      # brain slot
     tenant_id: str | None = None
     source: str | None = "chat"        # chat | autopost | pos_help
-    shop_id: str | None = None         # ← context injection (Phase D-2)
+    shop_id: str | None = None         # backward compat
+    # Phase 1 persona injection fields (all optional — backward compat)
+    store_name:  str | None = None     # ชื่อร้านจริง (แทน shop_id ดิบ)
+    persona_key: str | None = None     # tenant PERSONA_IDS key
+    tone:        str | None = None     # ai_context.constraints
+    biz_type:    str | None = None     # "l1 > l2 > l3"
 
 
 @app.get("/health")
@@ -52,15 +57,33 @@ def chat(payload: ChatIn):
     if not payload.message:
         raise HTTPException(400, "empty message")
 
-    persona = get_persona(payload.persona)
+    # Phase 1: resolve persona via alias map (รองรับทั้ง 2 namespace)
+    persona = resolve_persona(payload.persona_key or payload.persona)
 
-    # Phase D-2: อ่าน prompt จาก Brain DB ก่อน
-    brain_prompt = get_brain_prompt(payload.slot or "chat_bot")
+    # Phase 1: สร้าง subs dict สำหรับ replace placeholder ใน brain_prompt
+    subs = {
+        "tenant_name": payload.store_name or "ร้านค้า",
+    }
+    brain_prompt = get_brain_prompt(payload.slot or "chat_bot", subs=subs)
+
     if brain_prompt:
-        if payload.shop_id:
-            brain_prompt += f"\n\n[Context] ร้าน: {payload.shop_id}"
-        system_prompt = brain_prompt
-        log.info("[brain] slot=%s prompt=%d chars", payload.slot, len(brain_prompt))
+        # ZONE 1 — identity block (persona + biz_type + tone) นำหน้า orchestration
+        identity: list[str] = []
+        if payload.store_name:
+            identity.append(f"คุณคือผู้ช่วยร้าน {payload.store_name}")
+        if payload.biz_type:
+            identity.append(f"ร้านขาย: {payload.biz_type}")
+        persona_tone = persona.get("system_prompt", "")
+        if persona_tone:
+            identity.append(persona_tone)
+        if payload.tone:
+            identity.append(f"ข้อกำหนดการตอบ: {payload.tone}")
+
+        identity_block = "\n".join(identity)
+        system_prompt = (identity_block + "\n\n" + brain_prompt
+                         if identity_block else brain_prompt)
+        log.info("[brain] slot=%s identity=%d prompt=%d chars",
+                 payload.slot, len(identity_block), len(system_prompt))
     else:
         system_prompt = persona["system_prompt"]
         log.info("[brain] slot=%s → fallback persona=%s", payload.slot, persona["name"])

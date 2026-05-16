@@ -73,11 +73,18 @@ def log_token_usage(
         return 0.0
 
 
-def get_brain_prompt(slot: str) -> str | None:
+def get_brain_prompt(
+    slot: str,
+    brain_group: str = "customer",
+    subs: dict | None = None,
+) -> str | None:
     """
     อ่าน base_text + custom_text + active patches จาก ai_prompts
     compose เป็น final prompt แล้ว return
     ถ้าไม่มีข้อมูล → return None (caller ใช้ persona fallback)
+
+    subs: dict ที่ใช้ replace placeholder เช่น {"tenant_name": "ร้านผัก"}
+          None → behavior เดิม (backward compat)
     """
     try:
         with psycopg2.connect(DB_URL) as conn:
@@ -115,7 +122,13 @@ def get_brain_prompt(slot: str) -> str | None:
                         parts.append("- " + p)
 
                 parts.append("\n[ระบบ] ตอบสั้นกระชับ ไม่เกิน 2 ประโยค ห้ามอธิบายยาว")
-                return "\n".join(parts)
+                result = "\n".join(parts)
+
+                if subs:
+                    for k, v in subs.items():
+                        result = result.replace("{" + k + "}", str(v) if v is not None else "")
+
+                return result
 
     except Exception as e:
         print(f"[moduleai.db] get_brain_prompt({slot}) error: {e}")

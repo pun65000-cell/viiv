@@ -66,6 +66,24 @@ PERSONAS: dict = {
 
 DEFAULT_KEY = "female_1"
 
+# Map tenant PERSONA_IDS (tenant_settings.py) → moduleai internal keys
+PERSONA_ALIAS: dict[str, str] = {
+    "friendly-female":     "female_1",
+    "professional-female": "female_2",
+    "cute-female":         "female_3",
+    "friendly-male":       "male_1",
+    "professional-male":   "male_2",
+    "casual-male":         "male_3",
+}
+
 
 def get_persona(key: str | None) -> dict:
     return PERSONAS.get(key or DEFAULT_KEY, PERSONAS[DEFAULT_KEY])
+
+
+def resolve_persona(key: str | None) -> dict:
+    """รับได้ทั้ง tenant PERSONA_IDS และ moduleai key เดิม — fallback female_1"""
+    if not key:
+        return get_persona(DEFAULT_KEY)
+    mapped = PERSONA_ALIAS.get(key, key)
+    return get_persona(mapped)

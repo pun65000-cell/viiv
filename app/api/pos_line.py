@@ -193,16 +193,50 @@ def _ai_push_reply(
     try:
         import httpx as _httpx
 
+        # Phase 1: fetch tenant context for persona injection
+        _store_name: str | None = None
+        _ai_persona: str | None = None
+        _tone: str = ""
+        _biz_type: str = ""
+        try:
+            with engine.connect() as _tc:
+                _tr = _tc.execute(text(
+                    "SELECT store_name, ai_persona, ai_context,"
+                    " biz_type_l1, biz_type_l2, biz_type_l3"
+                    " FROM tenants WHERE id=:tid LIMIT 1"
+                ), {"tid": tenant_id}).fetchone()
+                if _tr:
+                    _store_name = _tr[0]
+                    _ai_persona = _tr[1]
+                    _ctx = _tr[2] or {}
+                    if isinstance(_ctx, str):
+                        try:
+                            _ctx = json.loads(_ctx)
+                        except Exception:
+                            _ctx = {}
+                    _tone = (_ctx.get("tone_constraints")
+                             or _ctx.get("constraints") or "")
+                    _l1 = _tr[3] or ""
+                    _l2 = _tr[4] or ""
+                    _l3 = _tr[5] or ""
+                    _biz_type = " > ".join(filter(None, [_l1, _l2, _l3]))
+        except Exception as _te:
+            _log.warning("[ai_push] tenant ctx fail tenant=%s: %s", tenant_id, _te)
+
         # 1. เรียก AI (timeout 25s — push ไม่มี deadline)
         with _httpx.Client(timeout=25.0) as hc:
             r = hc.post(
                 "http://localhost:8002/chat",
                 json={
-                    "message":   message_text,
-                    "slot":      "chat_bot",
-                    "tenant_id": tenant_id,
-                    "source":    "line_chat",
-                    "shop_id":   tenant_id,
+                    "message":     message_text,
+                    "slot":        "chat_bot",
+                    "tenant_id":   tenant_id,
+                    "source":      "line_chat",
+                    "shop_id":     tenant_id,
+                    "store_name":  _store_name,
+                    "persona_key": _ai_persona,
+                    "tone":        _tone,
+                    "biz_type":    _biz_type,
                 },
             )
             if r.status_code != 200:
